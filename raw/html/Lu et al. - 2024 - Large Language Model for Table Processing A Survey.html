@@ -1,0 +1,2040 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2402.05121] Large Language Model for Table Processing: A Survey</title><meta property="og:description" content="Tables, typically two-dimensional and structured to store large amounts of data, are essential in daily activities like database queries, spreadsheet calculations, and generating reports from web tables. Automating the…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Large Language Model for Table Processing: A Survey">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="Large Language Model for Table Processing: A Survey">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2402.05121">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2402.05121">
+
+<!--Generated on Tue Mar  5 12:27:28 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_title_document">Large Language Model for Table Processing: A Survey</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+Weizheng Lu<sup id="id6.2.id1" class="ltx_sup">1</sup>
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Jiaming Zhang<sup id="id7.2.id1" class="ltx_sup">1</sup>
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Jing Zhang<sup id="id8.4.id1" class="ltx_sup">1</sup>&amp;Yueguo Chen<sup id="id9.5.id2" class="ltx_sup">1</sup>
+<br class="ltx_break"><sup id="id10.6.id3" class="ltx_sup">1</sup>Renmin University of China
+<br class="ltx_break">{luweizheng,zhangjiaming2002,zhang-jing,chenyueguo}@ruc.edu.cn
+</span><span class="ltx_author_notes">Corresponding author</span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id11.id1" class="ltx_p">Tables, typically two-dimensional and structured to store large amounts of data, are essential in daily activities like database queries, spreadsheet calculations, and generating reports from web tables. Automating these table-centric tasks with Large Language Models (LLMs) offers significant public benefits, garnering interest from academia and industry.
+This survey provides an extensive overview of table tasks, encompassing not only the traditional areas like table question answering (Table QA) and fact verification, but also newly emphasized aspects such as table manipulation and advanced table data analysis. Additionally, it goes beyond the early strategies of pre-training and fine-tuning small language models, to include recent paradigms in LLM usage. The focus here is particularly on instruction-tuning, prompting, and agent-based approaches within the realm of LLMs.
+Finally, we highlight several challenges, ranging from private deployment and efficient inference to the development of extensive benchmarks for table manipulation and advanced data analysis.</p>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">In this data-driven era, a substantial volume of data is structured and stored in the form of tables <cite class="ltx_cite ltx_citemacro_cite">Dong <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib13" title="" class="ltx_ref">2022</a>)</cite>.
+Everyday tasks involving tables, such as database queries, spreadsheet calculations, or generating reports from web tables, are common in our daily lives. While some of these tasks are tedious and error-prone, others require specialized skills and should be simplified for broader accessibility.
+The automation of tasks related to tables offers significant benefits to the general public, and consequently, it has attracted considerable interest from both academic and industrial sectors <cite class="ltx_cite ltx_citemacro_cite">Badaro <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib2" title="" class="ltx_ref">2023</a>)</cite>.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">Recently, large language models (LLMs) have showcased their effectiveness and flexibility in diverse tasks, marking significant advancements in AI research <cite class="ltx_cite ltx_citemacro_cite">Zhao <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib62" title="" class="ltx_ref">2023a</a>)</cite>. This success in extensive natural language processing applications has inspired researchers to explore LLMs in table tasks. However, the nature of tables is quite different from the plain text commonly used during the pre-training of LLMs. Tables, unlike natural language corpora <cite class="ltx_cite ltx_citemacro_cite">Raffel <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib40" title="" class="ltx_ref">2020</a>)</cite>, have distinct characteristics.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<ul id="S1.I1" class="ltx_itemize">
+<li id="S1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i1.p1" class="ltx_para">
+<p id="S1.I1.i1.p1.1" class="ltx_p"><span id="S1.I1.i1.p1.1.1" class="ltx_text ltx_font_bold">Structured Data:</span> Tables are inherently structured, composed of rows and columns, each with its own schema that outlines the data’s semantics and their interrelations. Humans can effortlessly interpret tables both vertically and horizontally, but LLMs, primarily trained with sequential text data, struggle with understanding the multidimensional aspects of tables.</p>
+</div>
+</li>
+<li id="S1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i2.p1" class="ltx_para">
+<p id="S1.I1.i2.p1.1" class="ltx_p"><span id="S1.I1.i2.p1.1.1" class="ltx_text ltx_font_bold">Complex Reasoning:</span> Tasks in table processing often require numerical operations (like comparisons or aggregations), data preparation (such as column type annotation and missing value detection), and more sophisticated analyses (including feature engineering and visualization). These tasks demand intricate reasoning, the ability to decompose problems into multiple steps, and logical operations, thereby posing significant challenges to machine intelligence.</p>
+</div>
+</li>
+<li id="S1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i3.p1" class="ltx_para">
+<p id="S1.I1.i3.p1.1" class="ltx_p"><span id="S1.I1.i3.p1.1.1" class="ltx_text ltx_font_bold">Utilizing External Tools:</span> In real-world scenarios, humans often depend on specialized tools such as Microsoft Excel, Python, or SQL for interacting with tables. For effective table processing, LLMs need to be adept at integrating and using these external tools.</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p id="S1.p4.1" class="ltx_p">The unique challenges presented by table processing tasks emphasize the need to tailor LLMs for these specific purposes.
+Early research, such as TaBERT <cite class="ltx_cite ltx_citemacro_cite">Yin <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib56" title="" class="ltx_ref">2020</a>)</cite>, TaPas <cite class="ltx_cite ltx_citemacro_cite">Herzig <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib16" title="" class="ltx_ref">2020</a>)</cite>, TURL <cite class="ltx_cite ltx_citemacro_cite">Deng <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib11" title="" class="ltx_ref">2020</a>)</cite>, and TaPEx <cite class="ltx_cite ltx_citemacro_cite">Liu <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib32" title="" class="ltx_ref">2022</a>)</cite>, adhere to the paradigm of pre-training or fine-tuning neural language models for tables. These methods adapt model architectures, including position embeddings, attention mechanisms, and learning objectives for pretraining tasks.
+While these approaches yield good results, they are largely confined to specific table tasks like table question answering (Table QA) and fact verification. Additionally, the BERT or BART models they utilize are not sufficiently large or versatile to handle a broader range of table tasks.
+Latest LLM-based approaches tackle table tasks in three primary ways: (1) curating an instruction-tuning dataset and fine-tuning a “table foundational model” that could handle various downstream tasks <cite class="ltx_cite ltx_citemacro_cite">Zhang <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib59" title="" class="ltx_ref">2023a</a>); Li <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib29" title="" class="ltx_ref">2023d</a>)</cite>; (2) prompting an LLM by utilizing the LLM’s strong reasoning ability to understand table data <cite class="ltx_cite ltx_citemacro_cite">Sui <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib45" title="" class="ltx_ref">2024</a>)</cite>; and (3) building an LLM-powered agent that can call external tools <cite class="ltx_cite ltx_citemacro_cite">Hu <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib17" title="" class="ltx_ref">2024</a>); Li <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib27" title="" class="ltx_ref">2023b</a>)</cite>.
+These newer methods leverage LLM-specific technologies, such as instruction-tuning <cite class="ltx_cite ltx_citemacro_cite">Wei <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib48" title="" class="ltx_ref">2022a</a>)</cite>, in-context learning <cite class="ltx_cite ltx_citemacro_cite">Brown <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib3" title="" class="ltx_ref">2020</a>)</cite>, chain-of-thought reasoning <cite class="ltx_cite ltx_citemacro_cite">Wei <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib49" title="" class="ltx_ref">2022b</a>)</cite>, and the development of autonomous agents <cite class="ltx_cite ltx_citemacro_cite">Wang <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib46" title="" class="ltx_ref">2023a</a>)</cite>, showcasing a more versatile and comprehensive approach to table processing.</p>
+</div>
+<div id="S1.p5" class="ltx_para">
+<p id="S1.p5.1" class="ltx_p">The main contribution of this survey is its extensive coverage of a wide range of table tasks, including recently proposed table manipulation and advanced data analysis. Additionally, it categorizes methods based on the latest paradigms in LLM usage, specifically focusing on instruction-tuning, prompting, and LLM-powered agent approaches. We collect resources such as papers, code, and datasets, which can be accessed at <a target="_blank" href="https://github.com/godaai/llm-table-survey" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/godaai/llm-table-survey</a>.</p>
+</div>
+<div id="S1.p6" class="ltx_para ltx_noindent">
+<p id="S1.p6.1" class="ltx_p"><span id="S1.p6.1.1" class="ltx_text ltx_font_bold">Comparison with Related Surveys. </span>
+Earlier surveys, such as those by Dong et al. <cite class="ltx_cite ltx_citemacro_cite">Dong <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib13" title="" class="ltx_ref">2022</a>)</cite> and Badaro et al. <cite class="ltx_cite ltx_citemacro_cite">Badaro <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib2" title="" class="ltx_ref">2023</a>)</cite>, primarily concentrate on pre-training or fine-tuning techniques using smaller models like BERT <cite class="ltx_cite ltx_citemacro_cite">Herzig <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib16" title="" class="ltx_ref">2020</a>); Yin <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib56" title="" class="ltx_ref">2020</a>)</cite> or BART <cite class="ltx_cite ltx_citemacro_cite">Liu <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib32" title="" class="ltx_ref">2022</a>)</cite>. However, they do not address methods based on LLMs, particularly those involving prompting strategies and agent-based approaches. Additionally, some surveys are confined to specific subsets of table tasks. For instance, Jin et al. <cite class="ltx_cite ltx_citemacro_cite">Jin <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib23" title="" class="ltx_ref">2022</a>)</cite> focus solely on tableQA, while Qin et al. <cite class="ltx_cite ltx_citemacro_cite">Qin <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib39" title="" class="ltx_ref">2022</a>)</cite> concentrate on text-to-SQL conversion, overlooking tasks such as table manipulation and advanced data analysis.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Table Tasks and Benchmarks</h2>
+
+<div id="S2.p1" class="ltx_para">
+<p id="S2.p1.1" class="ltx_p">Tables are prevalent data structures that organize and manipulate knowledge and information in almost every domain. We briefly summarize table tasks and benchmarks.</p>
+</div>
+<figure id="S2.T1" class="ltx_table">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">Table 1: </span>
+ Table tasks, datasets, input and output. The abbreviations are SS: Spreadsheet, WT: Web Tables, and DB: Database.
+</figcaption>
+<div id="S2.T1.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:708.7pt;height:456.1pt;vertical-align:-0.9pt;"><span class="ltx_transformed_inner" style="transform:translate(-39.4pt,25.3pt) scale(0.9,0.9) ;">
+<table id="S2.T1.1.1" class="ltx_tabular ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S2.T1.1.1.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.1.1.1" class="ltx_td ltx_align_right ltx_border_tt">
+<span id="S2.T1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Category   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.1.1.2" class="ltx_td ltx_align_right ltx_border_tt">
+<span id="S2.T1.1.1.1.1.2.1" class="ltx_text" style="font-size:90%;">Representative Task   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.1.1.3" class="ltx_td ltx_align_right ltx_border_tt">
+<span id="S2.T1.1.1.1.1.3.1" class="ltx_text" style="font-size:90%;">Dataset   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.1.1.4" class="ltx_td ltx_align_right ltx_border_tt">
+<span id="S2.T1.1.1.1.1.4.1" class="ltx_text" style="font-size:90%;">Knowledge Input   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.1.1.5" class="ltx_td ltx_align_right ltx_border_tt">
+<span id="S2.T1.1.1.1.1.5.1" class="ltx_text" style="font-size:90%;">User Input   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.1.1.6" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.6.1" class="ltx_text" style="font-size:90%;">Output</span></td>
+</tr>
+<tr id="S2.T1.1.1.2.2" class="ltx_tr">
+<td id="S2.T1.1.1.2.2.1" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.2.2.1.1" class="ltx_text" style="font-size:90%;">Table QA   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.2.2.2" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T1.1.1.2.2.2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.2.2.2.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.2.2.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.2.2.2.1.1.1.1" class="ltx_text" style="font-size:90%;">Question answeing</span></td>
+</tr>
+<tr id="S2.T1.1.1.2.2.2.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.2.2.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.2.2.2.1.2.1.1" class="ltx_text" style="font-size:90%;">Fact verification</span></td>
+</tr>
+</table>
+<span id="S2.T1.1.1.2.2.2.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.2.2.3" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T1.1.1.2.2.3.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.2.2.3.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.2.2.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.2.2.3.1.1.1.1" class="ltx_text" style="font-size:90%;">WikiTQ </span><cite class="ltx_cite ltx_citemacro_cite">Pasupat and Liang <span id="S2.T1.1.1.2.2.3.1.1.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib37" title="" class="ltx_ref">2015</a><span id="S2.T1.1.1.2.2.3.1.1.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.2.2.3.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.2.2.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.2.2.3.1.2.1.1" class="ltx_text" style="font-size:90%;">WikiSQL </span><cite class="ltx_cite ltx_citemacro_cite">Zhong <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.2.2.3.1.2.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib64" title="" class="ltx_ref">2017</a><span id="S2.T1.1.1.2.2.3.1.2.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.2.2.3.1.3" class="ltx_tr">
+<td id="S2.T1.1.1.2.2.3.1.3.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.2.2.3.1.3.1.1" class="ltx_text" style="font-size:90%;">HybridQA </span><cite class="ltx_cite ltx_citemacro_cite">Chen <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.2.2.3.1.3.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib6" title="" class="ltx_ref">2020b</a><span id="S2.T1.1.1.2.2.3.1.3.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.2.2.3.1.4" class="ltx_tr">
+<td id="S2.T1.1.1.2.2.3.1.4.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.2.2.3.1.4.1.1" class="ltx_text" style="font-size:90%;">SQA </span><cite class="ltx_cite ltx_citemacro_cite">Iyyer <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.2.2.3.1.4.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib20" title="" class="ltx_ref">2017</a><span id="S2.T1.1.1.2.2.3.1.4.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.2.2.3.1.5" class="ltx_tr">
+<td id="S2.T1.1.1.2.2.3.1.5.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.2.2.3.1.5.1.1" class="ltx_text" style="font-size:90%;">FeTaQA </span><cite class="ltx_cite ltx_citemacro_cite">Nan <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.2.2.3.1.5.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib34" title="" class="ltx_ref">2022</a><span id="S2.T1.1.1.2.2.3.1.5.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.2.2.3.1.6" class="ltx_tr">
+<td id="S2.T1.1.1.2.2.3.1.6.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.2.2.3.1.6.1.1" class="ltx_text" style="font-size:90%;">TabFact </span><cite class="ltx_cite ltx_citemacro_cite">Chen <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.2.2.3.1.6.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib5" title="" class="ltx_ref">2020a</a><span id="S2.T1.1.1.2.2.3.1.6.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+</table>
+<span id="S2.T1.1.1.2.2.3.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.2.2.4" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.2.2.4.1" class="ltx_text" style="font-size:90%;">WT   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.2.2.5" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.2.2.5.1" class="ltx_text" style="font-size:90%;">Question   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.2.2.6" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t"><span id="S2.T1.1.1.2.2.6.1" class="ltx_text" style="font-size:90%;">Answer</span></td>
+</tr>
+<tr id="S2.T1.1.1.3.3" class="ltx_tr">
+<td id="S2.T1.1.1.3.3.1" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.3.3.1.1" class="ltx_text" style="font-size:90%;">Table-to-text   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.3.3.2" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T1.1.1.3.3.2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.3.3.2.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.3.3.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.3.3.2.1.1.1.1" class="ltx_text" style="font-size:90%;">Summary</span></td>
+</tr>
+<tr id="S2.T1.1.1.3.3.2.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.3.3.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.3.3.2.1.2.1.1" class="ltx_text" style="font-size:90%;">Dialogue</span></td>
+</tr>
+</table>
+<span id="S2.T1.1.1.3.3.2.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.3.3.3" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T1.1.1.3.3.3.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.3.3.3.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.3.3.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.3.3.3.1.1.1.1" class="ltx_text" style="font-size:90%;">ToTTo </span><cite class="ltx_cite ltx_citemacro_cite">Parikh <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.3.3.3.1.1.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib36" title="" class="ltx_ref">2020</a><span id="S2.T1.1.1.3.3.3.1.1.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.3.3.3.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.3.3.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.3.3.3.1.2.1.1" class="ltx_text" style="font-size:90%;">DART </span><cite class="ltx_cite ltx_citemacro_cite">Nan <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.3.3.3.1.2.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib33" title="" class="ltx_ref">2021</a><span id="S2.T1.1.1.3.3.3.1.2.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+</table>
+<span id="S2.T1.1.1.3.3.3.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.3.3.4" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.3.3.4.1" class="ltx_text" style="font-size:90%;">WT   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.3.3.5" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.3.3.5.1" class="ltx_text" style="font-size:90%;">Instruction   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.3.3.6" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t"><span id="S2.T1.1.1.3.3.6.1" class="ltx_text" style="font-size:90%;">Text</span></td>
+</tr>
+<tr id="S2.T1.1.1.4.4" class="ltx_tr">
+<td id="S2.T1.1.1.4.4.1" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.4.4.1.1" class="ltx_text" style="font-size:90%;">Manipulation   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.4.4.2" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T1.1.1.4.4.2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.4.4.2.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.4.4.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.4.4.2.1.1.1.1" class="ltx_text" style="font-size:90%;">Insert</span></td>
+</tr>
+<tr id="S2.T1.1.1.4.4.2.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.4.4.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.4.4.2.1.2.1.1" class="ltx_text" style="font-size:90%;">Delete</span></td>
+</tr>
+<tr id="S2.T1.1.1.4.4.2.1.3" class="ltx_tr">
+<td id="S2.T1.1.1.4.4.2.1.3.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.4.4.2.1.3.1.1" class="ltx_text" style="font-size:90%;">Alter</span></td>
+</tr>
+</table>
+<span id="S2.T1.1.1.4.4.2.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.4.4.3" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T1.1.1.4.4.3.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.4.4.3.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.4.4.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.4.4.3.1.1.1.1" class="ltx_text" style="font-size:90%;">SpreadsheetCoder </span><cite class="ltx_cite ltx_citemacro_cite">Chen <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.4.4.3.1.1.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib8" title="" class="ltx_ref">2021b</a><span id="S2.T1.1.1.4.4.3.1.1.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.4.4.3.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.4.4.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.4.4.3.1.2.1.1" class="ltx_text" style="font-size:90%;">Sheetcopilot </span><cite class="ltx_cite ltx_citemacro_cite">Li <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.4.4.3.1.2.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib27" title="" class="ltx_ref">2023b</a><span id="S2.T1.1.1.4.4.3.1.2.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+</table>
+<span id="S2.T1.1.1.4.4.3.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.4.4.4" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.4.4.4.1" class="ltx_text" style="font-size:90%;">SS   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.4.4.5" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.4.4.5.1" class="ltx_text" style="font-size:90%;">Instruction   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.4.4.6" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t">
+<table id="S2.T1.1.1.4.4.6.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.4.4.6.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.4.4.6.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.4.4.6.1.1.1.1" class="ltx_text" style="font-size:90%;">Formula</span></td>
+</tr>
+<tr id="S2.T1.1.1.4.4.6.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.4.4.6.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.4.4.6.1.2.1.1" class="ltx_text" style="font-size:90%;">SS</span></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr id="S2.T1.1.1.5.5" class="ltx_tr">
+<td id="S2.T1.1.1.5.5.1" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.5.5.1.1" class="ltx_text" style="font-size:90%;">Interpretation   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.5.5.2" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T1.1.1.5.5.2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.5.5.2.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.5.5.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.5.5.2.1.1.1.1" class="ltx_text" style="font-size:90%;">Entity linking</span></td>
+</tr>
+<tr id="S2.T1.1.1.5.5.2.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.5.5.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.5.5.2.1.2.1.1" class="ltx_text" style="font-size:90%;">Column type annotation</span></td>
+</tr>
+<tr id="S2.T1.1.1.5.5.2.1.3" class="ltx_tr">
+<td id="S2.T1.1.1.5.5.2.1.3.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.5.5.2.1.3.1.1" class="ltx_text" style="font-size:90%;">Relation extraction</span></td>
+</tr>
+</table>
+<span id="S2.T1.1.1.5.5.2.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.5.5.3" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T1.1.1.5.5.3.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.5.5.3.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.5.5.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.5.5.3.1.1.1.1" class="ltx_text" style="font-size:90%;">AnaMeta </span><cite class="ltx_cite ltx_citemacro_cite">He <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.5.5.3.1.1.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib15" title="" class="ltx_ref">2023</a><span id="S2.T1.1.1.5.5.3.1.1.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.5.5.3.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.5.5.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.5.5.3.1.2.1.1" class="ltx_text" style="font-size:90%;">GitTables </span><cite class="ltx_cite ltx_citemacro_cite">Hulsebos <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.5.5.3.1.2.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib18" title="" class="ltx_ref">2023</a><span id="S2.T1.1.1.5.5.3.1.2.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.5.5.3.1.3" class="ltx_tr">
+<td id="S2.T1.1.1.5.5.3.1.3.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.5.5.3.1.3.1.1" class="ltx_text" style="font-size:90%;">TableInstruct </span><cite class="ltx_cite ltx_citemacro_cite">Zhang <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.5.5.3.1.3.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib59" title="" class="ltx_ref">2023a</a><span id="S2.T1.1.1.5.5.3.1.3.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.5.5.3.1.4" class="ltx_tr">
+<td id="S2.T1.1.1.5.5.3.1.4.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.5.5.3.1.4.1.1" class="ltx_text" style="font-size:90%;">TURL </span><cite class="ltx_cite ltx_citemacro_cite">Deng <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.5.5.3.1.4.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib11" title="" class="ltx_ref">2020</a><span id="S2.T1.1.1.5.5.3.1.4.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+</table>
+<span id="S2.T1.1.1.5.5.3.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.5.5.4" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.5.5.4.1" class="ltx_text" style="font-size:90%;">WT   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.5.5.5" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.5.5.5.1" class="ltx_text" style="font-size:90%;">Instruction   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.5.5.6" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t">
+<table id="S2.T1.1.1.5.5.6.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.5.5.6.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.5.5.6.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.5.5.6.1.1.1.1" class="ltx_text" style="font-size:90%;">Referent entity</span></td>
+</tr>
+<tr id="S2.T1.1.1.5.5.6.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.5.5.6.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.5.5.6.1.2.1.1" class="ltx_text" style="font-size:90%;">Column types</span></td>
+</tr>
+<tr id="S2.T1.1.1.5.5.6.1.3" class="ltx_tr">
+<td id="S2.T1.1.1.5.5.6.1.3.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.5.5.6.1.3.1.1" class="ltx_text" style="font-size:90%;">Relation</span></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr id="S2.T1.1.1.6.6" class="ltx_tr">
+<td id="S2.T1.1.1.6.6.1" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.6.6.1.1" class="ltx_text" style="font-size:90%;">Augmentation   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.6.6.2" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T1.1.1.6.6.2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.6.6.2.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.6.6.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.6.6.2.1.1.1.1" class="ltx_text" style="font-size:90%;">Row population</span></td>
+</tr>
+<tr id="S2.T1.1.1.6.6.2.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.6.6.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.6.6.2.1.2.1.1" class="ltx_text" style="font-size:90%;">Column population</span></td>
+</tr>
+<tr id="S2.T1.1.1.6.6.2.1.3" class="ltx_tr">
+<td id="S2.T1.1.1.6.6.2.1.3.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.6.6.2.1.3.1.1" class="ltx_text" style="font-size:90%;">Cell filling</span></td>
+</tr>
+</table>
+<span id="S2.T1.1.1.6.6.2.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.6.6.3" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T1.1.1.6.6.3.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.6.6.3.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.6.6.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.6.6.3.1.1.1.1" class="ltx_text" style="font-size:90%;">TableInstruct </span><cite class="ltx_cite ltx_citemacro_cite">Zhang <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.6.6.3.1.1.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib59" title="" class="ltx_ref">2023a</a><span id="S2.T1.1.1.6.6.3.1.1.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.6.6.3.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.6.6.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.6.6.3.1.2.1.1" class="ltx_text" style="font-size:90%;">TURL </span><cite class="ltx_cite ltx_citemacro_cite">Deng <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.6.6.3.1.2.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib11" title="" class="ltx_ref">2020</a><span id="S2.T1.1.1.6.6.3.1.2.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+</table>
+<span id="S2.T1.1.1.6.6.3.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.6.6.4" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.6.6.4.1" class="ltx_text" style="font-size:90%;">WT   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.6.6.5" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.6.6.5.1" class="ltx_text" style="font-size:90%;">Instruction   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.6.6.6" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t">
+<table id="S2.T1.1.1.6.6.6.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.6.6.6.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.6.6.6.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.6.6.6.1.1.1.1" class="ltx_text" style="font-size:90%;">Header row</span></td>
+</tr>
+<tr id="S2.T1.1.1.6.6.6.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.6.6.6.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.6.6.6.1.2.1.1" class="ltx_text" style="font-size:90%;">Column name</span></td>
+</tr>
+<tr id="S2.T1.1.1.6.6.6.1.3" class="ltx_tr">
+<td id="S2.T1.1.1.6.6.6.1.3.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.6.6.6.1.3.1.1" class="ltx_text" style="font-size:90%;">Cell</span></td>
+</tr>
+</table>
+</td>
+</tr>
+<tr id="S2.T1.1.1.7.7" class="ltx_tr">
+<td id="S2.T1.1.1.7.7.1" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.7.7.1.1" class="ltx_text" style="font-size:90%;">Text-to-SQL   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.7.7.2" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.7.7.2.1" class="ltx_text" style="font-size:90%;">Text-to-SQL   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.7.7.3" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T1.1.1.7.7.3.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.7.7.3.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.7.7.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.7.7.3.1.1.1.1" class="ltx_text" style="font-size:90%;">Spider </span><cite class="ltx_cite ltx_citemacro_cite">Yu <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.7.7.3.1.1.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib57" title="" class="ltx_ref">2018</a><span id="S2.T1.1.1.7.7.3.1.1.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.7.7.3.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.7.7.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.7.7.3.1.2.1.1" class="ltx_text" style="font-size:90%;">BIRD </span><cite class="ltx_cite ltx_citemacro_cite">Li <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.7.7.3.1.2.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib28" title="" class="ltx_ref">2023c</a><span id="S2.T1.1.1.7.7.3.1.2.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.7.7.3.1.3" class="ltx_tr">
+<td id="S2.T1.1.1.7.7.3.1.3.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.7.7.3.1.3.1.1" class="ltx_text" style="font-size:90%;">Dr.Spider </span><cite class="ltx_cite ltx_citemacro_cite">Chang <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.7.7.3.1.3.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib4" title="" class="ltx_ref">2023</a><span id="S2.T1.1.1.7.7.3.1.3.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+</table>
+<span id="S2.T1.1.1.7.7.3.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.7.7.4" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.7.7.4.1" class="ltx_text" style="font-size:90%;">DB   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.7.7.5" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T1.1.1.7.7.5.1" class="ltx_text" style="font-size:90%;">Question   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.7.7.6" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t"><span id="S2.T1.1.1.7.7.6.1" class="ltx_text" style="font-size:90%;">SQL</span></td>
+</tr>
+<tr id="S2.T1.1.1.8.8" class="ltx_tr">
+<td id="S2.T1.1.1.8.8.1" class="ltx_td ltx_align_right ltx_border_bb ltx_border_t">
+<table id="S2.T1.1.1.8.8.1.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.8.8.1.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.8.8.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.8.8.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Advanced data</span></td>
+</tr>
+<tr id="S2.T1.1.1.8.8.1.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.8.8.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.8.8.1.1.2.1.1" class="ltx_text" style="font-size:90%;">analysis</span></td>
+</tr>
+</table>
+<span id="S2.T1.1.1.8.8.1.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.8.8.2" class="ltx_td ltx_align_right ltx_border_bb ltx_border_t">
+<table id="S2.T1.1.1.8.8.2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.8.8.2.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.8.8.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.8.8.2.1.1.1.1" class="ltx_text" style="font-size:90%;">Feature engineering</span></td>
+</tr>
+<tr id="S2.T1.1.1.8.8.2.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.8.8.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.8.8.2.1.2.1.1" class="ltx_text" style="font-size:90%;">Visualization</span></td>
+</tr>
+<tr id="S2.T1.1.1.8.8.2.1.3" class="ltx_tr">
+<td id="S2.T1.1.1.8.8.2.1.3.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.8.8.2.1.3.1.1" class="ltx_text" style="font-size:90%;">Distribution analysis</span></td>
+</tr>
+<tr id="S2.T1.1.1.8.8.2.1.4" class="ltx_tr">
+<td id="S2.T1.1.1.8.8.2.1.4.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T1.1.1.8.8.2.1.4.1.1" class="ltx_text" style="font-size:90%;">Machine learning</span></td>
+</tr>
+</table>
+<span id="S2.T1.1.1.8.8.2.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.8.8.3" class="ltx_td ltx_align_right ltx_border_bb ltx_border_t">
+<table id="S2.T1.1.1.8.8.3.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.8.8.3.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.8.8.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.8.8.3.1.1.1.1" class="ltx_text" style="font-size:90%;">HumanEval </span><cite class="ltx_cite ltx_citemacro_cite">Chen <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.8.8.3.1.1.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib7" title="" class="ltx_ref">2021a</a><span id="S2.T1.1.1.8.8.3.1.1.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.8.8.3.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.8.8.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.8.8.3.1.2.1.1" class="ltx_text" style="font-size:90%;">MBPP </span><cite class="ltx_cite ltx_citemacro_cite">Austin <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.8.8.3.1.2.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib1" title="" class="ltx_ref">2021</a><span id="S2.T1.1.1.8.8.3.1.2.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.8.8.3.1.3" class="ltx_tr">
+<td id="S2.T1.1.1.8.8.3.1.3.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.8.8.3.1.3.1.1" class="ltx_text" style="font-size:90%;">InfiAgent-DABench </span><cite class="ltx_cite ltx_citemacro_cite">Hu <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.8.8.3.1.3.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib17" title="" class="ltx_ref">2024</a><span id="S2.T1.1.1.8.8.3.1.3.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+<tr id="S2.T1.1.1.8.8.3.1.4" class="ltx_tr">
+<td id="S2.T1.1.1.8.8.3.1.4.1" class="ltx_td ltx_nopad_r ltx_align_center">
+<span id="S2.T1.1.1.8.8.3.1.4.1.1" class="ltx_text" style="font-size:90%;">DS-1000 </span><cite class="ltx_cite ltx_citemacro_cite">Lai <span class="ltx_text ltx_font_italic">et al.</span> <span id="S2.T1.1.1.8.8.3.1.4.1.2.1.1.1" class="ltx_text" style="font-size:90%;">(</span><a href="#bib.bib25" title="" class="ltx_ref">2023</a><span id="S2.T1.1.1.8.8.3.1.4.1.3.2.2.1" class="ltx_text" style="font-size:90%;">)</span></cite>
+</td>
+</tr>
+</table>
+<span id="S2.T1.1.1.8.8.3.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.8.8.4" class="ltx_td ltx_align_right ltx_border_bb ltx_border_t">
+<span id="S2.T1.1.1.8.8.4.1" class="ltx_text" style="font-size:90%;">SS/DB   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.8.8.5" class="ltx_td ltx_align_right ltx_border_bb ltx_border_t">
+<span id="S2.T1.1.1.8.8.5.1" class="ltx_text" style="font-size:90%;">Instruction   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T1.1.1.8.8.6" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_bb ltx_border_t"><span id="S2.T1.1.1.8.8.6.1" class="ltx_text" style="font-size:90%;">Code</span></td>
+</tr>
+</tbody>
+</table>
+</span></div>
+</figure>
+<section id="S2.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.1 </span>Table Definition</h3>
+
+<div id="S2.SS1.p1" class="ltx_para">
+<p id="S2.SS1.p1.1" class="ltx_p">In this paper, we mainly focus on structured tables, which are grids of cells arranged in rows and columns <cite class="ltx_cite ltx_citemacro_cite">Zhang and Balog (<a href="#bib.bib58" title="" class="ltx_ref">2020</a>)</cite>.
+Every column in a table signifies a specific attribute, each having its own data type (e.g., numeric, string, or date), and each row forms a record, populated with diverse attribute values.
+A cell is the intersection of a row and a column.
+Cells are basic units to store text, numerical values, formulas, etc <cite class="ltx_cite ltx_citemacro_cite">Dong <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib13" title="" class="ltx_ref">2022</a>)</cite>.
+The two-dimensional structure endows the data with a schema, which includes column names, data types, constraints, and relevant relationships with other tables.
+Tables are mainly stored and presented in the following forms:</p>
+</div>
+<div id="S2.SS1.p2" class="ltx_para">
+<ul id="S2.I1" class="ltx_itemize">
+<li id="S2.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I1.i1.p1" class="ltx_para">
+<p id="S2.I1.i1.p1.1" class="ltx_p"><span id="S2.I1.i1.p1.1.1" class="ltx_text ltx_font_bold">Spreadsheet</span> (SS). Spreadsheets are used by one-tenth of the global population <cite class="ltx_cite ltx_citemacro_cite">Rahman <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib41" title="" class="ltx_ref">2020</a>)</cite>. Microsoft Excel is the most popular desktop-based spreadsheet software. Excel has its own file format (xlsx), comes equipped with built-in formulas, data visualization, and even allows table programming (Visual Basic for Applications, VBA).</p>
+</div>
+</li>
+<li id="S2.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I1.i2.p1" class="ltx_para">
+<p id="S2.I1.i2.p1.1" class="ltx_p"><span id="S2.I1.i2.p1.1.1" class="ltx_text ltx_font_bold">Web Table</span> (WT). The Web hosts a multitude of tables, created for diverse purposes and containing valuable information. These tables exist in varied formats, ranging from HTML tables within webpages to markdown, JSON, and XML files. Web tables prove beneficial in applications such as column type annotation or entity linking <cite class="ltx_cite ltx_citemacro_cite">Zhang and Balog (<a href="#bib.bib58" title="" class="ltx_ref">2020</a>)</cite>.</p>
+</div>
+</li>
+<li id="S2.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I1.i3.p1" class="ltx_para">
+<p id="S2.I1.i3.p1.1" class="ltx_p"><span id="S2.I1.i3.p1.1.1" class="ltx_text ltx_font_bold">Database</span> (DB). Tables in databases are highly structured. Each database table is explicitly defined with a schema at the creation time. The associations between tables are defined through foreign keys <cite class="ltx_cite ltx_citemacro_cite">Li <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib26" title="" class="ltx_ref">2023a</a>)</cite>. Compared to spreadsheets and Web tables, interaction with database tables necessitates using programming languages or SQL. Thus, database tables primarily target on individuals with programming experience.</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+<section id="S2.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.2 </span>Differences Between Table and Text</h3>
+
+<div id="S2.SS2.p1" class="ltx_para">
+<p id="S2.SS2.p1.1" class="ltx_p">Many AI methodologies migrate text modeling techniques to tables. Therefore, we should consider the differences between tables and text.
+ <cite class="ltx_cite ltx_citemacro_cite">Li <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib29" title="" class="ltx_ref">2023d</a>)</cite> outlines the main distinctions between them. Texts are (1) one-directional; (2) typically read from left to right; and (3) the swapping of two tokens usually alters the sentence’s meaning. On the other hand, tables are (1) two-dimensional, requiring both horizontal and vertical reading; (2) their understanding heavily relies on schemas or header names; and (3) they remain unaffected by row and column permutations.</p>
+</div>
+</section>
+<section id="S2.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.3 </span>Table Tasks</h3>
+
+<section id="S2.SS3.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">2.3.1 </span>Classification</h4>
+
+<div id="S2.SS3.SSS1.p1" class="ltx_para">
+<p id="S2.SS3.SSS1.p1.1" class="ltx_p">Table <a href="#S2.T1" title="Table 1 ‣ 2 Table Tasks and Benchmarks ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> presents our classification of table tasks.
+Table question answering and fact verification are the most traditional table tasks. We categorize them into a single group because they all involve extracting knowledge from tables to answer questions.
+Table-to-text produces a description based on table data.
+Table manipulation modifies or updates the table, such as adding or deleting rows, creating a new column by summing up other columns, etc.
+Table interpretation tasks aim to comprehend the structure and content of tables by inferring the semantics of columns and rows.
+Table augmentation involves populating rows, column names, or cells.
+Text-to-SQL converts NL questions into a machine-understandable logical form, namely SQLs.
+Advanced data analysis refers to high-level tasks requiring complex reasoning or creativity, such as feature engineering or data visualization.</p>
+</div>
+</section>
+<section id="S2.SS3.SSS2" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">2.3.2 </span>End-users’ Perspective</h4>
+
+<div id="S2.SS3.SSS2.p1" class="ltx_para">
+<p id="S2.SS3.SSS2.p1.1" class="ltx_p">Researchers often focus solely on designing new methods to improve performance on benchmarks.
+However, end-users are primarily interested in how table-related AI systems can boost their productivity, rather than the specifics of benchmarks.
+End-user requirements vary based on their roles; common users typically need table querying and manipulation capabilities, while data engineers seek tools for tabular data preparation and advanced analysis.</p>
+</div>
+<div id="S2.SS3.SSS2.p2" class="ltx_para ltx_noindent">
+<p id="S2.SS3.SSS2.p2.1" class="ltx_p"><span id="S2.SS3.SSS2.p2.1.1" class="ltx_text ltx_font_bold">Table Querying and Manipulation </span> refers to the first three categories in Table <a href="#S2.T1" title="Table 1 ‣ 2 Table Tasks and Benchmarks ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> (i.e., <span id="S2.SS3.SSS2.p2.1.2" class="ltx_text ltx_font_italic">Table QA</span>, <span id="S2.SS3.SSS2.p2.1.3" class="ltx_text ltx_font_italic">Table-to-text</span>, <span id="S2.SS3.SSS2.p2.1.4" class="ltx_text ltx_font_italic">Manipulation</span>).
+This family involves querying tables, or generating text descriptions through NL, or managing tables via spreadsheets. Most users can perform these operations without programming skills. AI systems should enable individuals to process tables through NL questions or instructions.</p>
+</div>
+<div id="S2.SS3.SSS2.p3" class="ltx_para ltx_noindent">
+<p id="S2.SS3.SSS2.p3.1" class="ltx_p"><span id="S2.SS3.SSS2.p3.1.1" class="ltx_text ltx_font_bold">Tabular Data Preparation </span> denotes the <span id="S2.SS3.SSS2.p3.1.2" class="ltx_text ltx_font_italic">Interpretation</span> and <span id="S2.SS3.SSS2.p3.1.3" class="ltx_text ltx_font_italic">Augmentation</span> tasks in Table <a href="#S2.T1" title="Table 1 ‣ 2 Table Tasks and Benchmarks ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>. These tasks are typically carried out by data engineers during data preparation phase.</p>
+</div>
+<div id="S2.SS3.SSS2.p4" class="ltx_para ltx_noindent">
+<p id="S2.SS3.SSS2.p4.1" class="ltx_p"><span id="S2.SS3.SSS2.p4.1.1" class="ltx_text ltx_font_bold">Advanced Table Analysis </span> refers to the <span id="S2.SS3.SSS2.p4.1.2" class="ltx_text ltx_font_italic">Text-to-SQL</span> and <span id="S2.SS3.SSS2.p4.1.3" class="ltx_text ltx_font_italic">Anvanced data analysis</span> tasks in Table <a href="#S2.T1" title="Table 1 ‣ 2 Table Tasks and Benchmarks ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>.
+These tasks cater to data engineers looking for an AI copilot to aid in code completion and boost productivity.</p>
+</div>
+</section>
+<section id="S2.SS3.SSS3" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">2.3.3 </span>Input and Output</h4>
+
+<div id="S2.SS3.SSS3.p1" class="ltx_para">
+<p id="S2.SS3.SSS3.p1.1" class="ltx_p">In Table <a href="#S2.T1" title="Table 1 ‣ 2 Table Tasks and Benchmarks ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>, we organize the frequently used datasets and benchmarks corresponding to the table tasks.
+These tasks generally involve two types of inputs: the knowledge input, reflecting the input table’s format, and the user input, which includes the users’ questions or instructions.
+Annotating inputs and outputs helps engineers and product managers better understand these table tasks, facilitating more effective system feature design.</p>
+</div>
+</section>
+</section>
+<section id="S2.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.4 </span>Benchmarks and Evaluation Methods</h3>
+
+<figure id="S2.T2" class="ltx_table">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">Table 2: </span>
+Evaluation metrics of different benchmarks. We use the abbreviations as follows. EX:Execution Accuracy, VES:Valid Efficiency Score, EM:Exact Match, ABP:Accuracy by Questions, APSQ:Accuracy Proportional by Subquestions, AUSQ:Accuracy Uniform by Subquestions, P:Precision, R:Recall
+</figcaption>
+<div id="S2.T2.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:294.1pt;height:195.3pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="transform:translate(-63.0pt,41.8pt) scale(0.7,0.7) ;">
+<table id="S2.T2.1.1" class="ltx_tabular ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S2.T2.1.1.1.1" class="ltx_tr">
+<td id="S2.T2.1.1.1.1.1" class="ltx_td ltx_align_right ltx_border_tt">
+<span id="S2.T2.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Dataset   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.1.1.2" class="ltx_td ltx_align_right ltx_border_tt">
+<span id="S2.T2.1.1.1.1.2.1" class="ltx_text" style="font-size:90%;">Sources   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.1.1.3" class="ltx_td ltx_align_right ltx_border_tt">
+<span id="S2.T2.1.1.1.1.3.1" class="ltx_text" style="font-size:90%;">Size   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.1.1.4" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_tt"><span id="S2.T2.1.1.1.1.4.1" class="ltx_text" style="font-size:90%;">Metric</span></td>
+</tr>
+<tr id="S2.T2.1.1.2.2" class="ltx_tr">
+<td id="S2.T2.1.1.2.2.1" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T2.1.1.2.2.1.1" class="ltx_text" style="font-size:90%;">BIRD   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.2.2.2" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T2.1.1.2.2.2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T2.1.1.2.2.2.1.1" class="ltx_tr">
+<td id="S2.T2.1.1.2.2.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.2.2.2.1.1.1.1" class="ltx_text" style="font-size:90%;">Kaggle,CTU Prague</span></td>
+</tr>
+<tr id="S2.T2.1.1.2.2.2.1.2" class="ltx_tr">
+<td id="S2.T2.1.1.2.2.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.2.2.2.1.2.1.1" class="ltx_text" style="font-size:90%;">Open tables</span></td>
+</tr>
+</table>
+<span id="S2.T2.1.1.2.2.2.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.2.2.3" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T2.1.1.2.2.3.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T2.1.1.2.2.3.1.1" class="ltx_tr">
+<td id="S2.T2.1.1.2.2.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.2.2.3.1.1.1.1" class="ltx_text" style="font-size:90%;">95 DBs</span></td>
+</tr>
+<tr id="S2.T2.1.1.2.2.3.1.2" class="ltx_tr">
+<td id="S2.T2.1.1.2.2.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.2.2.3.1.2.1.1" class="ltx_text" style="font-size:90%;">12,751 text-to-SQL pairs</span></td>
+</tr>
+</table>
+<span id="S2.T2.1.1.2.2.3.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.2.2.4" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t"><span id="S2.T2.1.1.2.2.4.1" class="ltx_text" style="font-size:90%;">VES,EX</span></td>
+</tr>
+<tr id="S2.T2.1.1.3.3" class="ltx_tr">
+<td id="S2.T2.1.1.3.3.1" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T2.1.1.3.3.1.1" class="ltx_text" style="font-size:90%;">Dr.Spider   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.3.3.2" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T2.1.1.3.3.2.1" class="ltx_text" style="font-size:90%;">Spider   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.3.3.3" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T2.1.1.3.3.3.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T2.1.1.3.3.3.1.1" class="ltx_tr">
+<td id="S2.T2.1.1.3.3.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.3.3.3.1.1.1.1" class="ltx_text" style="font-size:90%;">200 DBs</span></td>
+</tr>
+<tr id="S2.T2.1.1.3.3.3.1.2" class="ltx_tr">
+<td id="S2.T2.1.1.3.3.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.3.3.3.1.2.1.1" class="ltx_text" style="font-size:90%;">15K perturbed examples</span></td>
+</tr>
+</table>
+<span id="S2.T2.1.1.3.3.3.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.3.3.4" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t"><span id="S2.T2.1.1.3.3.4.1" class="ltx_text" style="font-size:90%;">EX,EM</span></td>
+</tr>
+<tr id="S2.T2.1.1.4.4" class="ltx_tr">
+<td id="S2.T2.1.1.4.4.1" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T2.1.1.4.4.1.1" class="ltx_text" style="font-size:90%;">SheetCopilot   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.4.4.2" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T2.1.1.4.4.2.1" class="ltx_text" style="font-size:90%;">superuser.com   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.4.4.3" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T2.1.1.4.4.3.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T2.1.1.4.4.3.1.1" class="ltx_tr">
+<td id="S2.T2.1.1.4.4.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.4.4.3.1.1.1.1" class="ltx_text" style="font-size:90%;">28 SSs</span></td>
+</tr>
+<tr id="S2.T2.1.1.4.4.3.1.2" class="ltx_tr">
+<td id="S2.T2.1.1.4.4.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.4.4.3.1.2.1.1" class="ltx_text" style="font-size:90%;">13k QA pairs</span></td>
+</tr>
+</table>
+<span id="S2.T2.1.1.4.4.3.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.4.4.4" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t"><span id="S2.T2.1.1.4.4.4.1" class="ltx_text" style="font-size:90%;">Pass@k,Exec@k</span></td>
+</tr>
+<tr id="S2.T2.1.1.5.5" class="ltx_tr">
+<td id="S2.T2.1.1.5.5.1" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T2.1.1.5.5.1.1" class="ltx_text" style="font-size:90%;">DS-1000   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.5.5.2" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T2.1.1.5.5.2.1" class="ltx_text" style="font-size:90%;">StackOverflow   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.5.5.3" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T2.1.1.5.5.3.1" class="ltx_text" style="font-size:90%;">451 problems   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.5.5.4" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t"><span id="S2.T2.1.1.5.5.4.1" class="ltx_text" style="font-size:90%;">Pass@1</span></td>
+</tr>
+<tr id="S2.T2.1.1.6.6" class="ltx_tr">
+<td id="S2.T2.1.1.6.6.1" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T2.1.1.6.6.1.1" class="ltx_text" style="font-size:90%;">InfiAgent-DABench   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.6.6.2" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T2.1.1.6.6.2.1" class="ltx_text" style="font-size:90%;">GitHub   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.6.6.3" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T2.1.1.6.6.3.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T2.1.1.6.6.3.1.1" class="ltx_tr">
+<td id="S2.T2.1.1.6.6.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.6.6.3.1.1.1.1" class="ltx_text" style="font-size:90%;">631 CSVs</span></td>
+</tr>
+<tr id="S2.T2.1.1.6.6.3.1.2" class="ltx_tr">
+<td id="S2.T2.1.1.6.6.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.6.6.3.1.2.1.1" class="ltx_text" style="font-size:90%;">5131 samples</span></td>
+</tr>
+</table>
+<span id="S2.T2.1.1.6.6.3.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.6.6.4" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t"><span id="S2.T2.1.1.6.6.4.1" class="ltx_text" style="font-size:90%;">ABQ,APSQ,AUSQ</span></td>
+</tr>
+<tr id="S2.T2.1.1.7.7" class="ltx_tr">
+<td id="S2.T2.1.1.7.7.1" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T2.1.1.7.7.1.1" class="ltx_text" style="font-size:90%;">AnaMeta   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.7.7.2" class="ltx_td ltx_align_right ltx_border_t">
+<table id="S2.T2.1.1.7.7.2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T2.1.1.7.7.2.1.1" class="ltx_tr">
+<td id="S2.T2.1.1.7.7.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.7.7.2.1.1.1.1" class="ltx_text" style="font-size:90%;">public Web</span></td>
+</tr>
+<tr id="S2.T2.1.1.7.7.2.1.2" class="ltx_tr">
+<td id="S2.T2.1.1.7.7.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.7.7.2.1.2.1.1" class="ltx_text" style="font-size:90%;">T2D,TURL</span></td>
+</tr>
+<tr id="S2.T2.1.1.7.7.2.1.3" class="ltx_tr">
+<td id="S2.T2.1.1.7.7.2.1.3.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S2.T2.1.1.7.7.2.1.3.1.1" class="ltx_text" style="font-size:90%;">SemTab</span></td>
+</tr>
+</table>
+<span id="S2.T2.1.1.7.7.2.2" class="ltx_text" style="font-size:90%;">   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.7.7.3" class="ltx_td ltx_align_right ltx_border_t">
+<span id="S2.T2.1.1.7.7.3.1" class="ltx_text" style="font-size:90%;">467k WT/SSs   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.7.7.4" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_t"><span id="S2.T2.1.1.7.7.4.1" class="ltx_text" style="font-size:90%;">F1,R,P</span></td>
+</tr>
+<tr id="S2.T2.1.1.8.8" class="ltx_tr">
+<td id="S2.T2.1.1.8.8.1" class="ltx_td ltx_align_right ltx_border_bb ltx_border_t">
+<span id="S2.T2.1.1.8.8.1.1" class="ltx_text" style="font-size:90%;">GitTables   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.8.8.2" class="ltx_td ltx_align_right ltx_border_bb ltx_border_t">
+<span id="S2.T2.1.1.8.8.2.1" class="ltx_text" style="font-size:90%;">GitHub   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.8.8.3" class="ltx_td ltx_align_right ltx_border_bb ltx_border_t">
+<span id="S2.T2.1.1.8.8.3.1" class="ltx_text" style="font-size:90%;">1M CSVs   </span><span class="ltx_rule" style="width:1.0pt;background:black;display:inline-block;"> </span>
+</td>
+<td id="S2.T2.1.1.8.8.4" class="ltx_td ltx_nopad_r ltx_align_center ltx_border_bb ltx_border_t"><span id="S2.T2.1.1.8.8.4.1" class="ltx_text" style="font-size:90%;">F1</span></td>
+</tr>
+</tbody>
+</table>
+</span></div>
+</figure>
+<div id="S2.SS4.p1" class="ltx_para">
+<p id="S2.SS4.p1.1" class="ltx_p">Traditional benchmarks, such as WikiTQ, WikiSQL, and Spider, are already widely used and studied. We will not elaborate on those here but rather focus on new benchmarks. Table <a href="#S2.T2" title="Table 2 ‣ 2.4 Benchmarks and Evaluation Methods ‣ 2 Table Tasks and Benchmarks ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> presents recently proposed datasets and benchmarks, along with their sources, sizes, and metrics.
+We summarize the features of these new benchmarks as follows:</p>
+</div>
+<div id="S2.SS4.p2" class="ltx_para">
+<ul id="S2.I2" class="ltx_itemize">
+<li id="S2.I2.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I2.i1.p1" class="ltx_para">
+<p id="S2.I2.i1.p1.1" class="ltx_p"><span id="S2.I2.i1.p1.1.1" class="ltx_text ltx_font_bold">Robustness.</span> For most table tasks (such as Table QA), swapping rows and columns, or replacing column names with synonyms or abbreviations, should not affect the final results. For a large table (that cannot fit into the LLM’s context), the placement of the wanted cell, whether at the beginning, end, or middle of the table, should not affect the query result.
+To evaluate the robustness, Dr. Spider<cite class="ltx_cite ltx_citemacro_cite">Chang <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib4" title="" class="ltx_ref">2023</a>)</cite>, RobuT<cite class="ltx_cite ltx_citemacro_cite">Zhao <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib63" title="" class="ltx_ref">2023b</a>)</cite>, and Observatory <cite class="ltx_cite ltx_citemacro_cite">Cong <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib10" title="" class="ltx_ref">2023</a>)</cite> are proposed.
+RobuT and Observatory reveal that the performance of all table methods degrades when perturbations are introduced, yet close-source LLMs (e.g., GPT-3) exhibit greater robustness.</p>
+</div>
+</li>
+<li id="S2.I2.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I2.i2.p1" class="ltx_para">
+<p id="S2.I2.i2.p1.1" class="ltx_p"><span id="S2.I2.i2.p1.1.1" class="ltx_text ltx_font_bold">Human Involved Labeling.</span>
+Some new benchmarks, targeting advanced data analysis tasks, require extensive manual annotation during the data production process.
+Recently, researchers have started using AI to automate complex data analysis tasks, such as using Python to plot figures or manipulating spreadsheets. DS-1000 <cite class="ltx_cite ltx_citemacro_cite">Lai <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib25" title="" class="ltx_ref">2023</a>)</cite> and InfiAgent-DABench <cite class="ltx_cite ltx_citemacro_cite">Hu <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib17" title="" class="ltx_ref">2024</a>)</cite> are designed to assess advanced data analysis tasks. They gather data from the internet and annotate it either automatically or semi-automatically.
+DS-1000 collects questions from StackOverflow, assesses their usefulness manually, and curates a selection of them to form the benchmark.
+The authors manually adapt the original questions by providing input and output context into test cases, rewriting problems to prevent the data from being learned and memorized by LLMs, and implementing multi-criteria executables.
+InfiAgent-DABench invites human experts to evaluate the dataset quality and compare human-made and GPT-4 generated data analysis questions via multiple metrics.</p>
+</div>
+</li>
+<li id="S2.I2.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I2.i3.p1" class="ltx_para">
+<p id="S2.I2.i3.p1.1" class="ltx_p"><span id="S2.I2.i3.p1.1.1" class="ltx_text ltx_font_bold">Larger Scale.</span> AnaMeta <cite class="ltx_cite ltx_citemacro_cite">He <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib15" title="" class="ltx_ref">2023</a>)</cite> is a large-scale table metadata dataset, and GitTables <cite class="ltx_cite ltx_citemacro_cite">Hulsebos <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib18" title="" class="ltx_ref">2023</a>)</cite> downloads millions of CSV tables from GitHub and aligns them with knowledge bases. These two datasets can evaluate whether the AI system could understand the table schema and benchmark tasks like column type annotation.</p>
+</div>
+</li>
+</ul>
+</div>
+<section id="S2.SS4.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">2.4.1 </span>Evaluation Metrics</h4>
+
+<div id="S2.SS4.SSS1.p1" class="ltx_para">
+<p id="S2.SS4.SSS1.p1.1" class="ltx_p">We list the evaluation metric of each benchmark in Table <a href="#S2.T2" title="Table 2 ‣ 2.4 Benchmarks and Evaluation Methods ‣ 2 Table Tasks and Benchmarks ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>.
+Some benchmarks adopt or improve upon classic evaluation methods. For instance, DS-1000 employs <span id="S2.SS4.SSS1.p1.1.1" class="ltx_text ltx_font_italic">Pass@K</span>, a measure frequently used in code generation tasks.
+Some new benchmarks design their own metrics. For example, InfiAgent-DABench introduced Accuracy by Questions (<span id="S2.SS4.SSS1.p1.1.2" class="ltx_text ltx_font_italic">ABQ</span>) and Accuracy Proportional by Subquestions (<span id="S2.SS4.SSS1.p1.1.3" class="ltx_text ltx_font_italic">APSQ</span>). If all questions and sub-questions are completed successfully, both of these values would be 1.</p>
+</div>
+<div id="S2.SS4.SSS1.p2" class="ltx_para">
+<p id="S2.SS4.SSS1.p2.1" class="ltx_p">Many table tasks have more than one standard answer.
+Some evaluation pipelines are not yet able to assess the accuracy of different solutions.
+For example, SheetCopilot, which evaluates spreadsheet operations, can only approximately verify the column names’ correctness without inspecting the cells’ contents.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Taxonomy of LLM for Table</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.1" class="ltx_p">To summarize the existing methods for table tasks, we propose a taxonomy based on two dimensions illustrated in Figure <a href="#S3.F1" title="Figure 1 ‣ 3 Taxonomy of LLM for Table ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>. The first dimension is whether the method is based on training or prompting. The second dimension is whether the results are obtained from the model parameters only or relied on agents.
+With such two-dimensional categorization, Figure <a href="#S3.F1" title="Figure 1 ‣ 3 Taxonomy of LLM for Table ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> comprises four quadrants: <span id="S3.p1.1.1" class="ltx_text ltx_font_italic">prompting</span>, <span id="S3.p1.1.2" class="ltx_text ltx_font_italic">training</span>, <span id="S3.p1.1.3" class="ltx_text ltx_font_italic">prompting + agent</span>, and <span id="S3.p1.1.4" class="ltx_text ltx_font_italic">training + agent</span>.</p>
+</div>
+<div id="S3.p2" class="ltx_para">
+<p id="S3.p2.1" class="ltx_p">The upper-left quadrant encompasses methods that prompt LLMs directly without the need for external tools. For instance, prompting GPT <cite class="ltx_cite ltx_citemacro_cite">Brown <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib3" title="" class="ltx_ref">2020</a>)</cite> or Codex <cite class="ltx_cite ltx_citemacro_cite">Chen <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib7" title="" class="ltx_ref">2021a</a>)</cite> falls under this category. We delve deeper into training-based approaches in Section <a href="#S4" title="4 Tabular LLMs Training ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>, prompting techniques for table tasks in Section <a href="#S5" title="5 Prompting LLMs for Table Tasks ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>, and LLM-powered agents in Section <a href="#S6" title="6 LLM-powered Table Agents ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>.</p>
+</div>
+<figure id="S3.F1" class="ltx_figure"><img src="/html/2402.05121/assets/x1.png" id="S3.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="456" height="318" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1: </span>Taxonomy of LLM-based table methods.</figcaption>
+</figure>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Tabular LLMs Training</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p">Researchers have proposed various Tabular LMs (TaLMs), wishing these models would handle table characteristics whilst preserving their ability to comprehend text.
+These methods can be classified into three types: (1) tweaking language models for task-specific fine-tuning, (2) instruction tuning to train a model for various tasks, and (3) retrieval-augmented methods.</p>
+</div>
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Task-specific Fine-tuning</h3>
+
+<div id="S4.SS1.p1" class="ltx_para">
+<p id="S4.SS1.p1.1" class="ltx_p">Task-specific fine-tuning methods modify the model structure, encoding methods, and training objectives to adapt to table tasks.
+For example, TaPas <cite class="ltx_cite ltx_citemacro_cite">Herzig <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib16" title="" class="ltx_ref">2020</a>)</cite> extends BERT’s <cite class="ltx_cite ltx_citemacro_cite">Devlin <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib12" title="" class="ltx_ref">2019</a>)</cite> model architecture and mask language modeling objective to pre-train and fine-tune with tables and related text segments.
+TaBERT <cite class="ltx_cite ltx_citemacro_cite">Yin <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib56" title="" class="ltx_ref">2020</a>)</cite> encodes a subset of table content most relevant to the input utterance and employs a vertical attention mechanism.
+TURL <cite class="ltx_cite ltx_citemacro_cite">Deng <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib11" title="" class="ltx_ref">2020</a>)</cite> encodes information of table components (e.g., caption, headers, and cells) into separate input embeddings and fuses them together.
+TABBIE <cite class="ltx_cite ltx_citemacro_cite">Iida <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib19" title="" class="ltx_ref">2021</a>)</cite> modifies the training objective to detect corrupted cells.
+TaPEx <cite class="ltx_cite ltx_citemacro_cite">Liu <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib32" title="" class="ltx_ref">2022</a>)</cite> learns a synthetic corpus, which is obtained by automatically synthesizing executable SQL queries and executing these SQLs.
+RESDSQL <cite class="ltx_cite ltx_citemacro_cite">Li <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib26" title="" class="ltx_ref">2023a</a>)</cite> injects the most relevant schema items into the model during training and ranks schema items during inference to find the optimal one.</p>
+</div>
+<div id="S4.SS1.p2" class="ltx_para ltx_noindent">
+<p id="S4.SS1.p2.1" class="ltx_p"><span id="S4.SS1.p2.1.1" class="ltx_text ltx_font_bold">Task-tied. </span>
+These methods are more task-related because they are initially pre-trained/fine-tuned for a specific goal.
+The foundation models of their methods are relatively small and cannot adapt to various downstream tasks, and these methods require annotated data during fine-tuning.</p>
+</div>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Instruction Tuning</h3>
+
+<div id="S4.SS2.p1" class="ltx_para">
+<p id="S4.SS2.p1.1" class="ltx_p">Unlike fine-tuning on a single dataset, instruction tuning refers to fine-tuning language models on a collection of datasets.
+It can substantially improve performance on unseen tasks and offer higher flexibility <cite class="ltx_cite ltx_citemacro_cite">Wei <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib48" title="" class="ltx_ref">2022a</a>)</cite>.
+Motivated by this feature, there are two types of instruction tuning works.
+The first type of research focuses on LLMs’ understanding of tables, capable of handling various table tasks such as table QA, table-to-text, and interpretation.
+This type of research utilizes general-purpose foundation LLMs (such as GPT) and a substantial volume of table-related data for instruction tuning. Examples include UnifiedSKG<cite class="ltx_cite ltx_citemacro_cite">Xie <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib51" title="" class="ltx_ref">2022</a>)</cite>, TableLlama<cite class="ltx_cite ltx_citemacro_cite">Zhang <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib59" title="" class="ltx_ref">2023a</a>)</cite>, and Table-GPT<cite class="ltx_cite ltx_citemacro_cite">Li <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib29" title="" class="ltx_ref">2023d</a>)</cite>. This approach is referred to as “table instruction tuning”.
+The second type of research, from a code generation perspective, considers tasks requiring generating code, such as text-to-SQL and advanced data analysis, as sub-domains of code generation. Therefore, this type of research opts for instruction tuning on LLMs specifically designed for programming, such as CodeLlama <cite class="ltx_cite ltx_citemacro_cite">Rozière <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib42" title="" class="ltx_ref">2023</a>)</cite>. Examples include Magicoder <cite class="ltx_cite ltx_citemacro_cite">Wei <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib50" title="" class="ltx_ref">2023</a>)</cite>, Lemur <cite class="ltx_cite ltx_citemacro_cite">Xu <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib52" title="" class="ltx_ref">2024</a>)</cite>, and DAAgent <cite class="ltx_cite ltx_citemacro_cite">Hu <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib17" title="" class="ltx_ref">2024</a>)</cite>. We refer to these as “code instruction tuning”.
+As previous studies <cite class="ltx_cite ltx_citemacro_cite">Wei <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib48" title="" class="ltx_ref">2022a</a>)</cite> have shown data quality is essential to instruction tuning; for table tasks, the core is how to construct high-quality datasets.</p>
+</div>
+<div id="S4.SS2.p2" class="ltx_para ltx_noindent">
+<p id="S4.SS2.p2.1" class="ltx_p"><span id="S4.SS2.p2.1.1" class="ltx_text ltx_font_bold">Table Instruction Tuning. </span> This type of research constructs instruction tuning datasets by leveraging multiple existing table-related datasets and subsequently fine-tunes these datasets on LLMs.
+Instances of their datasets are in the form of <span id="S4.SS2.p2.1.2" class="ltx_text ltx_font_typewriter">(instruction, table, completion)</span> triples.
+Each triplet comprises the “<span id="S4.SS2.p2.1.3" class="ltx_text ltx_font_typewriter">instruction</span>” specifying the task, the “<span id="S4.SS2.p2.1.4" class="ltx_text ltx_font_typewriter">table</span>” presenting metadata and content, and the “<span id="S4.SS2.p2.1.5" class="ltx_text ltx_font_typewriter">completion</span>” featuring natural language outputs like table QA answers, text from table-to-text transformations, and resultant tables after manipulation, or a mix of text and tables, enabling the model to perform the task.
+To build high-quality data, Table-GPT employs a synthesis-then-augment approach for dataset construction.
+Specifically, the dataset is created using 18 synthesis processes ranging from table QA to augmentation.
+One example is instructing the model to swap rows or columns, and the <span id="S4.SS2.p2.1.6" class="ltx_text ltx_font_typewriter">completion</span> is the swapped table, enabling the model to understand the order of rows/columns.
+TableLlama and UnifiedSKG employ real data from various existing datasets, such as WikiTQ, or Spider, instead of synthesizing data.
+These papers demonstrate that after table instruction tuning, LLMs could exhibit robust generalization capabilities and tackle unseen table tasks.
+</p>
+</div>
+<div id="S4.SS2.p3" class="ltx_para ltx_noindent">
+<p id="S4.SS2.p3.1" class="ltx_p"><span id="S4.SS2.p3.1.1" class="ltx_text ltx_font_bold">Code Instruction Tuing. </span> This type of research involves constructing code datasets and instruction tuning the model.
+Magicoder first collects open-sourced code snippets and uses them as seeds to prompt an LLM to generate coding problems and solutions.
+DAAgent is a series of specialized agent models focused on data analysis. Their instruction tuning dataset is crafted by crawling CSVs from GitHub and generating data analysis questions and solutions based on those CSVs.
+The authors contend that LLM-powered agents depend on the backend model to both master general-purpose capabilities (e.g., reasoning and planning), which can be learned by NL text, and also to guarantee the grounding of programming skills that should be learned from code.
+Thus, they build a corpus with a code-to-text ratio of 10:1 to train the model.
+These studies demonstrate that tuning models with code instruction can improve programming skills and enhance data analysis co-piloting.</p>
+</div>
+</section>
+<section id="S4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.3 </span>Retrieval-augmented Tuning</h3>
+
+<div id="S4.SS3.p1" class="ltx_para">
+<p id="S4.SS3.p1.1" class="ltx_p">Like what DPR <cite class="ltx_cite ltx_citemacro_cite">Karpukhin <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib24" title="" class="ltx_ref">2020</a>)</cite> does for open-domain QA, retrieval-augmented table pipelines consist of two neural components: the retriever, which selects a small subset from the total pool of table candidates, and the reader, which produces answers by analyzing each table candidate.
+Both components are fine-tuned encoders that encode items (e.g., QA questions and table content) into embeddings.
+Two research examples are ITR <cite class="ltx_cite ltx_citemacro_cite">Lin <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib30" title="" class="ltx_ref">2023a</a>)</cite> and LI-RAGE <cite class="ltx_cite ltx_citemacro_cite">Lin <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib31" title="" class="ltx_ref">2023b</a>)</cite>; they dissect big tables into sub-tables and jointly train the retriever and reader. DB-GPT <cite class="ltx_cite ltx_citemacro_cite">Xue <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib53" title="" class="ltx_ref">2023</a>)</cite> is an industrial product supporting various functionalities like retrieval-augmented generation, fine-tuning, and agents.</p>
+</div>
+</section>
+<section id="S4.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.4 </span>Summary and Discussion</h3>
+
+<div id="S4.SS4.p1" class="ltx_para">
+<p id="S4.SS4.p1.1" class="ltx_p">Training-based methods offer great control, allowing enterprises to conduct private training and deployment without data leakage to third-party model service providers.</p>
+</div>
+<div id="S4.SS4.p2" class="ltx_para ltx_noindent">
+<p id="S4.SS4.p2.1" class="ltx_p"><span id="S4.SS4.p2.1.1" class="ltx_text ltx_font_bold">Transferability. </span> Before the advent of LLMs, the task-specific fine-tuning methods mainly involves pre-training/fine-tuning on models like BERT or BART.
+The success of LLMs and instruction tuning exposed the drawbacks of the original task-specific fine-tuning methods.
+These task-specific models must design specific neural models and depend on annotated data.
+Thus, these methods show poor transferability.</p>
+</div>
+<div id="S4.SS4.p3" class="ltx_para ltx_noindent">
+<p id="S4.SS4.p3.1" class="ltx_p"><span id="S4.SS4.p3.1.1" class="ltx_text ltx_font_bold">Cost and Accuracy. </span> Table instruction tuning on LLMs achieves decent results and shows more generalization ablilty, but two issues can’t be ignored: cost and accuracy. The expense of pre-training or fine-tuning a large model is substantial. Even fine-tuning a 7B model requires eight 80GB GPUs, a cost not all institutions can afford. Moreover, the accuracy of instruction tuning methods is not always optimal compared with prompting close-sourced LLMs. For example, on some tasks, the 7B TableLlama can’t outperform task-specific fine-tuning models.
+On data analysis tasks, instruction tuned models like Lemur and DAAgent cannot surpass GPT-4.
+Table-GPT continued to train on GPT-3.5 and achieved better results on all table-related tasks than GPT-3.5 and ChatGPT. However, the cost of training is prohibitively high for ordinary enterprise users who wish to deploy privately.
+Regarding training data, the cost of manual annotation is also high. Although synthesis is a cheap choice, the data quality is another concern. A more prevalent approach is using GPT as a teacher model for data annotation. Evidently, GPT is the performance ceiling.</p>
+</div>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Prompting LLMs for Table Tasks</h2>
+
+<div id="S5.p1" class="ltx_para">
+<p id="S5.p1.1" class="ltx_p">In this sub-section, we mainly discuss the techniques of prompting LLMs for table tasks, specifically table serialization and example selection for few-shot learning. We will leave agent-based approaches in the next sub-section.</p>
+</div>
+<section id="S5.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.1 </span>Table Serialization</h3>
+
+<div id="S5.SS1.p1" class="ltx_para">
+<p id="S5.SS1.p1.1" class="ltx_p">The first issue is converting tables into prompts while maintaining their semantic integrity. LLMs require prompts in a linear, sequential text format, contrasting with the 2-dimensional structure of tables with a defined schema. The prompt may contain the table content and the table schema.</p>
+</div>
+<div id="S5.SS1.p2" class="ltx_para ltx_noindent">
+<p id="S5.SS1.p2.1" class="ltx_p"><span id="S5.SS1.p2.1.1" class="ltx_text ltx_font_bold">Table Content. </span>
+A straightforward yet common way is to linearize tables row by row, inserting column separators (e.g., “|”) between cells.
+Researchers benchmark evaluated LLMs’ performance with various table formats, including CSV, markdown, JSON, XML, and HTML <cite class="ltx_cite ltx_citemacro_cite">Sui <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib45" title="" class="ltx_ref">2024</a>); Singha <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib43" title="" class="ltx_ref">2023</a>)</cite>. The results suggest that HTML and NL with separators (markdown or CSV) are the two most effective options, which can be assumed that the training corpora include substantial code and web tables.</p>
+</div>
+<div id="S5.SS1.p3" class="ltx_para ltx_noindent">
+<p id="S5.SS1.p3.1" class="ltx_p"><span id="S5.SS1.p3.1.1" class="ltx_text ltx_font_bold">Table Schema. </span>
+ <cite class="ltx_cite ltx_citemacro_cite">Gao <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib14" title="" class="ltx_ref">2023</a>); Nan <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib35" title="" class="ltx_ref">2023</a>)</cite> explored prompt representation methods for text-to-SQL tasks.
+In text-to-SQL tasks, the prompt representation should include the NL question, table schemas, instructions, etc.
+Table schemas can be represented in plain text or coded forms using <span id="S5.SS1.p3.1.2" class="ltx_text ltx_font_typewriter">CREATE TABLE</span> statements.
+Foreign keys can suggest the relationships among different relational tables.
+Special instructions may stipulate that LLMs should not provide verbose responses with explanations. In this way, the shorter final responses from LLMs align more closely with the standard answers in the benchmarks.
+Results <cite class="ltx_cite ltx_citemacro_cite">Gao <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib14" title="" class="ltx_ref">2023</a>); Nan <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib35" title="" class="ltx_ref">2023</a>)</cite> show that information about foreign keys and the “<span id="S5.SS1.p3.1.3" class="ltx_text ltx_font_italic">with no explanation</span>” instruction rule can benefit the text-to-SQL task.</p>
+</div>
+</section>
+<section id="S5.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.2 </span>Few-shot Example Selection</h3>
+
+<div id="S5.SS2.p1" class="ltx_para">
+<p id="S5.SS2.p1.1" class="ltx_p">In-context learning involves selecting and organizing the most helpful demonstrative examples into the prompt.
+For the text-to-SQL task, selecting the most relevant example can be achieved by choosing examples more related to the target NL question or examples more similar to the potential SQL.
+Nan et al. <cite class="ltx_cite ltx_citemacro_cite">Nan <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib35" title="" class="ltx_ref">2023</a>)</cite> argue that diversity should be considered in addition to similarity.
+As the context length is limited, organizing all the information (i.e., NL question, schema, SQL) into the prompt ensures the quality of examples but sacrifices quantity.
+DAIL-SQL <cite class="ltx_cite ltx_citemacro_cite">Gao <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib14" title="" class="ltx_ref">2023</a>)</cite> proposes a method that balances the quality and quantity by removing examples’ schemas, which are token-cost.</p>
+</div>
+</section>
+</section>
+<section id="S6" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6 </span>LLM-powered Table Agents</h2>
+
+<div id="S6.p1" class="ltx_para">
+<p id="S6.p1.1" class="ltx_p">LLMs struggle with functionalities, such as arithmetic or factual lookups, which are essential for table tasks.
+They cannot interact with the environment, like manipulating data in tables.
+LLM-powered agents can help solve complex table tasks.
+Agents decompose complex tasks into subtasks, plan actions that use external tools, and can reflect upon or refine previous actions.
+Research like ReAct <cite class="ltx_cite ltx_citemacro_cite">Yao <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib54" title="" class="ltx_ref">2023</a>)</cite> constructs an iterative closed loop for agent-based systems.
+For table tasks, as depicted in Figure <a href="#S6.F2" title="Figure 2 ‣ 6 LLM-powered Table Agents ‣ Large Language Model for Table Processing: A Survey" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, the agent first observes the table data and user intent, generates prompts, decomposes complex tasks, plans actions, executes them on the table environment, and then updates the observation.
+The process is repeated until expectations are met.</p>
+</div>
+<figure id="S6.F2" class="ltx_figure"><img src="/html/2402.05121/assets/x2.png" id="S6.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="456" height="243" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 2: </span>The iterative process of an LLM-powered agent system for table tasks.</figcaption>
+</figure>
+<section id="S6.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.1 </span>Complex Task Decomposition</h3>
+
+<div id="S6.SS1.p1" class="ltx_para">
+<p id="S6.SS1.p1.1" class="ltx_p">Inspired by the CoT and least-to-most prompting methods, researchers instruct LLMs to decompose complex table tasks into simpler sub-tasks.
+DIN-SQL <cite class="ltx_cite ltx_citemacro_cite">Pourreza and Rafiei (<a href="#bib.bib38" title="" class="ltx_ref">2023</a>)</cite> proposes breaking down the text-to-SQL task into subtasks. The process involves identifying the relevant tables and columns associated with the query and producing intermediate sub-queries.
+For web tables, Dater <cite class="ltx_cite ltx_citemacro_cite">Ye <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib55" title="" class="ltx_ref">2023</a>)</cite> exploit LLMs as decomposers by breaking down huge evidence (a huge table) into sub-evidence (a small table) and decomposing a complex question into simpler sub-questions and getting SQLs.</p>
+</div>
+</section>
+<section id="S6.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.2 </span>Action Definition</h3>
+
+<div id="S6.SS2.p1" class="ltx_para">
+<p id="S6.SS2.p1.1" class="ltx_p">In table tasks, actions function as the intermediary between LLMs and software tools like Excel or Python interpreters. Rather than simply translating software APIs into natural language (NL) text, actions should abstract and categorize similar API types for better clarity and utility. Moreover, for complex APIs with numerous arguments, actions should be accompanied by a usage guide to minimize errors in action generation by LLMs. Given the varied and intricate nature of software APIs, we categorize action definition strategies into two approaches: one employs clustering methods to define actions, while the other relies on manual definition.</p>
+</div>
+<div id="S6.SS2.p2" class="ltx_para ltx_noindent">
+<p id="S6.SS2.p2.1" class="ltx_p"><span id="S6.SS2.p2.1.1" class="ltx_text ltx_font_bold">Clustering. </span>
+For complex tasks like table manipulation and advanced data analysis, the variety of actions increases, and each action requires more arguments and parameters.
+Thus, it’s crucial to carefully abstract a set of actions.
+SheetCopilot <cite class="ltx_cite ltx_citemacro_cite">Li <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib27" title="" class="ltx_ref">2023b</a>)</cite>, an agent system for spreadsheets, models existing spreadsheet software APIs into atomic actions.
+An atomic action comprises the API name, argument lists, document, etc.
+The authors design these atomic actions by crawling spreadsheet-related questions online, embedding and clustering them into categories, and abstracting them to software APIs by choosing the most representative ones.
+Data-Copilot <cite class="ltx_cite ltx_citemacro_cite">Zhang <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib60" title="" class="ltx_ref">2023b</a>)</cite> is for data science and visualization. Its actions are two-level: the interface is high-level pseudo-code descriptions, and the code is low-level executable. It designs actions by autonomously exploring the data to get seed user requests, prompting an LLM with seed requests to get more versatile interfaces, merging similar interfaces, and generating code.</p>
+</div>
+<div id="S6.SS2.p3" class="ltx_para ltx_noindent">
+<p id="S6.SS2.p3.1" class="ltx_p"><span id="S6.SS2.p3.1.1" class="ltx_text ltx_font_bold">Manually Defined. </span>
+For tasks like table QA and text-to-SQL, the diversity of actions is not so high and can be manually defined.
+In Binder <cite class="ltx_cite ltx_citemacro_cite">Cheng <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib9" title="" class="ltx_ref">2023</a>)</cite>, actions are two types of modifiable program templates: Python and SQL.
+These templates can be updated based on previous observations and LLM responses.
+ReAcTable <cite class="ltx_cite ltx_citemacro_cite">Zhang <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib61" title="" class="ltx_ref">2023c</a>)</cite> incorporates three kinds of actions: (1) generating a SQL query, (2) generating Python code, and (3) directly answering the question.
+It extends the ReAct framework with an <span id="S6.SS2.p3.1.2" class="ltx_text ltx_font_italic">observation-action-reflection</span> loop specifically for table tasks.
+Within this iterative loop, it progressively refines the table data by generating and executing an SQL query to retrieve table knowledge.
+If the existing table lacks the required information or if the answer cannot be directly queried via an SQL query, it generates and executes Python code to produce an intermediate table, thereby filling missing information into an intermediate table.</p>
+</div>
+</section>
+<section id="S6.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.3 </span>Reflection and Revision</h3>
+
+<div id="S6.SS3.p1" class="ltx_para">
+<p id="S6.SS3.p1.1" class="ltx_p">LLMs often generate answers “without thinking”, while agents can try different approaches, vote to select the best one, and even reflect on past actions, learn from mistakes, and refine them for future steps.</p>
+</div>
+<div id="S6.SS3.p2" class="ltx_para ltx_noindent">
+<p id="S6.SS3.p2.1" class="ltx_p"><span id="S6.SS3.p2.1.1" class="ltx_text ltx_font_bold">Self-consistency and Voting. </span>
+Generating multiple reasoning paths and choosing the most consistent answer can significantly enhance LLM’s accuracy on complex tasks <cite class="ltx_cite ltx_citemacro_cite">Wang <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib47" title="" class="ltx_ref">2023b</a>)</cite>.
+This has also been demonstrated in table tasks.
+For instance, Dater, DAIL-SQL, and ReAcTable report that self-consistency can improve the accuracy of LLMs on table QA and text-to-SQL tasks.
+However, both DAIL-SQL and ReAcTable argue that while self-consistency and voting enhance accuracy, these methods are extremely time-consuming, and the cost is notably higher, especially considering that prompting LLMs is expensive.</p>
+</div>
+<div id="S6.SS3.p3" class="ltx_para ltx_noindent">
+<p id="S6.SS3.p3.1" class="ltx_p"><span id="S6.SS3.p3.1.1" class="ltx_text ltx_font_bold">Revising. </span>
+SheetCopilot aims for spreadsheet manipulation, where a mistake in one step’s action can significantly impact the following analysis and processing.
+To handle this challenge, SheetCopilot adopts a mechanism that reflects and refines past actions. Specifically, it employs a proposing stage that validates the proposed actions and a revising stage to refine them.
+These techniques prevent error actions like wrong arguments.
+SelfEvolve <cite class="ltx_cite ltx_citemacro_cite">Jiang <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib22" title="" class="ltx_ref">2023b</a>)</cite> achieves decent results on the Python data analysis task by asking the LLM to perform debugging if the generated code cannot execute in the Python interpreter.</p>
+</div>
+</section>
+<section id="S6.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.4 </span>Framework for Multiple Tasks</h3>
+
+<div id="S6.SS4.p1" class="ltx_para">
+<p id="S6.SS4.p1.1" class="ltx_p">While most agents are for a specific task, there are frameworks for multiple tasks.
+StructGPT <cite class="ltx_cite ltx_citemacro_cite">Jiang <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib21" title="" class="ltx_ref">2023a</a>)</cite> is capable of solving both table QA and text-to-SQL problems by developing three types of actions that target web tables, databases, and knowledge graphs.
+These actions function as a reader, extracting knowledge from the data, which is then used to assist the LLM in its future planning.
+The actions for web tables include extracting data or column names, whereas for databases, the actions involve extracting table data or metadata.
+In addition to solving the aforementioned problems, TAP4LLM <cite class="ltx_cite ltx_citemacro_cite">Sui <span class="ltx_text ltx_font_italic">et al.</span> (<a href="#bib.bib44" title="" class="ltx_ref">2023</a>)</cite> also aims to perform Table Augmentation. It primarily selects appropriate rows and columns from the table (called <span id="S6.SS4.p1.1.1" class="ltx_text ltx_font_italic">Table Sampling</span>), integrates them with other table data (relevant external knowledge, metadata) (called <span id="S6.SS4.p1.1.2" class="ltx_text ltx_font_italic">Table Augmentation</span>), and serializes this information to fit the context length of the LLM.</p>
+</div>
+</section>
+<section id="S6.SS5" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.5 </span>Summary and Disscussion</h3>
+
+<div id="S6.SS5.p1" class="ltx_para">
+<p id="S6.SS5.p1.1" class="ltx_p">The LLM-powered agent method combines the power of LLMs and the flexibility of external tools.</p>
+</div>
+<div id="S6.SS5.p2" class="ltx_para ltx_noindent">
+<p id="S6.SS5.p2.1" class="ltx_p"><span id="S6.SS5.p2.1.1" class="ltx_text ltx_font_bold">Limited Transferability. </span>
+However, these approaches often necessitate hard-coded prompt templates, which are long strings of instructions and demonstrations manually crafted through trial and error.
+A given string prompt might not generalize well to other pipelines, LLMs, domains, or data inputs.
+Thus, it has limited transferability.</p>
+</div>
+<div id="S6.SS5.p3" class="ltx_para ltx_noindent">
+<p id="S6.SS5.p3.1" class="ltx_p"><span id="S6.SS5.p3.1.1" class="ltx_text ltx_font_bold">Cost. </span>
+Agents must prompt LLMs repeatedly to fulfill users’ expectations. Consequently, this increases the time and financial costs.</p>
+</div>
+<div id="S6.SS5.p4" class="ltx_para ltx_noindent">
+<p id="S6.SS5.p4.1" class="ltx_p"><span id="S6.SS5.p4.1.1" class="ltx_text ltx_font_bold">Privacy Issue. </span>
+Most prompting methods involve requesting third-party model service providers, such as OpenAI, which could lead to data leakage, a situation many enterprises are unacceptable.</p>
+</div>
+</section>
+</section>
+<section id="S7" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">7 </span>Conclusion and Discussion</h2>
+
+<div id="S7.p1" class="ltx_para">
+<p id="S7.p1.1" class="ltx_p">This paper reviews table processing tasks, benchmarks, and LLM-based methods.
+Although LLM-based methods effectively solve some table tasks, several challenges remain unaddressed.</p>
+</div>
+<div id="S7.p2" class="ltx_para ltx_noindent">
+<p id="S7.p2.1" class="ltx_p"><span id="S7.p2.1.1" class="ltx_text ltx_font_bold">Instruction-tuning with Agent could be Potential Solution for Private Deployment. </span>
+Instruction-tuning a foundation model based on open-source LLMs offers certain advantages.
+Works such as Table-GPT and Lemur have demonstrated the flexibility of instruction-tuning, achieving commendable results on various downstream tasks.
+These models can be deployed privately, preventing the leakage of sensitive corporate data to third-party model service providers, and can be further powered by agents.
+However, research about agents on open-source LLMs is still limited.
+Several studies have already demonstrated that, for table tasks, prompting closed-source LLMs surpasses open-source LLMs in terms of accuracy and robustness.
+Agents heavily rely on the underlying LLM to understand user intent and plan actions, so the effectiveness of these methods when transferred to closed-source LLMs remains to be further studied.</p>
+</div>
+<div id="S7.p3" class="ltx_para ltx_noindent">
+<p id="S7.p3.1" class="ltx_p"><span id="S7.p3.1.1" class="ltx_text ltx_font_bold">Prompting and Agent-based Method Could be Simplified. </span>
+Existing prompting-based methods are too complicated and time-consuming.
+As LLMs are highly sensitive to prompts, existing prompts are implemented using hard-coded “prompt templates”.
+These prompting-based methods are not scalable and cannot easily adopted into production environments.
+Moreover, current methods require repeated interaction with LLMs or frequent use of tools, which is very time-consuming.</p>
+</div>
+<div id="S7.p4" class="ltx_para ltx_noindent">
+<p id="S7.p4.1" class="ltx_p"><span id="S7.p4.1.1" class="ltx_text ltx_font_bold">Benchmarks Need to Incorporate Real-world Requirements. </span>
+Firstly, tables in real-world scenarios often lack well-defined semantics, making it challenging for LLMs to comprehend their schema and content accurately. Secondly, the absence of a unified schema definition across real-world tables complicates the task of extracting information from heterogeneous table sources. Lastly, processing real-world tables often demands domain-specific knowledge, like deriving formulas from financial insights.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Austin <span id="bib.bib1.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2021]</span>
+<span class="ltx_bibblock">
+Jacob Austin, Augustus Odena, et al.
+
+</span>
+<span class="ltx_bibblock">Program synthesis with large language models.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib1.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2108.07732</span>, 2021.
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Badaro <span id="bib.bib2.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Gilbert Badaro, Mohammed Saeed, et al.
+
+</span>
+<span class="ltx_bibblock">Transformers for tabular data representation: A survey of models and applications.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib2.3.1" class="ltx_text ltx_font_italic">TACL</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Brown <span id="bib.bib3.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2020]</span>
+<span class="ltx_bibblock">
+Tom Brown, Benjamin Mann, et al.
+
+</span>
+<span class="ltx_bibblock">Language Models are Few-Shot Learners.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib3.3.1" class="ltx_text ltx_font_italic">NeurIPS</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chang <span id="bib.bib4.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Shuaichen Chang, Jun Wang, Mingwen Dong, et al.
+
+</span>
+<span class="ltx_bibblock">Dr. spider: A diagnostic evaluation benchmark towards text-to-sql robustness.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib4.3.1" class="ltx_text ltx_font_italic">ICLR</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen <span id="bib.bib5.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2020a]</span>
+<span class="ltx_bibblock">
+Wenhu Chen, Hongmin Wang, et al.
+
+</span>
+<span class="ltx_bibblock">TabFact: A large-scale dataset for table-based fact verification.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib5.3.1" class="ltx_text ltx_font_italic">ICLR</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen <span id="bib.bib6.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2020b]</span>
+<span class="ltx_bibblock">
+Wenhu Chen, Hanwen Zha, et al.
+
+</span>
+<span class="ltx_bibblock">HybridQA: A dataset of multi-hop question answering over tabular and textual data.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib6.3.1" class="ltx_text ltx_font_italic">EMNLP</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen <span id="bib.bib7.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2021a]</span>
+<span class="ltx_bibblock">
+Mark Chen, Jerry Tworek, et al.
+
+</span>
+<span class="ltx_bibblock">Evaluating large language models trained on code.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib7.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2107.03374</span>, 2021.
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen <span id="bib.bib8.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2021b]</span>
+<span class="ltx_bibblock">
+Xinyun Chen, Petros Maniatis, et al.
+
+</span>
+<span class="ltx_bibblock">Spreadsheetcoder: Formula prediction from semi-structured context.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib8.3.1" class="ltx_text ltx_font_italic">ICML</span>, 2021.
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Cheng <span id="bib.bib9.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Zhoujun Cheng, Tianbao Xie, Peng Shi, Chengzu Li, Rahul Nadkarni, Yushi Hu, et al.
+
+</span>
+<span class="ltx_bibblock">Binding language models in symbolic languages.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib9.3.1" class="ltx_text ltx_font_italic">ICLR</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Cong <span id="bib.bib10.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Tianji Cong, Madelon Hulsebos, Zhenjie Sun, et al.
+
+</span>
+<span class="ltx_bibblock">Observatory: Characterizing Embeddings of Relational Tables.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib10.3.1" class="ltx_text ltx_font_italic">VLDB</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Deng <span id="bib.bib11.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2020]</span>
+<span class="ltx_bibblock">
+Xiang Deng, Huan Sun, Alyssa Lees, You Wu, and Cong Yu.
+
+</span>
+<span class="ltx_bibblock">TURL: Table understanding through representation learning.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib11.3.1" class="ltx_text ltx_font_italic">VLDB</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Devlin <span id="bib.bib12.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2019]</span>
+<span class="ltx_bibblock">
+Jacob Devlin, Ming-Wei Chang, et al.
+
+</span>
+<span class="ltx_bibblock">BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib12.3.1" class="ltx_text ltx_font_italic">NAACL</span>, 2019.
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Dong <span id="bib.bib13.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2022]</span>
+<span class="ltx_bibblock">
+Haoyu Dong, Zhoujun Cheng, et al.
+
+</span>
+<span class="ltx_bibblock">Table Pre-training: A Survey on Model Architectures, Pre-training Objectives, and Downstream Tasks.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib13.3.1" class="ltx_text ltx_font_italic">IJCAI</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Gao <span id="bib.bib14.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Dawei Gao, Haibin Wang, et al.
+
+</span>
+<span class="ltx_bibblock">Text-to-SQL Empowered by Large Language Models: A Benchmark Evaluation.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib14.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2308.15363</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">He <span id="bib.bib15.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Xinyi He, Mengyu Zhou, et al.
+
+</span>
+<span class="ltx_bibblock">Anameta: A table understanding dataset of field metadata knowledge shared by multi-dimensional data analysis tasks.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib15.3.1" class="ltx_text ltx_font_italic">ACL</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Herzig <span id="bib.bib16.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2020]</span>
+<span class="ltx_bibblock">
+Jonathan Herzig, Pawel Krzysztof Nowak, et al.
+
+</span>
+<span class="ltx_bibblock">TaPas: Weakly Supervised Table Parsing via Pre-training.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib16.3.1" class="ltx_text ltx_font_italic">ACL</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Hu <span id="bib.bib17.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2024]</span>
+<span class="ltx_bibblock">
+Xueyu Hu, Ziyu Zhao, Shuang Wei, et al.
+
+</span>
+<span class="ltx_bibblock">InfiAgent-DABench: Evaluating Agents on Data Analysis Tasks.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib17.3.1" class="ltx_text ltx_font_italic">arXiv:2401.05507</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Hulsebos <span id="bib.bib18.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Madelon Hulsebos, Çagatay Demiralp, and Paul Groth.
+
+</span>
+<span class="ltx_bibblock">Gittables: A large-scale corpus of relational tables.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib18.3.1" class="ltx_text ltx_font_italic">SIGMOD</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Iida <span id="bib.bib19.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2021]</span>
+<span class="ltx_bibblock">
+Hiroshi Iida, Dung Thai, Varun Manjunatha, and Mohit Iyyer.
+
+</span>
+<span class="ltx_bibblock">Tabbie: Pretrained representations of tabular data.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib19.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2105.02584</span>, 2021.
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Iyyer <span id="bib.bib20.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2017]</span>
+<span class="ltx_bibblock">
+Mohit Iyyer, Wen-tau Yih, and Ming-Wei Chang.
+
+</span>
+<span class="ltx_bibblock">Search-based neural structured learning for sequential question answering.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib20.3.1" class="ltx_text ltx_font_italic">ACL</span>, 2017.
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Jiang <span id="bib.bib21.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023a]</span>
+<span class="ltx_bibblock">
+Jinhao Jiang, Kun Zhou, et al.
+
+</span>
+<span class="ltx_bibblock">StructGPT: A General Framework for Large Language Model to Reason over Structured Data.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib21.3.1" class="ltx_text ltx_font_italic">EMNLP</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Jiang <span id="bib.bib22.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023b]</span>
+<span class="ltx_bibblock">
+Shuyang Jiang, Yuhao Wang, and Yu Wang.
+
+</span>
+<span class="ltx_bibblock">SelfEvolve: A Code Evolution Framework via Large Language Models.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib22.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2306.02907</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Jin <span id="bib.bib23.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2022]</span>
+<span class="ltx_bibblock">
+Nengzheng Jin, Joanna Siebert, Dongfang Li, and Qingcai Chen.
+
+</span>
+<span class="ltx_bibblock">A survey on table question answering: Recent advances.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib23.3.1" class="ltx_text ltx_font_italic">CCKS</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Karpukhin <span id="bib.bib24.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2020]</span>
+<span class="ltx_bibblock">
+Vladimir Karpukhin, Barlas Oguz, Sewon Min, et al.
+
+</span>
+<span class="ltx_bibblock">Dense Passage Retrieval for Open-Domain Question Answering.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib24.3.1" class="ltx_text ltx_font_italic">EMNLP</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lai <span id="bib.bib25.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Yuhang Lai, Chengxi Li, Yiming Wang, Tianyi Zhang, Ruiqi Zhong, et al.
+
+</span>
+<span class="ltx_bibblock">Ds-1000: A natural and reliable benchmark for data science code generation.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib25.3.1" class="ltx_text ltx_font_italic">ICML</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Li <span id="bib.bib26.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023a]</span>
+<span class="ltx_bibblock">
+Haoyang Li, Jing Zhang, Cuiping Li, and Hong Chen.
+
+</span>
+<span class="ltx_bibblock">RESDSQL: Decoupling schema linking and skeleton parsing for text-to-SQL.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib26.3.1" class="ltx_text ltx_font_italic">AAAI</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Li <span id="bib.bib27.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023b]</span>
+<span class="ltx_bibblock">
+Hongxin Li, Jingran Su, et al.
+
+</span>
+<span class="ltx_bibblock">SheetCopilot: Bringing Software Productivity to the Next Level through Large Language Models.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib27.3.1" class="ltx_text ltx_font_italic">NeurIPS</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Li <span id="bib.bib28.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023c]</span>
+<span class="ltx_bibblock">
+Jinyang Li, Binyuan Hui, Ge Qu, et al.
+
+</span>
+<span class="ltx_bibblock">Can llm already serve as a database interface? a big bench for large-scale database grounded text-to-sqls.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib28.3.1" class="ltx_text ltx_font_italic">NeurIPS</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Li <span id="bib.bib29.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023d]</span>
+<span class="ltx_bibblock">
+Peng Li, Yeye He, Dror Yashar, et al.
+
+</span>
+<span class="ltx_bibblock">Table-GPT: Table-tuned GPT for Diverse Table Tasks.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib29.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2310.09263</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lin <span id="bib.bib30.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023a]</span>
+<span class="ltx_bibblock">
+Weizhe Lin, Rexhina Blloshmi, Bill Byrne, et al.
+
+</span>
+<span class="ltx_bibblock">An inner table retriever for robust table question answering.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib30.3.1" class="ltx_text ltx_font_italic">ACL</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lin <span id="bib.bib31.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023b]</span>
+<span class="ltx_bibblock">
+Weizhe Lin, Rexhina Blloshmi, Bill Byrne, et al.
+
+</span>
+<span class="ltx_bibblock">Li-rage: Late interaction retrieval augmented generation with explicit signals for open-domain table question answering.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib31.3.1" class="ltx_text ltx_font_italic">ACL</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Liu <span id="bib.bib32.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2022]</span>
+<span class="ltx_bibblock">
+Qian Liu, Bei Chen, et al.
+
+</span>
+<span class="ltx_bibblock">TAPEX: Table pre-training via learning a neural SQL executor.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib32.3.1" class="ltx_text ltx_font_italic">ICLR</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib33" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Nan <span id="bib.bib33.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2021]</span>
+<span class="ltx_bibblock">
+Linyong Nan, Dragomir Radev, et al.
+
+</span>
+<span class="ltx_bibblock">DART: Open-domain structured data record to text generation.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib33.3.1" class="ltx_text ltx_font_italic">NAACL</span>, 2021.
+
+</span>
+</li>
+<li id="bib.bib34" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Nan <span id="bib.bib34.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2022]</span>
+<span class="ltx_bibblock">
+Linyong Nan, Chiachun Hsieh, Ziming Mao, Xi Victoria Lin, Neha Verma, et al.
+
+</span>
+<span class="ltx_bibblock">Fetaqa: Free-form table question answering.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib34.3.1" class="ltx_text ltx_font_italic">TACL</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib35" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Nan <span id="bib.bib35.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Linyong Nan, Yilun Zhao, et al.
+
+</span>
+<span class="ltx_bibblock">Enhancing Text-to-SQL Capabilities of Large Language Models: A Study on Prompt Design Strategies.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib35.3.1" class="ltx_text ltx_font_italic">Findings of EMNLP</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib36" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Parikh <span id="bib.bib36.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2020]</span>
+<span class="ltx_bibblock">
+Ankur Parikh, Xuezhi Wang, et al.
+
+</span>
+<span class="ltx_bibblock">ToTTo: A controlled table-to-text generation dataset.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib36.3.1" class="ltx_text ltx_font_italic">EMNLP</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib37" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Pasupat and Liang [2015]</span>
+<span class="ltx_bibblock">
+Panupong Pasupat and Percy Liang.
+
+</span>
+<span class="ltx_bibblock">Compositional semantic parsing on semi-structured tables.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib37.1.1" class="ltx_text ltx_font_italic">ACL</span>, 2015.
+
+</span>
+</li>
+<li id="bib.bib38" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Pourreza and Rafiei [2023]</span>
+<span class="ltx_bibblock">
+Mohammadreza Pourreza and Davood Rafiei.
+
+</span>
+<span class="ltx_bibblock">DIN-SQL: Decomposed in-context learning of text-to-SQL with self-correction.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib38.1.1" class="ltx_text ltx_font_italic">NeurIPS</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib39" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Qin <span id="bib.bib39.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2022]</span>
+<span class="ltx_bibblock">
+Bowen Qin, Binyuan Hui, Lihan Wang, et al.
+
+</span>
+<span class="ltx_bibblock">A Survey on Text-to-SQL Parsing: Concepts, Methods, and Future Directions.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib39.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2208.13629</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib40" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Raffel <span id="bib.bib40.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2020]</span>
+<span class="ltx_bibblock">
+Colin Raffel, Noam Shazeer, Adam Roberts, et al.
+
+</span>
+<span class="ltx_bibblock">Exploring the limits of transfer learning with a unified text-to-text transformer.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib40.3.1" class="ltx_text ltx_font_italic">JMLR</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib41" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Rahman <span id="bib.bib41.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2020]</span>
+<span class="ltx_bibblock">
+Sajjadur Rahman, Kelly Mack, et al.
+
+</span>
+<span class="ltx_bibblock">Benchmarking Spreadsheet Systems.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib41.3.1" class="ltx_text ltx_font_italic">SIGMOD</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib42" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Rozière <span id="bib.bib42.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Baptiste Rozière, Jonas Gehring, et al.
+
+</span>
+<span class="ltx_bibblock">Code Llama: Open Foundation Models for Code.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib42.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2308.12950</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib43" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Singha <span id="bib.bib43.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Ananya Singha, José Cambronero, et al.
+
+</span>
+<span class="ltx_bibblock">Tabular representation, noisy operators, and impacts on table structure understanding tasks in LLMs.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib43.3.1" class="ltx_text ltx_font_italic">NeurIPS TRL Workshop</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib44" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sui <span id="bib.bib44.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Yuan Sui, Jiaru Zou, et al.
+
+</span>
+<span class="ltx_bibblock">TAP4LLM: Table Provider on Sampling, Augmenting, and Packing Semi-structured Data for Large Language Model Reasoning.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib44.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2312.09039</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib45" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sui <span id="bib.bib45.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2024]</span>
+<span class="ltx_bibblock">
+Yuan Sui, Mengyu Zhou, et al.
+
+</span>
+<span class="ltx_bibblock">GPT4Table: Can Large Language Models Understand Structured Table Data? A Benchmark and Empirical Study.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib45.3.1" class="ltx_text ltx_font_italic">WSDM</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib46" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wang <span id="bib.bib46.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023a]</span>
+<span class="ltx_bibblock">
+Lei Wang, Chen Ma, et al.
+
+</span>
+<span class="ltx_bibblock">A survey on large language model based autonomous agents.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib46.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2308.11432</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib47" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wang <span id="bib.bib47.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023b]</span>
+<span class="ltx_bibblock">
+Xuezhi Wang, Jason Wei, et al.
+
+</span>
+<span class="ltx_bibblock">Self-consistency improves chain of thought reasoning in language models.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib47.3.1" class="ltx_text ltx_font_italic">ICLR</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib48" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wei <span id="bib.bib48.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2022a]</span>
+<span class="ltx_bibblock">
+Jason Wei, Maarten Bosma, et al.
+
+</span>
+<span class="ltx_bibblock">Finetuned language models are zero-shot learners.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib48.3.1" class="ltx_text ltx_font_italic">ICLR</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib49" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wei <span id="bib.bib49.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2022b]</span>
+<span class="ltx_bibblock">
+Jason Wei, Xuezhi Wang, et al.
+
+</span>
+<span class="ltx_bibblock">Chain-of-thought prompting elicits reasoning in large language models.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib49.3.1" class="ltx_text ltx_font_italic">NeurIPS</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib50" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wei <span id="bib.bib50.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Yuxiang Wei, Zhe Wang, et al.
+
+</span>
+<span class="ltx_bibblock">Magicoder: Source Code Is All You Need.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib50.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2312.02120</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib51" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Xie <span id="bib.bib51.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2022]</span>
+<span class="ltx_bibblock">
+Tianbao Xie, Chen Henry Wu, et al.
+
+</span>
+<span class="ltx_bibblock">UnifiedSKG: Unifying and Multi-Tasking Structured Knowledge Grounding with Text-to-Text Language Models.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib51.3.1" class="ltx_text ltx_font_italic">EMNLP</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib52" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Xu <span id="bib.bib52.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2024]</span>
+<span class="ltx_bibblock">
+Yiheng Xu, Hongjin Su, et al.
+
+</span>
+<span class="ltx_bibblock">Lemur: Harmonizing Natural Language and Code for Language Agents.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib52.3.1" class="ltx_text ltx_font_italic">ICLR</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib53" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Xue <span id="bib.bib53.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Siqiao Xue, Caigao Jiang, Wenhui Shi, et al.
+
+</span>
+<span class="ltx_bibblock">Db-gpt: Empowering database interactions with private large language models.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib53.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2312.17449</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib54" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Yao <span id="bib.bib54.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Shunyu Yao, Jeffrey Zhao, et al.
+
+</span>
+<span class="ltx_bibblock">ReAct: Synergizing reasoning and acting in language models.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib54.3.1" class="ltx_text ltx_font_italic">ICLR</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib55" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Ye <span id="bib.bib55.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023]</span>
+<span class="ltx_bibblock">
+Yunhu Ye, Binyuan Hui, et al.
+
+</span>
+<span class="ltx_bibblock">Large Language Models are Versatile Decomposers: Decomposing Evidence and Questions for Table-based Reasoning.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib55.3.1" class="ltx_text ltx_font_italic">SIGIR</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib56" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Yin <span id="bib.bib56.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2020]</span>
+<span class="ltx_bibblock">
+Pengcheng Yin, Graham Neubig, et al.
+
+</span>
+<span class="ltx_bibblock">Tabert: Pretraining for joint understanding of textual and tabular data.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib56.3.1" class="ltx_text ltx_font_italic">ACL</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib57" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Yu <span id="bib.bib57.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2018]</span>
+<span class="ltx_bibblock">
+Tao Yu, Rui Zhang, et al.
+
+</span>
+<span class="ltx_bibblock">Spider: A Large-Scale Human-Labeled Dataset for Complex and Cross-Domain Semantic Parsing and Text-to-SQL Task.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib57.3.1" class="ltx_text ltx_font_italic">EMNLP</span>, 2018.
+
+</span>
+</li>
+<li id="bib.bib58" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhang and Balog [2020]</span>
+<span class="ltx_bibblock">
+Shuo Zhang and Krisztian Balog.
+
+</span>
+<span class="ltx_bibblock">Web Table Extraction, Retrieval, and Augmentation: A Survey.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib58.1.1" class="ltx_text ltx_font_italic">ACM TIST</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib59" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhang <span id="bib.bib59.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023a]</span>
+<span class="ltx_bibblock">
+Tianshu Zhang, Xiang Yue, and Huan Sun.
+
+</span>
+<span class="ltx_bibblock">TableLlama: Towards Open Large Generalist Models for Tables.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib59.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2311.09206</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib60" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhang <span id="bib.bib60.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023b]</span>
+<span class="ltx_bibblock">
+Wenqi Zhang, Yongliang Shen, et al.
+
+</span>
+<span class="ltx_bibblock">Data-Copilot: Bridging Billions of Data and Humans with Autonomous Workflow.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib60.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2306.07209</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib61" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhang <span id="bib.bib61.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023c]</span>
+<span class="ltx_bibblock">
+Yunjia Zhang, Jordan Henkel, et al.
+
+</span>
+<span class="ltx_bibblock">ReAcTable: Enhancing ReAct for Table Question Answering.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib61.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2310.00815</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib62" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhao <span id="bib.bib62.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023a]</span>
+<span class="ltx_bibblock">
+Wayne Xin Zhao, Kun Zhou, et al.
+
+</span>
+<span class="ltx_bibblock">A Survey of Large Language Models.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib62.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2303.18223</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib63" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhao <span id="bib.bib63.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2023b]</span>
+<span class="ltx_bibblock">
+Yilun Zhao, Chen Zhao, et al.
+
+</span>
+<span class="ltx_bibblock">RobuT: A Systematic Study of Table QA Robustness Against Human-Annotated Adversarial Perturbations.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib63.3.1" class="ltx_text ltx_font_italic">ACL</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib64" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhong <span id="bib.bib64.2.2.1" class="ltx_text ltx_font_italic">et al.</span> [2017]</span>
+<span class="ltx_bibblock">
+Victor Zhong, Caiming Xiong, and Richard Socher.
+
+</span>
+<span class="ltx_bibblock">Seq2sql: Generating structured queries from natural language using reinforcement learning.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib64.3.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:1709.00103</span>, 2017.
+
+</span>
+</li>
+</ul>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2402.05120" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2402.05121" class="ar5iv-text-button ar5iv-severity-ok">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2402.05121">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2402.05121" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2402.05123" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Tue Mar  5 12:27:28 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

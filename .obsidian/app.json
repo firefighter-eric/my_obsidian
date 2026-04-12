@@ -1,0 +1,8 @@
+{
+  "userIgnoreFilters": [
+    "raw/",
+    "log.md",
+    "index.md"
+  ],
+  "alwaysUpdateLinks": true
+}

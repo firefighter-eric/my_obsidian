@@ -1,0 +1,871 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2305.03393] Optimized Table Tokenization for Table Structure Recognition</title><meta property="og:description" content="Extracting tables from documents is a crucial task in any document conversion pipeline. Recently, transformer-based models have demonstrated that table-structure can be recognized with impressive accuracy using Image-t…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Optimized Table Tokenization for Table Structure Recognition">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="Optimized Table Tokenization for Table Structure Recognition">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2305.03393">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2305.03393">
+
+<!--Generated on Thu Feb 29 09:59:44 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="keywords" lang="en" content="Table Structure Recognition Data Representation Transformers Optimization.">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line"><span id="id1" class="ltx_note ltx_role_institutetext"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_note_type">institutetext: </span>IBM Research
+<br class="ltx_break"><span id="id1.1" class="ltx_note ltx_role_email"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_note_type">email: </span>{mly,ahn,nli,cau,taa}@zurich.ibm.com</span></span></span></span></span></span>
+<h1 class="ltx_title ltx_title_document">Optimized Table Tokenization for Table Structure Recognition</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Maksym Lysak
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_orcid"><a target="_blank" href="https://orcid.org/0000-0002-3723-6960" title="ORCID identifier" class="ltx_ref">0000-0002-3723-6960</a></span>
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Ahmed Nassar
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_orcid"><a target="_blank" href="https://orcid.org/0000-0002-9468-0822" title="ORCID identifier" class="ltx_ref">0000-0002-9468-0822</a></span>
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Nikolaos Livathinos
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_orcid"><a target="_blank" href="https://orcid.org/0000-0001-8513-3491" title="ORCID identifier" class="ltx_ref">0000-0001-8513-3491</a></span>
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Christoph Auer
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_orcid"><a target="_blank" href="https://orcid.org/0000-0001-5761-0422" title="ORCID identifier" class="ltx_ref">0000-0001-5761-0422</a></span>
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Peter Staar
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_orcid"><a target="_blank" href="https://orcid.org/0000-0002-8088-0823" title="ORCID identifier" class="ltx_ref">0000-0002-8088-0823</a></span>
+</span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id1.id1" class="ltx_p">Extracting tables from documents is a crucial task in any document conversion pipeline. Recently, transformer-based models have demonstrated that table-structure can be recognized with impressive accuracy using Image-to-Markup-Sequence (Im2Seq) approaches. Taking only the image of a table, such models predict a sequence of tokens (e.g. in HTML, LaTeX) which represent the structure of the table. Since the token representation of the table structure has a significant impact on the accuracy and run-time performance of any Im2Seq model, we investigate in this paper how table-structure representation can be optimised. We propose a new, optimised table-structure language (OTSL) with a minimized vocabulary and specific rules. The benefits of OTSL are that it reduces the number of tokens to 5 (HTML needs 28+) and shortens the sequence length to half of HTML on average. Consequently, model accuracy improves significantly, inference time is halved compared to HTML-based models, and the predicted table structures are always syntactically correct. This in turn eliminates most post-processing needs. Popular table structure data-sets will be published in OTSL format to the community.</p>
+</div>
+<div class="ltx_keywords">
+<h6 class="ltx_title ltx_title_keywords">Keywords: </h6>Table Structure Recognition Data Representation Transformers Optimization.
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">Tables are ubiquitous in documents such as scientific papers, patents, reports, manuals, specification sheets or marketing material. They often encode highly valuable information and therefore need to be extracted with high accuracy. Unfortunately, tables appear in documents in various sizes, styling and structure, making it difficult to recover their correct structure with simple analytical methods. Therefore, accurate table extraction is achieved these days with machine-learning based methods.</p>
+</div>
+<figure id="S1.F1" class="ltx_figure">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1: </span>Comparison between HTML and OTSL table structure representation: (A) table-example with complex row and column headers, including a 2D empty span, (B) minimal graphical representation of table structure using rectangular layout, (C) HTML representation, (D) OTSL representation. This example demonstrates many of the key-features of OTSL, namely its reduced vocabulary size (12 versus 5 in this case), its reduced sequence length (55 versus 30) and a enhanced internal structure (variable token sequence length per row in HTML versus a fixed length of rows in OTSL). </figcaption><img src="/html/2305.03393/assets/x1.png" id="S1.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="332" height="230" alt="Refer to caption">
+</figure>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">In modern document understanding systems <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref">1</a>, <a href="#bib.bib15" title="" class="ltx_ref">15</a>]</cite>, table extraction is typically a two-step process. Firstly, every table on a page is located with a bounding box, and secondly, their logical row and column structure is recognized. As of today, <span id="S1.p2.1.1" class="ltx_text ltx_font_italic">table detection</span> in documents is a well understood problem, and the latest state-of-the-art (SOTA) object detection methods provide an accuracy comparable to human observers <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib7" title="" class="ltx_ref">7</a>, <a href="#bib.bib8" title="" class="ltx_ref">8</a>, <a href="#bib.bib10" title="" class="ltx_ref">10</a>, <a href="#bib.bib14" title="" class="ltx_ref">14</a>, <a href="#bib.bib23" title="" class="ltx_ref">23</a>]</cite>. On the other hand, the problem of table structure recognition (TSR) is a lot more challenging and remains a very active area of research, in which many novel machine learning algorithms are being explored <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib3" title="" class="ltx_ref">3</a>, <a href="#bib.bib4" title="" class="ltx_ref">4</a>, <a href="#bib.bib5" title="" class="ltx_ref">5</a>, <a href="#bib.bib9" title="" class="ltx_ref">9</a>, <a href="#bib.bib11" title="" class="ltx_ref">11</a>, <a href="#bib.bib12" title="" class="ltx_ref">12</a>, <a href="#bib.bib13" title="" class="ltx_ref">13</a>, <a href="#bib.bib14" title="" class="ltx_ref">14</a>, <a href="#bib.bib17" title="" class="ltx_ref">17</a>, <a href="#bib.bib18" title="" class="ltx_ref">18</a>, <a href="#bib.bib21" title="" class="ltx_ref">21</a>, <a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite>.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p">Recently emerging SOTA methods for table structure recognition employ transformer-based models, in which an image of the table is provided to the network in order to predict the structure of the table as a sequence of tokens. These image-to-sequence (Im2Seq) models are extremely powerful, since they allow for a purely data-driven solution. The tokens of the sequence typically belong to a markup language such as HTML, Latex or Markdown, which allow to describe table structure as rows, columns and spanning cells in various configurations. In Figure <a href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>, we illustrate how HTML is used to represent the table-structure of a particular example table. Public table-structure data sets such as PubTabNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite>, and FinTabNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib21" title="" class="ltx_ref">21</a>]</cite>, which were created in a semi-automated way from paired PDF and HTML sources (e.g. PubMed Central), popularized primarily the use of HTML as ground-truth representation format for TSR.</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p id="S1.p4.1" class="ltx_p">While the majority of research in TSR is currently focused on the development and application of novel neural model architectures, the table structure representation language (e.g. HTML in PubTabNet and FinTabNet) is usually adopted <span id="S1.p4.1.1" class="ltx_text ltx_font_italic">as is</span> for the sequence tokenization in Im2Seq models. In this paper, we aim for the opposite and investigate the impact of the table structure representation language with an otherwise unmodified Im2Seq transformer-based architecture. Since the current state-of-the-art Im2Seq model is TableFormer <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite>, we select this model to perform our experiments.</p>
+</div>
+<div id="S1.p5" class="ltx_para">
+<p id="S1.p5.1" class="ltx_p">The main contribution of this paper is the introduction of a new optimised table structure language (OTSL), specifically designed to describe table-structure in an compact and structured way for Im2Seq models. OTSL has a number of key features, which make it very attractive to use in Im2Seq models. Specifically, compared to other languages such as HTML, OTSL has a minimized vocabulary which yields short sequence length, strong inherent structure (e.g. strict rectangular layout) and a strict syntax with rules that only look backwards. The latter allows for syntax validation during inference and ensures a syntactically correct table-structure. These OTSL features are illustrated in Figure <a href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>, in comparison to HTML.</p>
+</div>
+<div id="S1.p6" class="ltx_para">
+<p id="S1.p6.1" class="ltx_p">The paper is structured as follows. In section <a href="#S2" title="2 Related Work ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, we give an overview of the latest developments in table-structure reconstruction. In section <a href="#S3" title="3 Problem Statement ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> we review the current HTML table encoding (popularised by PubTabNet and FinTabNet) and discuss its flaws. Subsequently, we introduce OTSL in section <a href="#S4" title="4 Optimised Table Structure Language ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>, which includes the language definition, syntax rules and error-correction procedures. In section <a href="#S5" title="5 Experiments ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>, we apply OTSL on the TableFormer architecture, compare it to TableFormer models trained on HTML and ultimately demonstrate the advantages of using OTSL. Finally, in section <a href="#S6" title="6 Conclusion ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> we conclude our work and outline next potential steps.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Related Work</h2>
+
+<div id="S2.p1" class="ltx_para">
+<p id="S2.p1.1" class="ltx_p">Approaches to formalize the logical structure and layout of tables in electronic documents date back more than two decades <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib16" title="" class="ltx_ref">16</a>]</cite>. In the recent past, a wide variety of computer vision methods have been explored to tackle the problem of table structure recognition, i.e. the correct identification of columns, rows and spanning cells in a given table. Broadly speaking, the current deep-learning based approaches fall into three categories: object detection (OD) methods, Graph-Neural-Network (GNN) methods and Image-to-Markup-Sequence (Im2Seq) methods. Object-detection based methods <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib11" title="" class="ltx_ref">11</a>, <a href="#bib.bib12" title="" class="ltx_ref">12</a>, <a href="#bib.bib13" title="" class="ltx_ref">13</a>, <a href="#bib.bib14" title="" class="ltx_ref">14</a>, <a href="#bib.bib21" title="" class="ltx_ref">21</a>]</cite> rely on table-structure annotation using (overlapping) bounding boxes for training, and produce bounding-box predictions to define table cells, rows, and columns on a table image.
+Graph Neural Network (GNN) based methods <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib3" title="" class="ltx_ref">3</a>, <a href="#bib.bib6" title="" class="ltx_ref">6</a>, <a href="#bib.bib17" title="" class="ltx_ref">17</a>, <a href="#bib.bib18" title="" class="ltx_ref">18</a>]</cite>, as the name suggests, represent tables as graph structures. The graph nodes represent the content of each table cell, an embedding vector from the table image, or geometric coordinates of the table cell. The edges of the graph define the relationship between the nodes, e.g. if they belong to the same column, row, or table cell. Other work <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref">20</a>]</cite> aims at predicting a grid for each table and deciding which cells must be merged using an attention network.
+Im2Seq methods cast the problem as a sequence generation task <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib4" title="" class="ltx_ref">4</a>, <a href="#bib.bib5" title="" class="ltx_ref">5</a>, <a href="#bib.bib9" title="" class="ltx_ref">9</a>, <a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite>, and therefore need an internal table-structure representation language, which is often implemented with standard markup languages (e.g. HTML, LaTeX, Markdown).
+In theory, Im2Seq methods have a natural advantage over the OD and GNN methods by virtue of directly predicting the table-structure. As such, no post-processing or rules are needed in order to obtain the table-structure, which is necessary with OD and GNN approaches. In practice, this is not entirely true, because a predicted sequence of table-structure markup does not necessarily have to be syntactically correct. Hence, depending on the quality of the predicted sequence, some post-processing needs to be performed to ensure a syntactically valid (let alone correct) sequence.</p>
+</div>
+<div id="S2.p2" class="ltx_para">
+<p id="S2.p2.1" class="ltx_p">Within the Im2Seq method, we find several popular models, namely the encoder-dual-decoder model (EDD) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite>, TableFormer <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite>, Tabsplitter<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib2" title="" class="ltx_ref">2</a>]</cite> and Ye et. al. <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib19" title="" class="ltx_ref">19</a>]</cite>. EDD uses two consecutive long short-term memory (LSTM) decoders to predict a table in HTML representation. The <span id="S2.p2.1.1" class="ltx_text ltx_font_italic">tag decoder</span> predicts a sequence of HTML tags. For each decoded table cell (<span id="S2.p2.1.2" class="ltx_text ltx_font_italic">&lt;td&gt;</span>), the attention is passed to the <span id="S2.p2.1.3" class="ltx_text ltx_font_italic">cell decoder</span> to predict the content with an embedded OCR approach. The latter makes it susceptible to transcription errors in the cell content of the table. TableFormer address this reliance on OCR and uses two transformer decoders for HTML structure and cell bounding box prediction in an end-to-end architecture. The predicted cell bounding box is then used to extract text tokens from an originating (digital) PDF page, circumventing any need for OCR. TabSplitter <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib2" title="" class="ltx_ref">2</a>]</cite> proposes a compact double-matrix representation of table rows and columns to do error detection and error correction of HTML structure sequences based on predictions from <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib19" title="" class="ltx_ref">19</a>]</cite>. This compact double-matrix representation can not be used directly by the Img2seq model training, so the model uses HTML as an intermediate form. Chi et. al. <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib4" title="" class="ltx_ref">4</a>]</cite> introduce a data set and a baseline method using bidirectional LSTMs to predict LaTeX code. Kayal  <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib5" title="" class="ltx_ref">5</a>]</cite> introduces Gated ResNet transformers to predict LaTeX code, and a separate OCR module to extract content.</p>
+</div>
+<div id="S2.p3" class="ltx_para">
+<p id="S2.p3.1" class="ltx_p">Im2Seq approaches have shown to be well-suited for the TSR task and allow a full end-to-end network design that can output the final table structure without pre- or post-processing logic. Furthermore, Im2Seq models have demonstrated to deliver state-of-the-art prediction accuracy <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite>. This motivated the authors to investigate if the performance (both in accuracy and inference time) can be further improved by optimising the table structure representation language. We believe this is a necessary step before further improving neural network architectures for this task.</p>
+</div>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Problem Statement</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.1" class="ltx_p">All known Im2Seq based models for TSR fundamentally work in similar ways. Given an image of a table, the Im2Seq model predicts the structure of the table by generating a sequence of tokens. These tokens originate from a finite vocabulary and can be interpreted as a table structure. For example, with the HTML tokens <span id="S3.p1.1.1" class="ltx_text ltx_font_italic">&lt;table&gt;</span>, <span id="S3.p1.1.2" class="ltx_text ltx_font_italic">&lt;/table&gt;</span>, <span id="S3.p1.1.3" class="ltx_text ltx_font_italic">&lt;tr&gt;</span>, <span id="S3.p1.1.4" class="ltx_text ltx_font_italic">&lt;/tr&gt;</span>, <span id="S3.p1.1.5" class="ltx_text ltx_font_italic">&lt;td&gt;</span> and <span id="S3.p1.1.6" class="ltx_text ltx_font_italic">&lt;/td&gt;</span>, one can construct simple table structures without any spanning cells. In reality though, one needs at least 28 HTML tokens to describe the most common complex tables observed in real-world documents <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib21" title="" class="ltx_ref">21</a>, <a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite>, due to a variety of spanning cells definitions in the HTML token vocabulary.</p>
+</div>
+<figure id="S3.F2" class="ltx_figure">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 2: </span>Frequency of tokens in HTML and OTSL as they appear in PubTabNet.</figcaption><img src="/html/2305.03393/assets/figs/html_freq_v4.png" id="S3.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="471" height="151" alt="Refer to caption">
+</figure>
+<div id="S3.p2" class="ltx_para">
+<p id="S3.p2.1" class="ltx_p">Obviously, HTML and other general-purpose markup languages were not designed for Im2Seq models. As such, they have some serious drawbacks. First, the token vocabulary needs to be artificially large in order to describe all plausible tabular structures. Since most Im2Seq models use an autoregressive approach, they generate the sequence token by token. Therefore, to reduce inference time, a shorter sequence length is critical.
+Every table-cell is represented by at least two tokens (<span id="S3.p2.1.1" class="ltx_text ltx_font_italic">&lt;td&gt;</span> and <span id="S3.p2.1.2" class="ltx_text ltx_font_italic">&lt;/td&gt;</span>). Furthermore, when tokenizing the HTML structure, one needs to explicitly enumerate possible column-spans and row-spans as words. In practice, this ends up requiring 28 different HTML tokens (when including column- and row-spans up to 10 cells) just to describe every table in the PubTabNet dataset. Clearly, not every token is equally represented, as is depicted in Figure <a href="#S3.F2" title="Figure 2 ‣ 3 Problem Statement ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>. This skewed distribution of tokens in combination with variable token row-length makes it challenging for models to learn the HTML structure.</p>
+</div>
+<div id="S3.p3" class="ltx_para">
+<p id="S3.p3.1" class="ltx_p">Additionally, it would be desirable if the representation would easily allow an early detection of invalid sequences on-the-go, before the prediction of the entire table structure is completed. HTML is not well-suited for this purpose as the verification of incomplete sequences is non-trivial or even impossible.</p>
+</div>
+<div id="S3.p4" class="ltx_para">
+<p id="S3.p4.1" class="ltx_p">In a valid HTML table, the token sequence must describe a 2D grid of table cells, serialised in row-major ordering, where each row and each column have the same length (while considering row- and column-spans). Furthermore, every opening tag in HTML needs to be matched by a closing tag in a correct hierarchical manner.
+Since the number of tokens for each table row and column can vary significantly, especially for large tables with many row- and column-spans, it is complex to verify the consistency of predicted structures during sequence generation. Implicitly, this also means that Im2Seq models need to learn these complex syntax rules, simply to deliver valid output.</p>
+</div>
+<div id="S3.p5" class="ltx_para">
+<p id="S3.p5.1" class="ltx_p">In practice, we observe two major issues with prediction quality when training Im2Seq models on HTML table structure generation from images.
+On the one hand, we find that on large tables, the visual attention of the model often starts to drift and is not accurately moving forward cell by cell anymore. This manifests itself in either in an increasing <span id="S3.p5.1.1" class="ltx_text ltx_font_italic">location drift</span> for proposed table-cells in later rows on the same column or even complete loss of vertical alignment, as illustrated in Figure <a href="#S5.F5" title="Figure 5 ‣ 5.3 Qualitative Results ‣ 5 Experiments ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>. Addressing this with post-processing is partially possible, but clearly undesired. On the other hand, we find many instances of predictions with structural inconsistencies or plain invalid HTML output, as shown in Figure <a href="#S5.F6" title="Figure 6 ‣ 5.3 Qualitative Results ‣ 5 Experiments ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>, which are nearly impossible to properly correct.
+Both problems seriously impact the TSR model performance, since they reflect not only in the task of pure structure recognition but also in the equally crucial recognition or matching of table cell content.</p>
+</div>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Optimised Table Structure Language</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p">To mitigate the issues with HTML in Im2Seq-based TSR models laid out before, we propose here our Optimised Table Structure Language (OTSL). OTSL is designed to express table structure with a minimized vocabulary and a simple set of rules, which are both significantly reduced compared to HTML. At the same time, OTSL enables easy error detection and correction during sequence generation. We further demonstrate how the compact structure representation and minimized sequence length improves prediction accuracy and inference time in the TableFormer architecture.</p>
+</div>
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Language Definition</h3>
+
+<div id="S4.SS1.p1" class="ltx_para">
+<p id="S4.SS1.p1.1" class="ltx_p">In Figure <a href="#S4.F3" title="Figure 3 ‣ 4.1 Language Definition ‣ 4 Optimised Table Structure Language ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, we illustrate how the OTSL is defined. In essence, the OTSL defines only 5 tokens that directly describe a tabular structure based on an atomic 2D grid.</p>
+</div>
+<figure id="S4.F3" class="ltx_figure">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 3: </span>OTSL description of table structure: A - table example; B - graphical representation of table structure; C - mapping structure on a grid; D - OTSL structure encoding; E - explanation on cell encoding</figcaption><img src="/html/2305.03393/assets/x2.png" id="S4.F3.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="302" height="122" alt="Refer to caption">
+</figure>
+<div id="S4.SS1.p2" class="ltx_para">
+<p id="S4.SS1.p2.1" class="ltx_p">The OTSL vocabulary is comprised of the following tokens:</p>
+<ul id="S4.I1" class="ltx_itemize">
+<li id="S4.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i1.p1" class="ltx_para">
+<p id="S4.I1.i1.p1.1" class="ltx_p">"C" cell - <span id="S4.I1.i1.p1.1.1" class="ltx_text ltx_font_italic">a new table cell</span> that either has or does not have cell content</p>
+</div>
+</li>
+<li id="S4.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i2.p1" class="ltx_para">
+<p id="S4.I1.i2.p1.1" class="ltx_p">"L" cell - <span id="S4.I1.i2.p1.1.1" class="ltx_text ltx_font_italic">left-looking cell</span>, merging with the left neighbor cell to create a span</p>
+</div>
+</li>
+<li id="S4.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i3.p1" class="ltx_para">
+<p id="S4.I1.i3.p1.1" class="ltx_p">"U" cell - <span id="S4.I1.i3.p1.1.1" class="ltx_text ltx_font_italic">up-looking cell</span>, merging with the upper neighbor cell to create a span</p>
+</div>
+</li>
+<li id="S4.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i4.p1" class="ltx_para">
+<p id="S4.I1.i4.p1.1" class="ltx_p">"X" cell - <span id="S4.I1.i4.p1.1.1" class="ltx_text ltx_font_italic">cross cell</span>, to merge with both left and upper neighbor cells</p>
+</div>
+</li>
+<li id="S4.I1.i5" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i5.p1" class="ltx_para">
+<p id="S4.I1.i5.p1.1" class="ltx_p">"NL" - <span id="S4.I1.i5.p1.1.1" class="ltx_text ltx_font_italic">new-line</span>, switch to the next row.</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="S4.SS1.p3" class="ltx_para">
+<p id="S4.SS1.p3.1" class="ltx_p">A notable attribute of OTSL is that it has the capability of achieving lossless conversion to HTML.</p>
+</div>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Language Syntax</h3>
+
+<div id="S4.SS2.p1" class="ltx_para">
+<p id="S4.SS2.p1.1" class="ltx_p">The OTSL representation follows these syntax rules:</p>
+</div>
+<div id="S4.SS2.p2" class="ltx_para">
+<ol id="S4.I2" class="ltx_enumerate">
+<li id="S4.I2.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">1.</span> 
+<div id="S4.I2.i1.p1" class="ltx_para">
+<p id="S4.I2.i1.p1.1" class="ltx_p"><span id="S4.I2.i1.p1.1.1" class="ltx_text ltx_font_bold">Left-looking cell rule</span>:
+The left neighbour of an "L" cell must be either another "L" cell or a "C" cell.</p>
+</div>
+</li>
+<li id="S4.I2.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">2.</span> 
+<div id="S4.I2.i2.p1" class="ltx_para">
+<p id="S4.I2.i2.p1.1" class="ltx_p"><span id="S4.I2.i2.p1.1.1" class="ltx_text ltx_font_bold">Up-looking cell rule</span>:
+The upper neighbour of a "U" cell must be either another "U" cell or a "C" cell.</p>
+</div>
+</li>
+<li id="S4.I2.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">3.</span> 
+<div id="S4.I2.i3.p1" class="ltx_para">
+<p id="S4.I2.i3.p1.1" class="ltx_p"><span id="S4.I2.i3.p1.1.1" class="ltx_text ltx_font_bold">Cross cell rule</span>:</p>
+</div>
+<div id="S4.I2.i3.p2" class="ltx_para">
+<p id="S4.I2.i3.p2.1" class="ltx_p">The left neighbour of an "X" cell must be either another "X" cell or a "U" cell, and the upper neighbour of an "X" cell must be either another "X" cell or an "L" cell.</p>
+</div>
+</li>
+<li id="S4.I2.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">4.</span> 
+<div id="S4.I2.i4.p1" class="ltx_para">
+<p id="S4.I2.i4.p1.1" class="ltx_p"><span id="S4.I2.i4.p1.1.1" class="ltx_text ltx_font_bold">First row rule</span>:
+Only "L" cells and "C" cells are allowed in the first row.</p>
+</div>
+</li>
+<li id="S4.I2.i5" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">5.</span> 
+<div id="S4.I2.i5.p1" class="ltx_para">
+<p id="S4.I2.i5.p1.1" class="ltx_p"><span id="S4.I2.i5.p1.1.1" class="ltx_text ltx_font_bold">First column rule</span>:
+Only "U" cells and "C" cells are allowed in the first column.</p>
+</div>
+</li>
+<li id="S4.I2.i6" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">6.</span> 
+<div id="S4.I2.i6.p1" class="ltx_para">
+<p id="S4.I2.i6.p1.1" class="ltx_p"><span id="S4.I2.i6.p1.1.1" class="ltx_text ltx_font_bold">Rectangular rule</span>:
+The table representation is always rectangular - all rows must have an equal number of tokens, terminated with "NL" token.</p>
+</div>
+</li>
+</ol>
+</div>
+<div id="S4.SS2.p3" class="ltx_para">
+<p id="S4.SS2.p3.1" class="ltx_p">The application of these rules gives OTSL a set of unique properties.
+First of all, the OTSL enforces a strictly rectangular structure representation, where every new-line token starts a new row. As a consequence, all rows and all columns have exactly the same number of tokens, irrespective of cell spans.
+Secondly, the OTSL representation is unambiguous: Every table structure is represented in one way. In this representation every table cell corresponds to a "C"-cell token, which in case of spans is always located in the top-left corner of the table cell definition.
+Third, OTSL syntax rules are only backward-looking. As a consequence, every predicted token can be validated straight during sequence generation by looking at the previously predicted sequence. As such, OTSL can guarantee that every predicted sequence is syntactically valid.</p>
+</div>
+<div id="S4.SS2.p4" class="ltx_para">
+<p id="S4.SS2.p4.1" class="ltx_p">These characteristics can be easily learned by sequence generator networks, as we demonstrate further below. We find strong indications that this pattern reduces significantly the column drift seen in the HTML based models (see Figure <a href="#S5.F5" title="Figure 5 ‣ 5.3 Qualitative Results ‣ 5 Experiments ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>).</p>
+</div>
+</section>
+<section id="S4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.3 </span>Error-detection and -mitigation</h3>
+
+<div id="S4.SS3.p1" class="ltx_para">
+<p id="S4.SS3.p1.1" class="ltx_p">The design of OTSL allows to validate a table structure easily on an unfinished sequence. The detection of an invalid sequence token is a clear indication of a prediction mistake, however a valid sequence by itself does not guarantee prediction correctness. Different heuristics can be used to correct token errors in an invalid sequence and thus increase the chances for accurate predictions. Such heuristics can be applied either after the prediction of each token, or at the end on the entire predicted sequence.
+For example a simple heuristic which can correct the predicted OTSL sequence on-the-fly is to verify if the token with the highest prediction confidence invalidates the predicted sequence, and replace it by the token with the next highest confidence until OTSL rules are satisfied.</p>
+</div>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Experiments</h2>
+
+<div id="S5.p1" class="ltx_para">
+<p id="S5.p1.1" class="ltx_p">To evaluate the impact of OTSL on prediction accuracy and inference times, we conducted a series of experiments based on the TableFormer model (Figure <a href="#S5.F4" title="Figure 4 ‣ 5 Experiments ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>) with two objectives: Firstly we evaluate the prediction quality and performance of OTSL vs. HTML after performing Hyper Parameter Optimization (HPO) on the <span id="S5.p1.1.1" class="ltx_text ltx_font_italic">canonical</span> PubTabNet data set. Secondly we pick the best hyper-parameters found in the first step and evaluate how OTSL impacts the performance of TableFormer after training on other publicly available data sets (FinTabNet, PubTables-1M <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref">14</a>]</cite>). The ground truth (GT) from all data sets has been converted into OTSL format for this purpose, and will be made publicly available.</p>
+</div>
+<figure id="S5.F4" class="ltx_figure">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 4: </span>Architecture sketch of the TableFormer model, which is a representative for the Im2Seq approach.</figcaption><img src="/html/2305.03393/assets/x3.png" id="S5.F4.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="363" height="95" alt="Refer to caption">
+</figure>
+<div id="S5.p2" class="ltx_para">
+<p id="S5.p2.1" class="ltx_p">We rely on standard metrics such as Tree Edit Distance score (TEDs) for table structure prediction, and Mean Average Precision (mAP) with 0.75 Intersection Over Union (IOU) threshold for the bounding-box predictions of table cells.
+The predicted OTSL structures were converted back to HTML format in order to compute the TED score. Inference timing results for all experiments were obtained from the same machine on a single core with AMD EPYC 7763 CPU @2.45 GHz.</p>
+</div>
+<section id="S5.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.1 </span>Hyper Parameter Optimization</h3>
+
+<div id="S5.SS1.p1" class="ltx_para">
+<p id="S5.SS1.p1.1" class="ltx_p">We have chosen the PubTabNet data set to perform HPO, since it includes a highly diverse set of tables. Also we report TED scores separately for simple and complex tables (tables with cell spans). Results are presented in Table. <a href="#S5.T1" title="Table 1 ‣ 5.1 Hyper Parameter Optimization ‣ 5 Experiments ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>. It is evident that with OTSL, our model achieves the same TED score and slightly better mAP scores in comparison to HTML. However OTSL yields a <span id="S5.SS1.p1.1.1" class="ltx_text ltx_font_italic">2x speed up</span> in the inference runtime over HTML.</p>
+</div>
+<figure id="S5.T1" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 1: </span> HPO performed in OTSL and HTML representation on the same transformer-based TableFormer <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite> architecture, trained only on PubTabNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite>. Effects of reducing the # of layers in encoder and decoder stages of the model show that smaller models trained on OTSL perform better, especially in recognizing complex table structures, and maintain a much higher mAP score than the HTML counterpart.</figcaption>
+<table id="S5.T1.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S5.T1.1.1" class="ltx_tr">
+<td id="S5.T1.1.1.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.1.1.1" class="ltx_text">
+<span id="S5.T1.1.1.1.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T1.1.1.1.1.1.1" class="ltx_tr">
+<span id="S5.T1.1.1.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">#</span></span>
+<span id="S5.T1.1.1.1.1.1.2" class="ltx_tr">
+<span id="S5.T1.1.1.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">enc-layers</span></span>
+</span></span></td>
+<td id="S5.T1.1.1.2" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.1.2.1" class="ltx_text">
+<span id="S5.T1.1.1.2.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T1.1.1.2.1.1.1" class="ltx_tr">
+<span id="S5.T1.1.1.2.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">#</span></span>
+<span id="S5.T1.1.1.2.1.1.2" class="ltx_tr">
+<span id="S5.T1.1.1.2.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">dec-layers</span></span>
+</span></span></td>
+<td id="S5.T1.1.1.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.1.3.1" class="ltx_text">Language</span></td>
+<td id="S5.T1.1.1.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" colspan="3">TEDs</td>
+<td id="S5.T1.1.1.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.1.5.1" class="ltx_text"><span id="S5.T1.1.1.5.1.1" class="ltx_text"></span> <span id="S5.T1.1.1.5.1.2" class="ltx_text">
+<span id="S5.T1.1.1.5.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T1.1.1.5.1.2.1.1" class="ltx_tr">
+<span id="S5.T1.1.1.5.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">mAP</span></span>
+<span id="S5.T1.1.1.5.1.2.1.2" class="ltx_tr">
+<span id="S5.T1.1.1.5.1.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">(0.75)</span></span>
+</span></span> <span id="S5.T1.1.1.5.1.3" class="ltx_text"></span></span></td>
+<td id="S5.T1.1.1.6" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.1.6.1" class="ltx_text"><span id="S5.T1.1.1.6.1.1" class="ltx_text"></span> <span id="S5.T1.1.1.6.1.2" class="ltx_text">
+<span id="S5.T1.1.1.6.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T1.1.1.6.1.2.1.1" class="ltx_tr">
+<span id="S5.T1.1.1.6.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">Inference</span></span>
+<span id="S5.T1.1.1.6.1.2.1.2" class="ltx_tr">
+<span id="S5.T1.1.1.6.1.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">time (secs)</span></span>
+</span></span> <span id="S5.T1.1.1.6.1.3" class="ltx_text"></span></span></td>
+</tr>
+<tr id="S5.T1.1.2" class="ltx_tr">
+<td id="S5.T1.1.2.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">simple</td>
+<td id="S5.T1.1.2.2" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">complex</td>
+<td id="S5.T1.1.2.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">all</td>
+</tr>
+<tr id="S5.T1.1.3" class="ltx_tr">
+<td id="S5.T1.1.3.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.3.1.1" class="ltx_text">6</span></td>
+<td id="S5.T1.1.3.2" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.3.2.1" class="ltx_text">6</span></td>
+<td id="S5.T1.1.3.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">OTSL</td>
+<td id="S5.T1.1.3.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.965</td>
+<td id="S5.T1.1.3.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.934</td>
+<td id="S5.T1.1.3.6" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.955</td>
+<td id="S5.T1.1.3.7" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T1.1.3.7.1" class="ltx_text ltx_font_bold">0.88</span></td>
+<td id="S5.T1.1.3.8" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T1.1.3.8.1" class="ltx_text ltx_font_bold">2.73</span></td>
+</tr>
+<tr id="S5.T1.1.4" class="ltx_tr">
+<td id="S5.T1.1.4.1" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">HTML</td>
+<td id="S5.T1.1.4.2" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.969</td>
+<td id="S5.T1.1.4.3" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.927</td>
+<td id="S5.T1.1.4.4" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.955</td>
+<td id="S5.T1.1.4.5" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.857</td>
+<td id="S5.T1.1.4.6" class="ltx_td ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">5.39</td>
+</tr>
+<tr id="S5.T1.1.5" class="ltx_tr">
+<td id="S5.T1.1.5.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.5.1.1" class="ltx_text">4</span></td>
+<td id="S5.T1.1.5.2" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.5.2.1" class="ltx_text">4</span></td>
+<td id="S5.T1.1.5.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">OTSL</td>
+<td id="S5.T1.1.5.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.938</td>
+<td id="S5.T1.1.5.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.904</td>
+<td id="S5.T1.1.5.6" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.927</td>
+<td id="S5.T1.1.5.7" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T1.1.5.7.1" class="ltx_text ltx_font_bold">0.853</span></td>
+<td id="S5.T1.1.5.8" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T1.1.5.8.1" class="ltx_text ltx_font_bold">1.97</span></td>
+</tr>
+<tr id="S5.T1.1.6" class="ltx_tr">
+<td id="S5.T1.1.6.1" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">HTML</td>
+<td id="S5.T1.1.6.2" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.952</td>
+<td id="S5.T1.1.6.3" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.909</td>
+<td id="S5.T1.1.6.4" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T1.1.6.4.1" class="ltx_text ltx_font_bold">0.938</span></td>
+<td id="S5.T1.1.6.5" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.843</td>
+<td id="S5.T1.1.6.6" class="ltx_td ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">3.77</td>
+</tr>
+<tr id="S5.T1.1.7" class="ltx_tr">
+<td id="S5.T1.1.7.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.7.1.1" class="ltx_text">2</span></td>
+<td id="S5.T1.1.7.2" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.7.2.1" class="ltx_text">4</span></td>
+<td id="S5.T1.1.7.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">OTSL</td>
+<td id="S5.T1.1.7.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.923</td>
+<td id="S5.T1.1.7.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.897</td>
+<td id="S5.T1.1.7.6" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.915</td>
+<td id="S5.T1.1.7.7" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T1.1.7.7.1" class="ltx_text ltx_font_bold">0.859</span></td>
+<td id="S5.T1.1.7.8" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T1.1.7.8.1" class="ltx_text ltx_font_bold">1.91</span></td>
+</tr>
+<tr id="S5.T1.1.8" class="ltx_tr">
+<td id="S5.T1.1.8.1" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">HTML</td>
+<td id="S5.T1.1.8.2" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.945</td>
+<td id="S5.T1.1.8.3" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.901</td>
+<td id="S5.T1.1.8.4" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T1.1.8.4.1" class="ltx_text ltx_font_bold">0.931</span></td>
+<td id="S5.T1.1.8.5" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.834</td>
+<td id="S5.T1.1.8.6" class="ltx_td ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">3.81</td>
+</tr>
+<tr id="S5.T1.1.9" class="ltx_tr">
+<td id="S5.T1.1.9.1" class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.9.1.1" class="ltx_text">4</span></td>
+<td id="S5.T1.1.9.2" class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T1.1.9.2.1" class="ltx_text">2</span></td>
+<td id="S5.T1.1.9.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">OTSL</td>
+<td id="S5.T1.1.9.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.952</td>
+<td id="S5.T1.1.9.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.92</td>
+<td id="S5.T1.1.9.6" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T1.1.9.6.1" class="ltx_text ltx_font_bold">0.942</span></td>
+<td id="S5.T1.1.9.7" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T1.1.9.7.1" class="ltx_text ltx_font_bold">0.857</span></td>
+<td id="S5.T1.1.9.8" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T1.1.9.8.1" class="ltx_text ltx_font_bold">1.22</span></td>
+</tr>
+<tr id="S5.T1.1.10" class="ltx_tr">
+<td id="S5.T1.1.10.1" class="ltx_td ltx_align_center ltx_border_b ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">HTML</td>
+<td id="S5.T1.1.10.2" class="ltx_td ltx_align_center ltx_border_b ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.944</td>
+<td id="S5.T1.1.10.3" class="ltx_td ltx_align_center ltx_border_b ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.903</td>
+<td id="S5.T1.1.10.4" class="ltx_td ltx_align_center ltx_border_b ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.931</td>
+<td id="S5.T1.1.10.5" class="ltx_td ltx_align_center ltx_border_b ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.824</td>
+<td id="S5.T1.1.10.6" class="ltx_td ltx_align_center ltx_border_b" style="padding-left:4.0pt;padding-right:4.0pt;">2</td>
+</tr>
+</table>
+</figure>
+</section>
+<section id="S5.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.2 </span>Quantitative Results</h3>
+
+<div id="S5.SS2.p1" class="ltx_para">
+<p id="S5.SS2.p1.1" class="ltx_p">We picked the model parameter configuration that produced the best prediction quality (enc=6, dec=6, heads=8) with PubTabNet alone, then independently trained and evaluated it on three publicly available data sets: PubTabNet (395k samples), FinTabNet (113k samples) and PubTables-1M (about 1M samples). Performance results are presented in Table. <a href="#S5.T2" title="Table 2 ‣ 5.2 Quantitative Results ‣ 5 Experiments ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>. It is clearly evident that the model trained on OTSL outperforms HTML across the board, keeping high TEDs and mAP scores even on difficult financial tables (FinTabNet) that contain sparse and large tables.</p>
+</div>
+<figure id="S5.T2" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 2: </span> TSR and cell detection results compared between OTSL and HTML on the PubTabNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite>, FinTabNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib21" title="" class="ltx_ref">21</a>]</cite> and PubTables-1M <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref">14</a>]</cite> data sets using TableFormer <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite> (with enc=6, dec=6, heads=8).</figcaption>
+<table id="S5.T2.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S5.T2.1.1" class="ltx_tr">
+<td id="S5.T2.1.1.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T2.1.1.1.1" class="ltx_text">Data set</span></td>
+<td id="S5.T2.1.1.2" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T2.1.1.2.1" class="ltx_text"><span id="S5.T2.1.1.2.1.1" class="ltx_text"></span> <span id="S5.T2.1.1.2.1.2" class="ltx_text">
+<span id="S5.T2.1.1.2.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T2.1.1.2.1.2.1.1" class="ltx_tr">
+<span id="S5.T2.1.1.2.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">Language</span></span>
+</span></span> <span id="S5.T2.1.1.2.1.3" class="ltx_text"></span></span></td>
+<td id="S5.T2.1.1.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" colspan="3">TEDs</td>
+<td id="S5.T2.1.1.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T2.1.1.4.1" class="ltx_text">mAP(0.75)</span></td>
+<td id="S5.T2.1.1.5" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T2.1.1.5.1" class="ltx_text"><span id="S5.T2.1.1.5.1.1" class="ltx_text"></span> <span id="S5.T2.1.1.5.1.2" class="ltx_text">
+<span id="S5.T2.1.1.5.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T2.1.1.5.1.2.1.1" class="ltx_tr">
+<span id="S5.T2.1.1.5.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">Inference</span></span>
+<span id="S5.T2.1.1.5.1.2.1.2" class="ltx_tr">
+<span id="S5.T2.1.1.5.1.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">time (secs)</span></span>
+</span></span> <span id="S5.T2.1.1.5.1.3" class="ltx_text"></span></span></td>
+</tr>
+<tr id="S5.T2.1.2" class="ltx_tr">
+<td id="S5.T2.1.2.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">simple</td>
+<td id="S5.T2.1.2.2" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">complex</td>
+<td id="S5.T2.1.2.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">all</td>
+</tr>
+<tr id="S5.T2.1.3" class="ltx_tr">
+<td id="S5.T2.1.3.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T2.1.3.1.1" class="ltx_text">PubTabNet</span></td>
+<td id="S5.T2.1.3.2" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">OTSL</td>
+<td id="S5.T2.1.3.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.965</td>
+<td id="S5.T2.1.3.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.934</td>
+<td id="S5.T2.1.3.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.955</td>
+<td id="S5.T2.1.3.6" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T2.1.3.6.1" class="ltx_text ltx_font_bold">0.88</span></td>
+<td id="S5.T2.1.3.7" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T2.1.3.7.1" class="ltx_text ltx_font_bold">2.73</span></td>
+</tr>
+<tr id="S5.T2.1.4" class="ltx_tr">
+<td id="S5.T2.1.4.1" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">HTML</td>
+<td id="S5.T2.1.4.2" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.969</td>
+<td id="S5.T2.1.4.3" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.927</td>
+<td id="S5.T2.1.4.4" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.955</td>
+<td id="S5.T2.1.4.5" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.857</td>
+<td id="S5.T2.1.4.6" class="ltx_td ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">5.39</td>
+</tr>
+<tr id="S5.T2.1.5" class="ltx_tr">
+<td id="S5.T2.1.5.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T2.1.5.1.1" class="ltx_text">FinTabNet</span></td>
+<td id="S5.T2.1.5.2" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">OTSL</td>
+<td id="S5.T2.1.5.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.955</td>
+<td id="S5.T2.1.5.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.961</td>
+<td id="S5.T2.1.5.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T2.1.5.5.1" class="ltx_text ltx_font_bold">0.959</span></td>
+<td id="S5.T2.1.5.6" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T2.1.5.6.1" class="ltx_text ltx_font_bold">0.862</span></td>
+<td id="S5.T2.1.5.7" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T2.1.5.7.1" class="ltx_text ltx_font_bold">1.85</span></td>
+</tr>
+<tr id="S5.T2.1.6" class="ltx_tr">
+<td id="S5.T2.1.6.1" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">HTML</td>
+<td id="S5.T2.1.6.2" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.917</td>
+<td id="S5.T2.1.6.3" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.922</td>
+<td id="S5.T2.1.6.4" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.92</td>
+<td id="S5.T2.1.6.5" class="ltx_td ltx_align_center ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.722</td>
+<td id="S5.T2.1.6.6" class="ltx_td ltx_align_center" style="padding-left:4.0pt;padding-right:4.0pt;">3.26</td>
+</tr>
+<tr id="S5.T2.1.7" class="ltx_tr">
+<td id="S5.T2.1.7.1" class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;" rowspan="2"><span id="S5.T2.1.7.1.1" class="ltx_text">PubTables-1M</span></td>
+<td id="S5.T2.1.7.2" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">OTSL</td>
+<td id="S5.T2.1.7.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.987</td>
+<td id="S5.T2.1.7.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;">0.964</td>
+<td id="S5.T2.1.7.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T2.1.7.5.1" class="ltx_text ltx_font_bold">0.977</span></td>
+<td id="S5.T2.1.7.6" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T2.1.7.6.1" class="ltx_text ltx_font_bold">0.896</span></td>
+<td id="S5.T2.1.7.7" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:4.0pt;padding-right:4.0pt;"><span id="S5.T2.1.7.7.1" class="ltx_text ltx_font_bold">1.79</span></td>
+</tr>
+<tr id="S5.T2.1.8" class="ltx_tr">
+<td id="S5.T2.1.8.1" class="ltx_td ltx_align_center ltx_border_b ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">HTML</td>
+<td id="S5.T2.1.8.2" class="ltx_td ltx_align_center ltx_border_b ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.983</td>
+<td id="S5.T2.1.8.3" class="ltx_td ltx_align_center ltx_border_b ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.944</td>
+<td id="S5.T2.1.8.4" class="ltx_td ltx_align_center ltx_border_b ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.966</td>
+<td id="S5.T2.1.8.5" class="ltx_td ltx_align_center ltx_border_b ltx_border_r" style="padding-left:4.0pt;padding-right:4.0pt;">0.889</td>
+<td id="S5.T2.1.8.6" class="ltx_td ltx_align_center ltx_border_b" style="padding-left:4.0pt;padding-right:4.0pt;">3.26</td>
+</tr>
+</table>
+</figure>
+<div id="S5.SS2.p2" class="ltx_para">
+<p id="S5.SS2.p2.1" class="ltx_p">Additionally, the results show that OTSL has an advantage over HTML when applied on a bigger data set like PubTables-1M and achieves significantly improved scores. Finally, OTSL achieves faster inference due to fewer decoding steps which is a result of the reduced sequence representation.</p>
+</div>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+<section id="S5.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.3 </span>Qualitative Results</h3>
+
+<div id="S5.SS3.p1" class="ltx_para">
+<p id="S5.SS3.p1.1" class="ltx_p">To illustrate the qualitative differences between OTSL and HTML, Figure <a href="#S5.F5" title="Figure 5 ‣ 5.3 Qualitative Results ‣ 5 Experiments ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a> demonstrates less overlap and more accurate bounding boxes with OTSL. In Figure <a href="#S5.F6" title="Figure 6 ‣ 5.3 Qualitative Results ‣ 5 Experiments ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>, OTSL proves to be more effective in handling tables with longer token sequences, resulting in even more precise structure prediction and bounding boxes.</p>
+</div>
+<figure id="S5.F5" class="ltx_figure">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 5: </span>The OTSL model produces more accurate bounding boxes with less overlap (E) than the HTML model (D), when predicting the structure of a sparse table (A), at twice the inference speed because of shorter sequence length (B),(C). "PMC2807444_006_00.png" PubTabNet.</figcaption><img src="/html/2305.03393/assets/x4.png" id="S5.F5.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="306" height="232" alt="Refer to caption">
+</figure>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<figure id="S5.F6" class="ltx_figure">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 6: </span>Visualization of predicted structure and detected bounding boxes on a complex table with many rows. The OTSL model (B) captured repeating pattern of horizontally merged cells from the GT (A), unlike the HTML model (C). The HTML model also didn’t complete the HTML sequence correctly and displayed a lot more of drift and overlap of bounding boxes. "PMC5406406_003_01.png" PubTabNet.
+</figcaption><img src="/html/2305.03393/assets/x5.png" id="S5.F6.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="296" height="480" alt="Refer to caption">
+</figure>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+</section>
+<section id="S6" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6 </span>Conclusion</h2>
+
+<div id="S6.p1" class="ltx_para">
+<p id="S6.p1.1" class="ltx_p">We demonstrated that representing tables in HTML for the task of table structure recognition with Im2Seq models is ill-suited and has serious limitations. Furthermore, we presented in this paper an Optimized Table Structure Language (OTSL) which, when compared to commonly used general purpose languages, has several key benefits.</p>
+</div>
+<div id="S6.p2" class="ltx_para">
+<p id="S6.p2.1" class="ltx_p">First and foremost, given the same network configuration, inference time for a table-structure prediction is about 2 times faster compared to the conventional HTML approach. This is primarily owed to the shorter sequence length of the OTSL representation. Additional performance benefits can be obtained with HPO (hyper parameter optimization). As we demonstrate in our experiments, models trained on OTSL can be significantly smaller, e.g. by reducing the number of encoder and decoder layers, while preserving comparatively good prediction quality. This can further improve inference performance, yielding 5-6 times faster inference speed in OTSL with prediction quality comparable to models trained on HTML (see Table <a href="#S5.T1" title="Table 1 ‣ 5.1 Hyper Parameter Optimization ‣ 5 Experiments ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>).</p>
+</div>
+<div id="S6.p3" class="ltx_para">
+<p id="S6.p3.1" class="ltx_p">Secondly, OTSL has more inherent structure and a significantly restricted vocabulary size. This allows autoregressive models to perform better in the TED metric, but especially with regards to prediction accuracy of the table-cell bounding boxes (see Table <a href="#S5.T2" title="Table 2 ‣ 5.2 Quantitative Results ‣ 5 Experiments ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>). As shown in Figure <a href="#S5.F5" title="Figure 5 ‣ 5.3 Qualitative Results ‣ 5 Experiments ‣ Optimized Table Tokenization for Table Structure Recognition" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>, we observe that the OTSL drastically reduces the drift for table cell bounding boxes at high row count and in sparse tables. This leads to more accurate predictions and a significant reduction in post-processing complexity, which is an undesired necessity in HTML-based Im2Seq models.
+Significant novelty lies in OTSL syntactical rules, which are few, simple and always backwards looking. Each new token can be validated only by analyzing the sequence of previous tokens, without requiring the entire sequence to detect mistakes. This in return allows to perform structural error detection and correction on-the-fly during sequence generation.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[1]</span>
+<span class="ltx_bibblock">
+Auer, C., Dolfi, M., Carvalho, A., Ramis, C.B., Staar, P.W.J.: Delivering
+document conversion as a cloud service with high throughput and
+responsiveness. CoRR <span id="bib.bib1.1.1" class="ltx_text ltx_font_bold">abs/2206.00785</span> (2022).
+https://doi.org/10.48550/arXiv.2206.00785,
+<a target="_blank" href="https://doi.org/10.48550/arXiv.2206.00785" title="" class="ltx_ref">https://doi.org/10.48550/arXiv.2206.00785</a>
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[2]</span>
+<span class="ltx_bibblock">
+Chen, B., Peng, D., Zhang, J., Ren, Y., Jin, L.: Complex table structure
+recognition in the wild using transformer and identity matrix-based
+augmentation. In: Porwal, U., Fornés, A., Shafait, F. (eds.) Frontiers in
+Handwriting Recognition. pp. 545–561. Springer International Publishing,
+Cham (2022)
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[3]</span>
+<span class="ltx_bibblock">
+Chi, Z., Huang, H., Xu, H.D., Yu, H., Yin, W., Mao, X.L.: Complicated table
+structure recognition. arXiv preprint arXiv:1908.04729 (2019)
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[4]</span>
+<span class="ltx_bibblock">
+Deng, Y., Rosenberg, D., Mann, G.: Challenges in end-to-end neural scientific
+table recognition. In: 2019 International Conference on Document Analysis and
+Recognition (ICDAR). pp. 894–901. IEEE (2019)
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[5]</span>
+<span class="ltx_bibblock">
+Kayal, P., Anand, M., Desai, H., Singh, M.: Tables to latex: structure and
+content extraction from scientific tables. International Journal on Document
+Analysis and Recognition (IJDAR) pp. 1–10 (2022)
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[6]</span>
+<span class="ltx_bibblock">
+Lee, E., Kwon, J., Yang, H., Park, J., Lee, S., Koo, H.I., Cho, N.I.: Table
+structure recognition based on grid shape graph. In: 2022 Asia-Pacific Signal
+and Information Processing Association Annual Summit and Conference (APSIPA
+ASC). pp. 1868–1873. IEEE (2022)
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[7]</span>
+<span class="ltx_bibblock">
+Li, M., Cui, L., Huang, S., Wei, F., Zhou, M., Li, Z.: Tablebank: A benchmark
+dataset for table detection and recognition (2019)
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[8]</span>
+<span class="ltx_bibblock">
+Livathinos, N., Berrospi, C., Lysak, M., Kuropiatnyk, V., Nassar, A., Carvalho,
+A., Dolfi, M., Auer, C., Dinkla, K., Staar, P.: Robust pdf document
+conversion using recurrent neural networks. Proceedings of the AAAI
+Conference on Artificial Intelligence <span id="bib.bib8.1.1" class="ltx_text ltx_font_bold">35</span>(17), 15137–15145 (May
+2021), <a target="_blank" href="https://ojs.aaai.org/index.php/AAAI/article/view/17777" title="" class="ltx_ref">https://ojs.aaai.org/index.php/AAAI/article/view/17777</a>
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[9]</span>
+<span class="ltx_bibblock">
+Nassar, A., Livathinos, N., Lysak, M., Staar, P.: Tableformer: Table structure
+understanding with transformers. In: Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition (CVPR). pp. 4614–4623 (June 2022)
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[10]</span>
+<span class="ltx_bibblock">
+Pfitzmann, B., Auer, C., Dolfi, M., Nassar, A.S., Staar, P.W.J.: Doclaynet: A
+large human-annotated dataset for document-layout segmentation. In: Zhang,
+A., Rangwala, H. (eds.) KDD ’22: The 28th ACM SIGKDD Conference on
+Knowledge Discovery and Data Mining, Washington, DC, USA, August 14 - 18,
+2022. pp. 3743–3751. ACM (2022). https://doi.org/10.1145/3534678.3539043,
+<a target="_blank" href="https://doi.org/10.1145/3534678.3539043" title="" class="ltx_ref">https://doi.org/10.1145/3534678.3539043</a>
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[11]</span>
+<span class="ltx_bibblock">
+Prasad, D., Gadpal, A., Kapadni, K., Visave, M., Sultanpure, K.: Cascadetabnet:
+An approach for end to end table detection and structure recognition from
+image-based documents. In: Proceedings of the IEEE/CVF conference on computer
+vision and pattern recognition workshops. pp. 572–573 (2020)
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[12]</span>
+<span class="ltx_bibblock">
+Schreiber, S., Agne, S., Wolf, I., Dengel, A., Ahmed, S.: Deepdesrt: Deep
+learning for detection and structure recognition of tables in document
+images. In: 2017 14th IAPR international conference on document analysis and
+recognition (ICDAR). vol. 1, pp. 1162–1167. IEEE (2017)
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[13]</span>
+<span class="ltx_bibblock">
+Siddiqui, S.A., Fateh, I.A., Rizvi, S.T.R., Dengel, A., Ahmed, S.: Deeptabstr:
+Deep learning based table structure recognition. In: 2019 International
+Conference on Document Analysis and Recognition (ICDAR). pp. 1403–1409
+(2019). https://doi.org/10.1109/ICDAR.2019.00226
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[14]</span>
+<span class="ltx_bibblock">
+Smock, B., Pesala, R., Abraham, R.: PubTables-1M: Towards comprehensive
+table extraction from unstructured documents. In: Proceedings of the IEEE/CVF
+Conference on Computer Vision and Pattern Recognition (CVPR). pp. 4634–4642
+(June 2022)
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[15]</span>
+<span class="ltx_bibblock">
+Staar, P.W.J., Dolfi, M., Auer, C., Bekas, C.: Corpus conversion service: A
+machine learning platform to ingest documents at scale. In: Proceedings of
+the 24th ACM SIGKDD International Conference on Knowledge Discovery &amp; Data
+Mining. pp. 774–782. KDD ’18, Association for Computing Machinery, New York,
+NY, USA (2018). https://doi.org/10.1145/3219819.3219834,
+<a target="_blank" href="https://doi.org/10.1145/3219819.3219834" title="" class="ltx_ref">https://doi.org/10.1145/3219819.3219834</a>
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[16]</span>
+<span class="ltx_bibblock">
+Wang, X.: Tabular Abstraction, Editing, and Formatting. Ph.D. thesis, CAN
+(1996), aAINN09397
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[17]</span>
+<span class="ltx_bibblock">
+Xue, W., Li, Q., Tao, D.: Res2tim: Reconstruct syntactic structures from table
+images. In: 2019 International Conference on Document Analysis and
+Recognition (ICDAR). pp. 749–755. IEEE (2019)
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[18]</span>
+<span class="ltx_bibblock">
+Xue, W., Yu, B., Wang, W., Tao, D., Li, Q.: Tgrnet: A table graph
+reconstruction network for table structure recognition. In: Proceedings of
+the IEEE/CVF International Conference on Computer Vision. pp. 1295–1304
+(2021)
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[19]</span>
+<span class="ltx_bibblock">
+Ye, J., Qi, X., He, Y., Chen, Y., Gu, D., Gao, P., Xiao, R.: Pingan-vcgroup’s
+solution for icdar 2021 competition on scientific literature parsing task b:
+Table recognition to html (2021). https://doi.org/10.48550/ARXIV.2105.01848,
+<a target="_blank" href="https://arxiv.org/abs/2105.01848" title="" class="ltx_ref">https://arxiv.org/abs/2105.01848</a>
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[20]</span>
+<span class="ltx_bibblock">
+Zhang, Z., Zhang, J., Du, J., Wang, F.: Split, embed and merge: An accurate
+table structure recognizer. Pattern Recognition <span id="bib.bib20.1.1" class="ltx_text ltx_font_bold">126</span>, 108565 (2022)
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[21]</span>
+<span class="ltx_bibblock">
+Zheng, X., Burdick, D., Popa, L., Zhong, X., Wang, N.X.R.: Global table
+extractor (gte): A framework for joint table identification and cell
+structure recognition using visual context. In: 2021 IEEE Winter Conference
+on Applications of Computer Vision (WACV). pp. 697–706 (2021).
+https://doi.org/10.1109/WACV48630.2021.00074
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[22]</span>
+<span class="ltx_bibblock">
+Zhong, X., ShafieiBavani, E., Jimeno Yepes, A.: Image-based table recognition:
+Data, model, and evaluation. In: Vedaldi, A., Bischof, H., Brox, T., Frahm,
+J.M. (eds.) Computer Vision – ECCV 2020. pp. 564–580. Springer
+International Publishing, Cham (2020)
+
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[23]</span>
+<span class="ltx_bibblock">
+Zhong, X., Tang, J., Yepes, A.J.: Publaynet: largest dataset ever for document
+layout analysis. In: 2019 International Conference on Document Analysis and
+Recognition (ICDAR). pp. 1015–1022. IEEE (2019)
+
+</span>
+</li>
+</ul>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2305.03392" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2305.03393" class="ar5iv-text-button ar5iv-severity-ok">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2305.03393">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2305.03393" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2305.03394" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Thu Feb 29 09:59:44 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

@@ -1,0 +1,1387 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2105.00572] Larger-Scale Transformers for Multilingual Masked Language Modeling</title><meta property="og:description" content="Recent work has demonstrated the effectiveness of cross-lingual language model pretraining for cross-lingual understanding. In this study, we present the results of two larger multilingual masked language models, with …">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Larger-Scale Transformers for Multilingual Masked Language Modeling">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="Larger-Scale Transformers for Multilingual Masked Language Modeling">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2105.00572">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2105.00572">
+
+<!--Generated on Sun Mar 17 06:12:49 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_title_document">Larger-Scale Transformers for Multilingual Masked Language Modeling</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Naman Goyal    Jingfei Du    Myle Ott    Giri Anantharaman    Alexis Conneau
+
+<br class="ltx_break">
+<br class="ltx_break">
+<br class="ltx_break"><span id="id1.1.id1" class="ltx_text ltx_font_bold">Facebook AI
+</span>
+</span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id2.id1" class="ltx_p">Recent work has demonstrated the effectiveness of cross-lingual language model pretraining for cross-lingual understanding. In this study, we present the results of two larger multilingual masked language models, with 3.5B and 10.7B parameters. Our two new models dubbed XLM-R<sub id="id2.id1.1" class="ltx_sub">XL</sub> and XLM-R<sub id="id2.id1.2" class="ltx_sub">XXL</sub> outperform XLM-R by 1.8% and 2.4% average accuracy on XNLI. Our model also outperforms the RoBERTa-Large model on several English tasks of the GLUE benchmark by 0.3% on average while handling 99 more languages. This suggests pretrained models with larger capacity may obtain both strong performance on high-resource languages while greatly improving low-resource languages. We make our code and models publicly available.<span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note">1</span><a target="_blank" href="https://github.com/pytorch/fairseq/blob/master/examples/xlmr" title="" class="ltx_ref ltx_url">https://github.com/pytorch/fairseq/blob/master/examples/xlmr</a></span></span></span></p>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">The goal of this paper is to present a study of the impact of larger capacity models on cross-lingual language understanding (XLU).
+We scale the capacity of XLM-R by almost two orders of magnitude while training on the same CC100 dataset <cite class="ltx_cite ltx_citemacro_cite">Wenzek et al. (<a href="#bib.bib20" title="" class="ltx_ref">2019</a>)</cite>. Our two new multilingual masked language model dubbed XLM-R<sub id="S1.p1.1.1" class="ltx_sub">XL</sub> and XLM-R<sub id="S1.p1.1.2" class="ltx_sub">XXL</sub>, with 3.5 and 10.7 billion parameters respectively, significantly outperform the previous XLM-R model (trained in a similar setting) on cross-lingual understanding benchmarks and obtain competitive performance with the multilingual T5 models <cite class="ltx_cite ltx_citemacro_cite">Raffel et al. (<a href="#bib.bib13" title="" class="ltx_ref">2019</a>); Xue et al. (<a href="#bib.bib22" title="" class="ltx_ref">2020</a>)</cite>. We show that they can even outperform RoBERTa-Large <cite class="ltx_cite ltx_citemacro_cite">Liu et al. (<a href="#bib.bib12" title="" class="ltx_ref">2019</a>)</cite> on the GLUE benchmark <cite class="ltx_cite ltx_citemacro_cite">Wang et al. (<a href="#bib.bib19" title="" class="ltx_ref">2018</a>)</cite>.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">Recent multilingual masked language models (MLM) like mBERT <cite class="ltx_cite ltx_citemacro_cite">Devlin et al. (<a href="#bib.bib6" title="" class="ltx_ref">2018</a>)</cite> or XLM <cite class="ltx_cite ltx_citemacro_cite">Lample and Conneau (<a href="#bib.bib10" title="" class="ltx_ref">2019</a>)</cite> improved cross-lingual language understanding by pretraining large Transformer models <cite class="ltx_cite ltx_citemacro_cite">Vaswani et al. (<a href="#bib.bib18" title="" class="ltx_ref">2017</a>)</cite> on multiple languages at once. The XLM-R model <cite class="ltx_cite ltx_citemacro_cite">Conneau et al. (<a href="#bib.bib4" title="" class="ltx_ref">2019</a>)</cite> extended that approach by scaling the amount of data by two orders of magnitude, from Wikipedia to Common-Crawl and training longer, similar to RoBERTa <cite class="ltx_cite ltx_citemacro_cite">Liu et al. (<a href="#bib.bib12" title="" class="ltx_ref">2019</a>)</cite>.
+These models are particularly effective for low-resource languages, where both labeled and unlabeled data is scarce. They enable supervised cross-lingual transfer, where labeled data in one language can be used to solve the same task in other languages, and unsupervised cross-lingual transfer, where low-resource language self-supervised representations are improved using additional unlabeled data from higher-resource languages. Furthermore, they reduce the need for training one model per language, and allows the use of a single - potentially much larger - pretrained model that is then fine-tuned on annotated data from many languages.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p">The better performance of self-supervised cross-lingual models on low-resource languages comes however at the cost of lower performance on higher-resource languages <cite class="ltx_cite ltx_citemacro_cite">Arivazhagan et al. (<a href="#bib.bib1" title="" class="ltx_ref">2019</a>)</cite>. When the number of languages becomes large, <cite class="ltx_cite ltx_citemacro_citet">Conneau et al. (<a href="#bib.bib4" title="" class="ltx_ref">2019</a>)</cite> even observed an overall decrease of performance on all languages. It was hypothesized that when multilingual models get more capacity, they may showcase strong performance on both high-resource languages and low-resource languages.
+With only 550M parameters, the XLM-R model is now relatively small compared to new standards. Recent work scaled language models to hundreds of billions <cite class="ltx_cite ltx_citemacro_cite">Brown et al. (<a href="#bib.bib3" title="" class="ltx_ref">2020</a>)</cite> or even multiple trillion parameters <cite class="ltx_cite ltx_citemacro_cite">Fedus et al. (<a href="#bib.bib7" title="" class="ltx_ref">2021</a>)</cite>, showing consistent gains in doing so. Recently, multilingual T5 showed impressive increase in performance by scaling the model capacity to tens of billions of parameters. Our study complements these findings by showing the impact of larger capacity models on the important pretraining task of <span id="S1.p3.1.1" class="ltx_text ltx_font_italic">multilingual</span> masked language modeling. We show promising results for cross-lingual understanding: XLM-R<sub id="S1.p3.1.2" class="ltx_sub">XXL</sub> can both obtain a new state of the art on some cross-lingual understanding benchmarks and outperform the RoBERTa-Large model on the English GLUE benchmark <cite class="ltx_cite ltx_citemacro_cite">Wang et al. (<a href="#bib.bib19" title="" class="ltx_ref">2018</a>)</cite>. This suggests that very large-scale multilingual models may be able to benefit from the best of both worlds: obtaining strong performance on high-resource languages while still allowing for zero-shot transfer and low-resource language understanding.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Pretraining and evaluation</h2>
+
+<div id="S2.p1" class="ltx_para">
+<p id="S2.p1.1" class="ltx_p">In this section, we describe the model we use and how we scale it, as well as the data and tasks we use for pretraining and evaluation.</p>
+</div>
+<section id="S2.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.1 </span>Multilingual masked language models</h3>
+
+<div id="S2.SS1.p1" class="ltx_para">
+<p id="S2.SS1.p1.1" class="ltx_p">We use a Transformer model <cite class="ltx_cite ltx_citemacro_cite">Vaswani et al. (<a href="#bib.bib18" title="" class="ltx_ref">2017</a>)</cite> trained with the multilingual MLM objective <cite class="ltx_cite ltx_citemacro_cite">Devlin et al. (<a href="#bib.bib6" title="" class="ltx_ref">2018</a>); Lample and Conneau (<a href="#bib.bib10" title="" class="ltx_ref">2019</a>)</cite> using only monolingual data. We sample streams of text from each language and train the model to predict the masked tokens in the input. We use the same learning procedure as XLM-R.
+We apply subword tokenization directly on raw text data using Sentence Piece <cite class="ltx_cite ltx_citemacro_cite">Kudo and Richardson (<a href="#bib.bib9" title="" class="ltx_ref">2018</a>)</cite> with a unigram language model <cite class="ltx_cite ltx_citemacro_cite">Kudo (<a href="#bib.bib8" title="" class="ltx_ref">2018</a>)</cite> just like in XLM-R. We sample batches from different languages using the same sampling distribution as <cite class="ltx_cite ltx_citemacro_citet">Conneau et al. (<a href="#bib.bib4" title="" class="ltx_ref">2019</a>)</cite>, with <math id="S2.SS1.p1.1.m1.1" class="ltx_Math" alttext="\alpha=0.3" display="inline"><semantics id="S2.SS1.p1.1.m1.1a"><mrow id="S2.SS1.p1.1.m1.1.1" xref="S2.SS1.p1.1.m1.1.1.cmml"><mi id="S2.SS1.p1.1.m1.1.1.2" xref="S2.SS1.p1.1.m1.1.1.2.cmml">α</mi><mo id="S2.SS1.p1.1.m1.1.1.1" xref="S2.SS1.p1.1.m1.1.1.1.cmml">=</mo><mn id="S2.SS1.p1.1.m1.1.1.3" xref="S2.SS1.p1.1.m1.1.1.3.cmml">0.3</mn></mrow><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.1.m1.1b"><apply id="S2.SS1.p1.1.m1.1.1.cmml" xref="S2.SS1.p1.1.m1.1.1"><eq id="S2.SS1.p1.1.m1.1.1.1.cmml" xref="S2.SS1.p1.1.m1.1.1.1"></eq><ci id="S2.SS1.p1.1.m1.1.1.2.cmml" xref="S2.SS1.p1.1.m1.1.1.2">𝛼</ci><cn type="float" id="S2.SS1.p1.1.m1.1.1.3.cmml" xref="S2.SS1.p1.1.m1.1.1.3">0.3</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.1.m1.1c">\alpha=0.3</annotation></semantics></math>, and without language embeddings. We use a large vocabulary size of 250K with a full softmax and train two different models: XLM-R<sub id="S2.SS1.p1.1.1" class="ltx_sub">XL</sub> (L = 36, H = 2560, A = 32, 3.5B params) and XLM-R<sub id="S2.SS1.p1.1.2" class="ltx_sub">XXL</sub> (L = 48, H = 4096, A = 32, 10.7B params).
+We pretrain the models on the CC100 dataset, which corresponds to 167B tokens in 100 languages. We compare our approach to previous results as well as the mT5 baselines, which were pretrained on the larger mC4 corpus of 6.4T tokens.</p>
+</div>
+<figure id="S2.T1" class="ltx_table">
+<div id="S2.T1.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:291.6pt;vertical-align:-0.7pt;"><span class="ltx_transformed_inner" style="transform:translate(-91.8pt,61.6pt) scale(0.702628245691476,0.702628245691476) ;">
+<table id="S2.T1.1.1" class="ltx_tabular ltx_guessed_headers ltx_align_bottom">
+<tbody class="ltx_tbody">
+<tr id="S2.T1.1.1.1.1" class="ltx_tr">
+<th id="S2.T1.1.1.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_tt"><span id="S2.T1.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Model</span></th>
+<th id="S2.T1.1.1.1.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_tt"><span id="S2.T1.1.1.1.1.2.1" class="ltx_text ltx_font_bold">Data (#tok)</span></th>
+<td id="S2.T1.1.1.1.1.3" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.3.1" class="ltx_text ltx_font_bold">en</span></td>
+<td id="S2.T1.1.1.1.1.4" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.4.1" class="ltx_text ltx_font_bold">fr</span></td>
+<td id="S2.T1.1.1.1.1.5" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.5.1" class="ltx_text ltx_font_bold">es</span></td>
+<td id="S2.T1.1.1.1.1.6" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.6.1" class="ltx_text ltx_font_bold">de</span></td>
+<td id="S2.T1.1.1.1.1.7" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.7.1" class="ltx_text ltx_font_bold">el</span></td>
+<td id="S2.T1.1.1.1.1.8" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.8.1" class="ltx_text ltx_font_bold">bg</span></td>
+<td id="S2.T1.1.1.1.1.9" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.9.1" class="ltx_text ltx_font_bold">ru</span></td>
+<td id="S2.T1.1.1.1.1.10" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.10.1" class="ltx_text ltx_font_bold">tr</span></td>
+<td id="S2.T1.1.1.1.1.11" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.11.1" class="ltx_text ltx_font_bold">ar</span></td>
+<td id="S2.T1.1.1.1.1.12" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.12.1" class="ltx_text ltx_font_bold">vi</span></td>
+<td id="S2.T1.1.1.1.1.13" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.13.1" class="ltx_text ltx_font_bold">th</span></td>
+<td id="S2.T1.1.1.1.1.14" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.14.1" class="ltx_text ltx_font_bold">zh</span></td>
+<td id="S2.T1.1.1.1.1.15" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.15.1" class="ltx_text ltx_font_bold">hi</span></td>
+<td id="S2.T1.1.1.1.1.16" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.16.1" class="ltx_text ltx_font_bold">sw</span></td>
+<td id="S2.T1.1.1.1.1.17" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.17.1" class="ltx_text ltx_font_bold">ur</span></td>
+<td id="S2.T1.1.1.1.1.18" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.1.1.1.1.18.1" class="ltx_text ltx_font_bold">Avg</span></td>
+</tr>
+<tr id="S2.T1.1.1.2.2" class="ltx_tr">
+<th id="S2.T1.1.1.2.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" colspan="17"><span id="S2.T1.1.1.2.2.1.1" class="ltx_text ltx_font_italic">Fine-tune multilingual model on English training set (Cross-lingual Transfer)</span></th>
+<td id="S2.T1.1.1.2.2.2" class="ltx_td ltx_border_t"></td>
+</tr>
+<tr id="S2.T1.1.1.3.3" class="ltx_tr">
+<th id="S2.T1.1.1.3.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">mBERT</th>
+<th id="S2.T1.1.1.3.3.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" rowspan="2"><span id="S2.T1.1.1.3.3.2.1" class="ltx_text">Wikipedia</span></th>
+<td id="S2.T1.1.1.3.3.3" class="ltx_td ltx_align_center ltx_border_t">80.8</td>
+<td id="S2.T1.1.1.3.3.4" class="ltx_td ltx_align_center ltx_border_t">64.3</td>
+<td id="S2.T1.1.1.3.3.5" class="ltx_td ltx_align_center ltx_border_t">68.0</td>
+<td id="S2.T1.1.1.3.3.6" class="ltx_td ltx_align_center ltx_border_t">70.0</td>
+<td id="S2.T1.1.1.3.3.7" class="ltx_td ltx_align_center ltx_border_t">65.3</td>
+<td id="S2.T1.1.1.3.3.8" class="ltx_td ltx_align_center ltx_border_t">73.5</td>
+<td id="S2.T1.1.1.3.3.9" class="ltx_td ltx_align_center ltx_border_t">73.4</td>
+<td id="S2.T1.1.1.3.3.10" class="ltx_td ltx_align_center ltx_border_t">58.9</td>
+<td id="S2.T1.1.1.3.3.11" class="ltx_td ltx_align_center ltx_border_t">67.8</td>
+<td id="S2.T1.1.1.3.3.12" class="ltx_td ltx_align_center ltx_border_t">49.7</td>
+<td id="S2.T1.1.1.3.3.13" class="ltx_td ltx_align_center ltx_border_t">54.1</td>
+<td id="S2.T1.1.1.3.3.14" class="ltx_td ltx_align_center ltx_border_t">60.9</td>
+<td id="S2.T1.1.1.3.3.15" class="ltx_td ltx_align_center ltx_border_t">57.2</td>
+<td id="S2.T1.1.1.3.3.16" class="ltx_td ltx_align_center ltx_border_t">69.3</td>
+<td id="S2.T1.1.1.3.3.17" class="ltx_td ltx_align_center ltx_border_t">67.8</td>
+<td id="S2.T1.1.1.3.3.18" class="ltx_td ltx_align_center ltx_border_t">65.4</td>
+</tr>
+<tr id="S2.T1.1.1.4.4" class="ltx_tr">
+<th id="S2.T1.1.1.4.4.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">XLM</th>
+<td id="S2.T1.1.1.4.4.2" class="ltx_td ltx_align_center">83.2</td>
+<td id="S2.T1.1.1.4.4.3" class="ltx_td ltx_align_center">76.5</td>
+<td id="S2.T1.1.1.4.4.4" class="ltx_td ltx_align_center">76.3</td>
+<td id="S2.T1.1.1.4.4.5" class="ltx_td ltx_align_center">74.2</td>
+<td id="S2.T1.1.1.4.4.6" class="ltx_td ltx_align_center">73.1</td>
+<td id="S2.T1.1.1.4.4.7" class="ltx_td ltx_align_center">74.0</td>
+<td id="S2.T1.1.1.4.4.8" class="ltx_td ltx_align_center">73.1</td>
+<td id="S2.T1.1.1.4.4.9" class="ltx_td ltx_align_center">67.8</td>
+<td id="S2.T1.1.1.4.4.10" class="ltx_td ltx_align_center">68.5</td>
+<td id="S2.T1.1.1.4.4.11" class="ltx_td ltx_align_center">71.2</td>
+<td id="S2.T1.1.1.4.4.12" class="ltx_td ltx_align_center">69.2</td>
+<td id="S2.T1.1.1.4.4.13" class="ltx_td ltx_align_center">71.9</td>
+<td id="S2.T1.1.1.4.4.14" class="ltx_td ltx_align_center">65.7</td>
+<td id="S2.T1.1.1.4.4.15" class="ltx_td ltx_align_center">64.6</td>
+<td id="S2.T1.1.1.4.4.16" class="ltx_td ltx_align_center">63.4</td>
+<td id="S2.T1.1.1.4.4.17" class="ltx_td ltx_align_center">71.5</td>
+</tr>
+<tr id="S2.T1.1.1.5.5" class="ltx_tr">
+<th id="S2.T1.1.1.5.5.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">mT5-Base</th>
+<th id="S2.T1.1.1.5.5.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" rowspan="2"><span id="S2.T1.1.1.5.5.2.1" class="ltx_text">mC4</span></th>
+<td id="S2.T1.1.1.5.5.3" class="ltx_td ltx_align_center ltx_border_t">84.7</td>
+<td id="S2.T1.1.1.5.5.4" class="ltx_td ltx_align_center ltx_border_t">73.3</td>
+<td id="S2.T1.1.1.5.5.5" class="ltx_td ltx_align_center ltx_border_t">78.6</td>
+<td id="S2.T1.1.1.5.5.6" class="ltx_td ltx_align_center ltx_border_t">77.4</td>
+<td id="S2.T1.1.1.5.5.7" class="ltx_td ltx_align_center ltx_border_t">77.1</td>
+<td id="S2.T1.1.1.5.5.8" class="ltx_td ltx_align_center ltx_border_t">80.3</td>
+<td id="S2.T1.1.1.5.5.9" class="ltx_td ltx_align_center ltx_border_t">79.1</td>
+<td id="S2.T1.1.1.5.5.10" class="ltx_td ltx_align_center ltx_border_t">70.8</td>
+<td id="S2.T1.1.1.5.5.11" class="ltx_td ltx_align_center ltx_border_t">77.1</td>
+<td id="S2.T1.1.1.5.5.12" class="ltx_td ltx_align_center ltx_border_t">69.4</td>
+<td id="S2.T1.1.1.5.5.13" class="ltx_td ltx_align_center ltx_border_t">73.2</td>
+<td id="S2.T1.1.1.5.5.14" class="ltx_td ltx_align_center ltx_border_t">72.8</td>
+<td id="S2.T1.1.1.5.5.15" class="ltx_td ltx_align_center ltx_border_t">68.3</td>
+<td id="S2.T1.1.1.5.5.16" class="ltx_td ltx_align_center ltx_border_t">74.2</td>
+<td id="S2.T1.1.1.5.5.17" class="ltx_td ltx_align_center ltx_border_t">74.1</td>
+<td id="S2.T1.1.1.5.5.18" class="ltx_td ltx_align_center ltx_border_t">75.4</td>
+</tr>
+<tr id="S2.T1.1.1.6.6" class="ltx_tr">
+<th id="S2.T1.1.1.6.6.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">mT5-Large</th>
+<td id="S2.T1.1.1.6.6.2" class="ltx_td ltx_align_center">89.4</td>
+<td id="S2.T1.1.1.6.6.3" class="ltx_td ltx_align_center">79.8</td>
+<td id="S2.T1.1.1.6.6.4" class="ltx_td ltx_align_center">84.1</td>
+<td id="S2.T1.1.1.6.6.5" class="ltx_td ltx_align_center">83.4</td>
+<td id="S2.T1.1.1.6.6.6" class="ltx_td ltx_align_center">83.2</td>
+<td id="S2.T1.1.1.6.6.7" class="ltx_td ltx_align_center">84.2</td>
+<td id="S2.T1.1.1.6.6.8" class="ltx_td ltx_align_center">84.1</td>
+<td id="S2.T1.1.1.6.6.9" class="ltx_td ltx_align_center">77.6</td>
+<td id="S2.T1.1.1.6.6.10" class="ltx_td ltx_align_center">81.5</td>
+<td id="S2.T1.1.1.6.6.11" class="ltx_td ltx_align_center">75.4</td>
+<td id="S2.T1.1.1.6.6.12" class="ltx_td ltx_align_center">79.4</td>
+<td id="S2.T1.1.1.6.6.13" class="ltx_td ltx_align_center">80.1</td>
+<td id="S2.T1.1.1.6.6.14" class="ltx_td ltx_align_center">73.5</td>
+<td id="S2.T1.1.1.6.6.15" class="ltx_td ltx_align_center">81.0</td>
+<td id="S2.T1.1.1.6.6.16" class="ltx_td ltx_align_center">80.3</td>
+<td id="S2.T1.1.1.6.6.17" class="ltx_td ltx_align_center">81.1</td>
+</tr>
+<tr id="S2.T1.1.1.7.7" class="ltx_tr">
+<th id="S2.T1.1.1.7.7.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">mT5-XL</th>
+<th id="S2.T1.1.1.7.7.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r"><span id="S2.T1.1.1.7.7.2.1" class="ltx_text">(6.4T)</span></th>
+<td id="S2.T1.1.1.7.7.3" class="ltx_td ltx_align_center">90.6</td>
+<td id="S2.T1.1.1.7.7.4" class="ltx_td ltx_align_center">82.2</td>
+<td id="S2.T1.1.1.7.7.5" class="ltx_td ltx_align_center">85.4</td>
+<td id="S2.T1.1.1.7.7.6" class="ltx_td ltx_align_center">85.8</td>
+<td id="S2.T1.1.1.7.7.7" class="ltx_td ltx_align_center">85.4</td>
+<td id="S2.T1.1.1.7.7.8" class="ltx_td ltx_align_center">81.3</td>
+<td id="S2.T1.1.1.7.7.9" class="ltx_td ltx_align_center">85.3</td>
+<td id="S2.T1.1.1.7.7.10" class="ltx_td ltx_align_center">80.4</td>
+<td id="S2.T1.1.1.7.7.11" class="ltx_td ltx_align_center">83.7</td>
+<td id="S2.T1.1.1.7.7.12" class="ltx_td ltx_align_center">78.6</td>
+<td id="S2.T1.1.1.7.7.13" class="ltx_td ltx_align_center">80.9</td>
+<td id="S2.T1.1.1.7.7.14" class="ltx_td ltx_align_center">82.0</td>
+<td id="S2.T1.1.1.7.7.15" class="ltx_td ltx_align_center">77.0</td>
+<td id="S2.T1.1.1.7.7.16" class="ltx_td ltx_align_center">81.8</td>
+<td id="S2.T1.1.1.7.7.17" class="ltx_td ltx_align_center">82.7</td>
+<td id="S2.T1.1.1.7.7.18" class="ltx_td ltx_align_center">82.9</td>
+</tr>
+<tr id="S2.T1.1.1.8.8" class="ltx_tr">
+<th id="S2.T1.1.1.8.8.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">mT5-XXL</th>
+<th id="S2.T1.1.1.8.8.2" class="ltx_td ltx_th ltx_th_row ltx_border_r"></th>
+<td id="S2.T1.1.1.8.8.3" class="ltx_td ltx_align_center">91.6</td>
+<td id="S2.T1.1.1.8.8.4" class="ltx_td ltx_align_center">84.5</td>
+<td id="S2.T1.1.1.8.8.5" class="ltx_td ltx_align_center">87.7</td>
+<td id="S2.T1.1.1.8.8.6" class="ltx_td ltx_align_center">87.3</td>
+<td id="S2.T1.1.1.8.8.7" class="ltx_td ltx_align_center">87.3</td>
+<td id="S2.T1.1.1.8.8.8" class="ltx_td ltx_align_center">87.8</td>
+<td id="S2.T1.1.1.8.8.9" class="ltx_td ltx_align_center">86.9</td>
+<td id="S2.T1.1.1.8.8.10" class="ltx_td ltx_align_center">83.2</td>
+<td id="S2.T1.1.1.8.8.11" class="ltx_td ltx_align_center">85.1</td>
+<td id="S2.T1.1.1.8.8.12" class="ltx_td ltx_align_center">80.3</td>
+<td id="S2.T1.1.1.8.8.13" class="ltx_td ltx_align_center">81.7</td>
+<td id="S2.T1.1.1.8.8.14" class="ltx_td ltx_align_center">83.8</td>
+<td id="S2.T1.1.1.8.8.15" class="ltx_td ltx_align_center">79.8</td>
+<td id="S2.T1.1.1.8.8.16" class="ltx_td ltx_align_center">84.6</td>
+<td id="S2.T1.1.1.8.8.17" class="ltx_td ltx_align_center">83.6</td>
+<td id="S2.T1.1.1.8.8.18" class="ltx_td ltx_align_center">84.5</td>
+</tr>
+<tr id="S2.T1.1.1.9.9" class="ltx_tr">
+<th id="S2.T1.1.1.9.9.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">XLM-R<sub id="S2.T1.1.1.9.9.1.1" class="ltx_sub">Base</sub>
+</th>
+<th id="S2.T1.1.1.9.9.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" rowspan="2"><span id="S2.T1.1.1.9.9.2.1" class="ltx_text">CC100</span></th>
+<td id="S2.T1.1.1.9.9.3" class="ltx_td ltx_align_center ltx_border_t">85.8</td>
+<td id="S2.T1.1.1.9.9.4" class="ltx_td ltx_align_center ltx_border_t">79.7</td>
+<td id="S2.T1.1.1.9.9.5" class="ltx_td ltx_align_center ltx_border_t">80.7</td>
+<td id="S2.T1.1.1.9.9.6" class="ltx_td ltx_align_center ltx_border_t">78.7</td>
+<td id="S2.T1.1.1.9.9.7" class="ltx_td ltx_align_center ltx_border_t">77.5</td>
+<td id="S2.T1.1.1.9.9.8" class="ltx_td ltx_align_center ltx_border_t">79.6</td>
+<td id="S2.T1.1.1.9.9.9" class="ltx_td ltx_align_center ltx_border_t">78.1</td>
+<td id="S2.T1.1.1.9.9.10" class="ltx_td ltx_align_center ltx_border_t">74.2</td>
+<td id="S2.T1.1.1.9.9.11" class="ltx_td ltx_align_center ltx_border_t">73.8</td>
+<td id="S2.T1.1.1.9.9.12" class="ltx_td ltx_align_center ltx_border_t">76.5</td>
+<td id="S2.T1.1.1.9.9.13" class="ltx_td ltx_align_center ltx_border_t">74.6</td>
+<td id="S2.T1.1.1.9.9.14" class="ltx_td ltx_align_center ltx_border_t">76.7</td>
+<td id="S2.T1.1.1.9.9.15" class="ltx_td ltx_align_center ltx_border_t">72.4</td>
+<td id="S2.T1.1.1.9.9.16" class="ltx_td ltx_align_center ltx_border_t">66.5</td>
+<td id="S2.T1.1.1.9.9.17" class="ltx_td ltx_align_center ltx_border_t">68.3</td>
+<td id="S2.T1.1.1.9.9.18" class="ltx_td ltx_align_center ltx_border_t">76.2</td>
+</tr>
+<tr id="S2.T1.1.1.10.10" class="ltx_tr">
+<th id="S2.T1.1.1.10.10.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">XLM-R<sub id="S2.T1.1.1.10.10.1.1" class="ltx_sub">Large</sub>
+</th>
+<td id="S2.T1.1.1.10.10.2" class="ltx_td ltx_align_center">89.1</td>
+<td id="S2.T1.1.1.10.10.3" class="ltx_td ltx_align_center">84.1</td>
+<td id="S2.T1.1.1.10.10.4" class="ltx_td ltx_align_center">85.1</td>
+<td id="S2.T1.1.1.10.10.5" class="ltx_td ltx_align_center">83.9</td>
+<td id="S2.T1.1.1.10.10.6" class="ltx_td ltx_align_center">82.9</td>
+<td id="S2.T1.1.1.10.10.7" class="ltx_td ltx_align_center">84.0</td>
+<td id="S2.T1.1.1.10.10.8" class="ltx_td ltx_align_center">81.2</td>
+<td id="S2.T1.1.1.10.10.9" class="ltx_td ltx_align_center">79.6</td>
+<td id="S2.T1.1.1.10.10.10" class="ltx_td ltx_align_center">79.8</td>
+<td id="S2.T1.1.1.10.10.11" class="ltx_td ltx_align_center">80.8</td>
+<td id="S2.T1.1.1.10.10.12" class="ltx_td ltx_align_center">78.1</td>
+<td id="S2.T1.1.1.10.10.13" class="ltx_td ltx_align_center">80.2</td>
+<td id="S2.T1.1.1.10.10.14" class="ltx_td ltx_align_center">76.9</td>
+<td id="S2.T1.1.1.10.10.15" class="ltx_td ltx_align_center">73.9</td>
+<td id="S2.T1.1.1.10.10.16" class="ltx_td ltx_align_center">73.8</td>
+<td id="S2.T1.1.1.10.10.17" class="ltx_td ltx_align_center">80.9</td>
+</tr>
+<tr id="S2.T1.1.1.11.11" class="ltx_tr">
+<th id="S2.T1.1.1.11.11.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">XLM-R<sub id="S2.T1.1.1.11.11.1.1" class="ltx_sub">XL</sub>
+</th>
+<th id="S2.T1.1.1.11.11.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r"><span id="S2.T1.1.1.11.11.2.1" class="ltx_text">(167B)</span></th>
+<td id="S2.T1.1.1.11.11.3" class="ltx_td ltx_align_center">90.7</td>
+<td id="S2.T1.1.1.11.11.4" class="ltx_td ltx_align_center">85.5</td>
+<td id="S2.T1.1.1.11.11.5" class="ltx_td ltx_align_center">86.5</td>
+<td id="S2.T1.1.1.11.11.6" class="ltx_td ltx_align_center">84.6</td>
+<td id="S2.T1.1.1.11.11.7" class="ltx_td ltx_align_center">84.0</td>
+<td id="S2.T1.1.1.11.11.8" class="ltx_td ltx_align_center">85.2</td>
+<td id="S2.T1.1.1.11.11.9" class="ltx_td ltx_align_center">82.7</td>
+<td id="S2.T1.1.1.11.11.10" class="ltx_td ltx_align_center">81.7</td>
+<td id="S2.T1.1.1.11.11.11" class="ltx_td ltx_align_center">81.6</td>
+<td id="S2.T1.1.1.11.11.12" class="ltx_td ltx_align_center">82.4</td>
+<td id="S2.T1.1.1.11.11.13" class="ltx_td ltx_align_center">79.4</td>
+<td id="S2.T1.1.1.11.11.14" class="ltx_td ltx_align_center">81.7</td>
+<td id="S2.T1.1.1.11.11.15" class="ltx_td ltx_align_center">78.5</td>
+<td id="S2.T1.1.1.11.11.16" class="ltx_td ltx_align_center">75.3</td>
+<td id="S2.T1.1.1.11.11.17" class="ltx_td ltx_align_center">74.3</td>
+<td id="S2.T1.1.1.11.11.18" class="ltx_td ltx_align_center">82.3</td>
+</tr>
+<tr id="S2.T1.1.1.12.12" class="ltx_tr">
+<th id="S2.T1.1.1.12.12.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">XLM-R<sub id="S2.T1.1.1.12.12.1.1" class="ltx_sub">XXL</sub>
+</th>
+<th id="S2.T1.1.1.12.12.2" class="ltx_td ltx_th ltx_th_row ltx_border_r"></th>
+<td id="S2.T1.1.1.12.12.3" class="ltx_td ltx_align_center">91.6</td>
+<td id="S2.T1.1.1.12.12.4" class="ltx_td ltx_align_center">86.2</td>
+<td id="S2.T1.1.1.12.12.5" class="ltx_td ltx_align_center">87.3</td>
+<td id="S2.T1.1.1.12.12.6" class="ltx_td ltx_align_center">87.0</td>
+<td id="S2.T1.1.1.12.12.7" class="ltx_td ltx_align_center">85.1</td>
+<td id="S2.T1.1.1.12.12.8" class="ltx_td ltx_align_center">85.7</td>
+<td id="S2.T1.1.1.12.12.9" class="ltx_td ltx_align_center">82.5</td>
+<td id="S2.T1.1.1.12.12.10" class="ltx_td ltx_align_center">82.0</td>
+<td id="S2.T1.1.1.12.12.11" class="ltx_td ltx_align_center">82.5</td>
+<td id="S2.T1.1.1.12.12.12" class="ltx_td ltx_align_center">83.0</td>
+<td id="S2.T1.1.1.12.12.13" class="ltx_td ltx_align_center">79.5</td>
+<td id="S2.T1.1.1.12.12.14" class="ltx_td ltx_align_center">82.6</td>
+<td id="S2.T1.1.1.12.12.15" class="ltx_td ltx_align_center">79.8</td>
+<td id="S2.T1.1.1.12.12.16" class="ltx_td ltx_align_center">76.2</td>
+<td id="S2.T1.1.1.12.12.17" class="ltx_td ltx_align_center">74.9</td>
+<td id="S2.T1.1.1.12.12.18" class="ltx_td ltx_align_center">83.1</td>
+</tr>
+<tr id="S2.T1.1.1.13.13" class="ltx_tr">
+<th id="S2.T1.1.1.13.13.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" colspan="17"><span id="S2.T1.1.1.13.13.1.1" class="ltx_text ltx_font_italic">Translate everything to English and use English-only model (TRANSLATE-TEST)</span></th>
+<td id="S2.T1.1.1.13.13.2" class="ltx_td ltx_border_t"></td>
+</tr>
+<tr id="S2.T1.1.1.14.14" class="ltx_tr">
+<th id="S2.T1.1.1.14.14.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">RoBERTa</th>
+<th id="S2.T1.1.1.14.14.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t">CC-En</th>
+<td id="S2.T1.1.1.14.14.3" class="ltx_td ltx_align_center ltx_border_t">91.3</td>
+<td id="S2.T1.1.1.14.14.4" class="ltx_td ltx_align_center ltx_border_t">82.9</td>
+<td id="S2.T1.1.1.14.14.5" class="ltx_td ltx_align_center ltx_border_t">84.3</td>
+<td id="S2.T1.1.1.14.14.6" class="ltx_td ltx_align_center ltx_border_t">81.2</td>
+<td id="S2.T1.1.1.14.14.7" class="ltx_td ltx_align_center ltx_border_t">81.7</td>
+<td id="S2.T1.1.1.14.14.8" class="ltx_td ltx_align_center ltx_border_t">83.1</td>
+<td id="S2.T1.1.1.14.14.9" class="ltx_td ltx_align_center ltx_border_t">78.3</td>
+<td id="S2.T1.1.1.14.14.10" class="ltx_td ltx_align_center ltx_border_t">76.8</td>
+<td id="S2.T1.1.1.14.14.11" class="ltx_td ltx_align_center ltx_border_t">76.6</td>
+<td id="S2.T1.1.1.14.14.12" class="ltx_td ltx_align_center ltx_border_t">74.2</td>
+<td id="S2.T1.1.1.14.14.13" class="ltx_td ltx_align_center ltx_border_t">74.1</td>
+<td id="S2.T1.1.1.14.14.14" class="ltx_td ltx_align_center ltx_border_t">77.5</td>
+<td id="S2.T1.1.1.14.14.15" class="ltx_td ltx_align_center ltx_border_t">70.9</td>
+<td id="S2.T1.1.1.14.14.16" class="ltx_td ltx_align_center ltx_border_t">66.7</td>
+<td id="S2.T1.1.1.14.14.17" class="ltx_td ltx_align_center ltx_border_t">66.8</td>
+<td id="S2.T1.1.1.14.14.18" class="ltx_td ltx_align_center ltx_border_t">77.8</td>
+</tr>
+<tr id="S2.T1.1.1.15.15" class="ltx_tr">
+<th id="S2.T1.1.1.15.15.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" colspan="17"><span id="S2.T1.1.1.15.15.1.1" class="ltx_text ltx_font_italic">Fine-tune multilingual model on all training sets (TRANSLATE-TRAIN-ALL)</span></th>
+<td id="S2.T1.1.1.15.15.2" class="ltx_td ltx_border_t"></td>
+</tr>
+<tr id="S2.T1.1.1.16.16" class="ltx_tr">
+<th id="S2.T1.1.1.16.16.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">mT5-Base</th>
+<th id="S2.T1.1.1.16.16.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" rowspan="2"><span id="S2.T1.1.1.16.16.2.1" class="ltx_text">mC4</span></th>
+<td id="S2.T1.1.1.16.16.3" class="ltx_td ltx_align_center ltx_border_t">82.0</td>
+<td id="S2.T1.1.1.16.16.4" class="ltx_td ltx_align_center ltx_border_t">74.4</td>
+<td id="S2.T1.1.1.16.16.5" class="ltx_td ltx_align_center ltx_border_t">78.5</td>
+<td id="S2.T1.1.1.16.16.6" class="ltx_td ltx_align_center ltx_border_t">77.7</td>
+<td id="S2.T1.1.1.16.16.7" class="ltx_td ltx_align_center ltx_border_t">78.1</td>
+<td id="S2.T1.1.1.16.16.8" class="ltx_td ltx_align_center ltx_border_t">79.1</td>
+<td id="S2.T1.1.1.16.16.9" class="ltx_td ltx_align_center ltx_border_t">77.9</td>
+<td id="S2.T1.1.1.16.16.10" class="ltx_td ltx_align_center ltx_border_t">72.2</td>
+<td id="S2.T1.1.1.16.16.11" class="ltx_td ltx_align_center ltx_border_t">76.5</td>
+<td id="S2.T1.1.1.16.16.12" class="ltx_td ltx_align_center ltx_border_t">71.5</td>
+<td id="S2.T1.1.1.16.16.13" class="ltx_td ltx_align_center ltx_border_t">75.0</td>
+<td id="S2.T1.1.1.16.16.14" class="ltx_td ltx_align_center ltx_border_t">74.8</td>
+<td id="S2.T1.1.1.16.16.15" class="ltx_td ltx_align_center ltx_border_t">70.4</td>
+<td id="S2.T1.1.1.16.16.16" class="ltx_td ltx_align_center ltx_border_t">74.5</td>
+<td id="S2.T1.1.1.16.16.17" class="ltx_td ltx_align_center ltx_border_t">76.0</td>
+<td id="S2.T1.1.1.16.16.18" class="ltx_td ltx_align_center ltx_border_t">75.9</td>
+</tr>
+<tr id="S2.T1.1.1.17.17" class="ltx_tr">
+<th id="S2.T1.1.1.17.17.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">mT5-Large</th>
+<td id="S2.T1.1.1.17.17.2" class="ltx_td ltx_align_center">88.3</td>
+<td id="S2.T1.1.1.17.17.3" class="ltx_td ltx_align_center">80.3</td>
+<td id="S2.T1.1.1.17.17.4" class="ltx_td ltx_align_center">84.1</td>
+<td id="S2.T1.1.1.17.17.5" class="ltx_td ltx_align_center">84.0</td>
+<td id="S2.T1.1.1.17.17.6" class="ltx_td ltx_align_center">83.7</td>
+<td id="S2.T1.1.1.17.17.7" class="ltx_td ltx_align_center">84.9</td>
+<td id="S2.T1.1.1.17.17.8" class="ltx_td ltx_align_center">83.8</td>
+<td id="S2.T1.1.1.17.17.9" class="ltx_td ltx_align_center">79.8</td>
+<td id="S2.T1.1.1.17.17.10" class="ltx_td ltx_align_center">82.0</td>
+<td id="S2.T1.1.1.17.17.11" class="ltx_td ltx_align_center">76.4</td>
+<td id="S2.T1.1.1.17.17.12" class="ltx_td ltx_align_center">79.9</td>
+<td id="S2.T1.1.1.17.17.13" class="ltx_td ltx_align_center">81.0</td>
+<td id="S2.T1.1.1.17.17.14" class="ltx_td ltx_align_center">75.9</td>
+<td id="S2.T1.1.1.17.17.15" class="ltx_td ltx_align_center">81.3</td>
+<td id="S2.T1.1.1.17.17.16" class="ltx_td ltx_align_center">81.7</td>
+<td id="S2.T1.1.1.17.17.17" class="ltx_td ltx_align_center">81.8</td>
+</tr>
+<tr id="S2.T1.1.1.18.18" class="ltx_tr">
+<th id="S2.T1.1.1.18.18.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">mT5-XL</th>
+<th id="S2.T1.1.1.18.18.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r"><span id="S2.T1.1.1.18.18.2.1" class="ltx_text">(6.4T)</span></th>
+<td id="S2.T1.1.1.18.18.3" class="ltx_td ltx_align_center">90.9</td>
+<td id="S2.T1.1.1.18.18.4" class="ltx_td ltx_align_center">84.2</td>
+<td id="S2.T1.1.1.18.18.5" class="ltx_td ltx_align_center">86.8</td>
+<td id="S2.T1.1.1.18.18.6" class="ltx_td ltx_align_center">86.8</td>
+<td id="S2.T1.1.1.18.18.7" class="ltx_td ltx_align_center">86.4</td>
+<td id="S2.T1.1.1.18.18.8" class="ltx_td ltx_align_center">87.4</td>
+<td id="S2.T1.1.1.18.18.9" class="ltx_td ltx_align_center">86.8</td>
+<td id="S2.T1.1.1.18.18.10" class="ltx_td ltx_align_center">83.1</td>
+<td id="S2.T1.1.1.18.18.11" class="ltx_td ltx_align_center">84.9</td>
+<td id="S2.T1.1.1.18.18.12" class="ltx_td ltx_align_center">81.3</td>
+<td id="S2.T1.1.1.18.18.13" class="ltx_td ltx_align_center">82.3</td>
+<td id="S2.T1.1.1.18.18.14" class="ltx_td ltx_align_center">84.4</td>
+<td id="S2.T1.1.1.18.18.15" class="ltx_td ltx_align_center">79.4</td>
+<td id="S2.T1.1.1.18.18.16" class="ltx_td ltx_align_center">83.9</td>
+<td id="S2.T1.1.1.18.18.17" class="ltx_td ltx_align_center">84.0</td>
+<td id="S2.T1.1.1.18.18.18" class="ltx_td ltx_align_center">84.8</td>
+</tr>
+<tr id="S2.T1.1.1.19.19" class="ltx_tr">
+<th id="S2.T1.1.1.19.19.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">mT5-XXL</th>
+<th id="S2.T1.1.1.19.19.2" class="ltx_td ltx_th ltx_th_row ltx_border_r"></th>
+<td id="S2.T1.1.1.19.19.3" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.3.1" class="ltx_text ltx_font_bold">92.7</span></td>
+<td id="S2.T1.1.1.19.19.4" class="ltx_td ltx_align_center">87.2</td>
+<td id="S2.T1.1.1.19.19.5" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.5.1" class="ltx_text ltx_font_bold">89.4</span></td>
+<td id="S2.T1.1.1.19.19.6" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.6.1" class="ltx_text ltx_font_bold">89.8</span></td>
+<td id="S2.T1.1.1.19.19.7" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.7.1" class="ltx_text ltx_font_bold">89.5</span></td>
+<td id="S2.T1.1.1.19.19.8" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.8.1" class="ltx_text ltx_font_bold">90.0</span></td>
+<td id="S2.T1.1.1.19.19.9" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.9.1" class="ltx_text ltx_font_bold">89.1</span></td>
+<td id="S2.T1.1.1.19.19.10" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.10.1" class="ltx_text ltx_font_bold">86.5</span></td>
+<td id="S2.T1.1.1.19.19.11" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.11.1" class="ltx_text ltx_font_bold">87.6</span></td>
+<td id="S2.T1.1.1.19.19.12" class="ltx_td ltx_align_center">84.3</td>
+<td id="S2.T1.1.1.19.19.13" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.13.1" class="ltx_text ltx_font_bold">85.6</span></td>
+<td id="S2.T1.1.1.19.19.14" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.14.1" class="ltx_text ltx_font_bold">87.1</span></td>
+<td id="S2.T1.1.1.19.19.15" class="ltx_td ltx_align_center">83.8</td>
+<td id="S2.T1.1.1.19.19.16" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.16.1" class="ltx_text ltx_font_bold">87.5</span></td>
+<td id="S2.T1.1.1.19.19.17" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.17.1" class="ltx_text ltx_font_bold">86.5</span></td>
+<td id="S2.T1.1.1.19.19.18" class="ltx_td ltx_align_center"><span id="S2.T1.1.1.19.19.18.1" class="ltx_text ltx_font_bold">87.8</span></td>
+</tr>
+<tr id="S2.T1.1.1.20.20" class="ltx_tr">
+<th id="S2.T1.1.1.20.20.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">XLM-R<sub id="S2.T1.1.1.20.20.1.1" class="ltx_sub">Base</sub>
+</th>
+<th id="S2.T1.1.1.20.20.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" rowspan="2"><span id="S2.T1.1.1.20.20.2.1" class="ltx_text">CC100</span></th>
+<td id="S2.T1.1.1.20.20.3" class="ltx_td ltx_align_center ltx_border_t">85.4</td>
+<td id="S2.T1.1.1.20.20.4" class="ltx_td ltx_align_center ltx_border_t">81.4</td>
+<td id="S2.T1.1.1.20.20.5" class="ltx_td ltx_align_center ltx_border_t">82.2</td>
+<td id="S2.T1.1.1.20.20.6" class="ltx_td ltx_align_center ltx_border_t">80.3</td>
+<td id="S2.T1.1.1.20.20.7" class="ltx_td ltx_align_center ltx_border_t">80.4</td>
+<td id="S2.T1.1.1.20.20.8" class="ltx_td ltx_align_center ltx_border_t">81.3</td>
+<td id="S2.T1.1.1.20.20.9" class="ltx_td ltx_align_center ltx_border_t">79.7</td>
+<td id="S2.T1.1.1.20.20.10" class="ltx_td ltx_align_center ltx_border_t">78.6</td>
+<td id="S2.T1.1.1.20.20.11" class="ltx_td ltx_align_center ltx_border_t">77.3</td>
+<td id="S2.T1.1.1.20.20.12" class="ltx_td ltx_align_center ltx_border_t">79.7</td>
+<td id="S2.T1.1.1.20.20.13" class="ltx_td ltx_align_center ltx_border_t">77.9</td>
+<td id="S2.T1.1.1.20.20.14" class="ltx_td ltx_align_center ltx_border_t">80.2</td>
+<td id="S2.T1.1.1.20.20.15" class="ltx_td ltx_align_center ltx_border_t">76.1</td>
+<td id="S2.T1.1.1.20.20.16" class="ltx_td ltx_align_center ltx_border_t">73.1</td>
+<td id="S2.T1.1.1.20.20.17" class="ltx_td ltx_align_center ltx_border_t">73.0</td>
+<td id="S2.T1.1.1.20.20.18" class="ltx_td ltx_align_center ltx_border_t">79.1</td>
+</tr>
+<tr id="S2.T1.1.1.21.21" class="ltx_tr">
+<th id="S2.T1.1.1.21.21.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">XLM-R<sub id="S2.T1.1.1.21.21.1.1" class="ltx_sub">Large</sub>
+</th>
+<td id="S2.T1.1.1.21.21.2" class="ltx_td ltx_align_center">89.1</td>
+<td id="S2.T1.1.1.21.21.3" class="ltx_td ltx_align_center">85.1</td>
+<td id="S2.T1.1.1.21.21.4" class="ltx_td ltx_align_center">86.6</td>
+<td id="S2.T1.1.1.21.21.5" class="ltx_td ltx_align_center">85.7</td>
+<td id="S2.T1.1.1.21.21.6" class="ltx_td ltx_align_center">85.3</td>
+<td id="S2.T1.1.1.21.21.7" class="ltx_td ltx_align_center">85.9</td>
+<td id="S2.T1.1.1.21.21.8" class="ltx_td ltx_align_center">83.5</td>
+<td id="S2.T1.1.1.21.21.9" class="ltx_td ltx_align_center">83.2</td>
+<td id="S2.T1.1.1.21.21.10" class="ltx_td ltx_align_center">83.1</td>
+<td id="S2.T1.1.1.21.21.11" class="ltx_td ltx_align_center">83.7</td>
+<td id="S2.T1.1.1.21.21.12" class="ltx_td ltx_align_center">81.5</td>
+<td id="S2.T1.1.1.21.21.13" class="ltx_td ltx_align_center">83.7</td>
+<td id="S2.T1.1.1.21.21.14" class="ltx_td ltx_align_center">81.6</td>
+<td id="S2.T1.1.1.21.21.15" class="ltx_td ltx_align_center">78.0</td>
+<td id="S2.T1.1.1.21.21.16" class="ltx_td ltx_align_center">78.1</td>
+<td id="S2.T1.1.1.21.21.17" class="ltx_td ltx_align_center">83.6</td>
+</tr>
+<tr id="S2.T1.1.1.22.22" class="ltx_tr">
+<th id="S2.T1.1.1.22.22.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">XLM-R<sub id="S2.T1.1.1.22.22.1.1" class="ltx_sub">XL</sub>
+</th>
+<th id="S2.T1.1.1.22.22.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r"><span id="S2.T1.1.1.22.22.2.1" class="ltx_text">(167B)</span></th>
+<td id="S2.T1.1.1.22.22.3" class="ltx_td ltx_align_center">91.1</td>
+<td id="S2.T1.1.1.22.22.4" class="ltx_td ltx_align_center">87.2</td>
+<td id="S2.T1.1.1.22.22.5" class="ltx_td ltx_align_center">88.1</td>
+<td id="S2.T1.1.1.22.22.6" class="ltx_td ltx_align_center">87.0</td>
+<td id="S2.T1.1.1.22.22.7" class="ltx_td ltx_align_center">87.4</td>
+<td id="S2.T1.1.1.22.22.8" class="ltx_td ltx_align_center">87.8</td>
+<td id="S2.T1.1.1.22.22.9" class="ltx_td ltx_align_center">85.3</td>
+<td id="S2.T1.1.1.22.22.10" class="ltx_td ltx_align_center">85.2</td>
+<td id="S2.T1.1.1.22.22.11" class="ltx_td ltx_align_center">85.3</td>
+<td id="S2.T1.1.1.22.22.12" class="ltx_td ltx_align_center">86.2</td>
+<td id="S2.T1.1.1.22.22.13" class="ltx_td ltx_align_center">83.8</td>
+<td id="S2.T1.1.1.22.22.14" class="ltx_td ltx_align_center">85.3</td>
+<td id="S2.T1.1.1.22.22.15" class="ltx_td ltx_align_center">83.1</td>
+<td id="S2.T1.1.1.22.22.16" class="ltx_td ltx_align_center">79.8</td>
+<td id="S2.T1.1.1.22.22.17" class="ltx_td ltx_align_center">78.2</td>
+<td id="S2.T1.1.1.22.22.18" class="ltx_td ltx_align_center">85.4</td>
+</tr>
+<tr id="S2.T1.1.1.23.23" class="ltx_tr">
+<th id="S2.T1.1.1.23.23.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb ltx_border_r">XLM-R<sub id="S2.T1.1.1.23.23.1.1" class="ltx_sub">XXL</sub>
+</th>
+<th id="S2.T1.1.1.23.23.2" class="ltx_td ltx_th ltx_th_row ltx_border_bb ltx_border_r"></th>
+<td id="S2.T1.1.1.23.23.3" class="ltx_td ltx_align_center ltx_border_bb">91.5</td>
+<td id="S2.T1.1.1.23.23.4" class="ltx_td ltx_align_center ltx_border_bb"><span id="S2.T1.1.1.23.23.4.1" class="ltx_text ltx_font_bold">87.6</span></td>
+<td id="S2.T1.1.1.23.23.5" class="ltx_td ltx_align_center ltx_border_bb">88.7</td>
+<td id="S2.T1.1.1.23.23.6" class="ltx_td ltx_align_center ltx_border_bb">87.8</td>
+<td id="S2.T1.1.1.23.23.7" class="ltx_td ltx_align_center ltx_border_bb">87.4</td>
+<td id="S2.T1.1.1.23.23.8" class="ltx_td ltx_align_center ltx_border_bb">88.2</td>
+<td id="S2.T1.1.1.23.23.9" class="ltx_td ltx_align_center ltx_border_bb">85.6</td>
+<td id="S2.T1.1.1.23.23.10" class="ltx_td ltx_align_center ltx_border_bb">85.1</td>
+<td id="S2.T1.1.1.23.23.11" class="ltx_td ltx_align_center ltx_border_bb">85.8</td>
+<td id="S2.T1.1.1.23.23.12" class="ltx_td ltx_align_center ltx_border_bb"><span id="S2.T1.1.1.23.23.12.1" class="ltx_text ltx_font_bold">86.3</span></td>
+<td id="S2.T1.1.1.23.23.13" class="ltx_td ltx_align_center ltx_border_bb">83.9</td>
+<td id="S2.T1.1.1.23.23.14" class="ltx_td ltx_align_center ltx_border_bb">85.6</td>
+<td id="S2.T1.1.1.23.23.15" class="ltx_td ltx_align_center ltx_border_bb"><span id="S2.T1.1.1.23.23.15.1" class="ltx_text ltx_font_bold">84.6</span></td>
+<td id="S2.T1.1.1.23.23.16" class="ltx_td ltx_align_center ltx_border_bb">81.7</td>
+<td id="S2.T1.1.1.23.23.17" class="ltx_td ltx_align_center ltx_border_bb">80.6</td>
+<td id="S2.T1.1.1.23.23.18" class="ltx_td ltx_align_center ltx_border_bb">86.0</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 1: </span><span id="S2.T1.3.1" class="ltx_text ltx_font_bold">Results on cross-lingual classification (XNLI).</span> We report the accuracy on each of the 15 XNLI languages and average accuracy, and specify the dataset and its corresponding size in number of tokens. We report results of XLM-R models with increasing capacity, from 270M (Base), 550M (Large), 3.5B (XL) to 10.7B (XXL) parameters. </figcaption>
+</figure>
+</section>
+<section id="S2.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.2 </span>Evaluation</h3>
+
+<div id="S2.SS2.p1" class="ltx_para">
+<p id="S2.SS2.p1.1" class="ltx_p">To evaluate our models, we use cross-lingual natural language inference and question answering for cross-lingual understanding, and the GLUE benchmark for monolingual English evaluation.</p>
+</div>
+<section id="S2.SS2.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Cross-lingual Natural Language Inference.</h4>
+
+<div id="S2.SS2.SSS0.Px1.p1" class="ltx_para">
+<p id="S2.SS2.SSS0.Px1.p1.1" class="ltx_p">The XNLI dataset <cite class="ltx_cite ltx_citemacro_cite">Conneau et al. (<a href="#bib.bib5" title="" class="ltx_ref">2018</a>)</cite> comes with ground-truth dev and test sets in 15 languages, and a ground-truth English training set. The training set has been machine-translated to the remaining 14 languages, providing synthetic training data for these languages as well. We evaluate our model on cross-lingual transfer from English to other languages. We also consider two machine translation baselines: (i) <span id="S2.SS2.SSS0.Px1.p1.1.1" class="ltx_text ltx_font_italic">translate-test</span>: dev and test sets are machine-translated to English and a single English model is used (ii) <span id="S2.SS2.SSS0.Px1.p1.1.2" class="ltx_text ltx_font_italic">translate-train-all</span>: the English training set is machine-translated to each language and we fine-tune a multilingual model on all training sets. For the translations, we use the original data provided by the XNLI project for consistency.</p>
+</div>
+</section>
+<section id="S2.SS2.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Cross-lingual Question Answering.</h4>
+
+<div id="S2.SS2.SSS0.Px2.p1" class="ltx_para">
+<p id="S2.SS2.SSS0.Px2.p1.1" class="ltx_p">We use MLQA and XQuad benchmarks from <cite class="ltx_cite ltx_citemacro_citet">Lewis et al. (<a href="#bib.bib11" title="" class="ltx_ref">2019</a>)</cite> and <cite class="ltx_cite ltx_citemacro_citet">Artetxe et al. (<a href="#bib.bib2" title="" class="ltx_ref">2019</a>)</cite>, which extend SQuAD <cite class="ltx_cite ltx_citemacro_cite">Rajpurkar et al. (<a href="#bib.bib15" title="" class="ltx_ref">2016</a>)</cite> to more languages. We report F1 score and exact match (EM) score for cross-lingual transfer from English.</p>
+</div>
+</section>
+<section id="S2.SS2.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">The English GLUE Benchmark.</h4>
+
+<div id="S2.SS2.SSS0.Px3.p1" class="ltx_para">
+<p id="S2.SS2.SSS0.Px3.p1.1" class="ltx_p">We evaluate English performance on the GLUE benchmark <cite class="ltx_cite ltx_citemacro_cite">Wang et al. (<a href="#bib.bib19" title="" class="ltx_ref">2018</a>)</cite> which gathers multiple classification tasks, such as MNLI <cite class="ltx_cite ltx_citemacro_cite">Williams et al. (<a href="#bib.bib21" title="" class="ltx_ref">2017</a>)</cite>, SST-2 <cite class="ltx_cite ltx_citemacro_cite">Socher et al. (<a href="#bib.bib17" title="" class="ltx_ref">2013</a>)</cite> or QNLI <cite class="ltx_cite ltx_citemacro_cite">Rajpurkar et al. (<a href="#bib.bib14" title="" class="ltx_ref">2018</a>)</cite>.</p>
+</div>
+</section>
+</section>
+<section id="S2.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.3 </span>Training details</h3>
+
+<div id="S2.SS3.p1" class="ltx_para">
+<p id="S2.SS3.p1.1" class="ltx_p">We use model parallelism based on tensor parallel <cite class="ltx_cite ltx_citemacro_cite">Shoeybi et al. (<a href="#bib.bib16" title="" class="ltx_ref">2019</a>)</cite> for scaling models. XLM-R<sub id="S2.SS3.p1.1.1" class="ltx_sub">XL</sub> uses model parallel size of 2 and XLM-R<sub id="S2.SS3.p1.1.2" class="ltx_sub">XXL</sub> used 8.
+Compared to previous XLM-R models, we reduce the batch size and number of updates significantly to keep the compute of the new models similar (see Table <a href="#S3.T5" title="Table 5 ‣ Comparison to monolingual English model. ‣ 3 Analysis and Results ‣ Larger-Scale Transformers for Multilingual Masked Language Modeling" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>). For both models, we use batch size of 2048 and train for 500,000 updates. We use pre-LayerNorm setting for both the models which was more stable during training.</p>
+</div>
+<div id="S2.SS3.p2" class="ltx_para">
+<p id="S2.SS3.p2.1" class="ltx_p">For all the tasks in finetuning, we use batch size of 32 and train for 10 epochs. We do early stopping based on the average valid metrics across all languages and report test results.</p>
+</div>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Analysis and Results</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.1" class="ltx_p">In this section, we present our results and compare XLM-R<sub id="S3.p1.1.1" class="ltx_sub">XL</sub> and XLM-R<sub id="S3.p1.1.2" class="ltx_sub">XXL</sub> performance to other methods from previous work.</p>
+</div>
+<section id="S3.SS0.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Cross-lingual understanding results.</h4>
+
+<div id="S3.SS0.SSS0.Px1.p1" class="ltx_para">
+<p id="S3.SS0.SSS0.Px1.p1.1" class="ltx_p">On XNLI, we observe in Table <a href="#S2.T1" title="Table 1 ‣ 2.1 Multilingual masked language models ‣ 2 Pretraining and evaluation ‣ Larger-Scale Transformers for Multilingual Masked Language Modeling" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> that scaling the capacity from XLM-R<sub id="S3.SS0.SSS0.Px1.p1.1.1" class="ltx_sub">Large</sub> to XLM-R<sub id="S3.SS0.SSS0.Px1.p1.1.2" class="ltx_sub">XL</sub> leads to an average accuracy improvement of 1.4 on zero-shot cross-lingual transfer and 1.8 on multilingual fine-tuning. When scaling even further to XLM-R<sub id="S3.SS0.SSS0.Px1.p1.1.3" class="ltx_sub">XXL</sub>, we observe a total improvement of 2.2 on zero-shot and 2.4 on translate-train-all compared to XLM-R<sub id="S3.SS0.SSS0.Px1.p1.1.4" class="ltx_sub">XL</sub>, with a new state of the art on French, Vietnamese and Hindi.
+On MLQA, in Table <a href="#S3.T4" title="Table 4 ‣ Comparison to monolingual English model. ‣ 3 Analysis and Results ‣ Larger-Scale Transformers for Multilingual Masked Language Modeling" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>, we observe even larger gains for cross-lingual zero-shot transfer, where scaling from XLM-R<sub id="S3.SS0.SSS0.Px1.p1.1.5" class="ltx_sub">Large</sub> to XLM-R<sub id="S3.SS0.SSS0.Px1.p1.1.6" class="ltx_sub">XXL</sub> leads to improvements of 4.1 F1 and 3.9 EM scores on average. Similarly, on XQuad we observe improvements of 4.4 F1 and 5.5 scores, with new state-of-the-art results on Arabic, German, Greek and Russian (see Table <a href="#S3.T3" title="Table 3 ‣ Comparison to monolingual English model. ‣ 3 Analysis and Results ‣ Larger-Scale Transformers for Multilingual Masked Language Modeling" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>).</p>
+</div>
+<figure id="S3.T2" class="ltx_table">
+<div id="S3.T2.1.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:121.3pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="transform:translate(56.0pt,-15.7pt) scale(1.34815595231566,1.34815595231566) ;">
+<table id="S3.T2.1.1.1" class="ltx_tabular ltx_guessed_headers ltx_align_bottom">
+<thead class="ltx_thead">
+<tr id="S3.T2.1.1.1.2.1" class="ltx_tr">
+<th id="S3.T2.1.1.1.2.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_tt"><span id="S3.T2.1.1.1.2.1.1.1" class="ltx_text ltx_font_bold">Model</span></th>
+<th id="S3.T2.1.1.1.2.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_tt"><span id="S3.T2.1.1.1.2.1.2.1" class="ltx_text ltx_font_bold">#lgs</span></th>
+<th id="S3.T2.1.1.1.2.1.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="S3.T2.1.1.1.2.1.3.1" class="ltx_text ltx_font_bold">MNLI</span></th>
+<th id="S3.T2.1.1.1.2.1.4" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="S3.T2.1.1.1.2.1.4.1" class="ltx_text ltx_font_bold">QNLI</span></th>
+<th id="S3.T2.1.1.1.2.1.5" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="S3.T2.1.1.1.2.1.5.1" class="ltx_text ltx_font_bold">QQP</span></th>
+<th id="S3.T2.1.1.1.2.1.6" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="S3.T2.1.1.1.2.1.6.1" class="ltx_text ltx_font_bold">SST</span></th>
+<th id="S3.T2.1.1.1.2.1.7" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_tt"><span id="S3.T2.1.1.1.2.1.7.1" class="ltx_text ltx_font_bold">MRPC</span></th>
+<th id="S3.T2.1.1.1.2.1.8" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="S3.T2.1.1.1.2.1.8.1" class="ltx_text ltx_font_bold">Avg</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S3.T2.1.1.1.1" class="ltx_tr">
+<th id="S3.T2.1.1.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">RoBERTa<sup id="S3.T2.1.1.1.1.1.1" class="ltx_sup"><span id="S3.T2.1.1.1.1.1.1.1" class="ltx_text ltx_font_italic">†</span></sup>
+</th>
+<th id="S3.T2.1.1.1.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t">1</th>
+<td id="S3.T2.1.1.1.1.3" class="ltx_td ltx_align_center ltx_border_t">90.2</td>
+<td id="S3.T2.1.1.1.1.4" class="ltx_td ltx_align_center ltx_border_t">94.7</td>
+<td id="S3.T2.1.1.1.1.5" class="ltx_td ltx_align_center ltx_border_t">92.2</td>
+<td id="S3.T2.1.1.1.1.6" class="ltx_td ltx_align_center ltx_border_t">96.4</td>
+<td id="S3.T2.1.1.1.1.7" class="ltx_td ltx_align_center ltx_border_r ltx_border_t"><span id="S3.T2.1.1.1.1.7.1" class="ltx_text ltx_font_bold">90.9</span></td>
+<td id="S3.T2.1.1.1.1.8" class="ltx_td ltx_align_center ltx_border_t">92.9</td>
+</tr>
+<tr id="S3.T2.1.1.1.3.1" class="ltx_tr">
+<th id="S3.T2.1.1.1.3.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">XLM-R<sub id="S3.T2.1.1.1.3.1.1.1" class="ltx_sub">Large</sub>
+</th>
+<th id="S3.T2.1.1.1.3.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r">100</th>
+<td id="S3.T2.1.1.1.3.1.3" class="ltx_td ltx_align_center">88.9</td>
+<td id="S3.T2.1.1.1.3.1.4" class="ltx_td ltx_align_center">93.8</td>
+<td id="S3.T2.1.1.1.3.1.5" class="ltx_td ltx_align_center">92.3</td>
+<td id="S3.T2.1.1.1.3.1.6" class="ltx_td ltx_align_center">95.0</td>
+<td id="S3.T2.1.1.1.3.1.7" class="ltx_td ltx_align_center ltx_border_r">89.5</td>
+<td id="S3.T2.1.1.1.3.1.8" class="ltx_td ltx_align_center">91.9</td>
+</tr>
+<tr id="S3.T2.1.1.1.4.2" class="ltx_tr">
+<th id="S3.T2.1.1.1.4.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">XLM-R<sub id="S3.T2.1.1.1.4.2.1.1" class="ltx_sub">XL</sub>
+</th>
+<th id="S3.T2.1.1.1.4.2.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r">100</th>
+<td id="S3.T2.1.1.1.4.2.3" class="ltx_td ltx_align_center">90.4</td>
+<td id="S3.T2.1.1.1.4.2.4" class="ltx_td ltx_align_center">94.9</td>
+<td id="S3.T2.1.1.1.4.2.5" class="ltx_td ltx_align_center">92.5</td>
+<td id="S3.T2.1.1.1.4.2.6" class="ltx_td ltx_align_center">96.6</td>
+<td id="S3.T2.1.1.1.4.2.7" class="ltx_td ltx_align_center ltx_border_r">90.4</td>
+<td id="S3.T2.1.1.1.4.2.8" class="ltx_td ltx_align_center">93.0</td>
+</tr>
+<tr id="S3.T2.1.1.1.5.3" class="ltx_tr">
+<th id="S3.T2.1.1.1.5.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb ltx_border_r">XLM-R<sub id="S3.T2.1.1.1.5.3.1.1" class="ltx_sub">XXL</sub>
+</th>
+<th id="S3.T2.1.1.1.5.3.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_bb ltx_border_r">100</th>
+<td id="S3.T2.1.1.1.5.3.3" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T2.1.1.1.5.3.3.1" class="ltx_text ltx_font_bold">90.9</span></td>
+<td id="S3.T2.1.1.1.5.3.4" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T2.1.1.1.5.3.4.1" class="ltx_text ltx_font_bold">95.0</span></td>
+<td id="S3.T2.1.1.1.5.3.5" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T2.1.1.1.5.3.5.1" class="ltx_text ltx_font_bold">92.6</span></td>
+<td id="S3.T2.1.1.1.5.3.6" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T2.1.1.1.5.3.6.1" class="ltx_text ltx_font_bold">96.7</span></td>
+<td id="S3.T2.1.1.1.5.3.7" class="ltx_td ltx_align_center ltx_border_bb ltx_border_r">90.7</td>
+<td id="S3.T2.1.1.1.5.3.8" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T2.1.1.1.5.3.8.1" class="ltx_text ltx_font_bold">93.2</span></td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 2: </span>GLUE dev results
+</figcaption>
+</figure>
+</section>
+<section id="S3.SS0.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Comparison to monolingual English model.</h4>
+
+<div id="S3.SS0.SSS0.Px2.p1" class="ltx_para">
+<p id="S3.SS0.SSS0.Px2.p1.1" class="ltx_p">For smaller-capacity models like the Base and Large version of XLM-R, it was shown that the more languages are considered the lower the performance <cite class="ltx_cite ltx_citemacro_cite">Conneau et al. (<a href="#bib.bib4" title="" class="ltx_ref">2019</a>)</cite>, in particular on high-resource languages. For instance, XLM-R<sub id="S3.SS0.SSS0.Px2.p1.1.1" class="ltx_sub">Large</sub> was outperformed by RoBERTa<sub id="S3.SS0.SSS0.Px2.p1.1.2" class="ltx_sub">Large</sub> by 1% accuracy on average on several downstream tasks from the GLUE benchmark, as illustrated in Table<a href="#S3.T2" title="Table 2 ‣ Cross-lingual understanding results. ‣ 3 Analysis and Results ‣ Larger-Scale Transformers for Multilingual Masked Language Modeling" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>. With larger capacity, we now observe that XLM-R<sub id="S3.SS0.SSS0.Px2.p1.1.3" class="ltx_sub">XXL</sub> is able to outperform RoBERTa<sub id="S3.SS0.SSS0.Px2.p1.1.4" class="ltx_sub">Large</sub> by 0.3 dev points, going from 92.9 to 93.2 average accuracy, while handling 99 more languages. While a RoBERTa<sub id="S3.SS0.SSS0.Px2.p1.1.5" class="ltx_sub">XXL</sub> model may outperform XLM-R<sub id="S3.SS0.SSS0.Px2.p1.1.6" class="ltx_sub">XXL</sub>, we believe it interesting to notice that with more capacity, a multilingual model can get strong high-resource performance while not losing its cross-lingual transfer ability for lower-resource languages. Given the compute needed for training such large-scale models, the possibility of training a single very large model on hundreds of languages with state-of-the-art performance on high-resource languages is an encouraging result.</p>
+</div>
+<figure id="S3.T3" class="ltx_table">
+<div id="S3.T3.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:80.2pt;vertical-align:-0.6pt;"><span class="ltx_transformed_inner" style="transform:translate(-175.3pt,32.2pt) scale(0.552928975439053,0.552928975439053) ;">
+<table id="S3.T3.1.1" class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S3.T3.1.1.1.1" class="ltx_tr">
+<th id="S3.T3.1.1.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_tt"><span id="S3.T3.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Model</span></th>
+<td id="S3.T3.1.1.1.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.2.1" class="ltx_text ltx_font_bold">en</span></td>
+<td id="S3.T3.1.1.1.1.3" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.3.1" class="ltx_text ltx_font_bold">ar</span></td>
+<td id="S3.T3.1.1.1.1.4" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.4.1" class="ltx_text ltx_font_bold">de</span></td>
+<td id="S3.T3.1.1.1.1.5" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.5.1" class="ltx_text ltx_font_bold">el</span></td>
+<td id="S3.T3.1.1.1.1.6" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.6.1" class="ltx_text ltx_font_bold">es</span></td>
+<td id="S3.T3.1.1.1.1.7" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.7.1" class="ltx_text ltx_font_bold">hi</span></td>
+<td id="S3.T3.1.1.1.1.8" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.8.1" class="ltx_text ltx_font_bold">ru</span></td>
+<td id="S3.T3.1.1.1.1.9" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.9.1" class="ltx_text ltx_font_bold">th</span></td>
+<td id="S3.T3.1.1.1.1.10" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.10.1" class="ltx_text ltx_font_bold">tr</span></td>
+<td id="S3.T3.1.1.1.1.11" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.11.1" class="ltx_text ltx_font_bold">vi</span></td>
+<td id="S3.T3.1.1.1.1.12" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.12.1" class="ltx_text ltx_font_bold">zh</span></td>
+<td id="S3.T3.1.1.1.1.13" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.13.1" class="ltx_text ltx_font_bold">avg</span></td>
+</tr>
+<tr id="S3.T3.1.1.2.2" class="ltx_tr">
+<th id="S3.T3.1.1.2.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" colspan="13"><span id="S3.T3.1.1.2.2.1.1" class="ltx_text ltx_font_italic">Cross-lingual zero-shot transfer (models fine-tune on English data only)</span></th>
+</tr>
+<tr id="S3.T3.1.1.3.3" class="ltx_tr">
+<th id="S3.T3.1.1.3.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">mT5-Large</th>
+<td id="S3.T3.1.1.3.3.2" class="ltx_td ltx_align_center ltx_border_t">88.4 / 77.3</td>
+<td id="S3.T3.1.1.3.3.3" class="ltx_td ltx_align_center ltx_border_t">75.2 / 56.7</td>
+<td id="S3.T3.1.1.3.3.4" class="ltx_td ltx_align_center ltx_border_t">80.0 / 62.9</td>
+<td id="S3.T3.1.1.3.3.5" class="ltx_td ltx_align_center ltx_border_t">77.5 / 57.6</td>
+<td id="S3.T3.1.1.3.3.6" class="ltx_td ltx_align_center ltx_border_t">81.8 / 64.2</td>
+<td id="S3.T3.1.1.3.3.7" class="ltx_td ltx_align_center ltx_border_t">73.4 / 56.6</td>
+<td id="S3.T3.1.1.3.3.8" class="ltx_td ltx_align_center ltx_border_t">74.7 / 56.9</td>
+<td id="S3.T3.1.1.3.3.9" class="ltx_td ltx_align_center ltx_border_t">73.4 / 62.0</td>
+<td id="S3.T3.1.1.3.3.10" class="ltx_td ltx_align_center ltx_border_t">76.5 / 56.3</td>
+<td id="S3.T3.1.1.3.3.11" class="ltx_td ltx_align_center ltx_border_t">79.4 / 60.3</td>
+<td id="S3.T3.1.1.3.3.12" class="ltx_td ltx_align_center ltx_border_t">75.9 / 65.5</td>
+<td id="S3.T3.1.1.3.3.13" class="ltx_td ltx_align_center ltx_border_t">77.8 / 61.5</td>
+</tr>
+<tr id="S3.T3.1.1.4.4" class="ltx_tr">
+<th id="S3.T3.1.1.4.4.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">mT5-XL</th>
+<td id="S3.T3.1.1.4.4.2" class="ltx_td ltx_align_center">88.8 / 78.1</td>
+<td id="S3.T3.1.1.4.4.3" class="ltx_td ltx_align_center">77.4 / 60.8</td>
+<td id="S3.T3.1.1.4.4.4" class="ltx_td ltx_align_center">80.4 / 63.5</td>
+<td id="S3.T3.1.1.4.4.5" class="ltx_td ltx_align_center">80.4 / 61.2</td>
+<td id="S3.T3.1.1.4.4.6" class="ltx_td ltx_align_center">82.7 / 64.5</td>
+<td id="S3.T3.1.1.4.4.7" class="ltx_td ltx_align_center">76.1 / 60.3</td>
+<td id="S3.T3.1.1.4.4.8" class="ltx_td ltx_align_center">76.2 / 58.8</td>
+<td id="S3.T3.1.1.4.4.9" class="ltx_td ltx_align_center">74.2 / 62.5</td>
+<td id="S3.T3.1.1.4.4.10" class="ltx_td ltx_align_center">77.7 / 58.4</td>
+<td id="S3.T3.1.1.4.4.11" class="ltx_td ltx_align_center">80.5 / 60.8</td>
+<td id="S3.T3.1.1.4.4.12" class="ltx_td ltx_align_center">80.5 / 71.0</td>
+<td id="S3.T3.1.1.4.4.13" class="ltx_td ltx_align_center">79.5 / 63.6</td>
+</tr>
+<tr id="S3.T3.1.1.5.5" class="ltx_tr">
+<th id="S3.T3.1.1.5.5.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">mt5-XXL</th>
+<td id="S3.T3.1.1.5.5.2" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.5.5.2.1" class="ltx_text ltx_font_bold">90.9 / 80.1</span></td>
+<td id="S3.T3.1.1.5.5.3" class="ltx_td ltx_align_center">
+<span id="S3.T3.1.1.5.5.3.1" class="ltx_text ltx_font_bold">80.3</span> / 62.6</td>
+<td id="S3.T3.1.1.5.5.4" class="ltx_td ltx_align_center">
+<span id="S3.T3.1.1.5.5.4.1" class="ltx_text ltx_font_bold">83.1</span> / 65.5</td>
+<td id="S3.T3.1.1.5.5.5" class="ltx_td ltx_align_center">83.3 / <span id="S3.T3.1.1.5.5.5.1" class="ltx_text ltx_font_bold">65.5</span>
+</td>
+<td id="S3.T3.1.1.5.5.6" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.5.5.6.1" class="ltx_text ltx_font_bold">85.1 / 68.1</span></td>
+<td id="S3.T3.1.1.5.5.7" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.5.5.7.1" class="ltx_text ltx_font_bold">81.7 / 65.9</span></td>
+<td id="S3.T3.1.1.5.5.8" class="ltx_td ltx_align_center">79.3 / 63.6</td>
+<td id="S3.T3.1.1.5.5.9" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.5.5.9.1" class="ltx_text ltx_font_bold">77.8 / 66.1</span></td>
+<td id="S3.T3.1.1.5.5.10" class="ltx_td ltx_align_center">
+<span id="S3.T3.1.1.5.5.10.1" class="ltx_text ltx_font_bold">80.2</span> / 60.9</td>
+<td id="S3.T3.1.1.5.5.11" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.5.5.11.1" class="ltx_text ltx_font_bold">83.1 / 63.6</span></td>
+<td id="S3.T3.1.1.5.5.12" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.5.5.12.1" class="ltx_text ltx_font_bold">83.1 / 73.4</span></td>
+<td id="S3.T3.1.1.5.5.13" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.5.5.13.1" class="ltx_text ltx_font_bold">82.5 / 66.8</span></td>
+</tr>
+<tr id="S3.T3.1.1.6.6" class="ltx_tr">
+<th id="S3.T3.1.1.6.6.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">XLM-R<sub id="S3.T3.1.1.6.6.1.1" class="ltx_sub">Large</sub>
+</th>
+<td id="S3.T3.1.1.6.6.2" class="ltx_td ltx_align_center ltx_border_t">86.5 / 75.7</td>
+<td id="S3.T3.1.1.6.6.3" class="ltx_td ltx_align_center ltx_border_t">68.6 / 49.0</td>
+<td id="S3.T3.1.1.6.6.4" class="ltx_td ltx_align_center ltx_border_t">80.4 / 63.4</td>
+<td id="S3.T3.1.1.6.6.5" class="ltx_td ltx_align_center ltx_border_t">79.8 / 61.7</td>
+<td id="S3.T3.1.1.6.6.6" class="ltx_td ltx_align_center ltx_border_t">82.0 / 63.9</td>
+<td id="S3.T3.1.1.6.6.7" class="ltx_td ltx_align_center ltx_border_t">76.7 / 59.7</td>
+<td id="S3.T3.1.1.6.6.8" class="ltx_td ltx_align_center ltx_border_t">80.1 / 64.3</td>
+<td id="S3.T3.1.1.6.6.9" class="ltx_td ltx_align_center ltx_border_t">74.2 / 62.8</td>
+<td id="S3.T3.1.1.6.6.10" class="ltx_td ltx_align_center ltx_border_t">75.9 / 59.3</td>
+<td id="S3.T3.1.1.6.6.11" class="ltx_td ltx_align_center ltx_border_t">79.1 / 59.0</td>
+<td id="S3.T3.1.1.6.6.12" class="ltx_td ltx_align_center ltx_border_t">59.3 / 50.0</td>
+<td id="S3.T3.1.1.6.6.13" class="ltx_td ltx_align_center ltx_border_t">76.6 / 60.8</td>
+</tr>
+<tr id="S3.T3.1.1.7.7" class="ltx_tr">
+<th id="S3.T3.1.1.7.7.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">XLM-R<sub id="S3.T3.1.1.7.7.1.1" class="ltx_sub">XL</sub>
+</th>
+<td id="S3.T3.1.1.7.7.2" class="ltx_td ltx_align_center">89.5 / 79.0</td>
+<td id="S3.T3.1.1.7.7.3" class="ltx_td ltx_align_center">78.4 / 61.6</td>
+<td id="S3.T3.1.1.7.7.4" class="ltx_td ltx_align_center">81.3 / 64.1</td>
+<td id="S3.T3.1.1.7.7.5" class="ltx_td ltx_align_center">82.3 / 63.9</td>
+<td id="S3.T3.1.1.7.7.6" class="ltx_td ltx_align_center">84.6 / 66.2</td>
+<td id="S3.T3.1.1.7.7.7" class="ltx_td ltx_align_center">78.8 / 63.2</td>
+<td id="S3.T3.1.1.7.7.8" class="ltx_td ltx_align_center">81.5 / 65.0</td>
+<td id="S3.T3.1.1.7.7.9" class="ltx_td ltx_align_center">76.0 / 65.5</td>
+<td id="S3.T3.1.1.7.7.10" class="ltx_td ltx_align_center">73.9 / 57.9</td>
+<td id="S3.T3.1.1.7.7.11" class="ltx_td ltx_align_center">81.7 / 61.8</td>
+<td id="S3.T3.1.1.7.7.12" class="ltx_td ltx_align_center">72.3 / 66.1</td>
+<td id="S3.T3.1.1.7.7.13" class="ltx_td ltx_align_center">80.0 / 64.9</td>
+</tr>
+<tr id="S3.T3.1.1.8.8" class="ltx_tr">
+<th id="S3.T3.1.1.8.8.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb ltx_border_r">XLM-R<sub id="S3.T3.1.1.8.8.1.1" class="ltx_sub">XXL</sub>
+</th>
+<td id="S3.T3.1.1.8.8.2" class="ltx_td ltx_align_center ltx_border_bb">89.3 / 79.4</td>
+<td id="S3.T3.1.1.8.8.3" class="ltx_td ltx_align_center ltx_border_bb">80.1 / <span id="S3.T3.1.1.8.8.3.1" class="ltx_text ltx_font_bold">63.7</span>
+</td>
+<td id="S3.T3.1.1.8.8.4" class="ltx_td ltx_align_center ltx_border_bb">82.7 / <span id="S3.T3.1.1.8.8.4.1" class="ltx_text ltx_font_bold">65.8</span>
+</td>
+<td id="S3.T3.1.1.8.8.5" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T3.1.1.8.8.5.1" class="ltx_text ltx_font_bold">83.4 / 65.5</span></td>
+<td id="S3.T3.1.1.8.8.6" class="ltx_td ltx_align_center ltx_border_bb">83.8 / 66.0</td>
+<td id="S3.T3.1.1.8.8.7" class="ltx_td ltx_align_center ltx_border_bb">80.7 / 65.4</td>
+<td id="S3.T3.1.1.8.8.8" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T3.1.1.8.8.8.1" class="ltx_text ltx_font_bold">82.4 / 65.4</span></td>
+<td id="S3.T3.1.1.8.8.9" class="ltx_td ltx_align_center ltx_border_bb">76.6 / 65.6</td>
+<td id="S3.T3.1.1.8.8.10" class="ltx_td ltx_align_center ltx_border_bb">76.8 / <span id="S3.T3.1.1.8.8.10.1" class="ltx_text ltx_font_bold">61.7</span>
+</td>
+<td id="S3.T3.1.1.8.8.11" class="ltx_td ltx_align_center ltx_border_bb">82.2 / 63.0</td>
+<td id="S3.T3.1.1.8.8.12" class="ltx_td ltx_align_center ltx_border_bb">74.1 / 67.4</td>
+<td id="S3.T3.1.1.8.8.13" class="ltx_td ltx_align_center ltx_border_bb">81.1 / 66.3</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 3: </span>XQuad results (F1/EM) for each language.
+</figcaption>
+</figure>
+<figure id="S3.T4" class="ltx_table">
+<div id="S3.T4.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:346.9pt;height:91.9pt;vertical-align:-0.6pt;"><span class="ltx_transformed_inner" style="transform:translate(-100.2pt,26.4pt) scale(0.633794165575716,0.633794165575716) ;">
+<table id="S3.T4.1.1" class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S3.T4.1.1.1.1" class="ltx_tr">
+<th id="S3.T4.1.1.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_tt"><span id="S3.T4.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Model</span></th>
+<td id="S3.T4.1.1.1.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T4.1.1.1.1.2.1" class="ltx_text ltx_font_bold">en</span></td>
+<td id="S3.T4.1.1.1.1.3" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T4.1.1.1.1.3.1" class="ltx_text ltx_font_bold">es</span></td>
+<td id="S3.T4.1.1.1.1.4" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T4.1.1.1.1.4.1" class="ltx_text ltx_font_bold">de</span></td>
+<td id="S3.T4.1.1.1.1.5" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T4.1.1.1.1.5.1" class="ltx_text ltx_font_bold">ar</span></td>
+<td id="S3.T4.1.1.1.1.6" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T4.1.1.1.1.6.1" class="ltx_text ltx_font_bold">hi</span></td>
+<td id="S3.T4.1.1.1.1.7" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T4.1.1.1.1.7.1" class="ltx_text ltx_font_bold">vi</span></td>
+<td id="S3.T4.1.1.1.1.8" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T4.1.1.1.1.8.1" class="ltx_text ltx_font_bold">zh</span></td>
+<td id="S3.T4.1.1.1.1.9" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T4.1.1.1.1.9.1" class="ltx_text ltx_font_bold">Avg</span></td>
+</tr>
+<tr id="S3.T4.1.1.2.2" class="ltx_tr">
+<th id="S3.T4.1.1.2.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" colspan="9"><span id="S3.T4.1.1.2.2.1.1" class="ltx_text ltx_font_italic">Cross-lingual zero-shot transfer (models fine-tune on English data only)</span></th>
+</tr>
+<tr id="S3.T4.1.1.3.3" class="ltx_tr">
+<th id="S3.T4.1.1.3.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">mT5-Large</th>
+<td id="S3.T4.1.1.3.3.2" class="ltx_td ltx_align_center ltx_border_t">84.9 / 70.7</td>
+<td id="S3.T4.1.1.3.3.3" class="ltx_td ltx_align_center ltx_border_t">65.3 / 44.6</td>
+<td id="S3.T4.1.1.3.3.4" class="ltx_td ltx_align_center ltx_border_t">68.9 / 51.8</td>
+<td id="S3.T4.1.1.3.3.5" class="ltx_td ltx_align_center ltx_border_t">73.5 / 54.1</td>
+<td id="S3.T4.1.1.3.3.6" class="ltx_td ltx_align_center ltx_border_t">66.9 / 47.7</td>
+<td id="S3.T4.1.1.3.3.7" class="ltx_td ltx_align_center ltx_border_t">72.5 / 50.7</td>
+<td id="S3.T4.1.1.3.3.8" class="ltx_td ltx_align_center ltx_border_t">66.2 / 42.0</td>
+<td id="S3.T4.1.1.3.3.9" class="ltx_td ltx_align_center ltx_border_t">71.2 / 51.7</td>
+</tr>
+<tr id="S3.T4.1.1.4.4" class="ltx_tr">
+<th id="S3.T4.1.1.4.4.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">mT5-XL</th>
+<td id="S3.T4.1.1.4.4.2" class="ltx_td ltx_align_center">85.5 / 71.9</td>
+<td id="S3.T4.1.1.4.4.3" class="ltx_td ltx_align_center">68.0 / 47.4</td>
+<td id="S3.T4.1.1.4.4.4" class="ltx_td ltx_align_center">70.5 / 54.4</td>
+<td id="S3.T4.1.1.4.4.5" class="ltx_td ltx_align_center">75.2 / 56.3</td>
+<td id="S3.T4.1.1.4.4.6" class="ltx_td ltx_align_center">70.5 / 51.0</td>
+<td id="S3.T4.1.1.4.4.7" class="ltx_td ltx_align_center">74.2 / 52.8</td>
+<td id="S3.T4.1.1.4.4.8" class="ltx_td ltx_align_center">70.5 / 47.2</td>
+<td id="S3.T4.1.1.4.4.9" class="ltx_td ltx_align_center">73.5 / 54.4</td>
+</tr>
+<tr id="S3.T4.1.1.5.5" class="ltx_tr">
+<th id="S3.T4.1.1.5.5.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">mT5-XXL</th>
+<td id="S3.T4.1.1.5.5.2" class="ltx_td ltx_align_center"><span id="S3.T4.1.1.5.5.2.1" class="ltx_text ltx_font_bold">86.7 / 73.5</span></td>
+<td id="S3.T4.1.1.5.5.3" class="ltx_td ltx_align_center"><span id="S3.T4.1.1.5.5.3.1" class="ltx_text ltx_font_bold">70.7 / 50.4</span></td>
+<td id="S3.T4.1.1.5.5.4" class="ltx_td ltx_align_center"><span id="S3.T4.1.1.5.5.4.1" class="ltx_text ltx_font_bold">74.0 / 57.8</span></td>
+<td id="S3.T4.1.1.5.5.5" class="ltx_td ltx_align_center"><span id="S3.T4.1.1.5.5.5.1" class="ltx_text ltx_font_bold">76.8 / 58.4</span></td>
+<td id="S3.T4.1.1.5.5.6" class="ltx_td ltx_align_center"><span id="S3.T4.1.1.5.5.6.1" class="ltx_text ltx_font_bold">75.6 / 57.3</span></td>
+<td id="S3.T4.1.1.5.5.7" class="ltx_td ltx_align_center"><span id="S3.T4.1.1.5.5.7.1" class="ltx_text ltx_font_bold">76.4 / 56.0</span></td>
+<td id="S3.T4.1.1.5.5.8" class="ltx_td ltx_align_center">
+<span id="S3.T4.1.1.5.5.8.1" class="ltx_text ltx_font_bold">71.8</span> / 48.8</td>
+<td id="S3.T4.1.1.5.5.9" class="ltx_td ltx_align_center"><span id="S3.T4.1.1.5.5.9.1" class="ltx_text ltx_font_bold">76.0 / 57.4</span></td>
+</tr>
+<tr id="S3.T4.1.1.6.6" class="ltx_tr">
+<th id="S3.T4.1.1.6.6.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">XLM-R<sub id="S3.T4.1.1.6.6.1.1" class="ltx_sub">Large</sub>
+</th>
+<td id="S3.T4.1.1.6.6.2" class="ltx_td ltx_align_center ltx_border_t">80.6 / 67.8</td>
+<td id="S3.T4.1.1.6.6.3" class="ltx_td ltx_align_center ltx_border_t">74.1 / 56.0</td>
+<td id="S3.T4.1.1.6.6.4" class="ltx_td ltx_align_center ltx_border_t">68.5 / 53.6</td>
+<td id="S3.T4.1.1.6.6.5" class="ltx_td ltx_align_center ltx_border_t">63.1 / 43.5</td>
+<td id="S3.T4.1.1.6.6.6" class="ltx_td ltx_align_center ltx_border_t">69.2 / 51.6</td>
+<td id="S3.T4.1.1.6.6.7" class="ltx_td ltx_align_center ltx_border_t">71.3 / 50.9</td>
+<td id="S3.T4.1.1.6.6.8" class="ltx_td ltx_align_center ltx_border_t">68.0 / 45.4</td>
+<td id="S3.T4.1.1.6.6.9" class="ltx_td ltx_align_center ltx_border_t">70.7 / 52.7</td>
+</tr>
+<tr id="S3.T4.1.1.7.7" class="ltx_tr">
+<th id="S3.T4.1.1.7.7.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">XLM-R<sub id="S3.T4.1.1.7.7.1.1" class="ltx_sub">XL</sub>
+</th>
+<td id="S3.T4.1.1.7.7.2" class="ltx_td ltx_align_center">85.1 / 72.6</td>
+<td id="S3.T4.1.1.7.7.3" class="ltx_td ltx_align_center">66.7 / 46.2</td>
+<td id="S3.T4.1.1.7.7.4" class="ltx_td ltx_align_center">70.5 / 55.5</td>
+<td id="S3.T4.1.1.7.7.5" class="ltx_td ltx_align_center">74.3 / 56.9</td>
+<td id="S3.T4.1.1.7.7.6" class="ltx_td ltx_align_center">72.2 / 54.7</td>
+<td id="S3.T4.1.1.7.7.7" class="ltx_td ltx_align_center">74.4 / 52.9</td>
+<td id="S3.T4.1.1.7.7.8" class="ltx_td ltx_align_center">70.9 / 48.5</td>
+<td id="S3.T4.1.1.7.7.9" class="ltx_td ltx_align_center">73.4 / 55.3</td>
+</tr>
+<tr id="S3.T4.1.1.8.8" class="ltx_tr">
+<th id="S3.T4.1.1.8.8.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb ltx_border_r">XLM-R<sub id="S3.T4.1.1.8.8.1.1" class="ltx_sub">XXL</sub>
+</th>
+<td id="S3.T4.1.1.8.8.2" class="ltx_td ltx_align_center ltx_border_bb">85.5 / 72.4</td>
+<td id="S3.T4.1.1.8.8.3" class="ltx_td ltx_align_center ltx_border_bb">68.6 / 48.4</td>
+<td id="S3.T4.1.1.8.8.4" class="ltx_td ltx_align_center ltx_border_bb">72.7 / <span id="S3.T4.1.1.8.8.4.1" class="ltx_text ltx_font_bold">57.8</span>
+</td>
+<td id="S3.T4.1.1.8.8.5" class="ltx_td ltx_align_center ltx_border_bb">75.4 / 57.6</td>
+<td id="S3.T4.1.1.8.8.6" class="ltx_td ltx_align_center ltx_border_bb">73.7 / 55.8</td>
+<td id="S3.T4.1.1.8.8.7" class="ltx_td ltx_align_center ltx_border_bb">76.0 / 55.0</td>
+<td id="S3.T4.1.1.8.8.8" class="ltx_td ltx_align_center ltx_border_bb">71.7 / <span id="S3.T4.1.1.8.8.8.1" class="ltx_text ltx_font_bold">48.9</span>
+</td>
+<td id="S3.T4.1.1.8.8.9" class="ltx_td ltx_align_center ltx_border_bb">74.8 / 56.6</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 4: </span>MLQA results (F1/EM) for each language.
+</figcaption>
+</figure>
+<figure id="S3.T5" class="ltx_table">
+<div id="S3.T5.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:138pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="transform:translate(18.8pt,-6.0pt) scale(1.09499842653595,1.09499842653595) ;">
+<table id="S3.T5.1.1" class="ltx_tabular ltx_guessed_headers ltx_align_bottom">
+<thead class="ltx_thead">
+<tr id="S3.T5.1.1.1.1" class="ltx_tr">
+<th id="S3.T5.1.1.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_r ltx_border_tt" rowspan="2"><span id="S3.T5.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Model</span></th>
+<th id="S3.T5.1.1.1.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_tt"><span id="S3.T5.1.1.1.1.2.1" class="ltx_text ltx_font_bold">Number of</span></th>
+<th id="S3.T5.1.1.1.1.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_tt"><span id="S3.T5.1.1.1.1.3.1" class="ltx_text ltx_font_bold">Dataset</span></th>
+<th id="S3.T5.1.1.1.1.4" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_tt"><span id="S3.T5.1.1.1.1.4.1" class="ltx_text ltx_font_bold">Dataset</span></th>
+<th id="S3.T5.1.1.1.1.5" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_tt"><span id="S3.T5.1.1.1.1.5.1" class="ltx_text ltx_font_bold">Number of</span></th>
+<th id="S3.T5.1.1.1.1.6" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_tt"><span id="S3.T5.1.1.1.1.6.1" class="ltx_text ltx_font_bold">Batch</span></th>
+<th id="S3.T5.1.1.1.1.7" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span id="S3.T5.1.1.1.1.7.1" class="ltx_text ltx_font_bold">Sequence</span></th>
+</tr>
+<tr id="S3.T5.1.1.2.2" class="ltx_tr">
+<th id="S3.T5.1.1.2.2.1" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r"><span id="S3.T5.1.1.2.2.1.1" class="ltx_text ltx_font_bold">parameters</span></th>
+<th id="S3.T5.1.1.2.2.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r"><span id="S3.T5.1.1.2.2.2.1" class="ltx_text ltx_font_bold">name</span></th>
+<th id="S3.T5.1.1.2.2.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r"><span id="S3.T5.1.1.2.2.3.1" class="ltx_text ltx_font_bold">size</span></th>
+<th id="S3.T5.1.1.2.2.4" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r"><span id="S3.T5.1.1.2.2.4.1" class="ltx_text ltx_font_bold">training tokens</span></th>
+<th id="S3.T5.1.1.2.2.5" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r"><span id="S3.T5.1.1.2.2.5.1" class="ltx_text ltx_font_bold">size</span></th>
+<th id="S3.T5.1.1.2.2.6" class="ltx_td ltx_align_center ltx_th ltx_th_column"><span id="S3.T5.1.1.2.2.6.1" class="ltx_text ltx_font_bold">length</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S3.T5.1.1.3.1" class="ltx_tr">
+<td id="S3.T5.1.1.3.1.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">XLM-R<sub id="S3.T5.1.1.3.1.1.1" class="ltx_sub">Large</sub>
+</td>
+<td id="S3.T5.1.1.3.1.2" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">550M</td>
+<td id="S3.T5.1.1.3.1.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">CC100</td>
+<td id="S3.T5.1.1.3.1.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">167B</td>
+<td id="S3.T5.1.1.3.1.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">6T</td>
+<td id="S3.T5.1.1.3.1.6" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">8192</td>
+<td id="S3.T5.1.1.3.1.7" class="ltx_td ltx_align_center ltx_border_t">512</td>
+</tr>
+<tr id="S3.T5.1.1.4.2" class="ltx_tr">
+<td id="S3.T5.1.1.4.2.1" class="ltx_td ltx_align_left ltx_border_r">XLM-R<sub id="S3.T5.1.1.4.2.1.1" class="ltx_sub">XL</sub>
+</td>
+<td id="S3.T5.1.1.4.2.2" class="ltx_td ltx_align_center ltx_border_r">3.5B</td>
+<td id="S3.T5.1.1.4.2.3" class="ltx_td ltx_align_center ltx_border_r">CC100</td>
+<td id="S3.T5.1.1.4.2.4" class="ltx_td ltx_align_center ltx_border_r">167B</td>
+<td id="S3.T5.1.1.4.2.5" class="ltx_td ltx_align_center ltx_border_r">0.5T</td>
+<td id="S3.T5.1.1.4.2.6" class="ltx_td ltx_align_center ltx_border_r">2048</td>
+<td id="S3.T5.1.1.4.2.7" class="ltx_td ltx_align_center">512</td>
+</tr>
+<tr id="S3.T5.1.1.5.3" class="ltx_tr">
+<td id="S3.T5.1.1.5.3.1" class="ltx_td ltx_align_left ltx_border_r">XLM-R<sub id="S3.T5.1.1.5.3.1.1" class="ltx_sub">XXL</sub>
+</td>
+<td id="S3.T5.1.1.5.3.2" class="ltx_td ltx_align_center ltx_border_r">10.7B</td>
+<td id="S3.T5.1.1.5.3.3" class="ltx_td ltx_align_center ltx_border_r">CC100</td>
+<td id="S3.T5.1.1.5.3.4" class="ltx_td ltx_align_center ltx_border_r">167B</td>
+<td id="S3.T5.1.1.5.3.5" class="ltx_td ltx_align_center ltx_border_r">0.5T</td>
+<td id="S3.T5.1.1.5.3.6" class="ltx_td ltx_align_center ltx_border_r">2048</td>
+<td id="S3.T5.1.1.5.3.7" class="ltx_td ltx_align_center">512</td>
+</tr>
+<tr id="S3.T5.1.1.6.4" class="ltx_tr">
+<td id="S3.T5.1.1.6.4.1" class="ltx_td ltx_align_left ltx_border_r">mt5-XL</td>
+<td id="S3.T5.1.1.6.4.2" class="ltx_td ltx_align_center ltx_border_r">3.7B</td>
+<td id="S3.T5.1.1.6.4.3" class="ltx_td ltx_align_center ltx_border_r">mC4</td>
+<td id="S3.T5.1.1.6.4.4" class="ltx_td ltx_align_center ltx_border_r">6.4T</td>
+<td id="S3.T5.1.1.6.4.5" class="ltx_td ltx_align_center ltx_border_r">1T</td>
+<td id="S3.T5.1.1.6.4.6" class="ltx_td ltx_align_center ltx_border_r">1024</td>
+<td id="S3.T5.1.1.6.4.7" class="ltx_td ltx_align_center">1024</td>
+</tr>
+<tr id="S3.T5.1.1.7.5" class="ltx_tr">
+<td id="S3.T5.1.1.7.5.1" class="ltx_td ltx_align_left ltx_border_bb ltx_border_r">mt5-XXL</td>
+<td id="S3.T5.1.1.7.5.2" class="ltx_td ltx_align_center ltx_border_bb ltx_border_r">13B</td>
+<td id="S3.T5.1.1.7.5.3" class="ltx_td ltx_align_center ltx_border_bb ltx_border_r">mC4</td>
+<td id="S3.T5.1.1.7.5.4" class="ltx_td ltx_align_center ltx_border_bb ltx_border_r">6.4T</td>
+<td id="S3.T5.1.1.7.5.5" class="ltx_td ltx_align_center ltx_border_bb ltx_border_r">1T</td>
+<td id="S3.T5.1.1.7.5.6" class="ltx_td ltx_align_center ltx_border_bb ltx_border_r">1024</td>
+<td id="S3.T5.1.1.7.5.7" class="ltx_td ltx_align_center ltx_border_bb">1024</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 5: </span>Comparison of datasets and pretraining details between XLM-R and mT5. We report dataset sizes and number of updates in terms of number of tokens.
+</figcaption>
+</figure>
+</section>
+<section id="S3.SS0.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Discussion and comparison to mT5.</h4>
+
+<div id="S3.SS0.SSS0.Px3.p1" class="ltx_para">
+<p id="S3.SS0.SSS0.Px3.p1.1" class="ltx_p">Both mT5 and XLM-R models obtain strong performance on cross-lingual understanding benchmarks, as well as high performance on English benchmarks (see the score of 91.6 of mT5<sub id="S3.SS0.SSS0.Px3.p1.1.1" class="ltx_sub">XXL</sub> on English XNLI).
+Many hyperparameters are however different between mT5 and XLM-R models which makes difficult an apple-to-apple comparison. First, as shown in Table <a href="#S3.T5" title="Table 5 ‣ Comparison to monolingual English model. ‣ 3 Analysis and Results ‣ Larger-Scale Transformers for Multilingual Masked Language Modeling" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>, the mT5 models are pretrained on the much larger mC4 dataset which contains around 6.4T tokens, which is 38 times bigger than CC100 (167B tokens). While XLM-R<sub id="S3.SS0.SSS0.Px3.p1.1.2" class="ltx_sub">Large</sub> was pretrained with more updates (6T tokens), the XLM-R<sub id="S3.SS0.SSS0.Px3.p1.1.3" class="ltx_sub">XL</sub> and XLM-R<sub id="S3.SS0.SSS0.Px3.p1.1.4" class="ltx_sub">XXL</sub> models have seen less tokens (0.5T) during pretraining than their mT5 counterparts, although it also uses a bigger batch size (2048 over 1024 for mT5). Another difference is the context sequence length of 512 for XLM-R and 1024 for mT5. The mT5-XXL model also has slightly more parameters (13B over 10.7B). The larger number of updates combined with the larger dataset size may explain the larger improvement from the XL model to the XXL model in the case of mT5 (+3 average accuracy on XNLI), in which the additional capacity can exploit the large quantity of unlabeled mC4 data. We note however that the mT5<sub id="S3.SS0.SSS0.Px3.p1.1.5" class="ltx_sub">XL</sub> is outperformed by XLM-R<sub id="S3.SS0.SSS0.Px3.p1.1.6" class="ltx_sub">XL</sub> on XNLI by 0.6% on average, on XQuad by 1.3% and on MLQA by 0.9% when considering average EM score.
+In comparison, gains of XLM-R from the XL to the XXL architecture are only of 0.6 on average. Another explanation may be that generative models scale better than masked language models. The difference in the nature of the pretraining dataset is particularly striking when looking at the variance of performance across languages. For example the mT5<sub id="S3.SS0.SSS0.Px3.p1.1.7" class="ltx_sub">XXL</sub> outperforms XLM-R<sub id="S3.SS0.SSS0.Px3.p1.1.8" class="ltx_sub">XXL</sub> by 8.4 points on Swahili on XNLI zero-shot, while it only outperforms XLM-R<sub id="S3.SS0.SSS0.Px3.p1.1.9" class="ltx_sub">XXL</sub> by 1.4 average accuracy. These results may suggest that the CC100 dataset gets saturated with current larger-capacity models.</p>
+</div>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Conclusion</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p">In this study, we scaled the model capacity of the XLM-R model up to 10.7B parameters and obtained stronger performance than previous XLM-R models on cross-lingual understanding benchmarks. We show that the additional capacity allows a multilingual model to outperform a the RoBERTa<sub id="S4.p1.1.1" class="ltx_sub">Large</sub> baseline on English benchmarks. Our technical study suggests that larger capacity multilingual model can obtain state-of-the-art cross-lingual understanding results while maintaining strong performance on high-resource languages. Our work provides an alternative to mT5 models, with new state-of-the-art performance on some languages, and publicly released code and models.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Arivazhagan et al. (2019)</span>
+<span class="ltx_bibblock">
+Naveen Arivazhagan, Ankur Bapna, Orhan Firat, Dmitry Lepikhin, Melvin Johnson,
+Maxim Krikun, Mia Xu Chen, Yuan Cao, George Foster, Colin Cherry, et al.
+2019.
+
+</span>
+<span class="ltx_bibblock">Massively multilingual neural machine translation in the wild:
+Findings and challenges.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib1.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1907.05019</em>.
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Artetxe et al. (2019)</span>
+<span class="ltx_bibblock">
+Mikel Artetxe, Sebastian Ruder, and Dani Yogatama. 2019.
+
+</span>
+<span class="ltx_bibblock">On the cross-lingual transferability of monolingual representations.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib2.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1910.11856</em>.
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Brown et al. (2020)</span>
+<span class="ltx_bibblock">
+Tom B Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla
+Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell,
+et al. 2020.
+
+</span>
+<span class="ltx_bibblock">Language models are few-shot learners.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib3.1.1" class="ltx_emph ltx_font_italic">Proc. of NeurIPS</em>.
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Conneau et al. (2019)</span>
+<span class="ltx_bibblock">
+Alexis Conneau, Kartikay Khandelwal, Naman Goyal, Vishrav Chaudhary, Guillaume
+Wenzek, Francisco Guzmán, Edouard Grave, Myle Ott, Luke Zettlemoyer, and
+Veselin Stoyanov. 2019.
+
+</span>
+<span class="ltx_bibblock">Unsupervised cross-lingual representation learning at scale.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib4.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1911.02116</em>.
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Conneau et al. (2018)</span>
+<span class="ltx_bibblock">
+Alexis Conneau, Ruty Rinott, Guillaume Lample, Adina Williams, Samuel R.
+Bowman, Holger Schwenk, and Veselin Stoyanov. 2018.
+
+</span>
+<span class="ltx_bibblock">Xnli: Evaluating cross-lingual sentence representations.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib5.1.1" class="ltx_emph ltx_font_italic">EMNLP</em>. Association for Computational Linguistics.
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Devlin et al. (2018)</span>
+<span class="ltx_bibblock">
+Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. 2018.
+
+</span>
+<span class="ltx_bibblock">Bert: Pre-training of deep bidirectional transformers for language
+understanding.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib6.1.1" class="ltx_emph ltx_font_italic">NAACL</em>.
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Fedus et al. (2021)</span>
+<span class="ltx_bibblock">
+William Fedus, Barret Zoph, and Noam Shazeer. 2021.
+
+</span>
+<span class="ltx_bibblock">Switch transformers: Scaling to trillion parameter models with simple
+and efficient sparsity.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib7.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2101.03961</em>.
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kudo (2018)</span>
+<span class="ltx_bibblock">
+Taku Kudo. 2018.
+
+</span>
+<span class="ltx_bibblock">Subword regularization: Improving neural network translation models
+with multiple subword candidates.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib8.1.1" class="ltx_emph ltx_font_italic">ACL</em>, pages 66–75.
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kudo and Richardson (2018)</span>
+<span class="ltx_bibblock">
+Taku Kudo and John Richardson. 2018.
+
+</span>
+<span class="ltx_bibblock">Sentencepiece: A simple and language independent subword tokenizer
+and detokenizer for neural text processing.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib9.1.1" class="ltx_emph ltx_font_italic">EMNLP</em>.
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lample and Conneau (2019)</span>
+<span class="ltx_bibblock">
+Guillaume Lample and Alexis Conneau. 2019.
+
+</span>
+<span class="ltx_bibblock">Cross-lingual language model pretraining.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib10.1.1" class="ltx_emph ltx_font_italic">NeurIPS</em>.
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lewis et al. (2019)</span>
+<span class="ltx_bibblock">
+Patrick Lewis, Barlas Oğuz, Ruty Rinott, Sebastian Riedel, and Holger
+Schwenk. 2019.
+
+</span>
+<span class="ltx_bibblock">Mlqa: Evaluating cross-lingual extractive question answering.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib11.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1910.07475</em>.
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Liu et al. (2019)</span>
+<span class="ltx_bibblock">
+Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen, Omer
+Levy, Mike Lewis, Luke Zettlemoyer, and Veselin Stoyanov. 2019.
+
+</span>
+<span class="ltx_bibblock">Roberta: A robustly optimized BERT pretraining approach.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib12.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1907.11692</em>.
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Raffel et al. (2019)</span>
+<span class="ltx_bibblock">
+Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael
+Matena, Yanqi Zhou, Wei Li, and Peter J. Liu. 2019.
+
+</span>
+<span class="ltx_bibblock">Exploring the limits of transfer learning with a unified text-to-text
+transformer.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib13.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1910.10683</em>.
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Rajpurkar et al. (2018)</span>
+<span class="ltx_bibblock">
+Pranav Rajpurkar, Robin Jia, and Percy Liang. 2018.
+
+</span>
+<span class="ltx_bibblock">Know what you don’t know: Unanswerable questions for squad.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib14.1.1" class="ltx_emph ltx_font_italic">ACL</em>.
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Rajpurkar et al. (2016)</span>
+<span class="ltx_bibblock">
+Pranav Rajpurkar, Jian Zhang, Konstantin Lopyrev, and Percy Liang. 2016.
+
+</span>
+<span class="ltx_bibblock">Squad: 100,000+ questions for machine comprehension of text.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib15.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1606.05250</em>.
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Shoeybi et al. (2019)</span>
+<span class="ltx_bibblock">
+Mohammad Shoeybi, Mostofa Patwary, Raul Puri, Patrick LeGresley, Jared Casper,
+and Bryan Catanzaro. 2019.
+
+</span>
+<span class="ltx_bibblock">Megatron-lm: Training multi-billion parameter language models using
+model parallelism.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib16.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1909.08053</em>.
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Socher et al. (2013)</span>
+<span class="ltx_bibblock">
+Richard Socher, Alex Perelygin, Jean Wu, Jason Chuang, Christopher D Manning,
+Andrew Ng, and Christopher Potts. 2013.
+
+</span>
+<span class="ltx_bibblock">Recursive deep models for semantic compositionality over a sentiment
+treebank.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib17.1.1" class="ltx_emph ltx_font_italic">EMNLP</em>, pages 1631–1642.
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Vaswani et al. (2017)</span>
+<span class="ltx_bibblock">
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
+Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. 2017.
+
+</span>
+<span class="ltx_bibblock">Attention is all you need.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib18.1.1" class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, pages
+6000–6010.
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wang et al. (2018)</span>
+<span class="ltx_bibblock">
+Alex Wang, Amanpreet Singh, Julian Michael, Felix Hill, Omer Levy, and Samuel R
+Bowman. 2018.
+
+</span>
+<span class="ltx_bibblock">Glue: A multi-task benchmark and analysis platform for natural
+language understanding.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib19.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1804.07461</em>.
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wenzek et al. (2019)</span>
+<span class="ltx_bibblock">
+Guillaume Wenzek, Marie-Anne Lachaux, Alexis Conneau, Vishrav Chaudhary,
+Francisco Guzman, Armand Joulin, and Edouard Grave. 2019.
+
+</span>
+<span class="ltx_bibblock">Ccnet: Extracting high quality monolingual datasets from web crawl
+data.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib20.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1911.00359</em>.
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Williams et al. (2017)</span>
+<span class="ltx_bibblock">
+Adina Williams, Nikita Nangia, and Samuel R Bowman. 2017.
+
+</span>
+<span class="ltx_bibblock">A broad-coverage challenge corpus for sentence understanding through
+inference.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib21.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 2nd Workshop on Evaluating Vector-Space
+Representations for NLP</em>.
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Xue et al. (2020)</span>
+<span class="ltx_bibblock">
+Linting Xue, Noah Constant, Adam Roberts, Mihir Kale, Rami Al-Rfou, Aditya
+Siddhant, Aditya Barua, and Colin Raffel. 2020.
+
+</span>
+<span class="ltx_bibblock">mt5: A massively multilingual pre-trained text-to-text transformer.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib22.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2010.11934</em>.
+
+</span>
+</li>
+</ul>
+</section>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2105.00571" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2105.00572" class="ar5iv-text-button ar5iv-severity-warning">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2105.00572">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2105.00572" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2105.00573" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Sun Mar 17 06:12:49 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

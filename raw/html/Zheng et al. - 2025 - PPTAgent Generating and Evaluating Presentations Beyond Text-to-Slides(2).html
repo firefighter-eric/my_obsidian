@@ -1,0 +1,1599 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2501.03936] PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides</title><meta property="og:description" content="Automatically generating presentations from documents is a challenging task that requires balancing content quality, visual design, and structural coherence. Existing methods primarily focus on improving and evaluating…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2501.03936">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2501.03936">
+
+<!--Generated on Wed Feb  5 16:52:35 2025 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document">
+<h1 class="ltx_title ltx_title_document"><span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span>: Generating and Evaluating Presentations Beyond Text-to-Slides</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+<span class="ltx_text ltx_font_bold">Hao Zheng<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">1,2,</span></sup></span>
+</span><span class="ltx_author_notes"> These authors contributed equally
+<span class="ltx_contact ltx_role_affiliation">
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+<span class="ltx_text ltx_font_bold">Xinyan Guan<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">1,2,∗</span></sup></span>
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+<span class="ltx_text ltx_font_bold">Hao Kong<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">3</span></sup></span>
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+<span class="ltx_text ltx_font_bold">Jia Zheng<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">1</span></sup></span>
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+<span class="ltx_text ltx_font_bold">Hongyu Lin<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">1</span></sup>
+<br class="ltx_break">Yaojie Lu<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">1</span></sup></span>
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+<span class="ltx_text ltx_font_bold">Ben He<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">1,2</span></sup></span>
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+<span class="ltx_text ltx_font_bold">Xianpei Han<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">1</span></sup></span>
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+<span class="ltx_text ltx_font_bold">Le Sun<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">1</span></sup></span>
+
+<br class="ltx_break"><sup class="ltx_sup"><span class="ltx_text ltx_font_italic">1</span></sup>Chinese Information Processing Laboratory
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> Institute of Software
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> Chinese Academy of Sciences
+<br class="ltx_break"><sup class="ltx_sup"><span class="ltx_text ltx_font_italic">2</span></sup>University of Chinese Academy of Sciences 
+<br class="ltx_break"><sup class="ltx_sup"><span class="ltx_text ltx_font_italic">3</span></sup>Shanghai Jiexin Technology 
+<br class="ltx_break"><span class="ltx_text ltx_font_typewriter">{zhenghao2022,guanxinyan2022,zhengjia,hongyu,luyaojie}@iscas.ac.cn
+<br class="ltx_break">{xianpei,sunle}@iscas.ac.cn</span>   <span class="ltx_text ltx_font_typewriter">haokong@knowuheart.com</span>
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">
+</span></span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p class="ltx_p">Automatically generating presentations from documents is a challenging task that requires balancing content quality, visual design, and structural coherence. Existing methods primarily focus on improving and evaluating the content quality in isolation, often overlooking visual design and structural coherence, which limits their practical applicability.
+To address these limitations, we propose <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span>, which comprehensively improves presentation generation through a two-stage, edit-based approach inspired by human workflows.
+<span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> first analyzes reference presentations to understand their structural patterns and content schemas, then drafts outlines and generates slides through code actions to ensure consistency and alignment.
+To comprehensively evaluate the quality of generated presentations, we further introduce <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span>, an evaluation framework that assesses presentations across three dimensions: <span class="ltx_text" style="color:#B02418;">Content</span>, <span class="ltx_text" style="color:#65A542;">Design</span>, and <span class="ltx_text" style="color:#ECB81B;">Coherence</span>. Experiments show that <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> significantly outperforms traditional automatic presentation generation methods across all three dimensions. The code and data are available at <a target="_blank" href="https://github.com/icip-cas/PPTAgent" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/icip-cas/PPTAgent</a>.</p>
+</div>
+<div id="p1" class="ltx_para ltx_noindent">
+<div class="ltx_block ltx_align_bottom">
+<p class="ltx_p ltx_align_center"><span class="ltx_text ltx_font_bold" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="medium italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="medium italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span><span class="ltx_text ltx_font_bold">: Generating and Evaluating Presentations Beyond Text-to-Slides</span></p>
+<br class="ltx_break ltx_centering">
+<p class="ltx_p ltx_align_center" style="width:433.6pt;"><span class="ltx_text ltx_inline-block" style="width:0.0pt;"></span></p>
+<br class="ltx_break ltx_centering">
+</div>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p class="ltx_p">Presentations are a widely used medium for information delivery, valued for their visual effectiveness in engaging and communicating with audiences.
+However, creating high-quality presentations requires a captivating storyline, visually appealing layouts, and rich, impactful content  <cite class="ltx_cite ltx_citemacro_citep">(Fu et al., <a href="#bib.bib10" title="" class="ltx_ref">2022</a>)</cite>.
+Consequently, creating well-rounded presentations requires advanced presentation skills and significant effort.
+Given the inherent complexity of presentation creation, there is growing interest in automating the presentation generation process <cite class="ltx_cite ltx_citemacro_citep">(Mondal et al., <a href="#bib.bib22" title="" class="ltx_ref">2024</a>; Maheshwari et al., <a href="#bib.bib21" title="" class="ltx_ref">2024</a>)</cite> by leveraging the generalization capabilities of large language models (LLM).</p>
+</div>
+<figure id="S1.F1" class="ltx_figure"><img src="/html/2501.03936/assets/x1.png" id="S1.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="436" height="344" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1: </span>Comparison between our <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> approach (left) and the conventional abstractive summarization method (right). Our method, which begins by editing a reference slide, aligns more closely with the human presentation creation process.</figcaption>
+</figure>
+<figure id="S1.F2" class="ltx_figure"><img src="/html/2501.03936/assets/x2.png" id="S1.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="436" height="221" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 2: </span>Overview of the <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> workflow. <span class="ltx_text ltx_font_bold ltx_font_italic" style="color:#0070C0;">Stage I: Presentation Analysis</span> involves analyzing the input presentation to cluster slides into groups and extract their content schemas. <span class="ltx_text ltx_font_bold ltx_font_italic" style="color:#0070C0;">Stage II: Presentation Generation</span> generates new presentations guided by the outline, incorporating feedback mechanisms to ensure robustness.</figcaption>
+</figure>
+<div id="S1.p2" class="ltx_para">
+<p class="ltx_p">Existing approaches often adopt an end-to-end text-generation paradigm, focusing solely on textual content while neglecting layout design and presentation structures, making them impractical for real-world applications. For example, as shown in Figure <a href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>, prior studies <cite class="ltx_cite ltx_citemacro_citep">(Mondal et al., <a href="#bib.bib22" title="" class="ltx_ref">2024</a>; Sefid et al., <a href="#bib.bib23" title="" class="ltx_ref">2021</a>)</cite> treat presentation generation as an abstractive summarization task, focus primarily on textual content while overlooking the interactive nature of presentations. This results in simplistic and visually uninspiring outputs that fail to engage audiences.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p class="ltx_p">However, automatically creating visually rich and structurally clear presentations remains challenging due to the complexity of data formats and the lack of effective evaluation frameworks. First, most presentations are saved in PowerPoint’s XML format, which is inherently tedious and redundant <cite class="ltx_cite ltx_citemacro_citep">(Gryk, <a href="#bib.bib11" title="" class="ltx_ref">2022</a>)</cite>. This complex format poses significant challenges for LLMs in interpreting the presentation layout and structure, let alone generating appealing slides in an end-to-end fashion.
+Second, and more importantly, the absence of comprehensive evaluation frameworks exacerbates this issue. Current metrics like perplexity and ROUGE <cite class="ltx_cite ltx_citemacro_citep">(Lin, <a href="#bib.bib19" title="" class="ltx_ref">2004</a>)</cite> fail to capture essential aspects of presentation quality such as narrative flow, visual design, and content impact. Moreover, ROUGE-based evaluation tends to reward excessive textual alignment with input documents, undermining the brevity and clarity crucial for effective presentations.
+These limitations highlight the urgent need for advancements in automated presentation generation, particularly in enhancing visual design and developing comprehensive evaluation frameworks.</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p class="ltx_p">Rather than creating complex presentations from scratch in a single pass, presentations are typically created by selecting exemplary slides as references and then summarizing and transferring key content onto them <cite class="ltx_cite ltx_citemacro_citep">(Duarte, <a href="#bib.bib7" title="" class="ltx_ref">2010</a>)</cite>.
+Inspired by this process, we design <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> to decompose presentation generation into an iterative, edit-based workflow, as illustrated in Figure <a href="#S1.F2" title="Figure 2 ‣ 1 Introduction ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>. In the first stage, given a document and a reference presentation, <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> analyzes the reference presentations to extract semantic information, providing the textual description that identifies the purpose and data model of each slide. In the Presentation Generation stage, <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> generates a detailed presentation outline and assigns specific document sections and reference slides to each slide. For instance, the framework selects the opening slide as the reference slide to present meta-information, such as the title and icon. <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> offers a suite of editing action APIs that empower LLMs to dynamically modify the reference slide. By breaking down the process into discrete stages rather than end-to-end generation, this approach ensures consistency, adaptability, and seamless handling of complex formats.</p>
+</div>
+<div id="S1.p5" class="ltx_para">
+<p class="ltx_p">To comprehensively evaluate the quality of generated presentations, we propose <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span>, a multidimensional evaluation framework. Inspired by <cite class="ltx_cite ltx_citemacro_citet">Chen et al. (<a href="#bib.bib3" title="" class="ltx_ref">2024a</a>)</cite> and <cite class="ltx_cite ltx_citemacro_citet">Kwan et al. (<a href="#bib.bib14" title="" class="ltx_ref">2024</a>)</cite>, <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span> leverages the MLLM-as-a-judge paradigm to enable systematic and scalable evaluation. Drawing from <cite class="ltx_cite ltx_citemacro_citet">Duarte (<a href="#bib.bib7" title="" class="ltx_ref">2010</a>)</cite>, we categorized presentation quality into three dimensions: <span class="ltx_text" style="color:#B02418;">Content</span>, <span class="ltx_text" style="color:#65A542;">Design</span>, and <span class="ltx_text" style="color:#ECB81B;">Coherence</span>, providing both quantitative scores and qualitative feedback for each dimension. Our human evaluation studies validated the reliability and effectiveness of <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span>.</p>
+</div>
+<div id="S1.p6" class="ltx_para">
+<p class="ltx_p">Results demonstrate that our method effectively generates high-quality presentations, achieving an average score of 3.67 across the three dimensions evaluated by <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span>.
+These results, covering a diverse range of domains, highlight a high success rate of 97.8%, showcasing the versatility and robustness of our approach.</p>
+</div>
+<div id="S1.p7" class="ltx_para">
+<p class="ltx_p">Our main contributions can be summarized as follows:</p>
+<ul id="S1.I1" class="ltx_itemize">
+<li id="S1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i1.p1" class="ltx_para">
+<p class="ltx_p">We propose <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span>, a novel framework that redefines automatic presentation generation as an edit-based workflow guided by reference presentations.</p>
+</div>
+</li>
+<li id="S1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i2.p1" class="ltx_para">
+<p class="ltx_p">We introduce <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span>, the first comprehensive evaluation framework that assesses presentations across three key dimensions: <span class="ltx_text" style="color:#B02418;">Content</span>, <span class="ltx_text" style="color:#65A542;">Design</span>, and <span class="ltx_text" style="color:#ECB81B;">Coherence</span>.</p>
+</div>
+</li>
+<li id="S1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i3.p1" class="ltx_para">
+<p class="ltx_p">We publicly released the <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> and <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span> codebase, along with a curated presentation dataset, to facilitate future research in automatic presentation generation.</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>PPTAgent</h2>
+
+<div id="S2.p1" class="ltx_para">
+<p class="ltx_p">In this section, we first establish the formulation of the presentation generation task.
+Subsequently, we describe the framework of our proposed <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span>, which operates in two distinct stages.
+In stage I, we analyze the reference presentation by clustering similar slides and extracting their content schemas. This process aims to enhance the expressiveness of the reference presentation, thereby facilitating subsequent presentation generation.
+In stage II, given an input document and the analyzed reference presentation, we aim to select the most suitable slides and generate the target presentation through an interactive editing process based on the selected slides.
+An overview of our proposed workflow is illustrated in Figure <a href="#S1.F2" title="Figure 2 ‣ 1 Introduction ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>.</p>
+</div>
+<section id="S2.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.1 </span>Problem Formulation</h3>
+
+<div id="S2.SS1.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> is designed to generate an engaging presentation via an edit-based process. We will provide formal definitions for both <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> and the conventional method, illustrating their divergence.</p>
+</div>
+<div id="S2.SS1.p2" class="ltx_para">
+<p class="ltx_p">The conventional method for creating each slide <math id="S2.SS1.p2.m1" class="ltx_Math" alttext="\boldsymbol{S}" display="inline"><semantics><mi>𝑺</mi><annotation encoding="application/x-tex">\boldsymbol{S}</annotation></semantics></math> can be described in Equation <a href="#S2.E1" title="Equation 1 ‣ 2.1 Problem Formulation ‣ 2 PPTAgent ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>, where <math id="S2.SS1.p2.m2" class="ltx_Math" alttext="n" display="inline"><semantics><mi>n</mi><annotation encoding="application/x-tex">n</annotation></semantics></math> represents the number of elements on the slide, and <math id="S2.SS1.p2.m3" class="ltx_Math" alttext="C" display="inline"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math> denotes the source content composed of sections and figures. Each element on the slide, <math id="S2.SS1.p2.m4" class="ltx_Math" alttext="e_{i}" display="inline"><semantics><msub><mi>e</mi><mi>i</mi></msub><annotation encoding="application/x-tex">e_{i}</annotation></semantics></math>, is defined by its type, content, and styling attributes, such as <math id="S2.SS1.p2.m5" class="ltx_Math" alttext='(\textrm{Textbox},\textrm{"Hello"},\{\textrm{border},\textrm{size},\textrm{position},\dots\})' display="inline"><semantics><mrow><mo stretchy="false">(</mo><mtext>Textbox</mtext><mo>,</mo><mtext>"Hello"</mtext><mo>,</mo><mrow><mo stretchy="false">{</mo><mtext>border</mtext><mo>,</mo><mtext>size</mtext><mo>,</mo><mtext>position</mtext><mo>,</mo><mi mathvariant="normal">…</mi><mo stretchy="false">}</mo></mrow><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">(\textrm{Textbox},\textrm{"Hello"},\{\textrm{border},\textrm{size},\textrm{position},\dots\})</annotation></semantics></math>.</p>
+</div>
+<div id="S2.SS1.p3" class="ltx_para">
+<table id="S2.E1" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S2.E1.m1" class="ltx_Math" alttext="\boldsymbol{S}=\sum_{i=1}^{n}e_{i}=f(C)" display="block"><semantics><mrow><mi>𝑺</mi><mo rspace="0.111em">=</mo><mrow><munderover><mo movablelimits="false">∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>e</mi><mi>i</mi></msub></mrow><mo>=</mo><mrow><mi>f</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>C</mi><mo stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\boldsymbol{S}=\sum_{i=1}^{n}e_{i}=f(C)</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(1)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S2.SS1.p4" class="ltx_para">
+<p class="ltx_p">Compared to the conventional method, <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> adopts an edit-based generation paradigm for creating new slides, addressing challenges in processing spatial relationships and designing styles. This approach generates a sequence of actions to modify existing slides. Within this paradigm, both the input document and the reference presentation serve as inputs.
+This process can be described as Equation <a href="#S2.E2" title="Equation 2 ‣ 2.1 Problem Formulation ‣ 2 PPTAgent ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, where <math id="S2.SS1.p4.m1" class="ltx_Math" alttext="m" display="inline"><semantics><mi>m</mi><annotation encoding="application/x-tex">m</annotation></semantics></math> represents the number of generated actions. Each action <math id="S2.SS1.p4.m2" class="ltx_Math" alttext="a_{i}" display="inline"><semantics><msub><mi>a</mi><mi>i</mi></msub><annotation encoding="application/x-tex">a_{i}</annotation></semantics></math> represents a line of executable code, and <math id="S2.SS1.p4.m3" class="ltx_Math" alttext="R_{j}" display="inline"><semantics><msub><mi>R</mi><mi>j</mi></msub><annotation encoding="application/x-tex">R_{j}</annotation></semantics></math> is the reference slide being edited.</p>
+</div>
+<div id="S2.SS1.p5" class="ltx_para">
+<table id="S2.E2" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S2.E2.m1" class="ltx_Math" alttext="\boldsymbol{A}=\sum_{i=1}^{m}a_{i}=f\left(C\mid R_{j}\right)" display="block"><semantics><mrow><mi>𝑨</mi><mo rspace="0.111em">=</mo><mrow><munderover><mo movablelimits="false">∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>m</mi></munderover><msub><mi>a</mi><mi>i</mi></msub></mrow><mo>=</mo><mrow><mi>f</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><mrow><mi>C</mi><mo>∣</mo><msub><mi>R</mi><mi>j</mi></msub></mrow><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\boldsymbol{A}=\sum_{i=1}^{m}a_{i}=f\left(C\mid R_{j}\right)</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(2)</span></td>
+</tr></tbody>
+</table>
+</div>
+</section>
+<section id="S2.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.2 </span>Stage I: Presentation Analysis</h3>
+
+<div id="S2.SS2.p1" class="ltx_para">
+<p class="ltx_p">To facilitate presentation generation, we first cluster slides in the reference presentation and extract their content schemas. This structured semantic representation helps LLMs determine which slides to edit and what content to convey in each slide.</p>
+</div>
+<section id="S2.SS2.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Slide Clustering</h4>
+
+<div id="S2.SS2.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">Slides can be categorized into two main types based on their functionalities: slides that support the structure of the presentation (e.g., opening slides) and slides that convey specific content (e.g., bullet-point slides). We employ different clustering algorithms to effectively cluster slides in the presentation based on their textual or visual characteristics. For structural slides, we leverage LLMs to infer the functional role of each slide and group them accordingly, as these slides often exhibit distinctive textual features. For the remaining slides, which primarily focus on presenting specific content, we employ a hierarchical clustering approach leveraging image similarity. For each cluster, we infer the layout patterns of each cluster using MLLMs. Further details regarding this method can be found in Appendix <a href="#A3" title="Appendix C Layout Analysis ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">C</span></a>.</p>
+</div>
+</section>
+<section id="S2.SS2.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Schema Extraction</h4>
+
+<div id="S2.SS2.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">After clustering slides to facilitate the selection of slide references, we further analyzed their content schemas to ensure purposeful alignment of the editing. Given the complexity and fragmentation of real-world slides, we utilized the context perception capabilities of LLMs <cite class="ltx_cite ltx_citemacro_citep">(Chen et al., <a href="#bib.bib3" title="" class="ltx_ref">2024a</a>)</cite> to extract diverse content schemas. Specifically, we defined an extraction framework where each element is represented by its category, modality, and content. Based on this framework, the schema of each slide was extracted through LLMs’ instruction-following and structured output capabilities. Detailed instructions are provided in Appendix <a href="#A5" title="Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">E</span></a>.</p>
+</div>
+</section>
+</section>
+<section id="S2.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.3 </span>Stage II: Presentation Generation</h3>
+
+<div id="S2.SS3.p1" class="ltx_para">
+<p class="ltx_p">In this stage, we begin by generating an outline that specifies the reference slide and relevant content for each slide in the new presentation. For each slide, LLMs iteratively edit the reference slide using interactive executable code actions to complete the generation process.</p>
+</div>
+<section id="S2.SS3.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Outline Generation</h4>
+
+<div id="S2.SS3.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">Following human preferences, we instruct LLMs to create a structured outline composed of multiple entries. Each entry specifies the reference slide, relevant document section indices, as well as the title and description of the new slide. By utilizing the planning and summarizing capabilities of LLMs, we provide both the document and semantic information extracted from the reference presentation to generate a coherent and engaging outline for the new presentation, which subsequently orchestrates the generation process.</p>
+</div>
+</section>
+<section id="S2.SS3.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Slide Generation</h4>
+
+<div id="S2.SS3.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">Guided by the outline, the slide generation process iteratively edits a reference slide to produce the new slide. To enable precise manipulation of slide elements, we implement five specialized APIs that allow LLMs to edit, remove, and duplicate text elements, as well as edit and remove visual elements. To further enhance the comprehension of slide structure, inspired by <cite class="ltx_cite ltx_citemacro_citet">Feng et al. (<a href="#bib.bib9" title="" class="ltx_ref">2024</a>)</cite> and <cite class="ltx_cite ltx_citemacro_citet">Tang et al. (<a href="#bib.bib25" title="" class="ltx_ref">2023</a>)</cite>, we convert slides from their raw XML format into an HTML representation, which is more interpretable for LLMs. For each slide, LLMs receive two types of input: text retrieved from the source document based on section indices, and captions of available images. The new slide content is then generated following the guidance of the content schema.</p>
+</div>
+<div id="S2.SS3.SSS0.Px2.p2" class="ltx_para">
+<p class="ltx_p">Subsequently, LLMs leverage the generated content, HTML representation of the reference slide, and API documentation to produce executable editing actions. These actions are executed in a REPL<span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note">1</span><a target="_blank" href="https://en.wikipedia.org/wiki/Read-eval-print_loop" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://en.wikipedia.org/wiki/Read-eval-print_loop</a></span></span></span> environment, where the system detects errors during execution and provides real-time feedback for self-correction. The self-correction mechanism leverages intermediate results to iteratively refine the editing actions, enhancing the robustness of the generation process.</p>
+</div>
+<figure id="S2.F3" class="ltx_figure"><img src="/html/2501.03936/assets/x3.png" id="S2.F3.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="436" height="224" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 3: </span>This figure illustrates the evaluation process in <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span>, which assesses three key dimensions: content, design, and coherence. <span class="ltx_text" style="color:#B02418;">Content</span> evaluates the quality of text and images within the slides. <span class="ltx_text" style="color:#65A542;">Design</span> examines the visual consistency and appeal. <span class="ltx_text" style="color:#ECB81B;">Coherence</span> focuses on the logical flow of the presentation. Each dimension is rated on a scale from 1 to 5, with detailed feedback provided for improvement.</figcaption>
+</figure>
+</section>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>PPTEval</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p class="ltx_p">To address the limitations of existing automated metrics for presentation evaluation, we introduce <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span>, a comprehensive framework for assessing presentation quality from multiple perspectives. The framework provides scores on a 1-to-5 scale and offers detailed feedback to guide the improvement of future presentation generation methods. The overall evaluation process is depicted in Figure <a href="#S2.F3" title="Figure 3 ‣ Slide Generation ‣ 2.3 Stage II: Presentation Generation ‣ 2 PPTAgent ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, with the detailed scoring criteria and examples provided in Appendix <a href="#A2" title="Appendix B Details of PPTEval ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">B</span></a>.</p>
+</div>
+<div id="S3.p2" class="ltx_para">
+<p class="ltx_p">Drawing from <cite class="ltx_cite ltx_citemacro_citet">Duarte (<a href="#bib.bib6" title="" class="ltx_ref">2008</a>, <a href="#bib.bib7" title="" class="ltx_ref">2010</a>)</cite>, we have identified three key dimensions for evaluating presentation quality:</p>
+</div>
+<section id="S3.SS0.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph" style="color:#B02418;">Content:</h4>
+
+<div id="S3.SS0.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">The content dimension evaluates the information presented on the slides, focusing on both text and images. We assess content quality from three perspectives: the amount of information, the clarity and quality of textual content, and the support provided by visual content.
+High-quality textual content is characterized by clear, impactful text that conveys the proper amount of information. Additionally, images should complement and reinforce the textual content, making the information more accessible and engaging. To evaluate content quality, we employ MLLMs on slide images, as slides cannot be easily comprehended in a plain text format.</p>
+</div>
+</section>
+<section id="S3.SS0.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph" style="color:#65A542;">Design:</h4>
+
+<div id="S3.SS0.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">Good design not only captures attention but also enhances content delivery. We evaluate the design dimension based on three aspects: color schemes, visual elements, and overall design. Specifically, the color scheme of the slides should have clear contrast to highlight the content while maintaining harmony. The use of visual elements, such as geometric shapes, can make the slide design more expressive. Finally, good design should adhere to basic design principles, such as avoiding overlapping elements and ensuring that design does not interfere with content delivery.</p>
+</div>
+</section>
+<section id="S3.SS0.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph" style="color:#ECB81B;">Coherence:</h4>
+
+<div id="S3.SS0.SSS0.Px3.p1" class="ltx_para">
+<p class="ltx_p">Coherence is essential for maintaining audience engagement in a presentation. We evaluate coherence based on the logical structure and the contextual information provided. Effective coherence is achieved when the model constructs a captivating storyline, enriched with contextual information that enables the audience to follow the content seamlessly. We assess coherence by analyzing the logical structure and contextual information extracted from the presentation.</p>
+</div>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Experiment</h2>
+
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Dataset</h3>
+
+<section id="S4.SS1.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Data Collection</h4>
+
+<div id="S4.SS1.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">Existing presentation datasets, such as <cite class="ltx_cite ltx_citemacro_citet">Mondal et al. (<a href="#bib.bib22" title="" class="ltx_ref">2024</a>); Sefid et al. (<a href="#bib.bib23" title="" class="ltx_ref">2021</a>); Sun et al. (<a href="#bib.bib24" title="" class="ltx_ref">2021</a>); Fu et al. (<a href="#bib.bib10" title="" class="ltx_ref">2022</a>)</cite>, have two main issues. First, they are mostly stored in PDF or JSON formats, which leads to a loss of semantic information, such as structural relationships and styling attributes of elements. Additionally, these datasets are primarily derived from academic reports, limiting their diversity. To address these limitations, we introduce <span class="ltx_text ltx_font_italic">Zenodo10K</span>, a new dataset sourced from Zenodo <cite class="ltx_cite ltx_citemacro_citep">(European Organization For Nuclear Research and OpenAIRE, <a href="#bib.bib8" title="" class="ltx_ref">2013</a>)</cite>, an open digital repository hosting diverse artifacts from different domains. We have curated 10,448 presentations from this source and made them publicly available to support further research.
+Following <cite class="ltx_cite ltx_citemacro_citet">Mondal et al. (<a href="#bib.bib22" title="" class="ltx_ref">2024</a>)</cite>, we sampled 50 presentations across five domains to serve as reference presentations. Additionally, we collected 50 documents from the same domains to be used as input documents. Details of the sampling criteria are provided in Appendix <a href="#A1" title="Appendix A Data Sampling ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">A</span></a>.</p>
+</div>
+<figure id="S4.T1" class="ltx_table">
+<table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt" style="padding-left:3.0pt;padding-right:3.0pt;" rowspan="2"><span class="ltx_text ltx_font_bold">Domain</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-left:3.0pt;padding-right:3.0pt;" colspan="2"><span class="ltx_text ltx_font_italic">Document</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-left:3.0pt;padding-right:3.0pt;" colspan="3"><span class="ltx_text ltx_font_italic">Presentation</span></th>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">#Chars</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">#Figs</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">#Chars</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">#Figs</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">#Pages</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">Culture</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">12,708</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">2.9</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">6,585</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">12.8</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">14.3</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-left:3.0pt;padding-right:3.0pt;">Education</th>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">12,305</td>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">5.5</td>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">3,993</td>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">12.9</td>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">13.9</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-left:3.0pt;padding-right:3.0pt;">Science</th>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">16,661</td>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">4.8</td>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">5,334</td>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">24.0</td>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">18.4</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-left:3.0pt;padding-right:3.0pt;">Society</th>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">13,019</td>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">7.3</td>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">3,723</td>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">9.8</td>
+<td class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">12.9</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;">Tech</th>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;">18,315</td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;">11.4</td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;">5,325</td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;">12.9</td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;">16.8</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 1: </span>Statistics of the dataset used in our experiments, detailing the number of characters (‘#Chars’) and figures (‘#Figs’), as well as the number of pages (‘#Pages’).</figcaption>
+</figure>
+<figure id="S4.T2" class="ltx_table">
+<table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_tt" colspan="2"><span class="ltx_text ltx_font_bold">Setting</span></th>
+<td class="ltx_td ltx_align_center ltx_border_tt" colspan="3">Existing Metrics</td>
+<td class="ltx_td ltx_align_center ltx_border_tt" colspan="3">PPTEval</td>
+<td class="ltx_td ltx_border_tt"></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Language Model</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Vision Model</th>
+<td class="ltx_td ltx_align_center ltx_border_t">SR(%)<math id="S4.T2.m1" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>
+</td>
+<td class="ltx_td ltx_align_center ltx_border_t">PPL<math id="S4.T2.m2" class="ltx_Math" alttext="\downarrow" display="inline"><semantics><mo stretchy="false">↓</mo><annotation encoding="application/x-tex">\downarrow</annotation></semantics></math>
+</td>
+<td class="ltx_td ltx_align_center ltx_border_t">FID<math id="S4.T2.m3" class="ltx_Math" alttext="\downarrow" display="inline"><semantics><mo stretchy="false">↓</mo><annotation encoding="application/x-tex">\downarrow</annotation></semantics></math>
+</td>
+<td class="ltx_td ltx_align_center ltx_border_t">Content<math id="S4.T2.m4" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>
+</td>
+<td class="ltx_td ltx_align_center ltx_border_t">Design<math id="S4.T2.m5" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>
+</td>
+<td class="ltx_td ltx_align_center ltx_border_t">Coherence<math id="S4.T2.m6" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>
+</td>
+<td class="ltx_td ltx_align_center ltx_border_t">Avg.<math id="S4.T2.m7" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>
+</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_t" colspan="9"><span class="ltx_text ltx_font_italic" style="background-color:#E6E6E6;">Baseline</span></th>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">GPT-4o<math id="S4.T2.m8" class="ltx_Math" alttext="{}_{\texttt{LM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">LM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{LM}}</annotation></semantics></math>
+</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">–</th>
+<td class="ltx_td ltx_align_center">–</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">110.6</span></td>
+<td class="ltx_td ltx_align_center">–</td>
+<td class="ltx_td ltx_align_center">2.98</td>
+<td class="ltx_td ltx_align_center">2.33</td>
+<td class="ltx_td ltx_align_center">3.24</td>
+<td class="ltx_td ltx_align_center">2.85</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Qwen2.5<math id="S4.T2.m9" class="ltx_Math" alttext="{}_{\texttt{LM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">LM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{LM}}</annotation></semantics></math>
+</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">–</th>
+<td class="ltx_td ltx_align_center">–</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">122.4</span></td>
+<td class="ltx_td ltx_align_center">–</td>
+<td class="ltx_td ltx_align_center">2.96</td>
+<td class="ltx_td ltx_align_center">2.37</td>
+<td class="ltx_td ltx_align_center">3.28</td>
+<td class="ltx_td ltx_align_center">2.87</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_t" colspan="9"><span class="ltx_text ltx_font_italic" style="background-color:#E6E6E6;">PPTAgent</span></th>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">GPT-4o<math id="S4.T2.m10" class="ltx_Math" alttext="{}_{\texttt{LM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">LM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{LM}}</annotation></semantics></math>
+</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">GPT-4o<math id="S4.T2.m11" class="ltx_Math" alttext="{}_{\texttt{VM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">VM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{VM}}</annotation></semantics></math>
+</th>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">97.8</span></td>
+<td class="ltx_td ltx_align_center">459.7</td>
+<td class="ltx_td ltx_align_center">7.48</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">3.25</span></td>
+<td class="ltx_td ltx_align_center">3.24</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">4.39</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">3.62</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Qwen2-VL<math id="S4.T2.m12" class="ltx_Math" alttext="{}_{\texttt{LM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">LM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{LM}}</annotation></semantics></math>
+</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Qwen2-VL<math id="S4.T2.m13" class="ltx_Math" alttext="{}_{\texttt{VM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">VM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{VM}}</annotation></semantics></math>
+</th>
+<td class="ltx_td ltx_align_center">43.0</td>
+<td class="ltx_td ltx_align_center">322.3</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">7.32</span></td>
+<td class="ltx_td ltx_align_center">3.13</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">3.34</span></td>
+<td class="ltx_td ltx_align_center">4.07</td>
+<td class="ltx_td ltx_align_center">3.51</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Qwen2.5<math id="S4.T2.m14" class="ltx_Math" alttext="{}_{\texttt{LM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">LM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{LM}}</annotation></semantics></math>
+</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Qwen2-VL<math id="S4.T2.m15" class="ltx_Math" alttext="{}_{\texttt{VM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">VM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{VM}}</annotation></semantics></math>
+</th>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">95.0</span></td>
+<td class="ltx_td ltx_align_center">313.9</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">6.20</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">3.28</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">3.27</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">4.48</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">3.67</span></td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_t" colspan="9"><span class="ltx_text ltx_font_italic" style="background-color:#E6E6E6;">Ablation</span></th>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_center ltx_th ltx_th_row" colspan="2"><span class="ltx_text ltx_font_smallcaps">PPTAgent</span></th>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">95.0</span></td>
+<td class="ltx_td ltx_align_center">313.9</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">6.20</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">3.28</span></td>
+<td class="ltx_td ltx_align_center">3.27</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">4.48</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">3.67</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_right ltx_th ltx_th_row" colspan="2"><span class="ltx_text ltx_font_slanted">w/o Outline</span>
+</th>
+<td class="ltx_td ltx_align_center">91.0</td>
+<td class="ltx_td ltx_align_center">2304.3</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">6.94</span></td>
+<td class="ltx_td ltx_align_center">3.24</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">3.30</span></td>
+<td class="ltx_td ltx_align_center">3.36</td>
+<td class="ltx_td ltx_align_center">3.30</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_right ltx_th ltx_th_row" colspan="2"><span class="ltx_text ltx_font_slanted">w/o Schema</span></th>
+<td class="ltx_td ltx_align_center">78.8</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">164.8</span></td>
+<td class="ltx_td ltx_align_center">7.12</td>
+<td class="ltx_td ltx_align_center">3.08</td>
+<td class="ltx_td ltx_align_center">3.23</td>
+<td class="ltx_td ltx_align_center">4.04</td>
+<td class="ltx_td ltx_align_center">3.45</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_right ltx_th ltx_th_row" colspan="2"><span class="ltx_text ltx_font_slanted">w/o Structure</span>
+</th>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">92.2</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">189.9</span></td>
+<td class="ltx_td ltx_align_center">7.66</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">3.28</span></td>
+<td class="ltx_td ltx_align_center">3.25</td>
+<td class="ltx_td ltx_align_center">3.45</td>
+<td class="ltx_td ltx_align_center">3.32</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_right ltx_th ltx_th_row ltx_border_bb" colspan="2"><span class="ltx_text ltx_font_slanted">w/o CodeRender</span>
+</th>
+<td class="ltx_td ltx_align_center ltx_border_bb">74.6</td>
+<td class="ltx_td ltx_align_center ltx_border_bb">231.0</td>
+<td class="ltx_td ltx_align_center ltx_border_bb">7.03</td>
+<td class="ltx_td ltx_align_center ltx_border_bb">3.27</td>
+<td class="ltx_td ltx_align_center ltx_border_bb"><span class="ltx_text ltx_font_bold">3.34</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb"><span class="ltx_text ltx_framed ltx_framed_underline">4.38</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb"><span class="ltx_text ltx_framed ltx_framed_underline">3.66</span></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 2: </span>Performance comparison of the baseline, our proposed PPTAgent framework, and its ablation variants. Results are reported using existing metrics—Success Rate (SR), Perplexity (PPL), and FID <cite class="ltx_cite ltx_citemacro_citep">(Heusel et al., <a href="#bib.bib13" title="" class="ltx_ref">2017</a>)</cite>—as well as our proposed <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span> metrics, which assess <span class="ltx_text" style="color:#B02418;">Content</span>, <span class="ltx_text" style="color:#65A542;">Design</span>, <span class="ltx_text" style="color:#ECB81B;">Coherence</span>, and their average score. </figcaption>
+</figure>
+<figure id="S4.T3" class="ltx_table">
+<p class="ltx_p ltx_align_center">
+<span class="ltx_inline-block ltx_transformed_outer" style="width:221.0pt;height:108pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="transform:translate(0.0pt,0.0pt) scale(1,1) ;">
+<span class="ltx_p">
+<span class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<span class="ltx_thead">
+<span class="ltx_tr">
+<span class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt">Domain</span>
+<span class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt">SR (%)</span>
+<span class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt">PPL</span>
+<span class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt">FID</span>
+<span class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt">PPTEval</span></span>
+</span>
+<span class="ltx_tbody">
+<span class="ltx_tr">
+<span class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">Culture</span>
+<span class="ltx_td ltx_align_center ltx_border_t">93.0</span>
+<span class="ltx_td ltx_align_center ltx_border_t">185.3</span>
+<span class="ltx_td ltx_align_center ltx_border_t">5.00</span>
+<span class="ltx_td ltx_align_center ltx_border_t">3.70</span></span>
+<span class="ltx_tr">
+<span class="ltx_td ltx_align_left ltx_th ltx_th_row">Education</span>
+<span class="ltx_td ltx_align_center">94.0</span>
+<span class="ltx_td ltx_align_center">249.0</span>
+<span class="ltx_td ltx_align_center">7.90</span>
+<span class="ltx_td ltx_align_center">3.69</span></span>
+<span class="ltx_tr">
+<span class="ltx_td ltx_align_left ltx_th ltx_th_row">Science</span>
+<span class="ltx_td ltx_align_center">96.0</span>
+<span class="ltx_td ltx_align_center">500.6</span>
+<span class="ltx_td ltx_align_center">6.07</span>
+<span class="ltx_td ltx_align_center">3.56</span></span>
+<span class="ltx_tr">
+<span class="ltx_td ltx_align_left ltx_th ltx_th_row">Society</span>
+<span class="ltx_td ltx_align_center">95.0</span>
+<span class="ltx_td ltx_align_center">396.8</span>
+<span class="ltx_td ltx_align_center">5.32</span>
+<span class="ltx_td ltx_align_center">3.59</span></span>
+<span class="ltx_tr">
+<span class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb">Tech</span>
+<span class="ltx_td ltx_align_center ltx_border_bb">97.0</span>
+<span class="ltx_td ltx_align_center ltx_border_bb">238.7</span>
+<span class="ltx_td ltx_align_center ltx_border_bb">6.72</span>
+<span class="ltx_td ltx_align_center ltx_border_bb">3.74</span></span>
+</span>
+</span></span>
+</span></span></p>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 3: </span>Evaluation results under the configuration of Qwen2-VL<math id="S4.T3.m3" class="ltx_Math" alttext="{}_{\texttt{LM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">LM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{LM}}</annotation></semantics></math>+Qwen2-VL<math id="S4.T3.m4" class="ltx_Math" alttext="{}_{\texttt{VM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">VM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{VM}}</annotation></semantics></math> in different domains, using the success rate (SR), PPL, FID and the average PPTEval score across three evaluation dimensions.</figcaption>
+</figure>
+</section>
+<section id="S4.SS1.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Data Preprocessing</h4>
+
+<div id="S4.SS1.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">We utilized <cite class="ltx_cite ltx_citemacro_citet">VikParuchuri (<a href="#bib.bib26" title="" class="ltx_ref">2023</a>)</cite> to extract both textual and visual content from the documents. The extracted textual content was then organized into sections using Qwen2.5-72B-Instruct <cite class="ltx_cite ltx_citemacro_citep">(Yang et al., <a href="#bib.bib31" title="" class="ltx_ref">2024</a>)</cite>. For the visual content, captions were generated using Qwen2-VL-72B-Instruct <cite class="ltx_cite ltx_citemacro_citep">(Wang et al., <a href="#bib.bib27" title="" class="ltx_ref">2024a</a>)</cite>. To minimize redundancy, we identified and removed duplicate images if their image embeddings had a cosine similarity score exceeding 0.85. Similarly, slides were excluded if their text embeddings had a cosine similarity score above 0.8 compared to the preceding slide, as suggested by <cite class="ltx_cite ltx_citemacro_citet">Fu et al. (<a href="#bib.bib10" title="" class="ltx_ref">2022</a>)</cite>. Detailed statistics of the dataset are presented in Table <a href="#S4.T1" title="Table 1 ‣ Data Collection ‣ 4.1 Dataset ‣ 4 Experiment ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>.</p>
+</div>
+</section>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Experimental Settings and Baseline</h3>
+
+<section id="S4.SS2.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Models</h4>
+
+<div id="S4.SS2.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">We evaluate our method using three state-of-the-art models: GPT-4o-2024-08-06 (GPT-4o), Qwen2.5-72B-Instruct (Qwen2.5, <cite class="ltx_cite ltx_citemacro_citep">Yang et al., <a href="#bib.bib31" title="" class="ltx_ref">2024</a></cite>), and Qwen2-VL-72B-Instruct (Qwen2-VL, <cite class="ltx_cite ltx_citemacro_citep">Wang et al., <a href="#bib.bib27" title="" class="ltx_ref">2024a</a></cite>). These models are categorized according to the specific modalities they handle, whether textual or visual, as indicated by their subscripts. Specifically, we define configurations as combinations of a language model (LM) and a vision model (VM), such as Qwen2.5<span class="ltx_text ltx_font_typewriter">LM</span>+Qwen2-VL<span class="ltx_text ltx_font_typewriter">VM</span>.</p>
+</div>
+<div id="S4.SS2.SSS0.Px1.p2" class="ltx_para">
+<p class="ltx_p">During experiments, we allow up to two iterations of self-correction per slide generation task, producing <math id="S4.SS2.SSS0.Px1.p2.m1" class="ltx_Math" alttext="5\times 10\times 10=500" display="inline"><semantics><mrow><mrow><mn>5</mn><mo lspace="0.222em" rspace="0.222em">×</mo><mn>10</mn><mo lspace="0.222em" rspace="0.222em">×</mo><mn>10</mn></mrow><mo>=</mo><mn>500</mn></mrow><annotation encoding="application/x-tex">5\times 10\times 10=500</annotation></semantics></math> presentations per configuration. We use <cite class="ltx_cite ltx_citemacro_citet">Chen et al. (<a href="#bib.bib4" title="" class="ltx_ref">2024b</a>)</cite> and <cite class="ltx_cite ltx_citemacro_citet">Wu et al. (<a href="#bib.bib30" title="" class="ltx_ref">2020</a>)</cite> to compute the text and image embeddings respectively. All open-source LLMs are deployed using the VLLM framework <cite class="ltx_cite ltx_citemacro_citep">(Kwon et al., <a href="#bib.bib15" title="" class="ltx_ref">2023</a>)</cite> on a cluster of 8 NVIDIA A100 GPUs. The total computational cost for these experiments is approximately 500 GPU hours.</p>
+</div>
+</section>
+<section id="S4.SS2.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Baseline</h4>
+
+<div id="S4.SS2.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">We adopt the methodology described in <cite class="ltx_cite ltx_citemacro_citet">Bandyopadhyay et al. (<a href="#bib.bib1" title="" class="ltx_ref">2024</a>)</cite> as our baseline. This approach employs a multi-staged end-to-end model to generate narrative-rich presentations, with an image similarity-based ranking algorithm to add images to the slides. The baseline method is evaluated using either GPT-4o or Qwen2.5, as it does not require the necessary processing of visual information. Each configuration generates <math id="S4.SS2.SSS0.Px2.p1.m1" class="ltx_Math" alttext="5\times 10=50" display="inline"><semantics><mrow><mrow><mn>5</mn><mo lspace="0.222em" rspace="0.222em">×</mo><mn>10</mn></mrow><mo>=</mo><mn>50</mn></mrow><annotation encoding="application/x-tex">5\times 10=50</annotation></semantics></math> presentations, given that it does not require an input presentation. We do not report the success rate and FID of the baseline method for the same reason.</p>
+</div>
+</section>
+</section>
+<section id="S4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.3 </span>Evaluation Metrics</h3>
+
+<div id="S4.SS3.p1" class="ltx_para">
+<p class="ltx_p">We evaluated the presentation generation using the following metrics:</p>
+<ul id="S4.I1" class="ltx_itemize">
+<li id="S4.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i1.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Success Rate (SR)</span> measures the robustness of the generation task by determining the percentage of presentations where all slides are successfully generated.</p>
+</div>
+</li>
+<li id="S4.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i2.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Perplexity (PPL)</span> measures the likelihood of the language model generating the given sequence. Following <cite class="ltx_cite ltx_citemacro_citet">Bandyopadhyay et al. (<a href="#bib.bib1" title="" class="ltx_ref">2024</a>)</cite>, we calculate the average perplexity of slides within a presentation using GPT-2.. A lower perplexity score indicates that the textual content is more fluent.</p>
+</div>
+</li>
+<li id="S4.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i3.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">FID <cite class="ltx_cite ltx_citemacro_citep">(Heusel et al., <a href="#bib.bib13" title="" class="ltx_ref">2017</a>)</cite></span> measures the similarity between the generated presentation and the exemplar presentation in the feature space. Due to the limited sample size, we calculate the FID using a 64-dimensional output vector.</p>
+</div>
+</li>
+<li id="S4.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i4.p1" class="ltx_para">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">PPTEval</span> measures the comprehensive quality of presentations across three dimensions: coherence, content, and design. We employ GPT-4o as the judge model.</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+<section id="S4.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.4 </span>Result &amp; Analysis</h3>
+
+<div id="S4.SS4.p1" class="ltx_para">
+<p class="ltx_p">Table <a href="#S4.T2" title="Table 2 ‣ Data Collection ‣ 4.1 Dataset ‣ 4 Experiment ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> presents the performance comparison between <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> and baseline methods, revealing that:</p>
+</div>
+<section id="S4.SS4.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">PPTAgent Enhances LLMs’ Presentation Generation Capabilities</h4>
+
+<div id="S4.SS4.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">As demonstrated in Table <a href="#S4.T2" title="Table 2 ‣ Data Collection ‣ 4.1 Dataset ‣ 4 Experiment ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, our approach empowers LLMs to produce well-rounded presentations with a remarkable success rate, achieving <math id="S4.SS4.SSS0.Px1.p1.m1" class="ltx_Math" alttext="\geq 95\%" display="inline"><semantics><mrow><mi></mi><mo>≥</mo><mrow><mn>95</mn><mo>%</mo></mrow></mrow><annotation encoding="application/x-tex">\geq 95\%</annotation></semantics></math> success rate for both Qwen2.5<math id="S4.SS4.SSS0.Px1.p1.m2" class="ltx_Math" alttext="{}_{\texttt{LM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">LM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{LM}}</annotation></semantics></math>+Qwen2-VL<math id="S4.SS4.SSS0.Px1.p1.m3" class="ltx_Math" alttext="{}_{\texttt{VM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">VM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{VM}}</annotation></semantics></math> and GPT-4o<math id="S4.SS4.SSS0.Px1.p1.m4" class="ltx_Math" alttext="{}_{\texttt{LM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">LM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{LM}}</annotation></semantics></math>+GPT-4o<math id="S4.SS4.SSS0.Px1.p1.m5" class="ltx_Math" alttext="{}_{\texttt{VM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">VM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{VM}}</annotation></semantics></math>.
+This is a significant improvement compared to the highest accuracy of 10% for session-based template editing tasks as reported in <cite class="ltx_cite ltx_citemacro_citet">Guo et al. (<a href="#bib.bib12" title="" class="ltx_ref">2023</a>)</cite>. This improvement can be attributed to three main factors: 1) <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> concentrates on content modifying, thereby avoiding intricate stying operations. 2) Our streamlined API design allows LLMs to execute tasks with ease. 3) The code interaction module enhances LLMs’ comprehension of slides and offers opportunities for self-correction, enabling them to generate accurate actions robustly.
+Moreover, detailed performance of Qwen2.5<math id="S4.SS4.SSS0.Px1.p1.m6" class="ltx_Math" alttext="{}_{\texttt{LM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">LM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{LM}}</annotation></semantics></math>+Qwen2-VL<math id="S4.SS4.SSS0.Px1.p1.m7" class="ltx_Math" alttext="{}_{\texttt{VM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">VM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{VM}}</annotation></semantics></math> across various domains, as illustrated in Table <a href="#S4.T3" title="Table 3 ‣ Data Collection ‣ 4.1 Dataset ‣ 4 Experiment ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, underscores the robustness of our approach.</p>
+</div>
+</section>
+<section id="S4.SS4.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">PPTAgent Significantly Improves Overall Presentation Quality</h4>
+
+<div id="S4.SS4.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">By adopting an Edit-based paradigm, <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> allows elements within the presentation to inherit well-designed styling attributes from existing presentations. When using GPT-4o, experimental results demonstrate comprehensive improvements over the baseline. We significantly surpass the baseline method in the design dimension under <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span> (3.24 vs 2.33), as the presentations generated by the baseline method lack basic design efforts. Furthermore, we achieved substantial enhancements in coherence (4.39 vs 3.28) and content (3.25 vs 2.98) dimensions, as the semantic information extracted during the Presentation Analysis stage effectively guided the LLMs.</p>
+</div>
+</section>
+<section id="S4.SS4.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Open-Source LLMs Rival GPT-4o in Performance</h4>
+
+<div id="S4.SS4.SSS0.Px3.p1" class="ltx_para">
+<p class="ltx_p">GPT-4o consistently demonstrates outstanding performance across various evaluation metrics, highlighting its advanced capabilities. While Qwen2-VL exhibits limitations in linguistic proficiency due to the trade-offs from multimodal post-training, GPT-4o maintains a clear advantage in handling language tasks. However, the introduction of Qwen2.5 successfully mitigates these linguistic deficiencies, bringing its performance on par with GPT-4o, and achieving the best performance. This underscores the significant potential of open-source LLMs as competitive and highly capable presentation agents.</p>
+</div>
+<figure id="S4.F4" class="ltx_figure"><img src="/html/2501.03936/assets/x4.png" id="S4.F4.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="436" height="256" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 4: </span>The number of iterative self-corrections required to generate a single slide under different models.</figcaption>
+</figure>
+</section>
+</section>
+<section id="S4.SS5" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.5 </span>Ablation Study</h3>
+
+<div id="S4.SS5.p1" class="ltx_para">
+<p class="ltx_p">To better understand the impact of each component in our proposed method, we performed ablation studies using four different configurations. Specifically, we evaluated the method by: (1) randomly selecting a slide as the edit target (w/o Outline), (2) omitting structural information during outline generation (w/o Structure), (3) replacing the slide representation with the method described in <cite class="ltx_cite ltx_citemacro_citet">Guo et al. (<a href="#bib.bib12" title="" class="ltx_ref">2023</a>)</cite> (w/o CodeRender), and (4) removing guidance from the slide schema (w/o Schema). These configurations were tested using the Qwen2.5<math id="S4.SS5.p1.m1" class="ltx_Math" alttext="{}_{\texttt{LM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">LM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{LM}}</annotation></semantics></math>+Qwen2-VL<math id="S4.SS5.p1.m2" class="ltx_Math" alttext="{}_{\texttt{VM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">VM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{VM}}</annotation></semantics></math>.</p>
+</div>
+<section id="S4.SS5.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Code Representation Enhances LLMs’ Comprehension</h4>
+
+<div id="S4.SS5.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">As shown in Table <a href="#S4.T2" title="Table 2 ‣ Data Collection ‣ 4.1 Dataset ‣ 4 Experiment ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, the removal of the Code Render component leads to a significant drop in the model’s success rate (SR) from 95.0 to 74.6. This underscores the critical role of code representation in leveraging LLMs’ coding capabilities to improve their overall comprehension.</p>
+</div>
+</section>
+<section id="S4.SS5.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Presentation Analysis is Essential for Generating Targeted Presentations</h4>
+
+<div id="S4.SS5.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">The removal of the outline and structural information significantly degrades coherence (from 4.48 to 3.36/3.45), underscoring their crucial role in maintaining logical flow. Furthermore, the absence of slide schema hinders LLMs from generating targeted content effectively, resulting in a drop in success rate from 95.0 to 78.8.</p>
+</div>
+</section>
+</section>
+<section id="S4.SS6" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.6 </span>Error Analysis</h3>
+
+<div id="S4.SS6.p1" class="ltx_para">
+<p class="ltx_p">Figure <a href="#S4.F4" title="Figure 4 ‣ Open-Source LLMs Rival GPT-4o in Performance ‣ 4.4 Result &amp; Analysis ‣ 4 Experiment ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a> illustrates the number of iterations required to generate a slide using different models. Although GPT-4o exhibits superior self-correction capabilities compared to Qwen2.5, Qwen2.5 encounters fewer errors in the first iteration (Iter-0). Additionally, we observed that Qwen2-VL experiences errors more frequently and has poorer self-correction capabilities, likely due to its multimodal post-training <cite class="ltx_cite ltx_citemacro_citep">(Wang et al., <a href="#bib.bib27" title="" class="ltx_ref">2024a</a>)</cite>. Ultimately, all three models successfully corrected more than half of the errors, demonstrating that our iterative self-correction mechanism effectively ensures the success of the generation process.</p>
+</div>
+<figure id="S4.T4" class="ltx_table">
+<table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt" style="padding-left:2.0pt;padding-right:2.0pt;"><span class="ltx_text ltx_font_bold">Corelation</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-left:2.0pt;padding-right:2.0pt;">Content</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-left:2.0pt;padding-right:2.0pt;">Design</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-left:2.0pt;padding-right:2.0pt;">Coherence</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-left:2.0pt;padding-right:2.0pt;">Avg.</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-left:2.0pt;padding-right:2.0pt;"><span class="ltx_text ltx_font_bold">Pearson</span></th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-left:2.0pt;padding-right:2.0pt;">0.70</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-left:2.0pt;padding-right:2.0pt;">0.90</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-left:2.0pt;padding-right:2.0pt;">0.55</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-left:2.0pt;padding-right:2.0pt;">0.71</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb" style="padding-left:2.0pt;padding-right:2.0pt;"><span class="ltx_text ltx_font_bold">Spearman</span></th>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:2.0pt;padding-right:2.0pt;">0.73</td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:2.0pt;padding-right:2.0pt;">0.88</td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:2.0pt;padding-right:2.0pt;">0.57</td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:2.0pt;padding-right:2.0pt;">0.74</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 4: </span>The correlation scores between human ratings and LLM ratings under different dimensions (Coherence, Content, Design). All presented data of similarity exhibit a p-value below 0.05, indicating a statistically significant level of confidence.</figcaption>
+</figure>
+</section>
+<section id="S4.SS7" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.7 </span>Effectiveness of PPTEval</h3>
+
+<section id="S4.SS7.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Human Agreement Evaluation</h4>
+
+<div id="S4.SS7.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">Despite <cite class="ltx_cite ltx_citemacro_citet">Chen et al. (<a href="#bib.bib3" title="" class="ltx_ref">2024a</a>)</cite> have highlighted the impressive human-like discernment of LLMs in various generation tasks. However, it remains crucial to assess the correlation between LLM evaluations and human evaluations in the context of presentations. This necessity arises from findings by <cite class="ltx_cite ltx_citemacro_citet">Laskar et al. (<a href="#bib.bib16" title="" class="ltx_ref">2024</a>)</cite>, which indicate that LLMs may not be adequate evaluators for complex tasks. Table <a href="#S4.T4" title="Table 4 ‣ 4.6 Error Analysis ‣ 4 Experiment ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a> shows the correlation of ratings between humans and LLMs. The average Pearson correlation of 0.71 exceeds the scores of other evaluation methods <cite class="ltx_cite ltx_citemacro_citep">(Kwan et al., <a href="#bib.bib14" title="" class="ltx_ref">2024</a>)</cite>, indicating that <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span> aligns well with human preferences.</p>
+</div>
+<figure id="S4.F5" class="ltx_figure"><img src="/html/2501.03936/assets/x5.png" id="S4.F5.g1" class="ltx_graphics ltx_centering ltx_img_square" width="436" height="370" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 5: </span>Correlation heatmap between existing automated evaluation metrics and <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span>.</figcaption>
+</figure>
+<div id="S4.SS7.SSS0.Px1.p2" class="ltx_para">
+<p class="ltx_p">Moreover, the heatmap in Figure <a href="#S4.F5" title="Figure 5 ‣ Human Agreement Evaluation ‣ 4.7 Effectiveness of PPTEval ‣ 4 Experiment ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a> reveals the limitations of existing metrics when compared with the Content and Design dimensions of <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span>. In our experiments, we observed that PPL predominantly captures text fluency and is susceptible to the fragmented nature of slide text, leading to ineffective measurements with frequent outliers. Similarly, FID merely quantifies stylistic similarity to reference presentations rather than design quality, as conformity to reference styles does not necessarily indicate superior design. These findings underscore the necessity of <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span> for comprehensive and effective presentation evaluation.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Related Works</h2>
+
+<section id="S5.SS0.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Automated Presentation Generation</h4>
+
+<div id="S5.SS0.SSS0.Px1.p1" class="ltx_para">
+<p class="ltx_p">Recent proposed methods for slide generation can be categorized into rule-based and template-based
+based on how they handle element placement. Rule-
+based methods, such as those proposed by <cite class="ltx_cite ltx_citemacro_citet">Mondal et al. (<a href="#bib.bib22" title="" class="ltx_ref">2024</a>)</cite> and <cite class="ltx_cite ltx_citemacro_citet">Li et al. (<a href="#bib.bib17" title="" class="ltx_ref">2021</a>)</cite>, often focus on enhancing textual content but neglect the visual-centric nature of presentations, leading to outputs that lack engagement. Template-based methods, including <cite class="ltx_cite ltx_citemacro_citet">Cachola et al. (<a href="#bib.bib2" title="" class="ltx_ref">2024</a>)</cite> and industrial solutions like <a target="_blank" href="https://tongyi.aliyun.com/aippt" title="" class="ltx_ref ltx_href">Tongyi</a>, rely on pre-designed templates to create visually appealing presentations. However, their dependence on extensive manual effort for template annotation significantly limits scalability and flexibility.</p>
+</div>
+</section>
+<section id="S5.SS0.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">LLM Agent</h4>
+
+<div id="S5.SS0.SSS0.Px2.p1" class="ltx_para">
+<p class="ltx_p">Numerous studies <cite class="ltx_cite ltx_citemacro_citep">(Li et al., <a href="#bib.bib18" title="" class="ltx_ref">2024</a>; Deng et al., <a href="#bib.bib5" title="" class="ltx_ref">2024</a>; Wang et al., <a href="#bib.bib29" title="" class="ltx_ref">2024c</a>)</cite> have explored the potential of LLMs to act as agents assisting humans in a wide array of tasks. For example, <cite class="ltx_cite ltx_citemacro_citet">Zheng et al. (<a href="#bib.bib32" title="" class="ltx_ref">2024</a>); Wang et al. (<a href="#bib.bib28" title="" class="ltx_ref">2024b</a>)</cite> demonstrate the capability of LLMs to accomplish tasks by generating executable actions and correcting errors based on feedback. Furthermore, <cite class="ltx_cite ltx_citemacro_citet">Guo et al. (<a href="#bib.bib12" title="" class="ltx_ref">2023</a>)</cite> introduces an evaluation system that assesses the ability of LLMs to perform multi-turn, multimodal slide editing tasks using APIs, which inspired the use of LLMs for complex tasks as proposed in this study.</p>
+</div>
+</section>
+<section id="S5.SS0.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">LLM as a Judge</h4>
+
+<div id="S5.SS0.SSS0.Px3.p1" class="ltx_para">
+<p class="ltx_p">LLMs have demonstrated strong capabilities in instruction following and context perception, leading to their widespread use as judges <cite class="ltx_cite ltx_citemacro_citep">(Liu et al., <a href="#bib.bib20" title="" class="ltx_ref">2023</a>; Zheng et al., <a href="#bib.bib33" title="" class="ltx_ref">2023</a>)</cite>. Further research by <cite class="ltx_cite ltx_citemacro_citet">Zhuge et al. (<a href="#bib.bib34" title="" class="ltx_ref">2024</a>)</cite> enhanced LLMs’ abilities through external modules and functions, while <cite class="ltx_cite ltx_citemacro_citet">Chen et al. (<a href="#bib.bib3" title="" class="ltx_ref">2024a</a>)</cite> validated the feasibility of using multimodal large language models(MLLMs) as judges. Additionally, <cite class="ltx_cite ltx_citemacro_citet">Kwan et al. (<a href="#bib.bib14" title="" class="ltx_ref">2024</a>)</cite> introduced a multi-dimensional evaluation framework for multi-turn conversations, which inspired the development of our proposed <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span>.</p>
+</div>
+</section>
+</section>
+<section id="S6" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6 </span>Conclusion</h2>
+
+<div id="S6.p1" class="ltx_para">
+<p class="ltx_p">In this paper, we introduced <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span>, which conceptualizes presentation generation as a two-stage presentation editing task completed through the abilities of LLMs to understand and generate code. This approach leveraged the textual feature and layout patterns to organize slides into different functional groups. Our experiments across data from multiple domains have demonstrated the superiority of our method. Moreover, our proposed <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span> ensured the assessability of presentations. This research provides a new paradigm for generating slides under unsupervised conditions and offers fresh insights for future work in presentation generation.</p>
+</div>
+</section>
+<section id="S7" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">7 </span>Limitations</h2>
+
+<div id="S7.p1" class="ltx_para">
+<p class="ltx_p">While our method demonstrates its capability to produce high-quality presentations, there remain inherent challenges that impact its universal applicability. For instance, achieving a success rate of over 95% on our dataset is impressive, but not absolute, thus might limit its application. Moreover, parsing slides with intricate nested group shapes often proves to be a bottleneck, leading to less consistent results. Additionally, although <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Agent</span> shows noticeable improvements in layout optimization over prior approaches, it still falls short of exploiting the full potential of visual cues for refining stylistic consistency. This often manifests in design flaws, such as overlapping elements, undermining the visual harmony of the generated slides. Addressing these limitations calls for future enhancements that integrate visual information into the generation process.</p>
+</div>
+</section>
+<section id="S8" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">8 </span>Ethical Considerations</h2>
+
+<div id="S8.p1" class="ltx_para">
+<p class="ltx_p">In the construction of <span class="ltx_text ltx_font_italic">Zenodo10K</span>, we utilized the publicly available API to scrape data while strictly adhering to the licensing terms associated with each artifact. Specifically, artifacts that were not permitted for modification or commercial use under their respective licenses were filtered out to ensure compliance with intellectual property rights. Additionally, all annotation personnel involved in the project were compensated at rates exceeding the minimum wage in their respective cities, reflecting our commitment to fair labor practices and ethical standards throughout the dataset’s development process.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Bandyopadhyay et al. (2024)</span>
+<span class="ltx_bibblock">
+Sambaran Bandyopadhyay, Himanshu Maheshwari, Anandhavelu Natarajan, and Apoorv Saxena. 2024.
+
+</span>
+<span class="ltx_bibblock">Enhancing presentation slide generation by llms with a multi-staged end-to-end approach.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2406.06556</em>.
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Cachola et al. (2024)</span>
+<span class="ltx_bibblock">
+Isabel Alyssa Cachola, Silviu Cucerzan, Allen Herring, Vuksan Mijovic, Erik Oveson, and Sujay Kumar Jauhar. 2024.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://aclanthology.org/2024.findings-emnlp.906" title="" class="ltx_ref ltx_href">Knowledge-centric templatic views of documents</a>.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Findings of the Association for Computational Linguistics: EMNLP 2024</em>, pages 15460–15476, Miami, Florida, USA. Association for Computational Linguistics.
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen et al. (2024a)</span>
+<span class="ltx_bibblock">
+Dongping Chen, Ruoxi Chen, Shilin Zhang, Yinuo Liu, Yaochen Wang, Huichi Zhou, Qihui Zhang, Pan Zhou, Yao Wan, and Lichao Sun. 2024a.
+
+</span>
+<span class="ltx_bibblock">Mllm-as-a-judge: Assessing multimodal llm-as-a-judge with vision-language benchmark.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2402.04788</em>.
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen et al. (2024b)</span>
+<span class="ltx_bibblock">
+Jianlv Chen, Shitao Xiao, Peitian Zhang, Kun Luo, Defu Lian, and Zheng Liu. 2024b.
+
+</span>
+<span class="ltx_bibblock">Bge m3-embedding: Multi-lingual, multi-functionality, multi-granularity text embeddings through self-knowledge distillation.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2402.03216</em>.
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Deng et al. (2024)</span>
+<span class="ltx_bibblock">
+Xiang Deng, Yu Gu, Boyuan Zheng, Shijie Chen, Sam Stevens, Boshi Wang, Huan Sun, and Yu Su. 2024.
+
+</span>
+<span class="ltx_bibblock">Mind2web: Towards a generalist agent for the web.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, 36.
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Duarte (2008)</span>
+<span class="ltx_bibblock">
+Nancy Duarte. 2008.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Slide: ology: The art and science of creating great presentations</em>, volume 1.
+
+</span>
+<span class="ltx_bibblock">O’Reilly Media Sebastapol.
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Duarte (2010)</span>
+<span class="ltx_bibblock">
+Nancy Duarte. 2010.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Resonate: Present visual stories that transform audiences</em>.
+
+</span>
+<span class="ltx_bibblock">John Wiley &amp; Sons.
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">European Organization For Nuclear Research and OpenAIRE (2013)</span>
+<span class="ltx_bibblock">
+European Organization For Nuclear Research and OpenAIRE. 2013.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://doi.org/10.25495/7GXK-RD71" title="" class="ltx_ref ltx_href">Zenodo</a>.
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Feng et al. (2024)</span>
+<span class="ltx_bibblock">
+Weixi Feng, Wanrong Zhu, Tsu-jui Fu, Varun Jampani, Arjun Akula, Xuehai He, Sugato Basu, Xin Eric Wang, and William Yang Wang. 2024.
+
+</span>
+<span class="ltx_bibblock">Layoutgpt: Compositional visual planning and generation with large language models.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, 36.
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Fu et al. (2022)</span>
+<span class="ltx_bibblock">
+Tsu-Jui Fu, William Yang Wang, Daniel McDuff, and Yale Song. 2022.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://doi.org/10.1609/aaai.v36i1.19943" title="" class="ltx_ref ltx_href">Doc2ppt: Automatic presentation slides generation from scientific documents</a>.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Proceedings of the AAAI Conference on Artificial Intelligence</em>, 36(1):634–642.
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Gryk (2022)</span>
+<span class="ltx_bibblock">
+Michael Robert Gryk. 2022.
+
+</span>
+<span class="ltx_bibblock">Human readability of data files.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Balisage series on markup technologies</em>, 27.
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Guo et al. (2023)</span>
+<span class="ltx_bibblock">
+Yiduo Guo, Zekai Zhang, Yaobo Liang, Dongyan Zhao, and Duan Nan. 2023.
+
+</span>
+<span class="ltx_bibblock">Pptc benchmark: Evaluating large language models for powerpoint task completion.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2311.01767</em>.
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Heusel et al. (2017)</span>
+<span class="ltx_bibblock">
+Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler, and Sepp Hochreiter. 2017.
+
+</span>
+<span class="ltx_bibblock">Gans trained by a two time-scale update rule converge to a local nash equilibrium.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Advances in neural information processing systems</em>, 30.
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kwan et al. (2024)</span>
+<span class="ltx_bibblock">
+Wai-Chung Kwan, Xingshan Zeng, Yuxin Jiang, Yufei Wang, Liangyou Li, Lifeng Shang, Xin Jiang, Qun Liu, and Kam-Fai Wong. 2024.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://arxiv.org/abs/2401.16745" title="" class="ltx_ref ltx_href">Mt-eval: A multi-turn capabilities evaluation benchmark for large language models</a>.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Preprint</em>, arXiv:2401.16745.
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kwon et al. (2023)</span>
+<span class="ltx_bibblock">
+Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph Gonzalez, Hao Zhang, and Ion Stoica. 2023.
+
+</span>
+<span class="ltx_bibblock">Efficient memory management for large language model serving with pagedattention.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Proceedings of the 29th Symposium on Operating Systems Principles</em>, pages 611–626.
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Laskar et al. (2024)</span>
+<span class="ltx_bibblock">
+Md Tahmid Rahman Laskar, Sawsan Alqahtani, M Saiful Bari, Mizanur Rahman, Mohammad Abdullah Matin Khan, Haidar Khan, Israt Jahan, Amran Bhuiyan, Chee Wei Tan, Md Rizwan Parvez, Enamul Hoque, Shafiq Joty, and Jimmy Huang. 2024.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://doi.org/10.18653/v1/2024.emnlp-main.764" title="" class="ltx_ref ltx_href">A systematic survey and critical review on evaluating large language models: Challenges, limitations, and recommendations</a>.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing</em>, pages 13785–13816, Miami, Florida, USA. Association for Computational Linguistics.
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Li et al. (2021)</span>
+<span class="ltx_bibblock">
+Da-Wei Li, Danqing Huang, Tingting Ma, and Chin-Yew Lin. 2021.
+
+</span>
+<span class="ltx_bibblock">Towards topic-aware slide generation for academic papers with unsupervised mutual learning.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Proceedings of the AAAI Conference on Artificial Intelligence</em>, volume 35, pages 13243–13251.
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Li et al. (2024)</span>
+<span class="ltx_bibblock">
+Yanda Li, Chi Zhang, Wanqi Yang, Bin Fu, Pei Cheng, Xin Chen, Ling Chen, and Yunchao Wei. 2024.
+
+</span>
+<span class="ltx_bibblock">Appagent v2: Advanced agent for flexible mobile interactions.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2408.11824</em>.
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lin (2004)</span>
+<span class="ltx_bibblock">
+Chin-Yew Lin. 2004.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://aclanthology.org/W04-1013/" title="" class="ltx_ref ltx_href">ROUGE: A package for automatic evaluation of summaries</a>.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Text Summarization Branches Out</em>, pages 74–81, Barcelona, Spain. Association for Computational Linguistics.
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Liu et al. (2023)</span>
+<span class="ltx_bibblock">
+Yang Liu, Dan Iter, Yichong Xu, Shuohang Wang, Ruochen Xu, and Chenguang Zhu. 2023.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://doi.org/10.18653/v1/2023.emnlp-main.153" title="" class="ltx_ref ltx_href">G-eval: NLG evaluation using gpt-4 with better human alignment</a>.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing</em>, pages 2511–2522, Singapore. Association for Computational Linguistics.
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Maheshwari et al. (2024)</span>
+<span class="ltx_bibblock">
+Himanshu Maheshwari, Sambaran Bandyopadhyay, Aparna Garimella, and Anandhavelu Natarajan. 2024.
+
+</span>
+<span class="ltx_bibblock">Presentations are not always linear! gnn meets llm for document-to-presentation transformation with attribution.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2405.13095</em>.
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Mondal et al. (2024)</span>
+<span class="ltx_bibblock">
+Ishani Mondal, S Shwetha, Anandhavelu Natarajan, Aparna Garimella, Sambaran Bandyopadhyay, and Jordan Boyd-Graber. 2024.
+
+</span>
+<span class="ltx_bibblock">Presentations by the humans and for the humans: Harnessing llms for generating persona-aware slides from documents.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Proceedings of the 18th Conference of the European Chapter of the Association for Computational Linguistics (Volume 1: Long Papers)</em>, pages 2664–2684.
+
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sefid et al. (2021)</span>
+<span class="ltx_bibblock">
+Athar Sefid, Prasenjit Mitra, and Lee Giles. 2021.
+
+</span>
+<span class="ltx_bibblock">Slidegen: an abstractive section-based slide generator for scholarly documents.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Proceedings of the 21st ACM Symposium on Document Engineering</em>, pages 1–4.
+
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sun et al. (2021)</span>
+<span class="ltx_bibblock">
+Edward Sun, Yufang Hou, Dakuo Wang, Yunfeng Zhang, and Nancy XR Wang. 2021.
+
+</span>
+<span class="ltx_bibblock">D2s: Document-to-slide generation via query-based text summarization.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2105.03664</em>.
+
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Tang et al. (2023)</span>
+<span class="ltx_bibblock">
+Zecheng Tang, Chenfei Wu, Juntao Li, and Nan Duan. 2023.
+
+</span>
+<span class="ltx_bibblock">Layoutnuwa: Revealing the hidden layout expertise of large language models.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2309.09506</em>.
+
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">VikParuchuri (2023)</span>
+<span class="ltx_bibblock">
+VikParuchuri. 2023.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://github.com/VikParuchuri/marker/" title="" class="ltx_ref ltx_href">marker</a>.
+
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wang et al. (2024a)</span>
+<span class="ltx_bibblock">
+Peng Wang, Shuai Bai, Sinan Tan, Shijie Wang, Zhihao Fan, Jinze Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, et al. 2024a.
+
+</span>
+<span class="ltx_bibblock">Qwen2-vl: Enhancing vision-language model’s perception of the world at any resolution.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2409.12191</em>.
+
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wang et al. (2024b)</span>
+<span class="ltx_bibblock">
+Xingyao Wang, Yangyi Chen, Lifan Yuan, Yizhe Zhang, Yunzhu Li, Hao Peng, and Heng Ji. 2024b.
+
+</span>
+<span class="ltx_bibblock">Executable code actions elicit better llm agents.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2402.01030</em>.
+
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wang et al. (2024c)</span>
+<span class="ltx_bibblock">
+Xingyao Wang, Boxuan Li, Yufan Song, Frank F Xu, Xiangru Tang, Mingchen Zhuge, Jiayi Pan, Yueqi Song, Bowen Li, Jaskirat Singh, et al. 2024c.
+
+</span>
+<span class="ltx_bibblock">Opendevin: An open platform for ai software developers as generalist agents.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2407.16741</em>.
+
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wu et al. (2020)</span>
+<span class="ltx_bibblock">
+Bichen Wu, Chenfeng Xu, Xiaoliang Dai, Alvin Wan, Peizhao Zhang, Zhicheng Yan, Masayoshi Tomizuka, Joseph Gonzalez, Kurt Keutzer, and Peter Vajda. 2020.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://arxiv.org/abs/2006.03677" title="" class="ltx_ref ltx_href">Visual transformers: Token-based image representation and processing for computer vision</a>.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Preprint</em>, arXiv:2006.03677.
+
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Yang et al. (2024)</span>
+<span class="ltx_bibblock">
+An Yang, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chengyuan Li, Dayiheng Liu, Fei Huang, Haoran Wei, et al. 2024.
+
+</span>
+<span class="ltx_bibblock">Qwen2. 5 technical report.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2412.15115</em>.
+
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zheng et al. (2024)</span>
+<span class="ltx_bibblock">
+Boyuan Zheng, Boyu Gou, Jihyung Kil, Huan Sun, and Yu Su. 2024.
+
+</span>
+<span class="ltx_bibblock">Gpt-4v (ision) is a generalist web agent, if grounded.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2401.01614</em>.
+
+</span>
+</li>
+<li id="bib.bib33" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zheng et al. (2023)</span>
+<span class="ltx_bibblock">
+Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Siyuan Zhuang, Zhanghao Wu, Yonghao Zhuang, Zi Lin, Zhuohan Li, Dacheng Li, Eric Xing, et al. 2023.
+
+</span>
+<span class="ltx_bibblock">Judging llm-as-a-judge with mt-bench and chatbot arena.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, 36:46595–46623.
+
+</span>
+</li>
+<li id="bib.bib34" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhuge et al. (2024)</span>
+<span class="ltx_bibblock">
+Mingchen Zhuge, Changsheng Zhao, Dylan Ashley, Wenyi Wang, Dmitrii Khizbullin, Yunyang Xiong, Zechun Liu, Ernie Chang, Raghuraman Krishnamoorthi, Yuandong Tian, et al. 2024.
+
+</span>
+<span class="ltx_bibblock">Agent-as-a-judge: Evaluate agents with agents.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2410.10934</em>.
+
+</span>
+</li>
+</ul>
+</section>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<section id="A1" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix A </span>Data Sampling</h2>
+
+<div id="A1.p1" class="ltx_para">
+<p class="ltx_p">To maintain a reasonable cost, we selected presentations ranging from 12 to 64 pages and documents with text lengths from 2,048 to 20,480 characters.</p>
+</div>
+</section>
+<section id="A2" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix B </span>Details of PPTEval</h2>
+
+<div id="A2.p1" class="ltx_para">
+<p class="ltx_p">Through a Shanghai-based crowdsourcing platform, we recruited four graduate students to evaluate 50 randomly selected presentations from <span class="ltx_text ltx_font_italic">Zenodo10K</span>, along with 100 presentations generated by the baseline method and our approach, respectively. The evaluations were conducted across three dimensions, as proposed by <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span>, based on the same scoring criteria listed in Appendix <a href="#A5" title="Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">E</span></a> along with converted slide images.
+Moreover, we listed some scoring examples in Figure <a href="#A5.F6" title="Figure 6 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> and detailed performance of Qwen2.5<math id="A2.p1.m1" class="ltx_Math" alttext="{}_{\texttt{LM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">LM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{LM}}</annotation></semantics></math>+Qwen2-VL<math id="A2.p1.m2" class="ltx_Math" alttext="{}_{\texttt{VM}}" display="inline"><semantics><msub><mi></mi><mtext class="ltx_mathvariant_monospace">VM</mtext></msub><annotation encoding="application/x-tex">{}_{\texttt{VM}}</annotation></semantics></math> across various domains in Table <a href="#S4.T3" title="Table 3 ‣ Data Collection ‣ 4.1 Dataset ‣ 4 Experiment ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>.</p>
+</div>
+</section>
+<section id="A3" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix C </span>Layout Analysis</h2>
+
+<div id="A3.p1" class="ltx_para">
+<p class="ltx_p">We present our hierarchical clustering algorithm for layout analysis in Algorithm  <a href="#alg1" title="Algorithm 1 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>, where slides are grouped into clusters using a similarity threshold <math id="A3.p1.m1" class="ltx_Math" alttext="\theta" display="inline"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math> of 0.65. To minimize clustering interference, we replace the text and images in the slides with placeholders beforehand. Moreover, examples of the extracted slide clusters are provided in Figure <a href="#A5.F7" title="Figure 7 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a>.</p>
+</div>
+</section>
+<section id="A4" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix D </span>Code Interaction</h2>
+
+<div id="A4.p1" class="ltx_para">
+<p class="ltx_p">Our provided APIs and their corresponding functions are summarized in Table <a href="#A5.T5" title="Table 5 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>, with Figure <a href="#A5.F8" title="Figure 8 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8</span></a> presenting an example of rendered HTML from a slide.</p>
+</div>
+</section>
+<section id="A5" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix E </span>Prompts</h2>
+
+<section id="A5.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">E.1 </span>Prompts for Presentation Analysis</h3>
+
+<div id="A5.SS1.p1" class="ltx_para">
+<p class="ltx_p">The prompts used for presentation analysis are illustrated in Figures <a href="#A5.F9" title="Figure 9 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a>, <a href="#A5.F10" title="Figure 10 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10</span></a>, and <a href="#A5.F11" title="Figure 11 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">11</span></a>.</p>
+</div>
+</section>
+<section id="A5.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">E.2 </span>Prompts for Presentation Generation</h3>
+
+<div id="A5.SS2.p1" class="ltx_para">
+<p class="ltx_p">The prompts used for generating presentations are shown in Figures <a href="#A5.F12" title="Figure 12 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">12</span></a>, <a href="#A5.F13" title="Figure 13 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13</span></a>, and <a href="#A5.F14" title="Figure 14 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">14</span></a>.</p>
+</div>
+</section>
+<section id="A5.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">E.3 </span>Prompts for PPTEval</h3>
+
+<div id="A5.SS3.p1" class="ltx_para">
+<p class="ltx_p">The prompts used in PPTEval are depicted in Figures <a href="#A5.F15" title="Figure 15 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">15</span></a>, <a href="#A5.F16" title="Figure 16 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">16</span></a>, <a href="#A5.F17" title="Figure 17 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">17</span></a>, <a href="#A5.F18" title="Figure 18 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">18</span></a>, <a href="#A5.F19" title="Figure 19 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">19</span></a> and <a href="#A5.F20" title="Figure 20 ‣ E.3 Prompts for PPTEval ‣ Appendix E Prompts ‣ PPTPPTAgent: Generating and Evaluating Presentations Beyond Text-to-Slides" class="ltx_ref"><span class="ltx_text ltx_ref_tag">20</span></a>.</p>
+</div>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<figure id="A5.F6" class="ltx_figure"><img src="/html/2501.03936/assets/x6.png" id="A5.F6.g1" class="ltx_graphics ltx_centering ltx_img_square" width="436" height="405" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 6: </span>Scoring Examples of <span class="ltx_text" style="position:relative; bottom:-1.0pt;"><svg version="1.1" fill="none" height="10.7928601079286" stroke="none" width="30.1646603016466" overflow="visible"><g transform="translate(0,10.7928601079286) scale(1,-1)"><g transform="translate(0,0)"><g transform="translate(1.38,0)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" color="#A8A8A8" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g><g transform="translate(0,1.38)"><g class="makebox" transform="translate(0,0)"><text x="0" y="0" transform="scale(1, -1)" fill="black" font-style="italic">PPT</text></g></g></g></g></svg></span><span class="ltx_text ltx_font_italic">Eval</span>.</figcaption>
+</figure>
+<figure id="A5.F7" class="ltx_figure"><img src="/html/2501.03936/assets/x7.png" id="A5.F7.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="436" height="350" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 7: </span>Example of slide clusters.</figcaption>
+</figure>
+<figure id="alg1" class="ltx_float ltx_float_algorithm ltx_framed ltx_framed_top">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_float"><span class="ltx_text ltx_font_bold">Algorithm 1</span> </span> Slides Clustering Algorithm</figcaption>
+<div class="ltx_listing ltx_listing">
+<div id="alg1.l1" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">1:</span><span class="ltx_text ltx_font_bold">Input:</span> Similarity matrix of slides <math id="alg1.l1.m1" class="ltx_Math" alttext="S\in\mathbb{R}^{N\times N}" display="inline"><semantics><mrow><mi>S</mi><mo>∈</mo><msup><mi>ℝ</mi><mrow><mi>N</mi><mo lspace="0.222em" rspace="0.222em">×</mo><mi>N</mi></mrow></msup></mrow><annotation encoding="application/x-tex">S\in\mathbb{R}^{N\times N}</annotation></semantics></math>, similarity threshold <math id="alg1.l1.m2" class="ltx_Math" alttext="\theta" display="inline"><semantics><mi>θ</mi><annotation encoding="application/x-tex">\theta</annotation></semantics></math>
+
+</div>
+<div id="alg1.l2" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">2:</span><span class="ltx_text ltx_font_bold">Initialize:</span> <math id="alg1.l2.m1" class="ltx_Math" alttext="C\leftarrow\emptyset" display="inline"><semantics><mrow><mi>C</mi><mo stretchy="false">←</mo><mi mathvariant="normal">∅</mi></mrow><annotation encoding="application/x-tex">C\leftarrow\emptyset</annotation></semantics></math>
+
+</div>
+<div id="alg1.l3" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">3:</span><span class="ltx_text ltx_font_bold">while</span> <math id="alg1.l3.m1" class="ltx_Math" alttext="\max(S)\geq\theta" display="inline"><semantics><mrow><mrow><mi>max</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo></mrow></mrow><mo>≥</mo><mi>θ</mi></mrow><annotation encoding="application/x-tex">\max(S)\geq\theta</annotation></semantics></math> <span class="ltx_text ltx_font_bold">do</span>
+
+</div>
+<div id="alg1.l4" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">4:</span>  <math id="alg1.l4.m1" class="ltx_Math" alttext="(i,j)\leftarrow\arg\max(S)" display="inline"><semantics><mrow><mrow><mo stretchy="false">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="false">)</mo></mrow><mo stretchy="false">←</mo><mrow><mi>arg</mi><mo lspace="0.167em">⁡</mo><mrow><mi>max</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo><mi>S</mi><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">(i,j)\leftarrow\arg\max(S)</annotation></semantics></math>
+
+</div>
+<div id="alg1.l5" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">5:</span>  <span class="ltx_text ltx_font_bold">if</span> <math id="alg1.l5.m1" class="ltx_Math" alttext="\exists c_{k}\in C\text{ such that }(i\in c_{k}\lor j\in c_{k})" display="inline"><semantics><mrow><mrow><mo rspace="0.167em">∃</mo><msub><mi>c</mi><mi>k</mi></msub></mrow><mo>∈</mo><mrow><mi>C</mi><mo lspace="0em" rspace="0em">​</mo><mtext> such that </mtext><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><mi>i</mi><mo>∈</mo><mrow><msub><mi>c</mi><mi>k</mi></msub><mo>∨</mo><mi>j</mi></mrow><mo>∈</mo><msub><mi>c</mi><mi>k</mi></msub></mrow><mo stretchy="false">)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\exists c_{k}\in C\text{ such that }(i\in c_{k}\lor j\in c_{k})</annotation></semantics></math> <span class="ltx_text ltx_font_bold">then</span>
+
+</div>
+<div id="alg1.l6" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">6:</span>   <math id="alg1.l6.m1" class="ltx_Math" alttext="c_{k}\leftarrow c_{k}\cup\{i,j\}" display="inline"><semantics><mrow><msub><mi>c</mi><mi>k</mi></msub><mo stretchy="false">←</mo><mrow><msub><mi>c</mi><mi>k</mi></msub><mo>∪</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="false">}</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">c_{k}\leftarrow c_{k}\cup\{i,j\}</annotation></semantics></math>
+
+</div>
+<div id="alg1.l7" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">7:</span>  <span class="ltx_text ltx_font_bold">else</span>
+</div>
+<div id="alg1.l8" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">8:</span>   <math id="alg1.l8.m1" class="ltx_Math" alttext="c_{\text{new}}\leftarrow\{i,j\}" display="inline"><semantics><mrow><msub><mi>c</mi><mtext>new</mtext></msub><mo stretchy="false">←</mo><mrow><mo stretchy="false">{</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="false">}</mo></mrow></mrow><annotation encoding="application/x-tex">c_{\text{new}}\leftarrow\{i,j\}</annotation></semantics></math>
+
+</div>
+<div id="alg1.l9" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">9:</span>   <math id="alg1.l9.m1" class="ltx_Math" alttext="C\leftarrow C\cup\{c_{\text{new}}\}" display="inline"><semantics><mrow><mi>C</mi><mo stretchy="false">←</mo><mrow><mi>C</mi><mo>∪</mo><mrow><mo stretchy="false">{</mo><msub><mi>c</mi><mtext>new</mtext></msub><mo stretchy="false">}</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">C\leftarrow C\cup\{c_{\text{new}}\}</annotation></semantics></math>
+
+</div>
+<div id="alg1.l10" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">10:</span>  <span class="ltx_text ltx_font_bold">end</span> <span class="ltx_text ltx_font_bold">if</span>
+</div>
+<div id="alg1.l11" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">11:</span>   Update <math id="alg1.l11.m1" class="ltx_Math" alttext="S" display="inline"><semantics><mi>S</mi><annotation encoding="application/x-tex">S</annotation></semantics></math>:
+
+</div>
+<div id="alg1.l12" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">12:</span>     <math id="alg1.l12.m1" class="ltx_Math" alttext="S[:,i]\leftarrow 0" display="inline"><semantics><mrow><mrow><mi>S</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">[</mo><mo rspace="0em">:</mo><mo>,</mo><mi>i</mi><mo stretchy="false">]</mo></mrow></mrow><mo stretchy="false">←</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">S[:,i]\leftarrow 0</annotation></semantics></math>, <math id="alg1.l12.m2" class="ltx_Math" alttext="S[i,:]\leftarrow 0" display="inline"><semantics><mrow><mrow><mi>S</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">[</mo><mi>i</mi><mo>,</mo><mo rspace="0em">:</mo><mo stretchy="false">]</mo></mrow></mrow><mo stretchy="false">←</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">S[i,:]\leftarrow 0</annotation></semantics></math>
+
+</div>
+<div id="alg1.l13" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">13:</span>     <math id="alg1.l13.m1" class="ltx_Math" alttext="S[:,j]\leftarrow 0" display="inline"><semantics><mrow><mrow><mi>S</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">[</mo><mo rspace="0em">:</mo><mo>,</mo><mi>j</mi><mo stretchy="false">]</mo></mrow></mrow><mo stretchy="false">←</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">S[:,j]\leftarrow 0</annotation></semantics></math>, <math id="alg1.l13.m2" class="ltx_Math" alttext="S[j,:]\leftarrow 0" display="inline"><semantics><mrow><mrow><mi>S</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">[</mo><mi>j</mi><mo>,</mo><mo rspace="0em">:</mo><mo stretchy="false">]</mo></mrow></mrow><mo stretchy="false">←</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">S[j,:]\leftarrow 0</annotation></semantics></math>
+
+</div>
+<div id="alg1.l14" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">14:</span><span class="ltx_text ltx_font_bold">end</span> <span class="ltx_text ltx_font_bold">while</span>
+</div>
+<div id="alg1.l15" class="ltx_listingline">
+<span class="ltx_tag ltx_tag_listingline">15:</span><span class="ltx_text ltx_font_bold">Return:</span> <math id="alg1.l15.m1" class="ltx_Math" alttext="C" display="inline"><semantics><mi>C</mi><annotation encoding="application/x-tex">C</annotation></semantics></math>
+
+</div>
+</div>
+</figure>
+<figure id="A5.T5" class="ltx_table">
+<table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_r ltx_border_t"><span class="ltx_text ltx_font_bold">Function Name</span></th>
+<th class="ltx_td ltx_align_justify ltx_align_top ltx_th ltx_th_column ltx_border_r ltx_border_t">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p" style="width:369.9pt;"><span class="ltx_text ltx_font_bold">Description</span></span>
+</span>
+</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_t"><span class="ltx_text ltx_font_typewriter">del_span</span></th>
+<td class="ltx_td ltx_align_justify ltx_align_top ltx_border_r ltx_border_t">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p" style="width:369.9pt;">Deletes a specific span.</span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_t"><span class="ltx_text ltx_font_typewriter">del_image</span></th>
+<td class="ltx_td ltx_align_justify ltx_align_top ltx_border_r ltx_border_t">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p" style="width:369.9pt;">Deletes an image element.</span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_t"><span class="ltx_text ltx_font_typewriter">clone_paragraph</span></th>
+<td class="ltx_td ltx_align_justify ltx_align_top ltx_border_r ltx_border_t">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p" style="width:369.9pt;">Creates a duplicate of an existing paragraph.</span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_t"><span class="ltx_text ltx_font_typewriter">replace_span</span></th>
+<td class="ltx_td ltx_align_justify ltx_align_top ltx_border_r ltx_border_t">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p" style="width:369.9pt;">Replaces the content of a specific span.</span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_l ltx_border_r ltx_border_t"><span class="ltx_text ltx_font_typewriter">replace_image</span></th>
+<td class="ltx_td ltx_align_justify ltx_align_top ltx_border_b ltx_border_r ltx_border_t">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p" style="width:369.9pt;">Replaces an image with a new image.</span>
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 5: </span>Definition and function of our provided APIs.</figcaption>
+</figure>
+<figure id="A5.F8" class="ltx_figure"><img src="/html/2501.03936/assets/figures/ray-so-export-6.png" id="A5.F8.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="598" height="299" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 8: </span>Example of rendering a slide into HTML format.</figcaption>
+</figure>
+<figure id="A5.F9" class="ltx_figure"><img src="/html/2501.03936/assets/x8.png" id="A5.F9.g1" class="ltx_graphics ltx_centering ltx_img_square" width="436" height="452" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 9: </span>Illustration of the prompt used for clustering structural slides.</figcaption>
+</figure>
+<figure id="A5.F10" class="ltx_figure"><img src="/html/2501.03936/assets/x9.png" id="A5.F10.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="436" height="321" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 10: </span>Illustration of the prompt used to infer layout patterns.</figcaption>
+</figure>
+<figure id="A5.F11" class="ltx_figure"><img src="/html/2501.03936/assets/x10.png" id="A5.F11.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="436" height="331" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 11: </span>Illustration of the prompt used to extract the slide schema.</figcaption>
+</figure>
+<figure id="A5.F12" class="ltx_figure"><img src="/html/2501.03936/assets/x11.png" id="A5.F12.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="436" height="590" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 12: </span>Illustration of the prompt used for generating the outline.</figcaption>
+</figure>
+<figure id="A5.F13" class="ltx_figure"><img src="/html/2501.03936/assets/x12.png" id="A5.F13.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="436" height="581" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 13: </span>Illustration of the prompt used for generating slide content.</figcaption>
+</figure>
+<figure id="A5.F14" class="ltx_figure"><img src="/html/2501.03936/assets/x13.png" id="A5.F14.g1" class="ltx_graphics ltx_centering ltx_img_square" width="436" height="514" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 14: </span>Illustration of the prompt used for generating editing actions.</figcaption>
+</figure>
+<figure id="A5.F15" class="ltx_figure"><img src="/html/2501.03936/assets/x14.png" id="A5.F15.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="436" height="187" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 15: </span>Illustration of the prompt used to describe content in PPTEval.</figcaption>
+</figure>
+<figure id="A5.F16" class="ltx_figure"><img src="/html/2501.03936/assets/x15.png" id="A5.F16.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="436" height="206" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 16: </span>Illustration of the prompt used to describe style in PPTEval.</figcaption>
+</figure>
+<figure id="A5.F17" class="ltx_figure"><img src="" id="A5.F17.g1" class="ltx_graphics ltx_centering ltx_missing ltx_missing_image" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 17: </span>Illustration of the prompt used to extract content in PPTEval.</figcaption>
+</figure>
+<figure id="A5.F18" class="ltx_figure"><img src="/html/2501.03936/assets/x17.png" id="A5.F18.g1" class="ltx_graphics ltx_centering ltx_img_square" width="436" height="381" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 18: </span>Illustration of the prompt used to evaluate content in PPTEval.</figcaption>
+</figure>
+<figure id="A5.F19" class="ltx_figure"><img src="/html/2501.03936/assets/x18.png" id="A5.F19.g1" class="ltx_graphics ltx_centering ltx_img_square" width="436" height="383" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 19: </span>Illustration of the prompt used to evaluate style in PPTEval.</figcaption>
+</figure>
+<figure id="A5.F20" class="ltx_figure"><img src="/html/2501.03936/assets/x19.png" id="A5.F20.g1" class="ltx_graphics ltx_centering ltx_img_square" width="436" height="424" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 20: </span>Illustration of the prompt used to evaluate coherence in PPTEval.</figcaption>
+</figure>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2501.03935" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2501.03936" class="ar5iv-text-button ar5iv-severity-error">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2501.03936">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2501.03936" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2501.03937" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Wed Feb  5 16:52:35 2025 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

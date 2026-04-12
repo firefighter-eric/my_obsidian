@@ -1,0 +1,2576 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2503.11576] SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion</title><meta property="og:description" content="We introduce SmolDocling, an ultra-compact vision-language model targeting end-to-end document conversion.
+Our model comprehensively processes entire pages by generating DocTags, a new universal markup format that capt…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2503.11576">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2503.11576">
+
+<!--Generated on Sat Apr  5 21:08:22 2025 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_title_document">SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+<span class="ltx_text ltx_font_bold">Ahmed Nassar<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">1</span></sup></span>, <span class="ltx_text ltx_font_bold">Andres Marafioti<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">2</span></sup></span>, <span class="ltx_text ltx_font_bold">Matteo Omenetti<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">1</span></sup></span>, <span class="ltx_text ltx_font_bold">Maksym Lysak<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">1</span></sup></span>, <span class="ltx_text ltx_font_bold">Nikolaos Livathinos<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">1</span></sup></span>, 
+<br class="ltx_break"><span class="ltx_text ltx_font_bold">Christoph Auer<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">1</span></sup></span>, <span class="ltx_text ltx_font_bold">Lucas Morin<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">1</span></sup></span>, <span class="ltx_text ltx_font_bold">Rafael Teixeira de Lima<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">1</span></sup></span>, <span class="ltx_text ltx_font_bold">Yusik Kim<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">1</span></sup></span>, <span class="ltx_text ltx_font_bold">A. Said Gurbuz<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">1</span></sup></span>, 
+<br class="ltx_break"><span class="ltx_text ltx_font_bold">Michele Dolfi<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">1</span></sup></span>, <span class="ltx_text ltx_font_bold">Miquel Farré<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">2</span></sup></span>, <span class="ltx_text ltx_font_bold">Peter W. J. Staar<sup class="ltx_sup"><span class="ltx_text ltx_font_medium">1</span></sup></span> 
+<br class="ltx_break">
+<br class="ltx_break">IBM Research<sup class="ltx_sup">1</sup>, HuggingFace<sup class="ltx_sup">2</sup> 
+<br class="ltx_break">
+<br class="ltx_break"><a target="_blank" href="https://huggingface.co/ds4sd/SmolDocling-256M-preview" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://huggingface.co/ds4sd/SmolDocling-256M-preview</a> 
+<br class="ltx_break">Version 1.0, March 14<sup class="ltx_sup">th</sup> 2025
+</span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p class="ltx_p">We introduce SmolDocling, an ultra-compact vision-language model targeting end-to-end document conversion.
+Our model comprehensively processes entire pages by generating DocTags, a new universal markup format that captures all page elements in their full context with location. Unlike existing approaches that rely on large foundational models, or ensemble solutions that rely on handcrafted pipelines of multiple specialized models, SmolDocling offers an end-to-end conversion for accurately capturing content, structure and spatial location of document elements in a 256M parameters vision-language model.
+SmolDocling exhibits robust performance in correctly reproducing document features such as code listings, tables, equations, charts, lists, and more across a diverse range of document types including business documents, academic papers, technical reports, patents, and forms — significantly extending beyond the commonly observed focus on scientific papers.
+Additionally, we contribute novel publicly sourced datasets for charts, tables, equations, and code recognition.
+Experimental results demonstrate that SmolDocling competes with other Vision Language Models that are up to 27 times larger in size, while reducing computational requirements substantially. The model is currently available, datasets will be publicly available soon.</p>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<figure id="S1.F1" class="ltx_figure"><img src="/html/2503.11576/assets/x1.png" id="S1.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="538" height="198" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1: </span><span class="ltx_text ltx_font_bold">SmolDocling/SmolVLM architecture.</span> SmolDocling converts images of document pages to <span class="ltx_text ltx_font_italic">DocTags</span> sequences. First, input images are encoded using a vision encoder and reshaped via projection and pooling. Then, the projected embeddings are concatenated with the text embeddings of the user prompt, possibly with interleaving. Finally, the sequence is used by an LLM to autoregressively predict the <span class="ltx_text ltx_font_italic">DocTags</span> sequence.</figcaption>
+</figure>
+<div id="S1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">For decades, converting complex digital documents into a structured, machine-processable format has been a significant technical challenge. This challenge primarily stems from the substantial variability in document layouts and styles, as well as the inherently opaque nature of the widely used PDF format, which is optimized for printing rather than semantic parsing. Intricate layout styles and visually challenging elements such as forms, tables, and complex charts can significantly impact the reading order and general understanding of documents.
+These problems have driven extensive research and development across multiple domains of computer science. On one hand, sophisticated ensemble systems emerged, which decompose the conversion problem into several sub-tasks (e.g. OCR, layout analysis, table structure recognition, classification) and tackle each sub-task independently.
+Although such systems can achieve high-quality results for many document types while maintaining relatively low computational demands, they are often difficult to tune and generalize.</p>
+</div>
+<div id="S1.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">On the other hand, in the recent past, great interest has developed around large foundational multimodal models that can solve the whole conversion task in one shot, while simultaneously offering flexible querying and parametrization through prompts.
+This approach has been made possible by the advent of multimodal pre-training of large vision-language models (LVLMs), which opened up a vast array of opportunities for leveraging diverse data sources, including PDF documents. However, the literature on this topic highlights a significant gap in the availability of high-quality and open-access datasets suitable for training robust multi-modal models for the task of document understanding.
+Furthermore, relying on LVLMs may introduce common issues associated with such models, including hallucinations and the use of significant computational resources, making them impractical from both a quality and cost perspective.</p>
+</div>
+<div id="S1.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p">In this work, we outline how we close the gaps left by publicly available datasets and establish a training approach to achieve end-to-end, full-featured document conversion through a vision-language model, which we name <span class="ltx_text ltx_font_italic">SmolDocling</span>. Our main contributions can be summarized as follows:</p>
+</div>
+<div id="S1.p4" class="ltx_para ltx_noindent">
+<ul id="S1.I1" class="ltx_itemize">
+<li id="S1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i1.p1" class="ltx_para">
+<p class="ltx_p">SmolDocling: An ultra-compact VLM for end-to-end document conversion, based on Hugging Face’s most recent SmolVLM-256M <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib56" title="" class="ltx_ref">56</a>]</cite>, which is between 5 and 10 times smaller in parameters than comparable VLMs tuned on document understanding tasks. Hence, we reduce the computational complexity to roughly the same order of magnitude as typical representatives of ensemble methods. Uniquely, SmolDocling learns and produces a unified document representation that captures content, structure and spatial location of all elements in a page.</p>
+</div>
+</li>
+<li id="S1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i2.p1" class="ltx_para">
+<p class="ltx_p">We augment existing document pre-training datasets with additional feature annotations, and create new datasets for tasks with insufficient coverage in open multi-modal training datasets, including code listings, equations, and chart understanding. Importantly, we construct <span class="ltx_text ltx_font_italic">full-page</span> ground truth data that combines key annotation features such as layout, table structure, code listings, charts, and formulas in their natural context, and derive instruction datasets from all training datasets used.</p>
+</div>
+</li>
+<li id="S1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i3.p1" class="ltx_para">
+<p class="ltx_p">We introduce <span class="ltx_text ltx_font_italic">DocTags</span>, a document markup format optimized to efficiently represent the full content and layout characteristics of a document, inspired by  <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib55" title="" class="ltx_ref">55</a>]</cite>.</p>
+</div>
+</li>
+<li id="S1.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i4.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">We evaluate the achieved prediction quality of SmolDocling on several tasks, including comparisons to popular community models.</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Related Work</h2>
+
+<section id="S2.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.1 </span>Large Vision-Language Models (LVLMs)</h3>
+
+<div id="S2.SS1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">With the advent of large language models (LLMs) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib74" title="" class="ltx_ref">74</a>, <a href="#bib.bib66" title="" class="ltx_ref">66</a>, <a href="#bib.bib82" title="" class="ltx_ref">82</a>, <a href="#bib.bib32" title="" class="ltx_ref">32</a>, <a href="#bib.bib90" title="" class="ltx_ref">90</a>, <a href="#bib.bib4" title="" class="ltx_ref">4</a>, <a href="#bib.bib8" title="" class="ltx_ref">8</a>, <a href="#bib.bib25" title="" class="ltx_ref">25</a>, <a href="#bib.bib2" title="" class="ltx_ref">2</a>]</cite> characterized by their powerful contextual understanding and adaptability, several approaches have emerged to extend them into large vision-language models. Some proprietary, closed-source LLMs have been adapted into multimodal large language models (MLLMs), such as GPT-4o <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib65" title="" class="ltx_ref">65</a>]</cite>, Gemini <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib80" title="" class="ltx_ref">80</a>]</cite>, and Claude 3.5 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib5" title="" class="ltx_ref">5</a>]</cite>, demonstrating exceptional capabilities across various modalities, including vision. Open-source methods are actively advancing to match the capabilities of proprietary MLLMs. BLIP-2 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib47" title="" class="ltx_ref">47</a>]</cite> is one of the earliest works combining a vision encoder with a frozen LLM (OPT <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib102" title="" class="ltx_ref">102</a>]</cite> or FlanT5 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref">14</a>]</cite>) using a lightweight transformer (Q-former <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib101" title="" class="ltx_ref">101</a>]</cite>). Building upon BLIP-2, MiniGPT-4 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib105" title="" class="ltx_ref">105</a>]</cite> integrated a frozen visual encoder with a frozen LLM (Vicuna <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib85" title="" class="ltx_ref">85</a>]</cite>) using a Q-Former network and a single projection layer. LLaVA <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib52" title="" class="ltx_ref">52</a>, <a href="#bib.bib51" title="" class="ltx_ref">51</a>]</cite> employs a similar architecture but uses a minimal adapter layer. LLaVA-OneVision <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib45" title="" class="ltx_ref">45</a>]</cite> and LLaVA-NeXT-Interleave <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib46" title="" class="ltx_ref">46</a>]</cite> build upon LLaVA to support multi-image, higher resolution, and video understanding. For handling high resolutions and text-image compositions and comprehension, InternLM-XComposer introduces a family of models <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib99" title="" class="ltx_ref">99</a>, <a href="#bib.bib100" title="" class="ltx_ref">100</a>, <a href="#bib.bib20" title="" class="ltx_ref">20</a>, <a href="#bib.bib19" title="" class="ltx_ref">19</a>]</cite> designed specifically for these tasks. Qwen-VL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib8" title="" class="ltx_ref">8</a>]</cite> introduces a position-aware adapter to address efficiency issues caused by the vision encoder generating long image feature sequences. Qwen2.5-VL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite> employs windowed attention with 2D rotary positional embeddings to process native-resolution inputs efficiently and integrates an vision-language merger for dynamic feature compression.</p>
+</div>
+<div id="S2.SS1.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">In this work, we build upon the SmolVLM architecture approach <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib56" title="" class="ltx_ref">56</a>]</cite>. Precisely, we adopt SmolVLM-256M, a compact variant of base SmolVLM-2.2B model, inspired by the architecture of Idefics3 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib41" title="" class="ltx_ref">41</a>]</cite> which employs the shape-optimized SigLIP encoder as its visual backbone. It applies an aggressive pixel shuffle strategy to compress visual features, reduces the number of image hidden states and introduces new special tokens to separate sub-images and improve tokenization efficiency.</p>
+</div>
+</section>
+<section id="S2.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.2 </span>State of the Art in Document Understanding</h3>
+
+<div id="S2.SS2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Several powerful document understanding solutions have emerged on the market in the past decade as commercial cloud offerings on hyperscalers <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib24" title="" class="ltx_ref">24</a>, <a href="#bib.bib62" title="" class="ltx_ref">62</a>, <a href="#bib.bib3" title="" class="ltx_ref">3</a>, <a href="#bib.bib6" title="" class="ltx_ref">6</a>]</cite>, frontier models such as GPT-4o <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib65" title="" class="ltx_ref">65</a>]</cite> or Claude <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib5" title="" class="ltx_ref">5</a>]</cite>, or as open-source libraries such as Docling <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib53" title="" class="ltx_ref">53</a>]</cite>, Grobid <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref">1</a>]</cite>, Marker <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib67" title="" class="ltx_ref">67</a>]</cite>, MinerU <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib86" title="" class="ltx_ref">86</a>]</cite> or Unstructured <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib84" title="" class="ltx_ref">84</a>]</cite>. Typical tasks that document understanding encompasses are document classification <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib96" title="" class="ltx_ref">96</a>, <a href="#bib.bib29" title="" class="ltx_ref">29</a>]</cite>, OCR <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib48" title="" class="ltx_ref">48</a>]</cite>, layout analysis <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib95" title="" class="ltx_ref">95</a>, <a href="#bib.bib70" title="" class="ltx_ref">70</a>]</cite>, table recognition <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib103" title="" class="ltx_ref">103</a>, <a href="#bib.bib55" title="" class="ltx_ref">55</a>, <a href="#bib.bib78" title="" class="ltx_ref">78</a>]</cite>, key-value extraction <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib29" title="" class="ltx_ref">29</a>, <a href="#bib.bib35" title="" class="ltx_ref">35</a>, <a href="#bib.bib31" title="" class="ltx_ref">31</a>]</cite>, chart understanding <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib49" title="" class="ltx_ref">49</a>, <a href="#bib.bib57" title="" class="ltx_ref">57</a>, <a href="#bib.bib50" title="" class="ltx_ref">50</a>, <a href="#bib.bib26" title="" class="ltx_ref">26</a>, <a href="#bib.bib60" title="" class="ltx_ref">60</a>, <a href="#bib.bib93" title="" class="ltx_ref">93</a>, <a href="#bib.bib94" title="" class="ltx_ref">94</a>, <a href="#bib.bib13" title="" class="ltx_ref">13</a>, <a href="#bib.bib58" title="" class="ltx_ref">58</a>, <a href="#bib.bib33" title="" class="ltx_ref">33</a>, <a href="#bib.bib34" title="" class="ltx_ref">34</a>]</cite>, equation recognition <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib77" title="" class="ltx_ref">77</a>, <a href="#bib.bib68" title="" class="ltx_ref">68</a>, <a href="#bib.bib18" title="" class="ltx_ref">18</a>, <a href="#bib.bib97" title="" class="ltx_ref">97</a>, <a href="#bib.bib23" title="" class="ltx_ref">23</a>]</cite>, and more.</p>
+</div>
+<div id="S2.SS2.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">Ensemble systems, such as the aforementioned open-source libraries <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib53" title="" class="ltx_ref">53</a>, <a href="#bib.bib1" title="" class="ltx_ref">1</a>, <a href="#bib.bib67" title="" class="ltx_ref">67</a>, <a href="#bib.bib86" title="" class="ltx_ref">86</a>]</cite>, implement a pipeline in source code, which conditionally applies specialized, single-task models on a given input document, composing the prediction results into a meaningful document representation. Typically, each task entails human-crafted handling of pre-processing and post-processing logic (i.e. setting confidence thresholds for layout detections, matching layout elements to text cells, conditionally applying models).</p>
+</div>
+<div id="S2.SS2.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p">Conversely, multi-task models aim at providing a single model capable of handling various document-understanding related tasks simultaneously, benefiting from shared context and shared representations learned across these different tasks. OCR-reliant methods, such as LayoutLM <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib96" title="" class="ltx_ref">96</a>, <a href="#bib.bib95" title="" class="ltx_ref">95</a>, <a href="#bib.bib29" title="" class="ltx_ref">29</a>]</cite> and UDOP <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib79" title="" class="ltx_ref">79</a>]</cite>, use text extracted from an external OCR engine, along with image and text bounding box locations, as input. In contrast, OCR-free methods such as Donut <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib35" title="" class="ltx_ref">35</a>]</cite>, Dessurt <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib17" title="" class="ltx_ref">17</a>]</cite>, DocParser <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib76" title="" class="ltx_ref">76</a>]</cite>, Pix2Struct <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib43" title="" class="ltx_ref">43</a>]</cite> are transformer-based models trained end-to-end to take an image as input and directly output text. Large Vision Language Models (LVLMs) such as LLaVA <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib51" title="" class="ltx_ref">51</a>]</cite>, LLaVA-OneVision <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib45" title="" class="ltx_ref">45</a>]</cite>, UReader <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib98" title="" class="ltx_ref">98</a>]</cite>, Kosmos-2 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib69" title="" class="ltx_ref">69</a>]</cite>, and Qwen-VL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib8" title="" class="ltx_ref">8</a>]</cite> all leverage various vision encoders, projection adapters, and LLMs. While they may use different image patching techniques and instruction-tuning datasets to handle a range of vision tasks, they commonly evaluate their document understanding capabilities on datasets like DocVQA <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib59" title="" class="ltx_ref">59</a>]</cite> and mPLUG-DocOwl 1.5 datasets <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib27" title="" class="ltx_ref">27</a>]</cite>, primarily focusing on question answering and reasoning.</p>
+</div>
+<div id="S2.SS2.p4" class="ltx_para ltx_noindent">
+<p class="ltx_p">Our work focuses primarily on document understanding tasks related to conversion and structural recognition, aiming to represent documents with high accuracy and completeness. The closest works to our approach are Nougat <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref">12</a>]</cite>, DocOwl 2 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib28" title="" class="ltx_ref">28</a>]</cite>, GOT <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib89" title="" class="ltx_ref">89</a>]</cite>, and Qwen2.5-VL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite>. DocOwl 2 and GOT are dedicated to precise conversion and recognition of document structures. On one hand, DocOwl 2 employs a dynamic shape-adaptive cropping module to process high-resolution images, feeding them into a ViT vision encoder. A dedicated module compresses the processed visual features before feeding them into a LLaMa-based LLM. On the other hand, GOT focuses on converting diverse elements—such as text, formulas, molecular diagrams, tables, charts, sheet music, and geometric shapes—into structured formats. It achieves a lightweight architecture by utilizing a SAM vision encoder <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib37" title="" class="ltx_ref">37</a>]</cite>, a linear projection layer, and a Qwen-0.5B LLM. Building on these approaches, our work not only extends the range of tasks but also broadens the types of documents handled, moving beyond a strictly scientific focus to support a more diverse array of document formats. In parallel, Qwen2.5-VL introduces the <span class="ltx_text ltx_font_italic">Omni-Parsing</span> strategy, that integrates multiple document elements into a unified HTML-based representation. This format encodes layout bounding box information and reading order for various document elements such as paragraphs and charts.</p>
+</div>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>SmolDocling</h2>
+
+<figure id="S3.F2" class="ltx_figure"><img src="/html/2503.11576/assets/figs/doctags_v2.png" id="S3.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="598" height="383" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 2: </span><span class="ltx_text ltx_font_bold">DocTags format</span> describes key features of document elements: type of an element (text, picture, table, code, etc.), location on the page, and content. Nested tags convey additional information: pictures and tables may nest captions, table structure is represented in OTSL tags, lists nest list items, code and pictures carry a classification. All <span class="ltx_text ltx_font_italic">DocTags</span> output is taken from SmolDocling predictions, artificial line-breaks and dots (…) were inserted for better readability. A, B, C - snippets of various pages from <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib55" title="" class="ltx_ref">55</a>]</cite>, D - from <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib92" title="" class="ltx_ref">92</a>]</cite></figcaption>
+</figure>
+<div id="S3.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Building on Hugging Face’s SmolVLM <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib56" title="" class="ltx_ref">56</a>]</cite>, SmolDocling converts document page images into sequences representing their content and structure. It produces a unified page representation (DocTags markup) that is optimized for the LLM backbone and interpretable by Docling <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib53" title="" class="ltx_ref">53</a>]</cite>. This new DocTags format covers the reproduction of captions, charts, forms, code, equations, tables, footnotes, lists, page footers and headers, section headings, and text. SmolDocling both recognizes the type and location of these elements as well as performs OCR within them. Our approach enables full-page conversion with reading-order and hierarchical linking between elements (e.g., linking captions with figures and tables), providing bounding boxes for each component, supporting isolated predictions on individual elements (e.g., cropped tables) and grouping for lists and nested lists.</p>
+</div>
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1 </span>Model Architecture</h3>
+
+<div id="S3.SS1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">The model architecture is illustrated in <a href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref ltx_refmacro_autoref"><span class="ltx_text ltx_ref_tag">Figure 1</span></a>. SmolVLM-256M relies on SigLIP base patch-16/512 (93M) as visual backbone and compared to the 2.2B version of the same model, its training data was rebalanced to emphasize document understanding (41%) and image captioning (14%), combining The Cauldron <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib42" title="" class="ltx_ref">42</a>]</cite>, Docmatix <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib41" title="" class="ltx_ref">41</a>]</cite> datasets with the addition of MathWriting <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib23" title="" class="ltx_ref">23</a>]</cite>. It uses lightweight variant of the SmolLM-2 family (135M) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib2" title="" class="ltx_ref">2</a>]</cite> as the language backbone and employs a radical pixel shuffle method that compresses each 512x512 image patch into 64 visual tokens.
+Last but not least, tokenization efficiency was also improved in SmolVLM-256M by increasing the pixel-to-token ratio to 4096 pixels per token and introducing special tokens for sub-image separators.</p>
+</div>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.2 </span>DocTags</h3>
+
+<div id="S3.SS2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">To train VLMs for standardized document conversion, we introduce the <span class="ltx_text ltx_font_italic">DocTags</span> markup format, illustrated in <a href="#A0.F3" title="Figure 3 ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref ltx_refmacro_autoref"><span class="ltx_text ltx_ref_tag">Figure 3</span></a>.
+Inspired by OTSL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib55" title="" class="ltx_ref">55</a>]</cite>, <span class="ltx_text ltx_font_italic">DocTags</span> define a structured vocabulary of unambiguous tags and rules that explicitly separate textual content from document structure. This disentanglement improves performances of Image-to-Sequence models by minimizing confusions. In contrast, direct conversion to standard formats such as HTML or Markdown is often lossy and ambiguous, lacking explicit structural markup, failing to preserve page layout context, and increasing total tokens count.
+Pieces of text content that represent basic elements in <span class="ltx_text ltx_font_italic">DocTags</span> are enclosed in XML-style tags.
+Tags define document block types such as: <span class="ltx_text ltx_font_italic">text, caption, footnote, formula, title, list_item, page_footer, page_header, picture, section_header, otsl, code, document_index, etc.</span> Each element can nest additional location tags encoding its position on the page as a bounding box, represented in DocTags as <span class="ltx_text ltx_font_typewriter">&lt;loc_<span class="ltx_text ltx_font_italic">x1</span>&gt;&lt;loc_<span class="ltx_text ltx_font_italic">y1</span>&gt;&lt;loc_<span class="ltx_text ltx_font_italic">x2</span>&gt;&lt;loc_<span class="ltx_text ltx_font_italic">y2</span>&gt;</span>.</p>
+</div>
+<div id="S3.SS2.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">Special blocks, such as tables and images, nest additional descriptors for captions, tabular structure, or image classes. To encode table structures, we fully include the OTSL vocabulary into <span class="ltx_text ltx_font_italic">DocTags</span>. OTSL has the advantage of being minimalist and supporting cell spans and header information. Its tokens are interleaved with text, allowing simultaneous encoding of both table structure and content. In order to promote robust visual-semantic alignment in our document understanding pipeline, we maintain a uniform <span class="ltx_text ltx_font_italic">DocTags</span> representation for cropped page elements (e.g., tables, code, equations) that is identical to their full-page counterparts. This consistency ensures that the model can leverage similar visual cues whether an element is presented in isolation or in the context of an entire page, thereby strengthening the learning signal for both computer vision and downstream machine learning tasks.</p>
+</div>
+<div id="S3.SS2.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p">For a complete list of tags and detailed description of the format, consult the appendix.</p>
+</div>
+</section>
+<section id="S3.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.3 </span>Model Training</h3>
+
+<div id="S3.SS3.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">We employ a curriculum learning approach to progressively align our model for document conversion, ensuring faster convergence. As an initial step, we incorporate DocTags as tokens in our tokenizer. To align the LLM part we freeze the vision encoder and train only the remaining network to adapt it to the new output format which it hasn’t seen before. To ensure comprehensive coverage of all DocTags, we maintain a balanced mix of tasks and data types during training. Next, we unfreeze the vision encoder and train the model on our pretraining datasets (see Sec. <a href="#S4.SS1" title="4.1 Pre-training datasets ‣ 4 Data ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.1</span></a>), along with all task-specific conversion datasets, including tables, code, equations, and charts. Finally, we fine-tune using all available datasets.</p>
+</div>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Data</h2>
+
+<div id="S4.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">For document understanding tasks, each page image represents the visual layout of textual elements—such as paragraphs, formulas, tables, code, or figures with embedded textual content. Publicly available datasets that unify all these characteristics remain limited, and existing corpora often suffer from small sample sizes or fragmented formats. In this section, we explain how we mitigate these issues in both pre-training and task-specific training scenarios.</p>
+</div>
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Pre-training datasets</h3>
+
+<div id="S4.SS1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">In the domain of document understanding, currently available open-access document pre-training datasets include OCR-IDL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib10" title="" class="ltx_ref">10</a>]</cite>, IIT-CDIP <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib44" title="" class="ltx_ref">44</a>]</cite>, CCpdf <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib83" title="" class="ltx_ref">83</a>]</cite>, and WordScape <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib88" title="" class="ltx_ref">88</a>]</cite>. OCR-IDL and IIT-CDIP, industry-sourced from the 1990s, provide only page images and OCR text. CCpdf and WordScape, derived from Common Crawl, focus on raw PDFs and Word documents, respectively. While WordScape enriches documents with layout, table structure, and topic information via XML markup, its visual variability is limited. Notably, none of these datasets offer rich annotations for all page elements.</p>
+</div>
+<div id="S4.SS1.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">DocLayNet-PT.</span> Given the lack of public multimodal document pre-training data with sufficient annotation features, we constructed a new document pre-training dataset named DocLayNet-PT. DocLayNet-PT is a 1.4M pages dataset extracted from the DocFM dataset <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib25" title="" class="ltx_ref">25</a>]</cite> of unique PDF documents, sourced from CommonCrawl, Wikipedia, and business-related documents. We focused on this dataset to look for documents including visually distinct content such as equations, tables, code and charts with colorful layouts. This dataset was augmented with weak annotations through a series of processing steps. First, we applied PDF parsing to all pages to obtain the text layout including positional information using Docling <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib7" title="" class="ltx_ref">7</a>, <a href="#bib.bib53" title="" class="ltx_ref">53</a>]</cite>. Next, we performed an enrichment step to obtain an enhanced, machine-friendly representation of each page. Specifically, we provide annotations for layout elements, table structure, language, topic, and figure classification on each page in DocTag format.</p>
+</div>
+<div id="S4.SS1.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Docmatix.</span> To preserve SmolVLM’s original DocVQA capabilities, we adapted the same weak annotation strategy used for DocLayNet-PT and applied it to the 1.3M documents inside Docmatix dataset <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib41" title="" class="ltx_ref">41</a>]</cite>. In addition to the 9.5 million DocVQA questions, we introduced another instruction requiring the full conversion of multi-page documents to DocTags.</p>
+</div>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Task-specific Datasets</h3>
+
+<div id="S4.SS2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Layout.</span> To optimize prediction quality for document layout and table structure, we sampled 76K pages from DocLayNet-PT. Each page underwent human annotation and rigorous quality review, resulting in a high-quality ground-truth dataset. Of these, 60K pages were utilized for fine-tuning, constituting what we refer to as DocLayNet v2. Additionally, we extracted 63K pages from WordScape, specifically filtering for pages containing both text and tables, and utilized their inherently structure-preserving format as a reliable source of ground truth.
+To further enhance the model’s adaptability to diverse layouts, colors, and fonts, we synthetically generated 250K pages using content from Wikipedia, creating the dataset known as SynthDocNet. This synthetic dataset enables the controlled generation of various document types with precise annotations. All datasets share a unified annotation format and class definitions, ensuring consistency and comprehensive document representation.</p>
+</div>
+<div id="S4.SS2.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Tables.</span> For the table structure recognition task we trained our model on public datasets such as PubTables-1M <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib78" title="" class="ltx_ref">78</a>]</cite>, FinTabNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib103" title="" class="ltx_ref">103</a>]</cite>, WikiTableSet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib54" title="" class="ltx_ref">54</a>]</cite> and tabular information extracted from WordScape documents. We transformed table structure information from the original ground-truth to OTSL format <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib55" title="" class="ltx_ref">55</a>]</cite>. Then, we interleaved each cell tag with ground-truth text. This yields a condensed sequence which represents the structure of the table (including merged cells, and header declaration) along with its textual content.</p>
+</div>
+<div id="S4.SS2.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Charts.</span> For chart reconstruction, several datasets are publicly available <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib58" title="" class="ltx_ref">58</a>, <a href="#bib.bib33" title="" class="ltx_ref">33</a>, <a href="#bib.bib34" title="" class="ltx_ref">34</a>, <a href="#bib.bib93" title="" class="ltx_ref">93</a>]</cite> that consist of both synthetic and web-scraped charts. However, these datasets are limited by either the quantity of real-world data or the visual diversity of synthetic examples. This has prompted recent studies <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib50" title="" class="ltx_ref">50</a>, <a href="#bib.bib26" title="" class="ltx_ref">26</a>, <a href="#bib.bib60" title="" class="ltx_ref">60</a>, <a href="#bib.bib94" title="" class="ltx_ref">94</a>, <a href="#bib.bib93" title="" class="ltx_ref">93</a>, <a href="#bib.bib13" title="" class="ltx_ref">13</a>, <a href="#bib.bib57" title="" class="ltx_ref">57</a>]</cite> to crawl or render additional datasets, which unfortunately are rarely shared publicly. To address these gaps, we generated our own chart dataset comprising four types of charts: line, pie, bar, and stacked bar. Using data from 90,000 tables sourced from the FinTabNet dataset <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib103" title="" class="ltx_ref">103</a>]</cite>, we generated a comprehensive dataset containing 5,000 line charts, 380,000 pie charts, 380,000 bar charts, and 77,000 stacked bar charts. Each data point was rendered using three different visualization libraries (details provided in the Appendix), yielding a total of 2.5 million visually diverse charts.</p>
+</div>
+<div id="S4.SS2.p4" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Code.</span> Technical books and scientific documents frequently include code snippets, making it essential for document-processing models to accurately interpret code structure, particularly indentation, which carries semantic significance in certain programming languages. Several publicly available datasets provide extensive collections of code snippets with permissive licenses in text format <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib38" title="" class="ltx_ref">38</a>, <a href="#bib.bib71" title="" class="ltx_ref">71</a>]</cite>, typically aggregated from sources like GitHub. However, a common limitation is that these datasets contain only text-based code snippets, lacking any image-based representation. To address this gap, we leveraged LaTeX and Pygments <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib16" title="" class="ltx_ref">16</a>]</cite> to generate visually diverse renderings of code (details provided in the Appendix). Our dataset includes 9.3M million rendered code snippets generated at 120 dpi, covering 56 programming languages.</p>
+</div>
+<div id="S4.SS2.p5" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Equations.</span> Accurately parsing mathematical formulas is crucial for document-processing models, as formulas often contain nuanced structures and semantics critical for scientific understanding. To effectively train our model for formula transcription, we combined publicly available datasets with a custom-rendered dataset. The public datasets <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib18" title="" class="ltx_ref">18</a>, <a href="#bib.bib22" title="" class="ltx_ref">22</a>, <a href="#bib.bib11" title="" class="ltx_ref">11</a>, <a href="#bib.bib23" title="" class="ltx_ref">23</a>]</cite> collectively comprise approximately 730k unique formulas. In addition, we extracted 4.7 million formulas from arXiv by applying a regular expression to the source LaTeX code.
+The extracted formulas underwent a rigorous normalization procedure to ensure the model was trained only on correct and standardized LaTex code. Subsequently, these normalized equations were visually rendered using LaTeX (details provided in the Appendix). Overall, our dataset includes 5.5 million unique formulas, each rendered at a resolution of 120 dpi.</p>
+</div>
+<figure id="S4.T1" class="ltx_table">
+<div class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:216.8pt;height:218pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="transform:translate(-79.6pt,80.0pt) scale(0.576749075067459,0.576749075067459) ;">
+<table class="ltx_tabular ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left ltx_border_tt"><span class="ltx_text ltx_font_bold">Dataset Name</span></td>
+<td class="ltx_td ltx_align_right ltx_border_tt"><span class="ltx_text ltx_font_bold">Size</span></td>
+<td class="ltx_td ltx_align_left ltx_border_tt"><span class="ltx_text ltx_font_bold">Type</span></td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left ltx_border_t">TheCauldron <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib42" title="" class="ltx_ref">42</a>]</cite>
+</td>
+<td class="ltx_td ltx_align_right ltx_border_t">2.63M</td>
+<td class="ltx_td ltx_align_left ltx_border_t" rowspan="3">Multi Task</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">DocLayNet-PT-Instruct</td>
+<td class="ltx_td ltx_align_right">1.62M</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">DocMatix w/ Doc Conversion* <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib41" title="" class="ltx_ref">41</a>]</cite>
+</td>
+<td class="ltx_td ltx_align_right">952K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left ltx_border_t">SynthChartNet*</td>
+<td class="ltx_td ltx_align_right ltx_border_t">2.5M</td>
+<td class="ltx_td ltx_align_left ltx_border_t" rowspan="5">Chart</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">PlotQA <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib61" title="" class="ltx_ref">61</a>]</cite>
+</td>
+<td class="ltx_td ltx_align_right">225K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">FigureQA <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib33" title="" class="ltx_ref">33</a>]</cite>
+</td>
+<td class="ltx_td ltx_align_right">100K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">Unichart <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib57" title="" class="ltx_ref">57</a>]</cite>
+</td>
+<td class="ltx_td ltx_align_right">600K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">ChartQA <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib58" title="" class="ltx_ref">58</a>]</cite>
+</td>
+<td class="ltx_td ltx_align_right">28K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left ltx_border_t">DocLayNet-PT</td>
+<td class="ltx_td ltx_align_right ltx_border_t">1.40M</td>
+<td class="ltx_td ltx_align_left ltx_border_t" rowspan="6">Conversion</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">Doc4MLlaVa - RVLCDIP</td>
+<td class="ltx_td ltx_align_right">742K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">SynthDocNet</td>
+<td class="ltx_td ltx_align_right">375K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">DocLayNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib70" title="" class="ltx_ref">70</a>]</cite>
+</td>
+<td class="ltx_td ltx_align_right">81K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">DocLayNet v2</td>
+<td class="ltx_td ltx_align_right">76K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">WordScape-PT</td>
+<td class="ltx_td ltx_align_right">63K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left ltx_border_t">PubTable1M <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib78" title="" class="ltx_ref">78</a>]</cite>
+</td>
+<td class="ltx_td ltx_align_right ltx_border_t">1M</td>
+<td class="ltx_td ltx_align_left ltx_border_t" rowspan="4">Table</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">WordScape Tables <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib88" title="" class="ltx_ref">88</a>]</cite>
+</td>
+<td class="ltx_td ltx_align_right">207K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">WikiTableSet (EN) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib54" title="" class="ltx_ref">54</a>]</cite>
+</td>
+<td class="ltx_td ltx_align_right">204K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left">FinTabNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib103" title="" class="ltx_ref">103</a>]</cite>
+</td>
+<td class="ltx_td ltx_align_right">90K</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left ltx_border_t">SynthFormulaNet*</td>
+<td class="ltx_td ltx_align_right ltx_border_t">5.5M</td>
+<td class="ltx_td ltx_align_left ltx_border_t">Formula</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t">SynthCodeNet*</td>
+<td class="ltx_td ltx_align_right ltx_border_bb ltx_border_t">9.3M</td>
+<td class="ltx_td ltx_align_left ltx_border_bb ltx_border_t">Code</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 1: </span><span class="ltx_text ltx_font_bold">Datasets.</span> Overview of the datasets used for the training and evaluation of SmolDocling. Datasets we contribute as part of this publication are denoted with (*).</figcaption>
+</figure>
+</section>
+<section id="S4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.3 </span>Document Instruction Tuning datasets</h3>
+
+<div id="S4.SS3.p1" class="ltx_para">
+<p class="ltx_p">To reinforce the recognition of different page elements and introduce document-related features and no-code pipelines, we leveraged rule-based techniques and the Granite-3.1-2b-instruct <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib25" title="" class="ltx_ref">25</a>]</cite> LLM. Using samples from DocLayNet-PT pages, we generated one instruction by randomly sampling layout elements from a page. These instructions included tasks such as “Perform OCR at bbox,” “Identify page element type at bbox,” and “Extract all section headers from the page.” In addition, we train with Cauldron <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib42" title="" class="ltx_ref">42</a>]</cite> to avoid catastrophic forgetting with the amount of conversation datasets introduced.</p>
+</div>
+<figure id="S4.T2" class="ltx_table">
+<div class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:170.2pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="transform:translate(-81.3pt,31.9pt) scale(0.727210380647896,0.727210380647896) ;">
+<table class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_tt">Method</th>
+<td class="ltx_td ltx_align_center ltx_border_tt">Size</td>
+<td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt">Edit Distance <math id="S4.T2.m1" class="ltx_Math" alttext="\downarrow" display="inline"><semantics><mo stretchy="false">↓</mo><annotation encoding="application/x-tex">\downarrow</annotation></semantics></math>
+</td>
+<td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt">F1-score <math id="S4.T2.m2" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>
+</td>
+<td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt">Precision <math id="S4.T2.m3" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>
+</td>
+<td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt">Recall <math id="S4.T2.m4" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>
+</td>
+<td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt">BLEU <math id="S4.T2.m5" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>
+</td>
+<td class="ltx_td ltx_align_left ltx_border_r ltx_border_tt">METEOR <math id="S4.T2.m6" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>
+</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" colspan="8"><span class="ltx_text ltx_font_italic">Full-page</span></th>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Qwen2.5 VL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite>
+</th>
+<td class="ltx_td ltx_align_center">7B</td>
+<td class="ltx_td ltx_align_center">0.56</td>
+<td class="ltx_td ltx_align_center">0.72</td>
+<td class="ltx_td ltx_align_center">0.80</td>
+<td class="ltx_td ltx_align_center">0.70</td>
+<td class="ltx_td ltx_align_center">0.46</td>
+<td class="ltx_td ltx_align_center">0.57</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">GOT <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib89" title="" class="ltx_ref">89</a>]</cite>
+</th>
+<td class="ltx_td ltx_align_center">580M</td>
+<td class="ltx_td ltx_align_center">0.61</td>
+<td class="ltx_td ltx_align_center">0.69</td>
+<td class="ltx_td ltx_align_center">0.71</td>
+<td class="ltx_td ltx_align_center">0.73</td>
+<td class="ltx_td ltx_align_center">0.48</td>
+<td class="ltx_td ltx_align_center">0.59</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Nougat (base) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref">12</a>]</cite>
+</th>
+<td class="ltx_td ltx_align_center">350M</td>
+<td class="ltx_td ltx_align_center">0.62</td>
+<td class="ltx_td ltx_align_center">0.66</td>
+<td class="ltx_td ltx_align_center">0.72</td>
+<td class="ltx_td ltx_align_center">0.67</td>
+<td class="ltx_td ltx_align_center">0.44</td>
+<td class="ltx_td ltx_align_center">0.54</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row"><span class="ltx_text ltx_font_bold">SmolDocling (Ours)</span></th>
+<td class="ltx_td ltx_align_center">256M</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">0.48</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">0.80</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">0.89</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">0.79</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">0.58</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">0.67</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" colspan="8"><span class="ltx_text ltx_font_italic">Code listings</span></th>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row"><span class="ltx_text ltx_font_bold">SmolDocling (Ours)</span></th>
+<td class="ltx_td ltx_align_center">256M</td>
+<td class="ltx_td ltx_align_center">0.11</td>
+<td class="ltx_td ltx_align_center">0.92</td>
+<td class="ltx_td ltx_align_center">0.94</td>
+<td class="ltx_td ltx_align_center">0.91</td>
+<td class="ltx_td ltx_align_center">0.87</td>
+<td class="ltx_td ltx_align_center">0.89</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" colspan="8"><span class="ltx_text ltx_font_italic">Equations</span></th>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Qwen2.5 VL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite>
+</th>
+<td class="ltx_td ltx_align_center">7B</td>
+<td class="ltx_td ltx_align_center">0.22</td>
+<td class="ltx_td ltx_align_center">0.89</td>
+<td class="ltx_td ltx_align_center">0.91</td>
+<td class="ltx_td ltx_align_center">0.87</td>
+<td class="ltx_td ltx_align_center">0.68</td>
+<td class="ltx_td ltx_align_center">0.77</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">GOT <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib89" title="" class="ltx_ref">89</a>]</cite>
+</th>
+<td class="ltx_td ltx_align_center">580M</td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">0.11</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">0.95</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_framed ltx_framed_underline">0.95</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">0.96</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">0.85</span></td>
+<td class="ltx_td ltx_align_center"><span class="ltx_text ltx_font_bold">0.91</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Nougat (base) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref">12</a>]</cite>
+</th>
+<td class="ltx_td ltx_align_center">350M</td>
+<td class="ltx_td ltx_align_center">0.62</td>
+<td class="ltx_td ltx_align_center">0.60</td>
+<td class="ltx_td ltx_align_center">0.60</td>
+<td class="ltx_td ltx_align_center">0.53</td>
+<td class="ltx_td ltx_align_center">0.33</td>
+<td class="ltx_td ltx_align_center">0.41</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb"><span class="ltx_text ltx_font_bold">SmolDocling (Ours)</span></th>
+<td class="ltx_td ltx_align_center ltx_border_bb">256M</td>
+<td class="ltx_td ltx_align_center ltx_border_bb"><span class="ltx_text ltx_font_bold">0.11</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb"><span class="ltx_text ltx_font_bold">0.95</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb"><span class="ltx_text ltx_font_bold">0.96</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb"><span class="ltx_text ltx_framed ltx_framed_underline">0.95</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb"><span class="ltx_text ltx_framed ltx_framed_underline">0.83</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb"><span class="ltx_text ltx_framed ltx_framed_underline">0.89</span></td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 2: </span><span class="ltx_text ltx_font_bold">Structured document text recognition.</span> We evaluate OCR performance and document formatting on DocLayNet, focusing on textual elements, excluding tables. Text accuracy is measured through multiple metrics (Edit Distance, F1-Score, Precision, Recall, BLEU and METEOR) as proposed in <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref">12</a>]</cite>. </figcaption>
+</figure>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Experiments</h2>
+
+<div id="S5.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">In this section, we assess the performance of SmolDocling on document understanding tasks, and compare the results to previously published models and baselines. Capturing the qualities and defects of SmolDocling and other models in comparable numbers is a non-trivial effort for reasons we outline further below.
+Therefore, we report results on standard evaluation tasks and metrics independently (see section <a href="#S5.SS2" title="5.2 Quantitative Results ‣ 5 Experiments ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a>), but also provide a qualitative assessment of output characteristics (see section <a href="#S5.SS3" title="5.3 Qualitative Results ‣ 5 Experiments ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.3</span></a>).</p>
+</div>
+<section id="S5.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.1 </span>Implementation Details</h3>
+
+<div id="S5.SS1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Our training was conducted using 64 NVIDIA A100 80GB GPUs, with each epoch requiring 38 hours. The model was trained for a total of 4 epochs using the AdamW optimizer with a learning rate of <math id="S5.SS1.p1.m1" class="ltx_Math" alttext="2\times 10^{-4}" display="inline"><semantics><mrow><mn>2</mn><mo lspace="0.222em" rspace="0.222em">×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup></mrow><annotation encoding="application/x-tex">2\times 10^{-4}</annotation></semantics></math> and <math id="S5.SS1.p1.m2" class="ltx_Math" alttext="2\times 10^{-6}" display="inline"><semantics><mrow><mn>2</mn><mo lspace="0.222em" rspace="0.222em">×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>6</mn></mrow></msup></mrow><annotation encoding="application/x-tex">2\times 10^{-6}</annotation></semantics></math> for the vision encoder once unfrozen. We also employed gradient clipping to 1.0 for stability and a warmup ratio of 0.03. For inference, using VLLM <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib39" title="" class="ltx_ref">39</a>]</cite> on an A100 GPU, SmolDocling achieves a page conversion time of 0.35 seconds while occupying only 0.489 GB of VRAM. The model supports a maximum sequence length of 8,192 tokens and is trained to process up to three pages at a time.</p>
+</div>
+</section>
+<section id="S5.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.2 </span>Quantitative Results</h3>
+
+<div id="S5.SS2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">To enable valid cross-model comparisons with SmolDocling, we addressed multiple dataset and harmonization challenges:</p>
+</div>
+<div id="S5.SS2.p2" class="ltx_para ltx_noindent">
+<ul id="S5.I1" class="ltx_itemize">
+<li id="S5.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S5.I1.i1.p1" class="ltx_para">
+<p class="ltx_p">Public evaluation datasets lack comprehensive multi-task annotations with diverse layouts. We augmented DocLayNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib70" title="" class="ltx_ref">70</a>]</cite> with text content and reading-order to enable evaluation of both layout analysis and text recognition. Table structure, code listing, formula and chart recognition are evaluated on specific datasets.</p>
+</div>
+</li>
+<li id="S5.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S5.I1.i2.p1" class="ltx_para">
+<p class="ltx_p">Different models each follow their own conventions for output markup (e.g., Markdown, HTML, DocTags) and produce annotations which do not fully align in semantics. For example, SmolDocling is trained to produce 14 distinct layout-class tags via <span class="ltx_text ltx_font_italic">DocTags</span>, while Qwen2.5-VL combines standard HTML tags and a few explicit class attributes with only partially compatible definitions. GOT and Nougat output Markdown, which can express paragraphs, lists and tables without location annotation.</p>
+</div>
+</li>
+<li id="S5.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S5.I1.i3.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Input resolution of page images can affect model performance, but is rarely specified in literature. We standardized at 144 DPI (dots per inch), which reproduces enough detail to be perfectly legible by humans while keeping resource demand for inference reasonable.</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="S5.SS2.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Text Recognition (OCR).</span>
+We first evaluate text recognition accuracy of SmolDocling, compared to Nougat, GOT and Qwen2.5-VL (Table <a href="#S4.T2" title="Table 2 ‣ 4.3 Document Instruction Tuning datasets ‣ 4 Data ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>), to verify accurate character transcription and reading order. The text-similarity metrics, adopted from <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref">12</a>]</cite> require plain formatting without non-textual elements.
+For different tasks, we conduct evaluations on diverse content types: full-page documents (from DocLayNet test set) in Markdown format, code snippets (from our SynthCodeNet dataset) in plaintext, and equations (from Im2Latex-230k <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib21" title="" class="ltx_ref">21</a>]</cite>) in LaTeX format. For Qwen2.5-VL and SmolDocling, we convert HTML or DocTags output to Markdown while preserving formatting where possible.</p>
+</div>
+<div id="S5.SS2.p4" class="ltx_para ltx_noindent">
+<p class="ltx_p">Tables are omitted from the full-page output since they do not compare well through Markdown, due to loss of row and column spans. Code snippets must be reproduced with intact line breaks and indentation for accurate scoring.
+Formulas are evaluated separately in LaTeX format, which is natively produced by all the models tested in this work. The LaTeX outputs from all models, including the ground truth, undergo the same normalization procedure used for generating the SynthFormulaNet dataset. This ensures consistency and fairness in model comparisons.</p>
+</div>
+<div id="S5.SS2.p5" class="ltx_para ltx_noindent">
+<p class="ltx_p">SmolDocling significantly outperforms GOT, Nougat and also Qwen2.5-VL, which is 27 times larger, on every metric in full-page transcription (see <a href="#S4.T2" title="Table 2 ‣ 4.3 Document Instruction Tuning datasets ‣ 4 Data ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref ltx_refmacro_autoref"><span class="ltx_text ltx_ref_tag">Table 2</span></a>. For the code parsing task, we report results exclusively for SmolDocling, as we introduce this task for the first time, and the other models were not explicitly trained for it.
+SmolDocling also demonstrates superior performance compared to Nougat and Qwen2.5-VL in the formula recognition task, closely matching GOT’s results.</p>
+</div>
+<div id="S5.SS2.p6" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Layout.</span>
+We evaluate element localization accuracy using the DocLayNet test set (Table <a href="#S5.T3" title="Table 3 ‣ 5.2 Quantitative Results ‣ 5 Experiments ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>), measuring the ability to reconstruct document representations that support content grounding and visual feature extraction. SmolDocling is compared against Qwen2.5-VL-7b <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite>, currently the only other VLM addressing this task. For a fair comparison, we map each model’s label outputs and the ground-truth to six compatible classes: Text, Section Heading, List Item, Table, Picture, and Formula.
+Overall, SmolDocling outperforms Qwen2.5-VL-7b by a significant margin, however both models score far below a human baseline. This can be partially explained through inherent difficulty of the dataset, as indicated by relatively low human agreement scores. The scores are primarily impacted by moderate recall of element bounding boxes and different degrees of label confusion in both SmolDocling and Qwen2.5-VL. A majority of samples show accurate element bounding boxes as seen in the Appendix.</p>
+</div>
+<figure id="S5.T3" class="ltx_table">
+<div class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:216.8pt;height:119.1pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="transform:translate(-22.7pt,12.5pt) scale(0.826903992992227,0.826903992992227) ;">
+<table class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_th ltx_th_row ltx_border_tt"></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt">SmolDocling</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt">Qwen2.5-VL</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt">Human</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">Formula</th>
+<td class="ltx_td ltx_align_center ltx_border_t">0.267</td>
+<td class="ltx_td ltx_align_center ltx_border_t">0.059</td>
+<td class="ltx_td ltx_align_center ltx_border_t">0.84</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Table</th>
+<td class="ltx_td ltx_align_center">0.266</td>
+<td class="ltx_td ltx_align_center">0.262</td>
+<td class="ltx_td ltx_align_center">0.79</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">List Item</th>
+<td class="ltx_td ltx_align_center">0.296</td>
+<td class="ltx_td ltx_align_center">0.090</td>
+<td class="ltx_td ltx_align_center">0.87</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Section Header</th>
+<td class="ltx_td ltx_align_center">0.289</td>
+<td class="ltx_td ltx_align_center">0.129</td>
+<td class="ltx_td ltx_align_center">0.83</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Text</th>
+<td class="ltx_td ltx_align_center">0.204</td>
+<td class="ltx_td ltx_align_center">0.180</td>
+<td class="ltx_td ltx_align_center">0.85</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Picture</th>
+<td class="ltx_td ltx_align_center">0.066</td>
+<td class="ltx_td ltx_align_center">0.078</td>
+<td class="ltx_td ltx_align_center">0.70</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb ltx_border_t">Overall</th>
+<td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">0.231</td>
+<td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">0.133</td>
+<td class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">0.82</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 3: </span><span class="ltx_text ltx_font_bold">Layout analysis comparison.</span> Evaluation of layout analysis task on DocLayNet with a subset of 6 class labels in mAP[0.5:0.95] metric. Additional reference points are provided for an estimate of human performance <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib70" title="" class="ltx_ref">70</a>]</cite>.
+</figcaption>
+</figure>
+<div id="S5.SS2.p7" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Table Structure Recognition.</span>
+We evaluate the accuracy of recovering table structures, i.e. shaping columns and rows with the correct text content and spans, through the TEDS metric <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib104" title="" class="ltx_ref">104</a>]</cite>, once including table text content and once on structure only with ommitted text (see Table <a href="#S5.T4" title="Table 4 ‣ 5.2 Quantitative Results ‣ 5 Experiments ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>).
+For isolated assessment, we provide cropped table images from FinTabNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib103" title="" class="ltx_ref">103</a>]</cite> and PubTables-1M <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib78" title="" class="ltx_ref">78</a>]</cite> test sets, which have poor image quality (72 dpi, compression artifacts). SmolDocling performs competitively against significantly larger models, despite challenges with text transcription from the low-resolution image crops, a limitation likely attributable to insufficient training at such resolutions. Scores for structure only TEDS evaluation are therefore much stronger.</p>
+</div>
+<figure id="S5.T4" class="ltx_table">
+<div class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:260.2pt;height:63.6pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="transform:translate(-54.0pt,13.2pt) scale(0.706841634530382,0.706841634530382) ;">
+<table class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt"><span class="ltx_text ltx_font_bold">Method</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span class="ltx_text ltx_font_bold">Model Size</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span class="ltx_text ltx_font_bold">FinTabNet</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt"><span class="ltx_text ltx_font_bold">PubTables-1M</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">SmolVLM  <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib56" title="" class="ltx_ref">56</a>]</cite>
+</th>
+<td class="ltx_td ltx_align_center ltx_border_t">2.2B</td>
+<td class="ltx_td ltx_align_center ltx_border_t">0.18</td>
+<td class="ltx_td ltx_align_center ltx_border_t">-</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Granite Vision <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib81" title="" class="ltx_ref">81</a>]</cite>
+</th>
+<td class="ltx_td ltx_align_center">2.98B</td>
+<td class="ltx_td ltx_align_center">0.54</td>
+<td class="ltx_td ltx_align_center">-</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">TableFormer† <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib55" title="" class="ltx_ref">55</a>]</cite>
+</th>
+<td class="ltx_td ltx_align_center">52M</td>
+<td class="ltx_td ltx_align_center">0.89</td>
+<td class="ltx_td ltx_align_center">0.84</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb"><span class="ltx_text ltx_font_bold">SmolDocling (Ours)</span></th>
+<td class="ltx_td ltx_align_center ltx_border_bb">256M</td>
+<td class="ltx_td ltx_align_center ltx_border_bb">0.52 (0.81)</td>
+<td class="ltx_td ltx_align_center ltx_border_bb">0.65 (0.88)</td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 4: </span><span class="ltx_text ltx_font_bold">Table structure and cell content reconstruction.</span> Numbers are given in TEDS metric including text content, with structure-only score in brackets where available. We produced results for SmolDocling and TableFormer, other results are reflected here as published. †TableFormer extracts the content through external OCR.</figcaption>
+</figure>
+<div id="S5.SS2.p8" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Chart Extraction.</span> In this task, we evaluate the ability to convert cropped sections of charts into datapoint tables. All table ouptut is transformed into HTML and compared against the ground-truth HTML using TEDS score, as reported in <a href="#S5.T5" title="Table 5 ‣ 5.3 Qualitative Results ‣ 5 Experiments ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref ltx_refmacro_autoref"><span class="ltx_text ltx_ref_tag">Table 5</span></a>. We attribute SmolDocling’s performance on charts to the variability in ground-truth styles and the differing interpretations of representations across datasets, which we observe leads to inconsistencies in the model’s predictions. Despite its significantly smaller size, SmolDocling achieves a competitive TEDs score.</p>
+</div>
+<div id="S5.SS2.p9" class="ltx_para ltx_noindent">
+<p class="ltx_p">Overall, SmolDocling achieves leading performance across a wide range of document conversion tasks and outperforms significantly larger models in text recognition, layout analysis and structure extraction. Furthermore, the model’s high performance in downstream tasks, such as code listing and formula recognition, demonstrates its versatility and real-world applicability. Notably, we establish benchmark results for the code listing recognition, setting a standard for future evaluations.</p>
+</div>
+</section>
+<section id="S5.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.3 </span>Qualitative Results</h3>
+
+<div id="S5.SS3.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Several characteristics of SmolDocling output are not evident from task-based metrics alone. In this section, we highlight different output characteristics observed in practice. More illustrated samples can be found in the Appendix.</p>
+</div>
+<div id="S5.SS3.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">As presented in Figure <a href="#A0.F3" title="Figure 3 ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, SmolDocling outputs a sequence of DocTags to encode content, structure and layout. A few notable traits beyond straight content reproduction include:
+1) Labeling of page headers and footers, which allows ignoring these repetitive elements in downstream applications. 2) Linking of information, such as captions to tables or pictures, or list elements to parent list through nesting of tags. 3) Preserved line breaks and indentation for code snippets, while line wraps in paragraphs are correctly removed.</p>
+</div>
+<div id="S5.SS3.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p">Among typical defects found in the output of SmolDocling are missing tags (e.g. absent location tags), malformed structure (such as missing closing tags), and endless repetition of tokens from some point in a page. Both of these phenomena are commonly seen in auto-regressive models and may prevent parsing or rendering the output correctly (see Appendix).
+Despite these limitations, SmolDocling demonstrates unique robustness advantages compared to ensemble systems like Docling, since conversion output is inferred in a single pass. In the latter, errors may accumulate throughout the ensemble model pipeline. For example, a mislocated table detection will lead to missing or distorted output of table structure and content, since this depends on correct table localization. In contrast, SmolDocling can reproduce the tables correctly, even with incorrectly determined location.</p>
+</div>
+<figure id="S5.T5" class="ltx_table">
+<table class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_t">Model</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t">Size</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t">TEDs<math id="S5.T5.m1" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>
+</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">Phi-3.5-vision</th>
+<td class="ltx_td ltx_align_center ltx_border_t">4B</td>
+<td class="ltx_td ltx_align_center ltx_border_t">0.40</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Granite Vision <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib81" title="" class="ltx_ref">81</a>]</cite>
+</th>
+<td class="ltx_td ltx_align_center">3B</td>
+<td class="ltx_td ltx_align_center"><math id="S5.T5.m2" class="ltx_Math" alttext="\mathbf{0.95}" display="inline"><semantics><mn class="ltx_mathvariant_bold" mathvariant="bold">0.95</mn><annotation encoding="application/x-tex">\mathbf{0.95}</annotation></semantics></math></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">SmolVLM <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib56" title="" class="ltx_ref">56</a>]</cite>
+</th>
+<td class="ltx_td ltx_align_center">2.2B</td>
+<td class="ltx_td ltx_align_center">0.02</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row">Molmo-E</th>
+<td class="ltx_td ltx_align_center">1B</td>
+<td class="ltx_td ltx_align_center">0.54</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b"><span class="ltx_text ltx_font_bold">SmolDocling (Ours)</span></th>
+<td class="ltx_td ltx_align_center ltx_border_b">256M</td>
+<td class="ltx_td ltx_align_center ltx_border_b">0.75</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 5: </span><span class="ltx_text ltx_font_bold">Chart analysis.</span> We compare SmolDocling to other small-sized VLMs on the chart-to-table task using the TEDS metric. The results in this table are based on the work reported in <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib25" title="" class="ltx_ref">25</a>]</cite>.</figcaption>
+</figure>
+</section>
+</section>
+<section id="S6" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6 </span>Conclusion</h2>
+
+<div id="S6.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">In this work, we introduce SmolDocling, an efficient and compact VLM optimized for document conversion while providing rich output representation. We also present a suite of new datasets with a unified format for document conversion, including the novel task of code listing transcription. We identify page element localization as a critical area requiring further refinement, where targeted techniques will significantly enhance performance in future iterations. Our results conclusively demonstrate that smaller models with unified, optimized output formats such as DocTags can effectively compete with significantly larger models, establishing a clear pathway for resource-efficient multi-task document understanding models.</p>
+</div>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[1]</span>
+<span class="ltx_bibblock">
+Grobid.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://github.com/kermitt2/grobid" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/kermitt2/grobid</a>, 2008–2025.
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[2]</span>
+<span class="ltx_bibblock">
+Loubna Ben Allal, Anton Lozhkov, Elie Bakouch, Gabriel Martín Blázquez, Guilherme Penedo, Lewis Tunstall, Andrés Marafioti, Hynek Kydlíček, Agustín Piqueres Lajarín, Vaibhav Srivastav, Joshua Lochner, Caleb Fahlgren, Xuan-Son Nguyen, Clémentine Fourrier, Ben Burtenshaw, Hugo Larcher, Haojun Zhao, Cyril Zakka, Mathieu Morlon, Colin Raffel, Leandro von Werra, and Thomas Wolf.
+
+</span>
+<span class="ltx_bibblock">SmolLM2: When Smol Goes Big – Data-Centric Training of a Small Language Model, 2025.
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[3]</span>
+<span class="ltx_bibblock">
+Amazon Web Services.
+
+</span>
+<span class="ltx_bibblock">Amazon Textract.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://aws.amazon.com/textract/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://aws.amazon.com/textract/</a>, 2024.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2024-11-11.
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[4]</span>
+<span class="ltx_bibblock">
+Rohan Anil, Andrew M Dai, Orhan Firat, Melvin Johnson, Dmitry Lepikhin, Alexandre Passos, Siamak Shakeri, Emanuel Taropa, Paige Bailey, Zhifeng Chen, et al.
+
+</span>
+<span class="ltx_bibblock">Palm 2 technical report.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2305.10403</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[5]</span>
+<span class="ltx_bibblock">
+Anthropic.
+
+</span>
+<span class="ltx_bibblock">Claude-3.5.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://www.anthropic.com/news/claude-3-5-sonnet" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.anthropic.com/news/claude-3-5-sonnet</a>, 2024.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2024-02-11.
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[6]</span>
+<span class="ltx_bibblock">
+Christoph Auer, Michele Dolfi, André Carvalho, Cesar Berrospi Ramis, and Peter WJ Staar.
+
+</span>
+<span class="ltx_bibblock">Delivering Document Conversion as a Cloud Service with High Throughput and Responsiveness.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">2022 IEEE 15th International Conference on Cloud Computing (CLOUD)</span>, pages 363–373. IEEE, 2022.
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[7]</span>
+<span class="ltx_bibblock">
+Christoph Auer, Maksym Lysak, Ahmed Nassar, Michele Dolfi, Nikolaos Livathinos, Panos Vagenas, Cesar Berrospi Ramis, Matteo Omenetti, Fabian Lindlbauer, Kasper Dinkla, et al.
+
+</span>
+<span class="ltx_bibblock">Docling Technical Report.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2408.09869</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[8]</span>
+<span class="ltx_bibblock">
+Jinze Bai, Shuai Bai, Yunfei Chu, Zeyu Cui, Kai Dang, Xiaodong Deng, Yang Fan, Wenbin Ge, Yu Han, Fei Huang, et al.
+
+</span>
+<span class="ltx_bibblock">Qwen technical report.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2309.16609</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[9]</span>
+<span class="ltx_bibblock">
+Shuai Bai, Keqin Chen, Xuejing Liu, Jialin Wang, Wenbin Ge, Sibo Song, Kai Dang, Peng Wang, Shijie Wang, Jun Tang, Humen Zhong, Yuanzhi Zhu, Mingkun Yang, Zhaohai Li, Jianqiang Wan, Pengfei Wang, Wei Ding, Zheren Fu, Yiheng Xu, Jiabo Ye, Xi Zhang, Tianbao Xie, Zesen Cheng, Hang Zhang, Zhibo Yang, Haiyang Xu, and Junyang Lin.
+
+</span>
+<span class="ltx_bibblock">Qwen2.5-VL Technical Report, 2025.
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[10]</span>
+<span class="ltx_bibblock">
+Ali Furkan Biten, Rubèn Tito, Lluis Gomez, Ernest Valveny, and Dimosthenis Karatzas.
+
+</span>
+<span class="ltx_bibblock">Ocr-idl: Ocr annotations for industry document library dataset.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">European Conference on Computer Vision</span>, pages 241–252. Springer, 2022.
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[11]</span>
+<span class="ltx_bibblock">
+Lukas Blecher.
+
+</span>
+<span class="ltx_bibblock">LaTeX-OCR, 2024.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2024-11-09.
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[12]</span>
+<span class="ltx_bibblock">
+Lukas Blecher, Guillem Cucurull, Thomas Scialom, and Robert Stojnic.
+
+</span>
+<span class="ltx_bibblock">Nougat: Neural optical understanding for academic documents.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2308.13418</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[13]</span>
+<span class="ltx_bibblock">
+Jinyue Chen, Lingyu Kong, Haoran Wei, Chenglong Liu, Zheng Ge, Liang Zhao, Jianjian Sun, Chunrui Han, and Xiangyu Zhang.
+
+</span>
+<span class="ltx_bibblock">OneChart: Purify the Chart Structural Extraction via One Auxiliary Token.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2404.09987</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[14]</span>
+<span class="ltx_bibblock">
+Hyung Won Chung, Le Hou, Shayne Longpre, Barret Zoph, Yi Tay, William Fedus, Yunxuan Li, Xuezhi Wang, Mostafa Dehghani, Siddhartha Brahma, et al.
+
+</span>
+<span class="ltx_bibblock">Scaling instruction-finetuned language models.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Journal of Machine Learning Research</span>, 25(70):1–53, 2024.
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[15]</span>
+<span class="ltx_bibblock">
+Pyecharts Contributors.
+
+</span>
+<span class="ltx_bibblock">pyecharts: Python library for Echarts, 2024.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2024-11-06.
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[16]</span>
+<span class="ltx_bibblock">
+Pygments Contributors.
+
+</span>
+<span class="ltx_bibblock">Pygments: Python syntax highlighter, 2024.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2024-11-06.
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[17]</span>
+<span class="ltx_bibblock">
+Brian Davis, Bryan Morse, Brian Price, Chris Tensmeyer, Curtis Wigington, and Vlad Morariu.
+
+</span>
+<span class="ltx_bibblock">End-to-end document recognition and understanding with dessurt.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">European Conference on Computer Vision</span>, pages 280–296. Springer, 2022.
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[18]</span>
+<span class="ltx_bibblock">
+Yuntian Deng, Anssi Kanervisto, Jeffrey Ling, and Alexander M Rush.
+
+</span>
+<span class="ltx_bibblock">Image-to-markup generation with coarse-to-fine attention.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">International Conference on Machine Learning</span>, pages 980–989. PMLR, 2017.
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[19]</span>
+<span class="ltx_bibblock">
+Xiaoyi Dong, Pan Zhang, Yuhang Zang, Yuhang Cao, Bin Wang, Linke Ouyang, Xilin Wei, Songyang Zhang, Haodong Duan, Maosong Cao, Wenwei Zhang, Yining Li, Hang Yan, Yang Gao, Xinyue Zhang, Wei Li, Jingwen Li, Kai Chen, Conghui He, Xingcheng Zhang, Yu Qiao, Dahua Lin, and Jiaqi Wang.
+
+</span>
+<span class="ltx_bibblock">InternLM-XComposer2: Mastering Free-form Text-Image Composition and Comprehension in Vision-Language Large Model.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2401.16420</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[20]</span>
+<span class="ltx_bibblock">
+Xiaoyi Dong, Pan Zhang, Yuhang Zang, Yuhang Cao, Bin Wang, Linke Ouyang, Songyang Zhang, Haodong Duan, Wenwei Zhang, Yining Li, Hang Yan, Yang Gao, Zhe Chen, Xinyue Zhang, Wei Li, Jingwen Li, Wenhai Wang, Kai Chen, Conghui He, Xingcheng Zhang, Jifeng Dai, Yu Qiao, Dahua Lin, and Jiaqi Wang.
+
+</span>
+<span class="ltx_bibblock">InternLM-XComposer2-4KHD: A Pioneering Large Vision-Language Model Handling Resolutions from 336 Pixels to 4K HD.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2404.06512</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[21]</span>
+<span class="ltx_bibblock">
+Gregory Eritsyan.
+
+</span>
+<span class="ltx_bibblock">Im2LaTeX 230K.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://www.kaggle.com/datasets/gregoryeritsyan/im2latex-230k" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.kaggle.com/datasets/gregoryeritsyan/im2latex-230k</a>, 2023.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2025-03-06.
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[22]</span>
+<span class="ltx_bibblock">
+Hugging Face.
+
+</span>
+<span class="ltx_bibblock">latex-formulas Dataset, 2024.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2024-11-09.
+
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[23]</span>
+<span class="ltx_bibblock">
+Philippe Gervais, Asya Fadeeva, and Andrii Maksai.
+
+</span>
+<span class="ltx_bibblock">Mathwriting: A dataset for handwritten mathematical expression recognition.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">URL https://arxiv. org/abs/2404.10690</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[24]</span>
+<span class="ltx_bibblock">
+Google Cloud.
+
+</span>
+<span class="ltx_bibblock">Document AI.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://cloud.google.com/document-ai" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://cloud.google.com/document-ai</a>, 2024.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2024-11-11.
+
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[25]</span>
+<span class="ltx_bibblock">
+IBM Granite Team.
+
+</span>
+<span class="ltx_bibblock">Granite 3.0 Language Models, 2024.
+
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[26]</span>
+<span class="ltx_bibblock">
+Yucheng Han, Chi Zhang, Xin Chen, Xu Yang, Zhibin Wang, Gang Yu, Bin Fu, and Hanwang Zhang.
+
+</span>
+<span class="ltx_bibblock">Chartllama: A multimodal llm for chart understanding and generation.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2311.16483</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[27]</span>
+<span class="ltx_bibblock">
+Anwen Hu, Haiyang Xu, Jiabo Ye, Ming Yan, Liang Zhang, Bo Zhang, Chen Li, Ji Zhang, Qin Jin, Fei Huang, et al.
+
+</span>
+<span class="ltx_bibblock">mplug-docowl 1.5: Unified structure learning for ocr-free document understanding.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2403.12895</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[28]</span>
+<span class="ltx_bibblock">
+Anwen Hu, Haiyang Xu, Liang Zhang, Jiabo Ye, Ming Yan, Ji Zhang, Qin Jin, Fei Huang, and Jingren Zhou.
+
+</span>
+<span class="ltx_bibblock">mplug-docowl2: High-resolution compressing for ocr-free multi-page document understanding.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2409.03420</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[29]</span>
+<span class="ltx_bibblock">
+Yupan Huang, Tengchao Lv, Lei Cui, Yutong Lu, and Furu Wei.
+
+</span>
+<span class="ltx_bibblock">Layoutlmv3: Pre-training for document ai with unified text and image masking.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">Proceedings of the 30th ACM International Conference on Multimedia</span>, pages 4083–4091, 2022.
+
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[30]</span>
+<span class="ltx_bibblock">
+J. D. Hunter.
+
+</span>
+<span class="ltx_bibblock">Matplotlib: A 2D graphics environment.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Computing in Science &amp; Engineering</span>, 9(3):90–95, 2007.
+
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[31]</span>
+<span class="ltx_bibblock">
+Guillaume Jaume, Hazim Kemal Ekenel, and Jean-Philippe Thiran.
+
+</span>
+<span class="ltx_bibblock">Funsd: A dataset for form understanding in noisy scanned documents.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">2019 International Conference on Document Analysis and Recognition Workshops (ICDARW)</span>, volume 2, pages 1–6. IEEE, 2019.
+
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[32]</span>
+<span class="ltx_bibblock">
+Albert Q Jiang, Alexandre Sablayrolles, Antoine Roux, Arthur Mensch, Blanche Savary, Chris Bamford, Devendra Singh Chaplot, Diego de las Casas, Emma Bou Hanna, Florian Bressand, et al.
+
+</span>
+<span class="ltx_bibblock">Mixtral of experts.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2401.04088</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib33" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[33]</span>
+<span class="ltx_bibblock">
+Samira Ebrahimi Kahou, Vincent Michalski, Adam Atkinson, Ákos Kádár, Adam Trischler, and Yoshua Bengio.
+
+</span>
+<span class="ltx_bibblock">Figureqa: An annotated figure dataset for visual reasoning.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:1710.07300</span>, 2017.
+
+</span>
+</li>
+<li id="bib.bib34" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[34]</span>
+<span class="ltx_bibblock">
+Shankar Kantharaj, Rixie Tiffany Ko Leong, Xiang Lin, Ahmed Masry, Megh Thakkar, Enamul Hoque, and Shafiq Joty.
+
+</span>
+<span class="ltx_bibblock">Chart-to-text: A large-scale benchmark for chart summarization.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2203.06486</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib35" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[35]</span>
+<span class="ltx_bibblock">
+Geewook Kim, Teakgyu Hong, Moonbin Yim, Jinyoung Park, Jinyeong Yim, Wonseok Hwang, Sangdoo Yun, Dongyoon Han, and Seunghyun Park.
+
+</span>
+<span class="ltx_bibblock">Donut: Document understanding transformer without ocr.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2111.15664</span>, 7(15):2, 2021.
+
+</span>
+</li>
+<li id="bib.bib36" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[36]</span>
+<span class="ltx_bibblock">
+Sunghwan Kim, Jie Chen, Tiejun Cheng, Asta Gindulyte, Jia He, Siqian He, Qingliang Li, Benjamin A Shoemaker, Paul A Thiessen, Bo Yu, Leonid Zaslavsky, Jian Zhang, and Evan E Bolton.
+
+</span>
+<span class="ltx_bibblock">PubChem 2019 update: improved access to chemical data.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Nucleic Acids Research</span>, 47(D1):D1102–D1109, 10 2018.
+
+</span>
+</li>
+<li id="bib.bib37" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[37]</span>
+<span class="ltx_bibblock">
+Alexander Kirillov, Eric Mintun, Nikhila Ravi, Hanzi Mao, Chloe Rolland, Laura Gustafson, Tete Xiao, Spencer Whitehead, Alexander C Berg, Wan-Yen Lo, et al.
+
+</span>
+<span class="ltx_bibblock">Segment anything.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">Proceedings of the IEEE/CVF International Conference on Computer Vision</span>, pages 4015–4026, 2023.
+
+</span>
+</li>
+<li id="bib.bib38" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[38]</span>
+<span class="ltx_bibblock">
+Denis Kocetkov, Raymond Li, Loubna Ben Allal, Jia Li, Chenghao Mou, Carlos Muñoz Ferrandis, Yacine Jernite, Margaret Mitchell, Sean Hughes, Thomas Wolf, Dzmitry Bahdanau, Leandro von Werra, and Harm de Vries.
+
+</span>
+<span class="ltx_bibblock">The Stack: 3 TB of permissively licensed source code.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Preprint</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib39" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[39]</span>
+<span class="ltx_bibblock">
+Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph E. Gonzalez, Hao Zhang, and Ion Stoica.
+
+</span>
+<span class="ltx_bibblock">Efficient Memory Management for Large Language Model Serving with PagedAttention.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">Proceedings of the ACM SIGOPS 29th Symposium on Operating Systems Principles</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib40" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[40]</span>
+<span class="ltx_bibblock">
+Greg Landrum.
+
+</span>
+<span class="ltx_bibblock">RDKit: Open-Source Cheminformatics Software.
+
+</span>
+<span class="ltx_bibblock">http://www.rdkit.org/.
+
+</span>
+<span class="ltx_bibblock">Accessed: 1 January 2023.
+
+</span>
+</li>
+<li id="bib.bib41" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[41]</span>
+<span class="ltx_bibblock">
+Hugo Laurençon, Andrés Marafioti, Victor Sanh, and Léo Tronchon.
+
+</span>
+<span class="ltx_bibblock">Building and better understanding vision-language models: insights and future directions., 2024.
+
+</span>
+</li>
+<li id="bib.bib42" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[42]</span>
+<span class="ltx_bibblock">
+Hugo Laurençon, Léo Tronchon, Matthieu Cord, and Victor Sanh.
+
+</span>
+<span class="ltx_bibblock">What matters when building vision-language models?, 2024.
+
+</span>
+</li>
+<li id="bib.bib43" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[43]</span>
+<span class="ltx_bibblock">
+Kenton Lee, Mandar Joshi, Iulia Raluca Turc, Hexiang Hu, Fangyu Liu, Julian Martin Eisenschlos, Urvashi Khandelwal, Peter Shaw, Ming-Wei Chang, and Kristina Toutanova.
+
+</span>
+<span class="ltx_bibblock">Pix2struct: Screenshot parsing as pretraining for visual language understanding.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">International Conference on Machine Learning</span>, pages 18893–18912. PMLR, 2023.
+
+</span>
+</li>
+<li id="bib.bib44" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[44]</span>
+<span class="ltx_bibblock">
+David Lewis, Gady Agam, Shlomo Argamon, Ophir Frieder, David Grossman, and Jefferson Heard.
+
+</span>
+<span class="ltx_bibblock">Building a test collection for complex document information processing.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">Proceedings of the 29th annual international ACM SIGIR conference on Research and development in information retrieval</span>, pages 665–666, 2006.
+
+</span>
+</li>
+<li id="bib.bib45" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[45]</span>
+<span class="ltx_bibblock">
+Bo Li, Yuanhan Zhang, Dong Guo, Renrui Zhang, Feng Li, Hao Zhang, Kaichen Zhang, Yanwei Li, Ziwei Liu, and Chunyuan Li.
+
+</span>
+<span class="ltx_bibblock">Llava-onevision: Easy visual task transfer.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2408.03326</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib46" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[46]</span>
+<span class="ltx_bibblock">
+Feng Li, Renrui Zhang, Hao Zhang, Yuanhan Zhang, Bo Li, Wei Li, Zejun Ma, and Chunyuan Li.
+
+</span>
+<span class="ltx_bibblock">Llava-next-interleave: Tackling multi-image, video, and 3d in large multimodal models.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2407.07895</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib47" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[47]</span>
+<span class="ltx_bibblock">
+Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi.
+
+</span>
+<span class="ltx_bibblock">Blip-2: Bootstrapping language-image pre-training with frozen image encoders and large language models.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">International conference on machine learning</span>, pages 19730–19742. PMLR, 2023.
+
+</span>
+</li>
+<li id="bib.bib48" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[48]</span>
+<span class="ltx_bibblock">
+Han Lin, Peng Yang, and Fanlong Zhang.
+
+</span>
+<span class="ltx_bibblock">Review of scene text detection and recognition.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Archives of computational methods in engineering</span>, 27(2):433–454, April 2020.
+
+</span>
+</li>
+<li id="bib.bib49" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[49]</span>
+<span class="ltx_bibblock">
+Fangyu Liu, Julian Martin Eisenschlos, Francesco Piccinno, Syrine Krichene, Chenxi Pang, Kenton Lee, Mandar Joshi, Wenhu Chen, Nigel Collier, and Yasemin Altun.
+
+</span>
+<span class="ltx_bibblock">Deplot: One-shot visual language reasoning by plot-to-table translation.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2212.10505</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib50" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[50]</span>
+<span class="ltx_bibblock">
+Fangyu Liu, Francesco Piccinno, Syrine Krichene, Chenxi Pang, Kenton Lee, Mandar Joshi, Yasemin Altun, Nigel Collier, and Julian Martin Eisenschlos.
+
+</span>
+<span class="ltx_bibblock">Matcha: Enhancing visual language pretraining with math reasoning and chart derendering.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2212.09662</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib51" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[51]</span>
+<span class="ltx_bibblock">
+Haotian Liu, Chunyuan Li, Yuheng Li, and Yong Jae Lee.
+
+</span>
+<span class="ltx_bibblock">Improved Baselines with Visual Instruction Tuning, 2023.
+
+</span>
+</li>
+<li id="bib.bib52" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[52]</span>
+<span class="ltx_bibblock">
+Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee.
+
+</span>
+<span class="ltx_bibblock">Visual Instruction Tuning.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">NeurIPS</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib53" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[53]</span>
+<span class="ltx_bibblock">
+Nikolaos Livathinos, Christoph Auer, Maksym Lysak, Ahmed Nassar, Michele Dolfi, Panos Vagenas, Cesar Berrospi Ramis, Matteo Omenetti, Kasper Dinkla, Yusik Kim, Shubham Gupta, Rafael Teixeira de Lima, Valery Weber, Lucas Morin, Ingmar Meijer, Viktor Kuropiatnyk, and Peter W. J. Staar.
+
+</span>
+<span class="ltx_bibblock">Docling: An Efficient Open-Source Toolkit for AI-driven Document Conversion, 2025.
+
+</span>
+</li>
+<li id="bib.bib54" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[54]</span>
+<span class="ltx_bibblock">
+Nam Ly., Atsuhiro Takasu., Phuc Nguyen., and Hideaki Takeda.
+
+</span>
+<span class="ltx_bibblock">Rethinking Image-Based Table Recognition Using Weakly Supervised Methods.
+
+</span>
+<span class="ltx_bibblock">pages 872–880, 2023.
+
+</span>
+</li>
+<li id="bib.bib55" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[55]</span>
+<span class="ltx_bibblock">
+Maksym Lysak, Ahmed Nassar, Nikolaos Livathinos, Christoph Auer, and Peter Staar.
+
+</span>
+<span class="ltx_bibblock">Optimized Table Tokenization for Table Structure Recognition.
+
+</span>
+<span class="ltx_bibblock">In Gernot A. Fink, Rajiv Jain, Koichi Kise, and Richard Zanibbi, editors, <span class="ltx_text ltx_font_italic">Document Analysis and Recognition - ICDAR 2023</span>, pages 37–50, Cham, 2023. Springer Nature Switzerland.
+
+</span>
+</li>
+<li id="bib.bib56" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[56]</span>
+<span class="ltx_bibblock">
+Andrés Marafioti, Orr Zohar, Miquel Farré, Merve Noyan, Elie Bakouch, Pedro Cuenca, Cyril Zakka, Loubna Ben Allal, Anton Lozhkov, Nouamane Tazi, Vaibhav Srivastav, Joshua Lochner, Hugo Larcher, Mathieu Morlon, Lewis Tunstall, Leandro von Werra, and Thomas Wolf.
+
+</span>
+<span class="ltx_bibblock">SmolVLM: Redefining small and efficient multimodal models.
+
+</span>
+<span class="ltx_bibblock">2025.
+
+</span>
+</li>
+<li id="bib.bib57" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[57]</span>
+<span class="ltx_bibblock">
+Ahmed Masry, Parsa Kavehzadeh, Xuan Long Do, Enamul Hoque, and Shafiq Joty.
+
+</span>
+<span class="ltx_bibblock">Unichart: A universal vision-language pretrained model for chart comprehension and reasoning.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2305.14761</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib58" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[58]</span>
+<span class="ltx_bibblock">
+Ahmed Masry, Do Xuan Long, Jia Qing Tan, Shafiq Joty, and Enamul Hoque.
+
+</span>
+<span class="ltx_bibblock">Chartqa: A benchmark for question answering about charts with visual and logical reasoning.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2203.10244</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib59" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[59]</span>
+<span class="ltx_bibblock">
+Minesh Mathew, Dimosthenis Karatzas, and CV Jawahar.
+
+</span>
+<span class="ltx_bibblock">Docvqa: A dataset for vqa on document images.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">Proceedings of the IEEE/CVF winter conference on applications of computer vision</span>, pages 2200–2209, 2021.
+
+</span>
+</li>
+<li id="bib.bib60" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[60]</span>
+<span class="ltx_bibblock">
+Fanqing Meng, Wenqi Shao, Quanfeng Lu, Peng Gao, Kaipeng Zhang, Yu Qiao, and Ping Luo.
+
+</span>
+<span class="ltx_bibblock">Chartassisstant: A universal chart multimodal language model via chart-to-table pre-training and multitask instruction tuning.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2401.02384</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib61" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[61]</span>
+<span class="ltx_bibblock">
+Nitesh Methani, Pritha Ganguly, Mitesh M. Khapra, and Pratyush Kumar.
+
+</span>
+<span class="ltx_bibblock">PlotQA: Reasoning over Scientific Plots.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">The IEEE Winter Conference on Applications of Computer Vision (WACV)</span>, March 2020.
+
+</span>
+</li>
+<li id="bib.bib62" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[62]</span>
+<span class="ltx_bibblock">
+Microsoft Azure.
+
+</span>
+<span class="ltx_bibblock">AI Document Intelligence.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://azure.microsoft.com/en-us/products/ai-services/ai-document-intelligence" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://azure.microsoft.com/en-us/products/ai-services/ai-document-intelligence</a>, 2024.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2024-11-11.
+
+</span>
+</li>
+<li id="bib.bib63" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[63]</span>
+<span class="ltx_bibblock">
+Lucas Morin, Martin Danelljan, Maria Isabel Agea, Ahmed Nassar, Valery Weber, Ingmar Meijer, Peter Staar, and Fisher Yu.
+
+</span>
+<span class="ltx_bibblock">MolGrapher: Graph-based Visual Recognition of Chemical Structures.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)</span>, pages 19552–19561, October 2023.
+
+</span>
+</li>
+<li id="bib.bib64" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[64]</span>
+<span class="ltx_bibblock">
+Lucas Morin, Valéry Weber, Gerhard Ingmar Meijer, Fisher Yu, and Peter W. J. Staar.
+
+</span>
+<span class="ltx_bibblock">PatCID: an open-access dataset of chemical structures in patent documents.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Nature Communications</span>, 15(1):6532, Aug 2024.
+
+</span>
+</li>
+<li id="bib.bib65" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[65]</span>
+<span class="ltx_bibblock">
+OpenAI.
+
+</span>
+<span class="ltx_bibblock">Hello GPT-4O.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://openai.com/index/hello-gpt-4o/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://openai.com/index/hello-gpt-4o/</a>, 2024.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2024-02-09, 2024-02-11, 2024-02-12.
+
+</span>
+</li>
+<li id="bib.bib66" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[66]</span>
+<span class="ltx_bibblock">
+R OpenAI.
+
+</span>
+<span class="ltx_bibblock">Gpt-4 technical report. arxiv 2303.08774.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">View in Article</span>, 2(5), 2023.
+
+</span>
+</li>
+<li id="bib.bib67" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[67]</span>
+<span class="ltx_bibblock">
+Vik Paruchuri.
+
+</span>
+<span class="ltx_bibblock">Marker: Convert PDF to Markdown Quickly with High Accuracy.
+
+</span>
+<span class="ltx_bibblock">https://github.com/VikParuchuri/marker, 2024.
+
+</span>
+</li>
+<li id="bib.bib68" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[68]</span>
+<span class="ltx_bibblock">
+Vik Paruchuri.
+
+</span>
+<span class="ltx_bibblock">Texify.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://github.com/VikParuchuri/texify" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/VikParuchuri/texify</a>, 2024.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2024-11-11.
+
+</span>
+</li>
+<li id="bib.bib69" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[69]</span>
+<span class="ltx_bibblock">
+Zhiliang Peng, Wenhui Wang, Li Dong, Yaru Hao, Shaohan Huang, Shuming Ma, and Furu Wei.
+
+</span>
+<span class="ltx_bibblock">Kosmos-2: Grounding multimodal large language models to the world.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2306.14824</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib70" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[70]</span>
+<span class="ltx_bibblock">
+Birgit Pfitzmann, Christoph Auer, Michele Dolfi, Ahmed S. Nassar, and Peter Staar.
+
+</span>
+<span class="ltx_bibblock">DocLayNet: A Large Human-Annotated Dataset for Document-Layout Segmentation.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining</span>, KDD ’22, page 3743–3751, New York, NY, USA, 2022. Association for Computing Machinery.
+
+</span>
+</li>
+<li id="bib.bib71" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[71]</span>
+<span class="ltx_bibblock">
+Ruchir Puri, David Kung, Geert Janssen, Wei Zhang, Giacomo Domeniconi, Vladmir Zolotov, Julian Dolby, Jie Chen, Mihir Choudhury, Lindsey Decker, Veronika Thost, Luca Buratti, Saurabh Pujar, Shyam Ramji, Ulrich Finkler, Susan Malaika, and Frederick Reiss.
+
+</span>
+<span class="ltx_bibblock">CodeNet: A Large-Scale AI for Code Dataset for Learning a Diversity of Coding Tasks, 2021.
+
+</span>
+</li>
+<li id="bib.bib72" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[72]</span>
+<span class="ltx_bibblock">
+Edward O. Pyzer-Knapp, Matteo Manica, Peter Staar, Lucas Morin, Patrick Ruch, Teodoro Laino, John R. Smith, and Alessandro Curioni.
+
+</span>
+<span class="ltx_bibblock">Foundation models for materials discovery – current state and future directions.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">npj Computational Materials</span>, 11(1):61, Mar 2025.
+
+</span>
+</li>
+<li id="bib.bib73" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[73]</span>
+<span class="ltx_bibblock">
+Yujie Qian, Jiang Guo, Zhengkai Tu, Zhening Li, Connor W. Coley, and Regina Barzilay.
+
+</span>
+<span class="ltx_bibblock">MolScribe: Robust Molecular Structure Recognition with Image-to-Graph Generation.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Journal of Chemical Information and Modeling</span>, 63(7):1925–1934, Apr 2023.
+
+</span>
+</li>
+<li id="bib.bib74" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[74]</span>
+<span class="ltx_bibblock">
+Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J Liu.
+
+</span>
+<span class="ltx_bibblock">Exploring the limits of transfer learning with a unified text-to-text transformer.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Journal of machine learning research</span>, 21(140):1–67, 2020.
+
+</span>
+</li>
+<li id="bib.bib75" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[75]</span>
+<span class="ltx_bibblock">
+Kohulan Rajan, Henning Otto Brinkhaus, M. Isabel Agea, Achim Zielesny, and Christoph Steinbeck.
+
+</span>
+<span class="ltx_bibblock">DECIMER.ai: an open platform for automated optical chemical structure identification, segmentation and recognition in scientific publications.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Nature Communications</span>, 14(1):5045, Aug 2023.
+
+</span>
+</li>
+<li id="bib.bib76" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[76]</span>
+<span class="ltx_bibblock">
+Johannes Rausch, Octavio Martinez, Fabian Bissig, Ce Zhang, and Stefan Feuerriegel.
+
+</span>
+<span class="ltx_bibblock">Docparser: Hierarchical document structure parsing from renderings.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">Proceedings of the AAAI Conference on Artificial Intelligence</span>, volume 35, pages 4328–4338, 2021.
+
+</span>
+</li>
+<li id="bib.bib77" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[77]</span>
+<span class="ltx_bibblock">
+Felix M Schmitt-Koopmann, Elaine M Huang, Hans-Peter Hutter, Thilo Stadelmann, and Alireza Darvishy.
+
+</span>
+<span class="ltx_bibblock">MathNet: A Data-Centric Approach for Printed Mathematical Expression Recognition.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">IEEE Access</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib78" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[78]</span>
+<span class="ltx_bibblock">
+Brandon Smock, Rohith Pesala, and Robin Abraham.
+
+</span>
+<span class="ltx_bibblock">PubTables-1M: Towards comprehensive table extraction from unstructured documents.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">2022 IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</span>, pages 4624–4632, 2022.
+
+</span>
+</li>
+<li id="bib.bib79" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[79]</span>
+<span class="ltx_bibblock">
+Zineng Tang, Ziyi Yang, Guoxin Wang, Yuwei Fang, Yang Liu, Chenguang Zhu, Michael Zeng, Cha Zhang, and Mohit Bansal.
+
+</span>
+<span class="ltx_bibblock">Unifying vision, text, and layout for universal document processing.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">Proceedings of the IEEE/CVF conference on computer vision and pattern recognition</span>, pages 19254–19264, 2023.
+
+</span>
+</li>
+<li id="bib.bib80" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[80]</span>
+<span class="ltx_bibblock">
+Gemini Team, Rohan Anil, Sebastian Borgeaud, Jean-Baptiste Alayrac, Jiahui Yu, Radu Soricut, Johan Schalkwyk, Andrew M Dai, Anja Hauth, Katie Millican, et al.
+
+</span>
+<span class="ltx_bibblock">Gemini: a family of highly capable multimodal models.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2312.11805</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib81" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[81]</span>
+<span class="ltx_bibblock">
+Granite Vision Team, Leonid Karlinsky, Assaf Arbelle, Abraham Daniels, Ahmed Nassar, Amit Alfassi, Bo Wu, Eli Schwartz, Dhiraj Joshi, Jovana Kondic, Nimrod Shabtay, Pengyuan Li, Roei Herzig, Shafiq Abedin, Shaked Perek, Sivan Harary, Udi Barzelay, Adi Raz Goldfarb, Aude Oliva, Ben Wieles, Bishwaranjan Bhattacharjee, Brandon Huang, Christoph Auer, Dan Gutfreund, David Beymer, David Wood, Hilde Kuehne, Jacob Hansen, Joseph Shtok, Ken Wong, Luis Angel Bathen, Mayank Mishra, Maksym Lysak, Michele Dolfi, Mikhail Yurochkin, Nikolaos Livathinos, Nimrod Harel, Ophir Azulai, Oshri Naparstek, Rafael Teixeira de Lima, Rameswar Panda, Sivan Doveh, Shubham Gupta, Subhro Das, Syed Zawad, Yusik Kim, Zexue He, Alexander Brooks, Gabe Goodhart, Anita Govindjee, Derek Leist, Ibrahim Ibrahim, Aya Soffer, David Cox, Kate Soule, Luis Lastras, Nirmit Desai, Shila Ofek-koifman, Sriram Raghavan, Tanveer Syeda-Mahmood, Peter Staar, Tal Drory, and Rogerio Feris.
+
+</span>
+<span class="ltx_bibblock">Granite Vision: a lightweight, open-source multimodal model for enterprise Intelligence, 2025.
+
+</span>
+</li>
+<li id="bib.bib82" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[82]</span>
+<span class="ltx_bibblock">
+Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal Azhar, et al.
+
+</span>
+<span class="ltx_bibblock">Llama: Open and efficient foundation language models.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2302.13971</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib83" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[83]</span>
+<span class="ltx_bibblock">
+Michał Turski, Tomasz Stanisławek, Karol Kaczmarek, Paweł Dyda, and Filip Graliński.
+
+</span>
+<span class="ltx_bibblock">CCpdf: Building a High Quality Corpus for Visually Rich Documents from Web Crawl Data.
+
+</span>
+<span class="ltx_bibblock">In Gernot A. Fink, Rajiv Jain, Koichi Kise, and Richard Zanibbi, editors, <span class="ltx_text ltx_font_italic">Document Analysis and Recognition - ICDAR 2023</span>, pages 348–365, Cham, 2023. Springer Nature Switzerland.
+
+</span>
+</li>
+<li id="bib.bib84" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[84]</span>
+<span class="ltx_bibblock">
+Unstructured.io Team.
+
+</span>
+<span class="ltx_bibblock">Unstructured.io: Open-Source Pre-Processing Tools for Unstructured Data.
+
+</span>
+<span class="ltx_bibblock">https://unstructured.io, 2024.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2024-11-19.
+
+</span>
+</li>
+<li id="bib.bib85" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[85]</span>
+<span class="ltx_bibblock">
+Vicuna.
+
+</span>
+<span class="ltx_bibblock">Vicuna: An open-source chatbot impressing GPT-4 with 90%* ChatGPT quality.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://vicuna.lmsys.org/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://vicuna.lmsys.org/</a>, 2023.
+
+</span>
+</li>
+<li id="bib.bib86" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[86]</span>
+<span class="ltx_bibblock">
+Bin Wang, Chao Xu, Xiaomeng Zhao, Linke Ouyang, Fan Wu, Zhiyuan Zhao, Rui Xu, Kaiwen Liu, Yuan Qu, Fukai Shang, Bo Zhang, Liqun Wei, Zhihao Sui, Wei Li, Botian Shi, Yu Qiao, Dahua Lin, and Conghui He.
+
+</span>
+<span class="ltx_bibblock">MinerU: An Open-Source Solution for Precise Document Content Extraction, 2024.
+
+</span>
+</li>
+<li id="bib.bib87" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[87]</span>
+<span class="ltx_bibblock">
+Michael L Waskom.
+
+</span>
+<span class="ltx_bibblock">Seaborn: statistical data visualization.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Journal of Open Source Software</span>, 6(60):3021, 2021.
+
+</span>
+</li>
+<li id="bib.bib88" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[88]</span>
+<span class="ltx_bibblock">
+Maurice Weber, Carlo Siebenschuh, Rory Butler, Anton Alexandrov, Valdemar Thanner, Georgios Tsolakis, Haris Jabbar, Ian Foster, Bo Li, Rick Stevens, et al.
+
+</span>
+<span class="ltx_bibblock">WordScape: a Pipeline to extract multilingual, visually rich Documents with Layout Annotations from Web Crawl Data.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Advances in Neural Information Processing Systems</span>, 36, 2024.
+
+</span>
+</li>
+<li id="bib.bib89" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[89]</span>
+<span class="ltx_bibblock">
+Haoran Wei, Chenglong Liu, Jinyue Chen, Jia Wang, Lingyu Kong, Yanming Xu, Zheng Ge, Liang Zhao, Jianjian Sun, Yuang Peng, et al.
+
+</span>
+<span class="ltx_bibblock">General OCR Theory: Towards OCR-2.0 via a Unified End-to-end Model.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2409.01704</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib90" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[90]</span>
+<span class="ltx_bibblock">
+Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny Zhou, et al.
+
+</span>
+<span class="ltx_bibblock">Chain-of-thought prompting elicits reasoning in large language models.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Advances in neural information processing systems</span>, 35:24824–24837, 2022.
+
+</span>
+</li>
+<li id="bib.bib91" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[91]</span>
+<span class="ltx_bibblock">
+David Weininger.
+
+</span>
+<span class="ltx_bibblock"> SMILES, a chemical language and information system. 1. Introduction to methodology and encoding rules.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">Journal of Chemical Information and Computer Sciences</span>, 28(1):31–36, Feb 1988.
+
+</span>
+</li>
+<li id="bib.bib92" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[92]</span>
+<span class="ltx_bibblock">
+Wes McKinney and the Pandas Development Team.
+
+</span>
+<span class="ltx_bibblock">Pandas: powerful Python data analysis toolkit, Release 1.4.4.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://pandas.pydata.org/pandas-docs/version/1.4/pandas.pdf" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://pandas.pydata.org/pandas-docs/version/1.4/pandas.pdf</a>, 2022.
+
+</span>
+</li>
+<li id="bib.bib93" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[93]</span>
+<span class="ltx_bibblock">
+Renqiu Xia, Bo Zhang, Haoyang Peng, Hancheng Ye, Xiangchao Yan, Peng Ye, Botian Shi, Junchi Yan, and Yu Qiao.
+
+</span>
+<span class="ltx_bibblock">StructChart: Perception, Structuring, Reasoning for Visual Chart Understanding.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2309.11268</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib94" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[94]</span>
+<span class="ltx_bibblock">
+Renqiu Xia, Bo Zhang, Hancheng Ye, Xiangchao Yan, Qi Liu, Hongbin Zhou, Zijun Chen, Min Dou, Botian Shi, Junchi Yan, et al.
+
+</span>
+<span class="ltx_bibblock">Chartx &amp; chartvlm: A versatile benchmark and foundation model for complicated chart reasoning.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2402.12185</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib95" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[95]</span>
+<span class="ltx_bibblock">
+Yang Xu, Yiheng Xu, Tengchao Lv, Lei Cui, Furu Wei, Guoxin Wang, Yijuan Lu, Dinei Florencio, Cha Zhang, Wanxiang Che, et al.
+
+</span>
+<span class="ltx_bibblock">Layoutlmv2: Multi-modal pre-training for visually-rich document understanding.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2012.14740</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib96" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[96]</span>
+<span class="ltx_bibblock">
+Yiheng Xu, Minghao Li, Lei Cui, Shaohan Huang, Furu Wei, and Ming Zhou.
+
+</span>
+<span class="ltx_bibblock">Layoutlm: Pre-training of text and layout for document image understanding.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">Proceedings of the 26th ACM SIGKDD international conference on knowledge discovery &amp; data mining</span>, pages 1192–1200, 2020.
+
+</span>
+</li>
+<li id="bib.bib97" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[97]</span>
+<span class="ltx_bibblock">
+Zuoyu Yan, Xiaode Zhang, Liangcai Gao, Ke Yuan, and Zhi Tang.
+
+</span>
+<span class="ltx_bibblock">ConvMath: a convolutional sequence network for mathematical expression recognition.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">2020 25th International Conference on Pattern Recognition (ICPR)</span>, pages 4566–4572. IEEE, 2021.
+
+</span>
+</li>
+<li id="bib.bib98" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[98]</span>
+<span class="ltx_bibblock">
+Jiabo Ye, Anwen Hu, Haiyang Xu, Qinghao Ye, Ming Yan, Guohai Xu, Chenliang Li, Junfeng Tian, Qi Qian, Ji Zhang, et al.
+
+</span>
+<span class="ltx_bibblock">Ureader: Universal ocr-free visually-situated language understanding with multimodal large language model.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2310.05126</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib99" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[99]</span>
+<span class="ltx_bibblock">
+Pan Zhang, Xiaoyi Dong, Bin Wang, Yuhang Cao, Chao Xu, Linke Ouyang, Zhiyuan Zhao, Shuangrui Ding, Songyang Zhang, Haodong Duan, Wenwei Zhang, Hang Yan, Xinyue Zhang, Wei Li, Jingwen Li, Kai Chen, Conghui He, Xingcheng Zhang, Yu Qiao, Dahua Lin, and Jiaqi Wang.
+
+</span>
+<span class="ltx_bibblock">InternLM-XComposer: A Vision-Language Large Model for Advanced Text-image Comprehension and Composition.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2309.15112</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib100" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[100]</span>
+<span class="ltx_bibblock">
+Pan Zhang, Xiaoyi Dong, Yuhang Zang, Yuhang Cao, Rui Qian, Lin Chen, Qipeng Guo, Haodong Duan, Bin Wang, Linke Ouyang, Songyang Zhang, Wenwei Zhang, Yining Li, Yang Gao, Peng Sun, Xinyue Zhang, Wei Li, Jingwen Li, Wenhai Wang, Hang Yan, Conghui He, Xingcheng Zhang, Kai Chen, Jifeng Dai, Yu Qiao, Dahua Lin, and Jiaqi Wang.
+
+</span>
+<span class="ltx_bibblock">InternLM-XComposer-2.5: A Versatile Large Vision Language Model Supporting Long-Contextual Input and Output.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2407.03320</span>, 2024.
+
+</span>
+</li>
+<li id="bib.bib101" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[101]</span>
+<span class="ltx_bibblock">
+Qiming Zhang, Jing Zhang, Yufei Xu, and Dacheng Tao.
+
+</span>
+<span class="ltx_bibblock">Vision Transformer with Quadrangle Attention.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2303.15105</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib102" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[102]</span>
+<span class="ltx_bibblock">
+Susan Zhang, Stephen Roller, Naman Goyal, Mikel Artetxe, Moya Chen, Shuohui Chen, Christopher Dewan, Mona Diab, Xian Li, Xi Victoria Lin, et al.
+
+</span>
+<span class="ltx_bibblock">Opt: Open pre-trained transformer language models.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">URL https://arxiv. org/abs/2205.01068</span>, 3:19–0, 2023.
+
+</span>
+</li>
+<li id="bib.bib103" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[103]</span>
+<span class="ltx_bibblock">
+Xinyi Zheng, Douglas Burdick, Lucian Popa, Xu Zhong, and Nancy Xin Ru Wang.
+
+</span>
+<span class="ltx_bibblock">Global table extractor (gte): A framework for joint table identification and cell structure recognition using visual context.
+
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_font_italic">Proceedings of the IEEE/CVF winter conference on applications of computer vision</span>, pages 697–706, 2021.
+
+</span>
+</li>
+<li id="bib.bib104" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[104]</span>
+<span class="ltx_bibblock">
+Xu Zhong, Elaheh ShafieiBavani, and Antonio Jimeno Yepes.
+
+</span>
+<span class="ltx_bibblock">Image-based table recognition: data, model, and evaluation.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:1911.10683</span>, 2019.
+
+</span>
+</li>
+<li id="bib.bib105" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[105]</span>
+<span class="ltx_bibblock">
+Deyao Zhu, Jun Chen, Xiaoqian Shen, Xiang Li, and Mohamed Elhoseiny.
+
+</span>
+<span class="ltx_bibblock">Minigpt-4: Enhancing vision-language understanding with advanced large language models.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_font_italic">arXiv preprint arXiv:2304.10592</span>, 2023.
+
+</span>
+</li>
+</ul>
+</section>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<figure id="A0.F3" class="ltx_figure"><img src="/html/2503.11576/assets/figs/datasets_fig.png" id="A0.F3.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="598" height="323" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 3: </span><span class="ltx_text ltx_font_bold">Training datasets.</span> A treemap visualization of dataset sizes contributing to the training of SmolDocling, categorized by type. Each rectangle represents a dataset, with its area proportional to the total dataset size. Each color indicates a dataset type. <span class="ltx_text ltx_font_italic">“Multi-Task"</span> refers to datasets that include multiple different tasks.</figcaption>
+</figure>
+<figure id="A0.F4" class="ltx_figure"><img src="/html/2503.11576/assets/figs_supple/charts_collage_word.png" id="A0.F4.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="449" height="740" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 4: </span><span class="ltx_text ltx_font_bold">Samples from SynthChartNet.</span></figcaption>
+</figure>
+<figure id="A0.F5" class="ltx_figure"><img src="/html/2503.11576/assets/figs_supple/collage_word.png" id="A0.F5.g1" class="ltx_graphics ltx_centering ltx_img_square" width="598" height="594" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 5: </span><span class="ltx_text ltx_font_bold">Samples from SynthCodeNet.</span></figcaption>
+</figure>
+<figure id="A0.F6" class="ltx_figure"><img src="/html/2503.11576/assets/figs_supple/equations_word_collage.png" id="A0.F6.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="479" height="714" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 6: </span><span class="ltx_text ltx_font_bold">Samples from SynthFormulaNet.</span></figcaption>
+</figure>
+<section id="A1" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix A </span>Additional Datasets Details</h2>
+
+<section id="A1.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">A.1 </span>SynthChartNet</h3>
+
+<div id="A1.SS1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">SynthChartNet includes four distinct types of charts: line, pie, bar, and stacked bar, generated using three visualization libraries: Matplotlib <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib30" title="" class="ltx_ref">30</a>]</cite>, Seaborn <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib87" title="" class="ltx_ref">87</a>]</cite>, and Pyecharts <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib15" title="" class="ltx_ref">15</a>]</cite>. Each data set was rendered through all three libraries, producing a final dataset of 2.5 million visually diverse charts. The rendering process was designed to leverage the full range of features available in these libraries, ensuring visual variety while maintaining the plausibility of the data presented. <a href="#A0.F4" title="Figure 4 ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref ltx_refmacro_autoref"><span class="ltx_text ltx_ref_tag">Figure 4</span></a> depicts 10 samples from SynthChartNet.</p>
+</div>
+</section>
+<section id="A1.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">A.2 </span>SynthCodeNet</h3>
+
+<div id="A1.SS2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">To render the code snippets of SynthCodeNet, we employed two rendering libraries: LaTeX and Pygments <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib16" title="" class="ltx_ref">16</a>]</cite>. LaTex, in conjunction with its listings package, enabled the generation of code renderings similar to those commonly seen in academic and technical publications, while Pygments facilitated renderings with aesthetics resembling those of IDEs. The rendering process utilized the complete set of features provided by these libraries to enhance visual diversity while preserving the plausibility of the presented data. This included randomizing various stylistic parameters such as font, font size, style, weight, line spacing, tab size, background color, line numbering (including randomizing the starting line number), and programming language-specific syntax highlighting. <a href="#A0.F5" title="Figure 5 ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref ltx_refmacro_autoref"><span class="ltx_text ltx_ref_tag">Figure 5</span></a>
+shows 4 samples from SynthCodeNet.</p>
+</div>
+</section>
+<section id="A1.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">A.3 </span>SynthFormulaNet</h3>
+
+<div id="A1.SS3.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">The extracted formulas of SynthFormulaNet underwent a rigorous normalization procedure to ensure the model was trained only on correct and standardized code. The normalization process consisted of the following major steps:</p>
+<ol id="A1.I1" class="ltx_enumerate">
+<li id="A1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">1.</span> 
+<div id="A1.I1.i1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Token Filtering and Removal</span>: Unnecessary or redundant LaTeX tokens were removed or replaced based on predefined policies. This included:</p>
+<ul id="A1.I1.i1.I1" class="ltx_itemize">
+<li id="A1.I1.i1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i1.I1.i1.p1" class="ltx_para">
+<p class="ltx_p">Eliminating unwanted tokens.</p>
+</div>
+</li>
+<li id="A1.I1.i1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i1.I1.i2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Replacing tokens with equivalent ones for consistency.</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li id="A1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">2.</span> 
+<div id="A1.I1.i2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Structural Normalization</span>: The equation structure was standardized by:</p>
+<ul id="A1.I1.i2.I1" class="ltx_itemize">
+<li id="A1.I1.i2.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i2.I1.i1.p1" class="ltx_para">
+<p class="ltx_p">Normalizing spacing between tokens.</p>
+</div>
+</li>
+<li id="A1.I1.i2.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i2.I1.i2.p1" class="ltx_para">
+<p class="ltx_p">Standardizing left and right delimiters.</p>
+</div>
+</li>
+<li id="A1.I1.i2.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i2.I1.i3.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Ensuring consistent use of tokens that require one or two braces.</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li id="A1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">3.</span> 
+<div id="A1.I1.i3.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Token Simplification</span>: Redundant tokens and patterns were simplified, including:</p>
+<ul id="A1.I1.i3.I1" class="ltx_itemize">
+<li id="A1.I1.i3.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i3.I1.i1.p1" class="ltx_para">
+<p class="ltx_p">Collapsing consecutive redundant tokens (e.g., repeated primes, dots, or excessive spacing).</p>
+</div>
+</li>
+<li id="A1.I1.i3.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i3.I1.i2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Converting special constructs such as <span class="ltx_text ltx_font_typewriter">\Big</span> into <span class="ltx_text ltx_font_typewriter">\left</span> and <span class="ltx_text ltx_font_typewriter">\right</span> for consistency.</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+<p class="ltx_p">The extracted equations were subsequently rendered using LaTex at 120 dpi. Several aspects of the rendering procedure have been randomized to ensure the visual diversity of the dataset. Each formula was rendered using a randomly selected font from a set of 85 possible options, with variations in font size, style, weight, and line spacing. Additionally, with a certain probability, each formula was enclosed within an "align" environment, allowing for the inclusion of a randomly generated equation number on either the left or right side of the equation. The equation number itself was chosen at random from a diverse set of possibilities, including small and large numbers, integers, floating-point values, or letters. Furthermore, it could be enclosed in single or double parentheses, brackets, or curly braces and was sometimes preceded by text labels such as “Eqn.", “Eqn", “Eq.", or “Equation". <a href="#A0.F6" title="Figure 6 ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref ltx_refmacro_autoref"><span class="ltx_text ltx_ref_tag">Figure 6</span></a> depicts 6 samples from SynthFormulaNet.</p>
+</div>
+</section>
+<section id="A1.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">A.4 </span>DocTags vocabulary</h3>
+
+<div id="A1.SS4.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Here we provide a reference to a complete vocabulary of <span class="ltx_text ltx_font_italic">DocTags</span> for <span class="ltx_text ltx_font_italic">SmolDocling</span>, and their meaning.</p>
+</div>
+<div id="A1.SS4.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">We represent tags in an XML-like style of notation. Some tags have an opening and closing part, and wrap around textual content (or other tags) for example: <span class="ltx_text ltx_font_typewriter">&lt;text&gt;hello world&lt;/text&gt;</span>.
+Other tags are standalone and do not have a closing tag; they mark a special instruction, for example: <span class="ltx_text ltx_font_typewriter">&lt;page_break&gt;</span></p>
+</div>
+<div id="A1.SS4.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p">The complete <span class="ltx_text ltx_font_italic">DocTags</span> snippet can represent a page or multiple pages, wrapped into <span class="ltx_text ltx_font_typewriter">&lt;doctag&gt;...&lt;/doctag&gt;</span>. When content represents multiple pages, we use <span class="ltx_text ltx_font_typewriter">&lt;page_break&gt;</span> tag as a separator.</p>
+</div>
+<div id="A1.SS4.p4" class="ltx_para ltx_noindent">
+<p class="ltx_p">Within the scope of <span class="ltx_text ltx_font_typewriter">&lt;doctag&gt;</span> we place high-level, tags that wrap around the textual content of certain document blocks and identify the type of the block. These tags are: <span class="ltx_text ltx_font_typewriter">&lt;text&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;caption&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;footnote&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;formula&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;title&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;page_footer&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;page_header&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;picture&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;section_header&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;document_index&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;code&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;otsl&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;list_item&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;ordered_list&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;unordered_list&gt;</span></p>
+</div>
+<div id="A1.SS4.p5" class="ltx_para ltx_noindent">
+<p class="ltx_p">Each element can nest additional standalone location tags that encode its position on the page as a bounding box, represented in DocTags as <span class="ltx_text ltx_font_typewriter">&lt;loc_<span class="ltx_text ltx_font_italic">x1</span>&gt;&lt;loc_<span class="ltx_text ltx_font_italic">y1</span>&gt;&lt;loc_<span class="ltx_text ltx_font_italic">x2</span>&gt;&lt;loc_<span class="ltx_text ltx_font_italic">y2</span>&gt;</span>. Every x,y pair of coordinates belongs to a fixed grid. In our case we used integer values in the range from 0 to 500 which proportionally maps to width and height of the page.</p>
+</div>
+<div id="A1.SS4.p6" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_typewriter">&lt;otsl&gt;</span> element contains table representation with following OTSL tags, that are standalone and used to describe structure of a table: <span class="ltx_text ltx_font_typewriter">&lt;fcel&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;ecel&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;lcel&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;ucel&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;xcel&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;nl&gt;</span>. These tags follow rules as described in <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib55" title="" class="ltx_ref">55</a>]</cite>, we additionally differentiate OTSL notion of a cell into <span class="ltx_text ltx_font_typewriter">&lt;fcel&gt;</span> - full cell, or cell which contain content, and <span class="ltx_text ltx_font_typewriter">&lt;ecel&gt;</span> - empty cell. We also augment tabular structure information with extra tags <span class="ltx_text ltx_font_typewriter">&lt;ched&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;rhed&gt;</span>, <span class="ltx_text ltx_font_typewriter">&lt;srow&gt;</span> that replace <span class="ltx_text ltx_font_typewriter">&lt;fcel&gt;</span> to describe cells which belong to column and row headers of the table, as well as table section accordingly. We mark such headers when ground truth about table headers from the underlying dataset is available.</p>
+</div>
+<div id="A1.SS4.p7" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_typewriter">&lt;list_item&gt;</span> elements are placed within <span class="ltx_text ltx_font_typewriter">&lt;ordered_list&gt;</span> or <span class="ltx_text ltx_font_typewriter">&lt;unordered_list&gt;</span> and define weather it’s enumerated (ordered) list or not.</p>
+</div>
+<div id="A1.SS4.p8" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_typewriter">&lt;picture&gt;</span> and <span class="ltx_text ltx_font_typewriter">&lt;otsl&gt;</span> elements by themselves can encapsulate <span class="ltx_text ltx_font_typewriter">&lt;caption&gt;</span> tag if appropriate picture or table has it’s own caption. This way we can connect extra descriptive information to illustrations and tables in the document.</p>
+</div>
+<div id="A1.SS4.p9" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_typewriter">&lt;code&gt;</span> elements contain pieces of code as a content, and as such, respect tabulation and line breaks. Code elements also contains special standalone classification tag - <span class="ltx_text ltx_font_typewriter">&lt;_<span class="ltx_text ltx_font_italic">programming-language</span>_&gt;</span> where <span class="ltx_text ltx_font_italic">programming-language</span> is an appropriate programming language name. Supported values (57 in total) for programming language names are: <span class="ltx_text ltx_font_italic">Ada</span>, <span class="ltx_text ltx_font_italic">Awk</span>, <span class="ltx_text ltx_font_italic">Bash</span>, <span class="ltx_text ltx_font_italic">bc</span>, <span class="ltx_text ltx_font_italic">C</span>, <span class="ltx_text ltx_font_italic">C#</span>, <span class="ltx_text ltx_font_italic">C++</span>, <span class="ltx_text ltx_font_italic">CMake</span>, <span class="ltx_text ltx_font_italic">COBOL</span>, <span class="ltx_text ltx_font_italic">CSS</span>, <span class="ltx_text ltx_font_italic">Ceylon</span>, <span class="ltx_text ltx_font_italic">Clojure</span>, <span class="ltx_text ltx_font_italic">Crystal</span>, <span class="ltx_text ltx_font_italic">Cuda</span>, <span class="ltx_text ltx_font_italic">Cython</span>, <span class="ltx_text ltx_font_italic">D</span>, <span class="ltx_text ltx_font_italic">Dart</span>, <span class="ltx_text ltx_font_italic">dc</span>, <span class="ltx_text ltx_font_italic">Dockerfile</span>, <span class="ltx_text ltx_font_italic">Elixir</span>, <span class="ltx_text ltx_font_italic">Erlang</span>, <span class="ltx_text ltx_font_italic">FORTRAN</span>, <span class="ltx_text ltx_font_italic">Forth</span>, <span class="ltx_text ltx_font_italic">Go</span>, <span class="ltx_text ltx_font_italic">HTML</span>, <span class="ltx_text ltx_font_italic">Haskell</span>, <span class="ltx_text ltx_font_italic">Haxe</span>, <span class="ltx_text ltx_font_italic">Java</span>, <span class="ltx_text ltx_font_italic">JavaScript</span>, <span class="ltx_text ltx_font_italic">Julia</span>, <span class="ltx_text ltx_font_italic">Kotlin</span>, <span class="ltx_text ltx_font_italic">Lisp</span>, <span class="ltx_text ltx_font_italic">Lua</span>, <span class="ltx_text ltx_font_italic">Matlab</span>, <span class="ltx_text ltx_font_italic">MoonScript</span>, <span class="ltx_text ltx_font_italic">Nim</span>, <span class="ltx_text ltx_font_italic">OCaml</span>, <span class="ltx_text ltx_font_italic">ObjectiveC</span>, <span class="ltx_text ltx_font_italic">Octave</span>, <span class="ltx_text ltx_font_italic">PHP</span>, <span class="ltx_text ltx_font_italic">Pascal</span>, <span class="ltx_text ltx_font_italic">Perl</span>, <span class="ltx_text ltx_font_italic">Prolog</span>, <span class="ltx_text ltx_font_italic">Python</span>, <span class="ltx_text ltx_font_italic">Racket</span>, <span class="ltx_text ltx_font_italic">Ruby</span>, <span class="ltx_text ltx_font_italic">Rust</span>, <span class="ltx_text ltx_font_italic">SML</span>, <span class="ltx_text ltx_font_italic">SQL</span>, <span class="ltx_text ltx_font_italic">Scala</span>, <span class="ltx_text ltx_font_italic">Scheme</span>, <span class="ltx_text ltx_font_italic">Swift</span>, <span class="ltx_text ltx_font_italic">TypeScript</span>, <span class="ltx_text ltx_font_italic">unknown</span>, <span class="ltx_text ltx_font_italic">VisualBasic</span>, <span class="ltx_text ltx_font_italic">XML</span>, <span class="ltx_text ltx_font_italic">YAML</span></p>
+</div>
+<div id="A1.SS4.p10" class="ltx_para ltx_noindent">
+<p class="ltx_p">Within <span class="ltx_text ltx_font_typewriter">&lt;picture&gt;</span> elements we include picture classification with extra standalone tags <span class="ltx_text ltx_font_typewriter">&lt;<span class="ltx_text ltx_font_italic">image_class&gt;</span></span>. We classify images from our datasets into following categories: <span class="ltx_text ltx_font_italic">natural_image</span>, <span class="ltx_text ltx_font_italic">pie_chart</span>, <span class="ltx_text ltx_font_italic">bar_chart</span>, <span class="ltx_text ltx_font_italic">line_chart</span>, <span class="ltx_text ltx_font_italic">flow_chart</span>, <span class="ltx_text ltx_font_italic">scatter_chart</span>, <span class="ltx_text ltx_font_italic">heatmap</span>, <span class="ltx_text ltx_font_italic">remote_sensing</span>, <span class="ltx_text ltx_font_italic">chemistry_molecular_structure</span>, <span class="ltx_text ltx_font_italic">chemistry_markush_structure</span>, <span class="ltx_text ltx_font_italic">icon</span>, <span class="ltx_text ltx_font_italic">logo</span>, <span class="ltx_text ltx_font_italic">signature</span>, <span class="ltx_text ltx_font_italic">stamp</span>, <span class="ltx_text ltx_font_italic">qr_code</span>, <span class="ltx_text ltx_font_italic">bar_code</span>, <span class="ltx_text ltx_font_italic">screenshot</span>, <span class="ltx_text ltx_font_italic">map</span>, <span class="ltx_text ltx_font_italic">stratigraphic_chart</span>, <span class="ltx_text ltx_font_italic">cad_drawing</span>, <span class="ltx_text ltx_font_italic">electrical_diagram</span></p>
+</div>
+</section>
+</section>
+<section id="A2" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix B </span>Additional Details about the SmolDocling</h2>
+
+<figure id="A2.T6" class="ltx_table">
+<table class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_justify ltx_align_middle ltx_th ltx_th_column ltx_border_tt" style="width:56.9pt;padding-bottom:5.0pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_left"><span class="ltx_text ltx_font_bold">Instruction</span></span>
+</span>
+</th>
+<th class="ltx_td ltx_align_justify ltx_th ltx_th_column ltx_border_tt" style="padding-bottom:5.0pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p"><span class="ltx_text ltx_font_bold">Description</span></span>
+</span>
+</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_justify ltx_align_middle ltx_border_t" style="width:56.9pt;padding-bottom:5.0pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_left">Full conversion</span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_t" style="padding-bottom:5.0pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p">Convert this page to docling.</span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_justify ltx_align_middle ltx_border_t" style="width:56.9pt;padding-bottom:5.0pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_left">Chart</span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_t" style="padding-bottom:5.0pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p">Convert chart to table (e.g., <span class="ltx_text ltx_font_typewriter">&lt;chart&gt;</span>).</span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_justify ltx_align_middle ltx_border_t" style="width:56.9pt;padding-bottom:5.0pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_left">Formula</span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_t" style="padding-bottom:5.0pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p">Convert formula to LaTeX (e.g., <span class="ltx_text ltx_font_typewriter">&lt;formula&gt;</span>).</span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_justify ltx_align_middle ltx_border_t" style="width:56.9pt;padding-bottom:5.0pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_left">Code</span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_t" style="padding-bottom:5.0pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p">Convert code to text (e.g., <span class="ltx_text ltx_font_typewriter">&lt;code&gt;</span>).</span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_justify ltx_align_middle ltx_border_t" style="width:56.9pt;padding-bottom:5.0pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_left">Table</span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_t" style="padding-bottom:5.0pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p">Convert table to OTSL (e.g., <span class="ltx_text ltx_font_typewriter">&lt;otsl&gt;</span>).</span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_justify ltx_align_middle ltx_border_bb ltx_border_t" style="width:56.9pt;">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_left">No-Code Actions/Pipelines</span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_bb ltx_border_t">
+<table class="ltx_tabular ltx_align_top">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_nopad_r ltx_align_left" style="padding-bottom:5.0pt;">OCR the text in a specific location: <span class="ltx_text ltx_font_typewriter">&lt;loc_155&gt;&lt;loc_233&gt;&lt;loc_206&gt;&lt;loc_237&gt;</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_t" style="padding-bottom:5.0pt;">Identify element at: <span class="ltx_text ltx_font_typewriter">&lt;loc_247&gt;&lt;loc_482&gt;&lt;loc_252&gt;&lt;loc_486&gt;</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_t" style="padding-bottom:5.0pt;">Find all ‘text’ elements on the page, retrieve all section headers.</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_nopad_r ltx_align_left ltx_border_t" style="padding-bottom:5.0pt;">Detect footer elements on the page.</td>
+</tr>
+</table>
+</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">Table 6: </span><span class="ltx_text ltx_font_bold">Supported Conversion Instructions.</span></figcaption>
+</figure>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+<section id="A3" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix C </span>Additional Qualitative Analysis</h2>
+
+<section id="A3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">C.1 </span>Molecule Image Recognition Experiment</h3>
+
+<div id="A3.SS1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Extracting molecule images from documents has potential to accelerate research in chemistry and materials discovery <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib72" title="" class="ltx_ref">72</a>]</cite>.
+Some recent document understanding models, such as GOT-OCR 2.0 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib89" title="" class="ltx_ref">89</a>]</cite> and Qwen2.5-VL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite>, claim to perform molecule image recognition in documents.
+Following this direction, we experimented with training SmolDocling for molecule image recognition on full document pages and cropped images. In order to predict molecule structures (graphs) with SmolDocling, we use the molecule string identifier named SMILES <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib91" title="" class="ltx_ref">91</a>]</cite>.</p>
+</div>
+<div id="A3.SS1.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Datasets.</span> For training on cropped images, we use the MolGrapher-Synthetic-300K dataset <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib63" title="" class="ltx_ref">63</a>]</cite>. The dataset contains 300K synthetic samples. It is created using real chemical-structures retrieved from the database PubChem <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib36" title="" class="ltx_ref">36</a>]</cite> which are then synthetically drawn using the library RDKit <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib40" title="" class="ltx_ref">40</a>]</cite>.
+For training of full pages, we use Doc2Mol-80K, a subset of the PatCID dataset <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib64" title="" class="ltx_ref">64</a>]</cite>. Our subset contains 80 000 real patent documents published in the United-States between 2022 and 2024.</p>
+</div>
+<figure id="A3.F7" class="ltx_figure"><img src="/html/2503.11576/assets/x2.png" id="A3.F7.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="580" height="98" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 7: </span><span class="ltx_text ltx_font_bold">Qualitative comparison for molecule image recognition.</span> Predictions are shown for GOT-OCR 2.0, Qwen2.5-VL-72B and SmolDocling on a simple molecule image.</figcaption>
+</figure>
+<div id="A3.SS1.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Evaluation.</span>
+<a href="#A3.F7" title="Figure 7 ‣ C.1 Molecule Image Recognition Experiment ‣ Appendix C Additional Qualitative Analysis ‣ SmolDocling: An ultra-compact vision-language model for end-to-end multi-modal document conversion" class="ltx_ref ltx_refmacro_autoref"><span class="ltx_text ltx_ref_tag">Figure 7</span></a> shows an example of predicted molecules for a simple molecule image.
+While some models capture high-level molecular features, they consistently fail to reconstruct its detailed structure. Notably, this molecule is trivial for specialized models such as MolGrapher <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib63" title="" class="ltx_ref">63</a>]</cite>, MolScribe <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib73" title="" class="ltx_ref">73</a>]</cite> or DECIMER <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib75" title="" class="ltx_ref">75</a>]</cite>, which accurately recognize its structure.
+Reducing the gap between general document understanding models and specialized models may require incorporating a specialized vocabulary for SMILES tokens, explicitly encoding atoms and bonds, and extending the SMILES sequence with localization tokens for each atom.</p>
+</div>
+</section>
+<section id="A3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">C.2 </span>Layout analysis samples</h3>
+
+<div id="A3.SS2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">To illustrate and compare the visual grounding capabilities of SmolDocling, a set of sample predictions with SmolDocling and Qwen2.5-VL from DocLayNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib70" title="" class="ltx_ref">70</a>]</cite> is shown in Table <span class="ltx_ref ltx_missing_label ltx_ref_self">LABEL:tab:layout_comparison</span>. Note that the element location results are independent from the correct reproduction of document content and structure.</p>
+</div>
+<figure id="A3.T7" class="ltx_table">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">Table 7: </span>Visualizations of layout output from SmolDocling and QwenVL-2.5 compared to the DocLayNet ground truth. Examples are chosen to be representative of different layout styles and features. The prediction results however do not represent a generalizable measure of the model’s performance on inputs with similar features. (1) Multi-column pages are handled by SmolDocling and Qwen2.5-VL, with some recall errors in the latter. (2) A manual page with terminal output shows poor bounding box recall on SmolDocling and label confusion in Qwen2.5-VL. (3) Lists with nesting are handled well in SmolDocling but confuse Qwen2.5-VL. (4) Both SmolDocling and Qwen2.5-VL reconstruct equations well, however with different annotation conventions on including or excluding the equation index. (5) On a portrait page with colorful elements and gradient background, SmolDocling creates less accurate bounding-boxes and Qwen2.5-VL suffers low recall. (6) On a report page with tables and diagrams, SmolDocling output exhibits some repetition loop, fabricating non-existent text cells (bottom left), while Qwen2.5-VL is confused between tables and pictures.</figcaption>
+<table class="ltx_tabular">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_l ltx_border_r ltx_border_t">#</th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t"><span class="ltx_text ltx_font_bold">Ground-Truth</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t"><span class="ltx_text ltx_font_bold">SmolDocling</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t"><span class="ltx_text ltx_font_bold">Qwen2.5-VL</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t"><span class="ltx_text ltx_font_bold">ID</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_l ltx_border_r ltx_border_t">1</td>
+<td class="ltx_td ltx_align_center ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/0b49b1c3d5217411a7c9b92d960d5f6190b661f743cc6398a0f4be8bc1bc0056_gt.png" id="A3.T7.g1" class="ltx_graphics ltx_img_portrait" width="186" height="263" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/0b49b1c3d5217411a7c9b92d960d5f6190b661f743cc6398a0f4be8bc1bc0056_smoldocling.png" id="A3.T7.g2" class="ltx_graphics ltx_img_portrait" width="186" height="263" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_r ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/0b49b1c3d5217411a7c9b92d960d5f6190b661f743cc6398a0f4be8bc1bc0056_qwen.png" id="A3.T7.g3" class="ltx_graphics ltx_img_portrait" width="186" height="263" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_r ltx_border_t">
+<div class="ltx_inline-block ltx_transformed_outer" style="width:6.9pt;height:160.3pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="width:160.3pt;transform:translate(-76.67pt,-76.67pt) rotate(-90deg) ;">
+<p class="ltx_p"><span class="ltx_text ltx_font_typewriter">0b49b1c3d5217411a7c9b92d960d5f61</span></p>
+</span></div>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_l ltx_border_r ltx_border_t">2</td>
+<td class="ltx_td ltx_align_center ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/0aafe8d4b66ac7ab81e9456327fbdb0177bee0d1ed5aa28a8cf6f72d14481779_gt.png" id="A3.T7.g4" class="ltx_graphics ltx_img_portrait" width="186" height="240" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/0aafe8d4b66ac7ab81e9456327fbdb0177bee0d1ed5aa28a8cf6f72d14481779_smoldocling.png" id="A3.T7.g5" class="ltx_graphics ltx_img_portrait" width="186" height="240" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_r ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/0aafe8d4b66ac7ab81e9456327fbdb0177bee0d1ed5aa28a8cf6f72d14481779_qwen.png" id="A3.T7.g6" class="ltx_graphics ltx_img_portrait" width="186" height="240" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_r ltx_border_t">
+<div class="ltx_inline-block ltx_transformed_outer" style="width:6.9pt;height:158.1pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="width:158.1pt;transform:translate(-75.56pt,-75.56pt) rotate(-90deg) ;">
+<p class="ltx_p"><span class="ltx_text ltx_font_typewriter">0aafe8d4b66ac7ab81e9456327fbdb01</span></p>
+</span></div>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_l ltx_border_r ltx_border_t">3</td>
+<td class="ltx_td ltx_align_center ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/1bff94fbe34e976d53eabc5b8b43f3552e34f3be7613b53dfe29637e7fd2205e_gt.png" id="A3.T7.g7" class="ltx_graphics ltx_img_portrait" width="186" height="263" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/1bff94fbe34e976d53eabc5b8b43f3552e34f3be7613b53dfe29637e7fd2205e_smoldocling.png" id="A3.T7.g8" class="ltx_graphics ltx_img_portrait" width="186" height="263" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_r ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/1bff94fbe34e976d53eabc5b8b43f3552e34f3be7613b53dfe29637e7fd2205e_qwen.png" id="A3.T7.g9" class="ltx_graphics ltx_img_portrait" width="186" height="263" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_r ltx_border_t">
+<div class="ltx_inline-block ltx_transformed_outer" style="width:6.9pt;height:153.9pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="width:153.9pt;transform:translate(-73.47pt,-73.47pt) rotate(-90deg) ;">
+<p class="ltx_p"><span class="ltx_text ltx_font_typewriter">1bff94fbe34e976d53eabc5b8b43f355</span></p>
+</span></div>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_l ltx_border_r ltx_border_t">4</td>
+<td class="ltx_td ltx_align_center ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/2ab06e940ef25ff7b2e832ab8176de15dc06fd97f22f6b543c8146aac0e7b82f_gt.png" id="A3.T7.g10" class="ltx_graphics ltx_img_portrait" width="186" height="240" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/2ab06e940ef25ff7b2e832ab8176de15dc06fd97f22f6b543c8146aac0e7b82f_smoldocling.png" id="A3.T7.g11" class="ltx_graphics ltx_img_portrait" width="186" height="240" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_r ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/2ab06e940ef25ff7b2e832ab8176de15dc06fd97f22f6b543c8146aac0e7b82f_qwen.png" id="A3.T7.g12" class="ltx_graphics ltx_img_portrait" width="186" height="240" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_r ltx_border_t">
+<div class="ltx_inline-block ltx_transformed_outer" style="width:6.9pt;height:154.2pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="width:154.2pt;transform:translate(-73.61pt,-73.61pt) rotate(-90deg) ;">
+<p class="ltx_p"><span class="ltx_text ltx_font_typewriter">2ab06e940ef25ff7b2e832ab8176de15</span></p>
+</span></div>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_l ltx_border_r ltx_border_t">5</td>
+<td class="ltx_td ltx_align_center ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/ebd1b976af12cd1d16d58939049920df139d7cd1d1cc52b7d3200c6ba45c23cd_gt.png" id="A3.T7.g13" class="ltx_graphics ltx_img_landscape" width="186" height="139" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/ebd1b976af12cd1d16d58939049920df139d7cd1d1cc52b7d3200c6ba45c23cd_smoldocling.png" id="A3.T7.g14" class="ltx_graphics ltx_img_landscape" width="186" height="139" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_r ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/ebd1b976af12cd1d16d58939049920df139d7cd1d1cc52b7d3200c6ba45c23cd_qwen.png" id="A3.T7.g15" class="ltx_graphics ltx_img_landscape" width="186" height="139" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_r ltx_border_t">
+<div class="ltx_inline-block ltx_transformed_outer" style="width:6.9pt;height:159.2pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="width:159.2pt;transform:translate(-76.11pt,-76.11pt) rotate(-90deg) ;">
+<p class="ltx_p"><span class="ltx_text ltx_font_typewriter">ebd1b976af12cd1d16d58939049920df</span></p>
+</span></div>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_b ltx_border_l ltx_border_r ltx_border_t">6</td>
+<td class="ltx_td ltx_align_center ltx_border_b ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/eae40317d83ba98d3e70427e6d7baff6dec2bc448538644e0ed6e29ad61d1f59_gt.png" id="A3.T7.g16" class="ltx_graphics ltx_img_portrait" width="186" height="240" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_b ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/eae40317d83ba98d3e70427e6d7baff6dec2bc448538644e0ed6e29ad61d1f59_smoldocling.png" id="A3.T7.g17" class="ltx_graphics ltx_img_portrait" width="186" height="240" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t"><img src="/html/2503.11576/assets/figs_supple/eae40317d83ba98d3e70427e6d7baff6dec2bc448538644e0ed6e29ad61d1f59_qwen.png" id="A3.T7.g18" class="ltx_graphics ltx_img_portrait" width="186" height="240" alt="[Uncaptioned image]"></td>
+<td class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t">
+<div class="ltx_inline-block ltx_transformed_outer" style="width:6.9pt;height:156.7pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="width:156.7pt;transform:translate(-74.86pt,-74.86pt) rotate(-90deg) ;">
+<p class="ltx_p"><span class="ltx_text ltx_font_typewriter">eae40317d83ba98d3e70427e6d7baff6</span></p>
+</span></div>
+</td>
+</tr>
+</tbody>
+</table>
+</figure>
+</section>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2503.11575" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2503.11576" class="ar5iv-text-button ar5iv-severity-warning">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2503.11576">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2503.11576" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2503.11577" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Sat Apr  5 21:08:22 2025 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

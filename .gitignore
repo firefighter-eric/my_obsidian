@@ -1,0 +1,6 @@
+.DS_Store
+.venv
+.playwright-cli
+uv.lock
+
+__pycache__

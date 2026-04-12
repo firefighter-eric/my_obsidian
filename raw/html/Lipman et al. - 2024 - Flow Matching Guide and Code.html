@@ -1,0 +1,198 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2412.06264] Flow Matching Guide and Code</title><meta property="og:description" content="Flow Matching (FM) is a recent framework for generative modeling that has achieved state-of-the-art performance across various domains, including image, video, audio, speech, and biological structures.
+This guide offer…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Flow Matching Guide and Code">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="Flow Matching Guide and Code">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2412.06264">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2412.06264">
+
+<!--Generated on Tue Jan  7 07:42:19 2025 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document">
+<h1 class="ltx_title ltx_title_document">Flow Matching Guide and Code</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Yaron Lipman
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Marton Havasi
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Peter Holderrieth
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Neta Shaul
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Matt Le
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Brian Karrer
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">      Ricky T. Q. Chen
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">David Lopez-Paz
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Heli Ben-Hamu
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Itai Gat
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">[
+</span>
+<span class="ltx_contact ltx_role_affiliation">[
+</span>
+<span class="ltx_contact ltx_role_affiliation">[
+</span></span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id1.id1" class="ltx_p">Flow Matching (FM) is a recent framework for generative modeling that has achieved state-of-the-art performance across various domains, including image, video, audio, speech, and biological structures.
+This guide offers a comprehensive and self-contained review of FM, covering its mathematical foundations, design choices, and extensions.
+By also providing a PyTorch package featuring relevant examples (<span id="id1.id1.1" class="ltx_text ltx_font_italic">e.g.</span>, image and text generation), this work aims to serve as a resource for both novice and experienced researchers interested in understanding, applying and further developing FM.</p>
+</div>
+<div id="p1" class="ltx_para">
+<span id="p1.1" class="ltx_ERROR undefined">\irst</span>orderpartialderivatives),\ie,\begin{equation∗}\brac{\partial_y\phi(y)}_{i,j}=\<span id="p1.80" class="ltx_ERROR undefined">\rac</span>{\partial\phi^i}{\partialx^j},\i,j\in[d],\end{equation∗}and$\detA$denotesthedeterminantoasquarematrix$A\in\Real^{d\timesd}$.Thus,weconcludethatthePDF$p_Y$is\begin{equation}p_Y(y)=p_X(\psi^{-1}(y))\abs{\det\partial_y\psi^{-1}(y)}.\end{equation}Wewilldenotethepush-<span id="p1.345" class="ltx_ERROR undefined">\orward</span>operatorwiththesymbol$\sharp$,thatis\begin{equation}\label{e:push-<span id="p1.412" class="ltx_ERROR undefined">\orward</span>_p}\brac{\psi_\sharpp_X}(y)\de<span id="p1.443" class="ltx_ERROR undefined">\e</span>p_X(\psi^{-1}(y))\abs{\det\partial_y\psi^{-1}(y)}.\end{equation}\begin{<span id="p1.515" class="ltx_ERROR undefined">\igure</span>}\centering\begin{tabular}{ccc}\includegraphics[width=0.3\textwidth]{assets/<span id="p1.590" class="ltx_ERROR undefined">\low</span>_velocity/<span id="p1.601" class="ltx_ERROR undefined">\low</span>_1_p.png}&amp;\includegraphics[width=0.3\textwidth]{assets/<span id="p1.655" class="ltx_ERROR undefined">\low</span>_velocity/<span id="p1.666" class="ltx_ERROR undefined">\low</span>_10_p.png}&amp;\includegraphics[width=0.3\textwidth]{assets/<span id="p1.720" class="ltx_ERROR undefined">\low</span>_velocity/<span id="p1.731" class="ltx_ERROR undefined">\low</span>_16_p.png}\end{tabular}\caption{A<span id="p1.764" class="ltx_ERROR undefined">\low</span>model$X_t=\psi_t(X_0)$isde<span id="p1.791" class="ltx_ERROR undefined">\ined</span>byadi<span id="p1.797" class="ltx_ERROR undefined">\f</span>eomorphism$\psi_t:\Real^d\too\Real^d$(visualizedwithabrownsquaregrid)pushingsamples<span id="p1.881" class="ltx_ERROR undefined">\rom</span>asourceRV$X_0$(le
+<p id="p1.899" class="ltx_p">,͡blackpoints)towardsometargetdistribution$q$(right).Weshowthreedi<span id="p1.899.65" class="ltx_ERROR undefined">\f</span>erenttimes$t$.}\label{<span id="p1.899.88" class="ltx_ERROR undefined">\ig</span>:<span id="p1.899.90" class="ltx_ERROR undefined">\low</span>_model}\end{<span id="p1.899.103" class="ltx_ERROR undefined">\igure</span>}\subsection{Flowsasgenerativemodels}\label{ss:<span id="p1.899.151" class="ltx_ERROR undefined">\lows</span>_and_velocities}Asmentionedin~\cre{s:quick_tour},thegoalogenerativemodelingistotrans<span id="p1.899.237" class="ltx_ERROR undefined">\orm</span>samples$X_0=x_0$<span id="p1.899.254" class="ltx_ERROR undefined">\rom</span>a\highlight{sourcedistribution}$p$intosamples$X_1=x_1$<span id="p1.899.309" class="ltx_ERROR undefined">\rom</span>a\highlight{targetdistribution}$q$.Inthissection,westartbuildingthetoolsnecessarytoaddressthisproblembymeansoa<span id="p1.899.421" class="ltx_ERROR undefined">\low</span>mapping$\psi_t$.More<span id="p1.899.442" class="ltx_ERROR undefined">\ormally</span>,a$C^r$\highlight{<span id="p1.899.461" class="ltx_ERROR undefined">\low</span>}isatime-dependentmapping$\psi:[0,1]\times\Real^d\too\Real^d$implementing$\psi:(t,x)\mapsto\psi_t(x)$.Such<span id="p1.899.568" class="ltx_ERROR undefined">\low</span>isalsoa$C^r([0,1]\times\Real^{d},\Real^d)$<span id="p1.899.611" class="ltx_ERROR undefined">\unction</span>,suchthatthe<span id="p1.899.624" class="ltx_ERROR undefined">\unction</span>$\psi_t(x)$isa$C^r$di<span id="p1.899.646" class="ltx_ERROR undefined">\f</span>eomorphismin$x$all$t\in[0,1]$.A\highlight{<span id="p1.899.689" class="ltx_ERROR undefined">\low</span>model}isa\emph{continuous-timeMarkovprocess}$(X_t)_{0\leqt\leq1}$de<span id="p1.899.757" class="ltx_ERROR undefined">\ined</span>byapplyinga<span id="p1.899.769" class="ltx_ERROR undefined">\low</span>$\psi_t$totheRV$X_0$:\begin{my<span id="p1.899.800" class="ltx_ERROR undefined">\rame</span>}\begin{equation}\label{e:<span id="p1.899.827" class="ltx_ERROR undefined">\low</span>_model}X_t=\psi_t(X_0),\quadt\in[0,1],\text{where}X_0\simp.%\end{equation}\end{my<span id="p1.899.909" class="ltx_ERROR undefined">\rame</span>}See\Cre{<span id="p1.899.919" class="ltx_ERROR undefined">\ig</span>:<span id="p1.899.921" class="ltx_ERROR undefined">\low</span>_model}anillustrationoa<span id="p1.899.946" class="ltx_ERROR undefined">\low</span>model.Toseewhy$X_t$isMarkov,notethat,anychoiceo$0\leqt&lt;s\leq1$,wehave\begin{equation}\label{e:<span id="p1.899.1042" class="ltx_ERROR undefined">\low</span>_is_markov}X_s=\psi_s(X_0)=\psi_s(\psi_t^{-1}(\psi_t(X_0)))=\psi_{s|t}(X_t),\end{equation}wherethelastequality<span id="p1.899.1153" class="ltx_ERROR undefined">\ollows</span><span id="p1.899.1154" class="ltx_ERROR undefined">\rom</span>using\cre{e:<span id="p1.899.1167" class="ltx_ERROR undefined">\low</span>_model}toset$X_t=\psi_t(X_0)$,andde<span id="p1.899.1203" class="ltx_ERROR undefined">\ining</span>$\psi_{s|t}\de<span id="p1.899.1218" class="ltx_ERROR undefined">\e</span>\psi_s\circ\psi_t^{-1}$,whichisalsoadi<span id="p1.899.1257" class="ltx_ERROR undefined">\f</span>eomorphism.$X_s=\psi_{s|t}(X_t)$impliesthatstateslaterthan$X_t$dependonlyon$X_t$,so$X_t$isMarkov.In<span id="p1.899.1357" class="ltx_ERROR undefined">\act</span>,<span id="p1.899.1359" class="ltx_ERROR undefined">\low</span>models,thisdependenceis\emph{deterministic}.Insummary,thegoal\highlight{generative<span id="p1.899.1442" class="ltx_ERROR undefined">\low</span>modeling}isto<span id="p1.899.1456" class="ltx_ERROR undefined">\ind</span>a<span id="p1.899.1458" class="ltx_ERROR undefined">\low</span>$\psi_t$suchthat\begin{equation}X_1=\psi_1(X_0)\simq.%\end{equation}\begin{<span id="p1.899.1534" class="ltx_ERROR undefined">\igure</span>}\centering\begin{tabular}{ccc}\includegraphics[width=0.3\textwidth]{assets/<span id="p1.899.1609" class="ltx_ERROR undefined">\low</span>_velocity/<span id="p1.899.1620" class="ltx_ERROR undefined">\low</span>_1.png}&amp;\includegraphics[width=0.3\textwidth]{assets/<span id="p1.899.1672" class="ltx_ERROR undefined">\low</span>_velocity/<span id="p1.899.1683" class="ltx_ERROR undefined">\low</span>_10.png}&amp;\includegraphics[width=0.3\textwidth]{assets/<span id="p1.899.1735" class="ltx_ERROR undefined">\low</span>_velocity/<span id="p1.899.1746" class="ltx_ERROR undefined">\low</span>_16.png}\end{tabular}\caption{A<span id="p1.899.1777" class="ltx_ERROR undefined">\low</span>$\psi_t:\Real^d\too\Real^d$(squaregrid)isde<span id="p1.899.1821" class="ltx_ERROR undefined">\ined</span>byavelocity<span id="p1.899.1833" class="ltx_ERROR undefined">\ield</span>$u_t:\Real^d\too\Real^d$(visualizedwithbluearrows)thatprescribesitsinstantaneousmovementsatalllocations.Weshowthreedi<span id="p1.899.1951" class="ltx_ERROR undefined">\f</span>erenttimes$t$.}\label{<span id="p1.899.1974" class="ltx_ERROR undefined">\ig</span>:<span id="p1.899.1976" class="ltx_ERROR undefined">\low</span>}\end{<span id="p1.899.1983" class="ltx_ERROR undefined">\igure</span>}\subsubsection{Equivalencebetween<span id="p1.899.2018" class="ltx_ERROR undefined">\lows</span>andvelocity<span id="p1.899.2030" class="ltx_ERROR undefined">\ields</span>}\label{sec:equivalence_<span id="p1.899.2055" class="ltx_ERROR undefined">\lows</span>_velocities}A$C^r$<span id="p1.899.2074" class="ltx_ERROR undefined">\low</span>$\psi$canbede<span id="p1.899.2088" class="ltx_ERROR undefined">\ined</span>intermsoa$C^r([0,1]\times\Real^d,\Real^d)$\emph{velocity<span id="p1.899.2146" class="ltx_ERROR undefined">\ield</span>}$u:[0,1]\times\Real^d\too\Real^d$implementing$u:(t,x)\mapstou_t(x)$viathe<span id="p1.899.2221" class="ltx_ERROR undefined">\ollowing</span>ODE:\begin{subequations}\label{e:<span id="p1.899.2255" class="ltx_ERROR undefined">\low</span>}\vspace{-10pt}\begin{align}\<span id="p1.899.2284" class="ltx_ERROR undefined">\rac</span>{\dd}{\ddt}\psi_{t}(x)&amp;=u_t(\psi_{t}(x))&amp;\text{(<span id="p1.899.2333" class="ltx_ERROR undefined">\low</span>ODE)}\label{e:<span id="p1.899.2348" class="ltx_ERROR undefined">\low</span>_<span id="p1.899.2350" class="ltx_ERROR undefined">\low</span>}\\\psi_{0}(x)&amp;=x&amp;\text{(<span id="p1.899.2376" class="ltx_ERROR undefined">\low</span>initialconditions)}\label{e:<span id="p1.899.2405" class="ltx_ERROR undefined">\low</span>_boundary}\end{align}\end{subequations}See\cre{<span id="p1.899.2453" class="ltx_ERROR undefined">\ig</span>:<span id="p1.899.2455" class="ltx_ERROR undefined">\low</span>}anillustrationoa<span id="p1.899.2474" class="ltx_ERROR undefined">\low</span>togetherwithitsvelocity<span id="p1.899.2498" class="ltx_ERROR undefined">\ield</span>.Astandardresultregardingtheexistenceanduniquenessosolutions$\psi_t(x)$to\cre{e:<span id="p1.899.2580" class="ltx_ERROR undefined">\low</span>}is(see\eg,\cite{perko2013di<span id="p1.899.2606" class="ltx_ERROR undefined">\f</span>erential,coddington1956theory}):\begin{my<span id="p1.899.2645" class="ltx_ERROR undefined">\rame</span>}\begin{theorem}[Flowlocalexistenceanduniqueness]\label{thm:ode_existence_and_uniqueness}I$u$is$C^r([0,1]\times\Real^{d},\Real^d)$,$r\geq1$(inparticular,locallyLipschitz),thentheODEin\eqre{e:<span id="p1.899.2838" class="ltx_ERROR undefined">\low</span>}hasauniquesolutionwhichisa$C^r(\Omega,\Real^d)$di<span id="p1.899.2889" class="ltx_ERROR undefined">\f</span>eomorphism$\psi_t(x)$de<span id="p1.899.2913" class="ltx_ERROR undefined">\ined</span>overanopenset$\Omega$whichissuper-seto$\set{0}\times\Real^d$.\end{theorem}\end{my<span id="p1.899.2996" class="ltx_ERROR undefined">\rame</span>}Thistheoremguaranteesonlythe\emph{local}existenceanduniquenessoa$C^r$<span id="p1.899.3068" class="ltx_ERROR undefined">\low</span>movingeachpoint$x\in\Real^d$by$\psi_t(x)$duringapotentiallylimitedamountotime$t\in[0,t_x)$.Toguaranteeasolutionuntil$t=1$all$x\in\Real^d$,onemustplaceadditionalassumptionsbeyondlocalLipschitzness.Forinstance,onecouldconsiderglobalLipschitness,guaranteedbybounded<span id="p1.899.3332" class="ltx_ERROR undefined">\irst</span>derivativesinthe$C^1$case.However,wewilllaterrelyonadi<span id="p1.899.3387" class="ltx_ERROR undefined">\f</span>erentcondition---namely,integrability---toguaranteetheexistenceothe<span id="p1.899.3456" class="ltx_ERROR undefined">\low</span>almosteverywhere,anduntiltime$t=1$.So<span id="p1.899.3494" class="ltx_ERROR undefined">\ar</span>,wehaveshownthatavelocity<span id="p1.899.3520" class="ltx_ERROR undefined">\ield</span>uniquelyde<span id="p1.899.3531" class="ltx_ERROR undefined">\ines</span>a<span id="p1.899.3533" class="ltx_ERROR undefined">\low</span>.Conversely,givena$C^1$<span id="p1.899.3557" class="ltx_ERROR undefined">\low</span>$\psi_t$,onecanextractitsde<span id="p1.899.3585" class="ltx_ERROR undefined">\ining</span>velocity<span id="p1.899.3594" class="ltx_ERROR undefined">\ield</span>$u_t(x)$arbitrary$x\in\Real^d$byconsideringtheequation$\<span id="p1.899.3651" class="ltx_ERROR undefined">\rac</span>{\dd}{\ddt}\psi_t(x′)=u_t(\psi_t(x′))$,andusingthe<span id="p1.899.3702" class="ltx_ERROR undefined">\act</span>that$\psi_t$isaninvertibledi<span id="p1.899.3731" class="ltx_ERROR undefined">\f</span>eomorphismevery$t\in[0,1]$tolet$x′=\psi^{-1}_t(x)$.There<span id="p1.899.3788" class="ltx_ERROR undefined">\ore</span>,theuniquevelocity<span id="p1.899.3807" class="ltx_ERROR undefined">\ield</span>$u_t$determiningthe<span id="p1.899.3827" class="ltx_ERROR undefined">\low</span>$\psi_t$is\begin{equation}\label{e:u_<span id="p1.899.3865" class="ltx_ERROR undefined">\rom</span>_psi}u_t(x)=\dot{\psi}_t(\psi^{-1}_t(x)),\end{equation}where$\dot{\psi}_t\de<span id="p1.899.3942" class="ltx_ERROR undefined">\e</span>\<span id="p1.899.3944" class="ltx_ERROR undefined">\rac</span>{\dd}{\ddt}\psi_t$.Inconclusion,wehaveshowntheequivalencebetween$C^r$<span id="p1.899.4014" class="ltx_ERROR undefined">\lows</span>$\psi_t$and$C^r$velocity<span id="p1.899.4039" class="ltx_ERROR undefined">\ields</span>$u_t$.\subsubsection{Computingtargetsamples<span id="p1.899.4083" class="ltx_ERROR undefined">\rom</span>sourcesamples}Computingatargetsample$X_1$---or,ingeneral,anysample$X_t$---entailsapproximatingthesolutionotheODEin~\cre{e:<span id="p1.899.4207" class="ltx_ERROR undefined">\low</span>}starting<span id="p1.899.4217" class="ltx_ERROR undefined">\rom</span>someinitialcondition$X_0=x_0$.NumericalmethodsODEsisaclassicalandwellresearchedtopicinnumericalanalysis,andamyriadopower<span id="p1.899.4339" class="ltx_ERROR undefined">\ul</span>methodsexist\citep{iserles2009<span id="p1.899.4367" class="ltx_ERROR undefined">\irst</span>}.Oneothesimplestmethodsisthe\emph{Eulermethod},implementingtheupdaterule\begin{equation}\label{e:euler_method}X_{t+h}=X_t+hu_t(X_t)%\end{equation}where$h=n^{-1}&gt;0$isastepsizehyper-parameterwith$n\in\Nat$.Todrawasample$X_1$<span id="p1.899.4592" class="ltx_ERROR undefined">\rom</span>thetargetdistribution,applytheEulermethodstartingatsome$X_0\simp$toproducethesequence$X_h,X_{2h},\ldots,X_1$.TheEulermethodcoincideswith<span id="p1.899.4729" class="ltx_ERROR undefined">\irst</span>-orderTaylorexpansiono$X_t$:$$X_{t+h}=X_t+h\dot{X}_t+o(h)=X_t+hu_t(X_t)+o(h),$$where$o(h)$standsa<span id="p1.899.4828" class="ltx_ERROR undefined">\unction</span>growingslowerthan$h$,thatis,$o(h)/h\too0$as$h\too0$.There<span id="p1.899.4886" class="ltx_ERROR undefined">\ore</span>,theEulermethodaccumulates$o(h)$errorperstep,andcanbeshowntoaccumulate$o(1)$errora<span id="p1.899.4969" class="ltx_ERROR undefined">\ter</span>$n=1/h$steps.There<span id="p1.899.4988" class="ltx_ERROR undefined">\ore</span>,theerrorotheEulermethodvanishesasweconsidersmallerstepsizes$h\too0$.TheEulermethodisjustoneexampleamongmanyODEsolvers.\Cre{ex:euler_method}exempli<span id="p1.899.5137" class="ltx_ERROR undefined">\ies</span>anotheralternative,thesecond-order\emph{midpointmethod},whicho<span id="p1.899.5200" class="ltx_ERROR undefined">\ten</span>outper<span id="p1.899.5207" class="ltx_ERROR undefined">\orms</span>theEulermethodinpractice.\begin{pbox}[label={ex:euler_method}]{Computing$X_1$withMidpointsolver}\begin{minted}[linenos,breaklines,mathescape,</p>
+</div>
+</article>
+</div>
+
+<div class="ltx_document"><div class="ltx_para"><div class="ltx_p"><span class="ltx_ERROR">
+Conversion to HTML had a Fatal error and exited abruptly. This document may be truncated or damaged.
+</span></div></div></div>
+</article>
+<div class="ar5iv-footer"><a href="/html/2412.06263" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2412.06264" class="ar5iv-text-button ar5iv-severity-fatal">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2412.06264">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2412.06264" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2412.06265" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Tue Jan  7 07:42:19 2025 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

@@ -1,0 +1,1342 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[1712.05884] Natural TTS Synthesis By Conditioning WaveNet On Mel Spectrogram Predictions</title><meta property="og:description" content="This paper describes Tacotron 2,
+a neural network architecture for speech synthesis directly
+from text. The system is composed of a recurrent sequence-to-sequence feature
+prediction network that maps character embeddin…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Natural TTS Synthesis By Conditioning WaveNet On Mel Spectrogram Predictions">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="Natural TTS Synthesis By Conditioning WaveNet On Mel Spectrogram Predictions">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/1712.05884">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/1712.05884">
+
+<!--Generated on Fri Mar  1 17:37:06 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_font_bold ltx_title_document" style="font-size:120%;">Natural TTS Synthesis By Conditioning WaveNet On Mel Spectrogram Predictions</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Jonathan Shen
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">Google, Inc.
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Ruoming Pang
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">Google, Inc.
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Ron J. Weiss
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">Google, Inc.
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Mike Schuster
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">Google, Inc.
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Navdeep Jaitly
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">Google, Inc.
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Zongheng Yang
+</span><span class="ltx_author_notes">Work done while at Google.
+<span class="ltx_contact ltx_role_affiliation">University of California, Berkeley
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Zhifeng Chen
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">Google, Inc.
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Yu Zhang
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">Google, Inc.
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Yuxuan Wang
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">Google, Inc.
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">RJ Skerry-Ryan
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">Google, Inc.
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Rif A. Saurous
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">Google, Inc.
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Yannis Agiomyrgiannakis
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">Google, Inc.
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Yonghui Wu
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">Google, Inc.
+</span></span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id3.3" class="ltx_p"><span id="id3.3.3" class="ltx_text" style="font-size:90%;">This paper describes Tacotron 2,
+a neural network architecture for speech synthesis directly
+from text. The system is composed of a recurrent sequence-to-sequence feature
+prediction network that maps character embeddings to
+mel-scale spectrograms, followed by a modified WaveNet model acting as a vocoder
+to synthesize time-domain waveforms from those spectrograms. Our model achieves
+a mean opinion score (MOS) of <math id="id1.1.1.m1.1" class="ltx_Math" alttext="4.53" display="inline"><semantics id="id1.1.1.m1.1a"><mn id="id1.1.1.m1.1.1" xref="id1.1.1.m1.1.1.cmml">4.53</mn><annotation-xml encoding="MathML-Content" id="id1.1.1.m1.1b"><cn type="float" id="id1.1.1.m1.1.1.cmml" xref="id1.1.1.m1.1.1">4.53</cn></annotation-xml><annotation encoding="application/x-tex" id="id1.1.1.m1.1c">4.53</annotation></semantics></math> comparable to a MOS of <math id="id2.2.2.m2.1" class="ltx_Math" alttext="4.58" display="inline"><semantics id="id2.2.2.m2.1a"><mn id="id2.2.2.m2.1.1" xref="id2.2.2.m2.1.1.cmml">4.58</mn><annotation-xml encoding="MathML-Content" id="id2.2.2.m2.1b"><cn type="float" id="id2.2.2.m2.1.1.cmml" xref="id2.2.2.m2.1.1">4.58</cn></annotation-xml><annotation encoding="application/x-tex" id="id2.2.2.m2.1c">4.58</annotation></semantics></math> for
+professionally recorded speech.
+To validate our design choices, we present ablation studies of key components of
+our system and evaluate the impact of using mel spectrograms as the conditioning
+input to WaveNet instead of linguistic, duration, and <math id="id3.3.3.m3.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="id3.3.3.m3.1a"><msub id="id3.3.3.m3.1.1" xref="id3.3.3.m3.1.1.cmml"><mi id="id3.3.3.m3.1.1.2" xref="id3.3.3.m3.1.1.2.cmml">F</mi><mn id="id3.3.3.m3.1.1.3" xref="id3.3.3.m3.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="id3.3.3.m3.1b"><apply id="id3.3.3.m3.1.1.cmml" xref="id3.3.3.m3.1.1"><csymbol cd="ambiguous" id="id3.3.3.m3.1.1.1.cmml" xref="id3.3.3.m3.1.1">subscript</csymbol><ci id="id3.3.3.m3.1.1.2.cmml" xref="id3.3.3.m3.1.1.2">𝐹</ci><cn type="integer" id="id3.3.3.m3.1.1.3.cmml" xref="id3.3.3.m3.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="id3.3.3.m3.1c">F_{0}</annotation></semantics></math> features. We further
+show that using this compact acoustic intermediate representation allows
+for a significant reduction in the size of the WaveNet architecture.</span></p>
+</div>
+<div id="p1" class="ltx_para">
+<p id="p1.1" class="ltx_p"><span id="p1.1.1" class="ltx_text ltx_font_bold ltx_font_italic" style="font-size:90%;">Index Terms<span id="p1.1.1.1" class="ltx_text ltx_font_upright">— <span id="p1.1.1.1.1" class="ltx_text ltx_font_medium">
+Tacotron 2, WaveNet, text-to-speech</span></span></span></p>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p"><span id="S1.p1.1.1" class="ltx_text" style="font-size:90%;">Generating natural speech from text (text-to-speech synthesis, TTS) remains a
+challenging task despite decades of investigation </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S1.p1.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib1" title="" class="ltx_ref">1</a><span id="S1.p1.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S1.p1.1.4" class="ltx_text" style="font-size:90%;">.
+Over time, different techniques have dominated the field.
+Concatenative synthesis with unit selection, the process of stitching small
+units of pre-recorded waveforms together
+</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S1.p1.1.5.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib2" title="" class="ltx_ref">2</a>, <a href="#bib.bib3" title="" class="ltx_ref">3</a><span id="S1.p1.1.6.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S1.p1.1.7" class="ltx_text" style="font-size:90%;"> was the state-of-the-art for
+many years.
+Statistical parametric speech synthesis
+</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S1.p1.1.8.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib4" title="" class="ltx_ref">4</a>, <a href="#bib.bib5" title="" class="ltx_ref">5</a>, <a href="#bib.bib6" title="" class="ltx_ref">6</a>, <a href="#bib.bib7" title="" class="ltx_ref">7</a><span id="S1.p1.1.9.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S1.p1.1.10" class="ltx_text" style="font-size:90%;">,
+which directly generates smooth trajectories of speech features to be
+synthesized by a vocoder, followed, solving many of the issues that
+concatenative synthesis had with boundary artifacts. However, the audio produced
+by these systems often sounds muffled and unnatural compared to human speech.</span></p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p"><span id="S1.p2.1.1" class="ltx_text" style="font-size:90%;">WaveNet </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S1.p2.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib8" title="" class="ltx_ref">8</a><span id="S1.p2.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S1.p2.1.4" class="ltx_text" style="font-size:90%;">, a generative model of time domain
+waveforms, produces audio quality that begins to rival that of real human
+speech and is already used in some complete TTS systems
+</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S1.p2.1.5.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib9" title="" class="ltx_ref">9</a>, <a href="#bib.bib10" title="" class="ltx_ref">10</a>, <a href="#bib.bib11" title="" class="ltx_ref">11</a><span id="S1.p2.1.6.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S1.p2.1.7" class="ltx_text" style="font-size:90%;">.
+The inputs to WaveNet (linguistic features, predicted log fundamental
+frequency (</span><math id="S1.p2.1.m1.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="S1.p2.1.m1.1a"><msub id="S1.p2.1.m1.1.1" xref="S1.p2.1.m1.1.1.cmml"><mi mathsize="90%" id="S1.p2.1.m1.1.1.2" xref="S1.p2.1.m1.1.1.2.cmml">F</mi><mn mathsize="90%" id="S1.p2.1.m1.1.1.3" xref="S1.p2.1.m1.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S1.p2.1.m1.1b"><apply id="S1.p2.1.m1.1.1.cmml" xref="S1.p2.1.m1.1.1"><csymbol cd="ambiguous" id="S1.p2.1.m1.1.1.1.cmml" xref="S1.p2.1.m1.1.1">subscript</csymbol><ci id="S1.p2.1.m1.1.1.2.cmml" xref="S1.p2.1.m1.1.1.2">𝐹</ci><cn type="integer" id="S1.p2.1.m1.1.1.3.cmml" xref="S1.p2.1.m1.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S1.p2.1.m1.1c">F_{0}</annotation></semantics></math><span id="S1.p2.1.8" class="ltx_text" style="font-size:90%;">), and phoneme durations), however, require significant domain
+expertise to produce, involving elaborate text-analysis systems as well as a
+robust lexicon (pronunciation guide).</span></p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p"><span id="S1.p3.1.1" class="ltx_text" style="font-size:90%;">Tacotron </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S1.p3.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib12" title="" class="ltx_ref">12</a><span id="S1.p3.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S1.p3.1.4" class="ltx_text" style="font-size:90%;">, a sequence-to-sequence architecture
+</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S1.p3.1.5.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib13" title="" class="ltx_ref">13</a><span id="S1.p3.1.6.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S1.p3.1.7" class="ltx_text" style="font-size:90%;"> for producing magnitude spectrograms from
+a sequence of characters, simplifies the traditional speech synthesis pipeline
+by replacing the production of these linguistic and acoustic features with a
+single neural network trained from data alone. To vocode the resulting magnitude
+spectrograms, Tacotron uses the Griffin-Lim algorithm
+</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S1.p3.1.8.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib14" title="" class="ltx_ref">14</a><span id="S1.p3.1.9.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S1.p3.1.10" class="ltx_text" style="font-size:90%;"> for phase estimation, followed by an inverse
+short-time Fourier transform. As the authors note, this was simply a placeholder
+for future neural vocoder approaches, as Griffin-Lim produces characteristic
+artifacts and lower audio quality than approaches like WaveNet.</span></p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p id="S1.p4.1" class="ltx_p"><span id="S1.p4.1.1" class="ltx_text" style="font-size:90%;">In this paper, we describe a unified, entirely neural approach to speech
+synthesis that combines the best of the previous approaches: a
+sequence-to-sequence Tacotron-style model </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S1.p4.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib12" title="" class="ltx_ref">12</a><span id="S1.p4.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S1.p4.1.4" class="ltx_text" style="font-size:90%;"> that generates mel
+spectrograms, followed by a modified WaveNet vocoder
+</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S1.p4.1.5.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib10" title="" class="ltx_ref">10</a>, <a href="#bib.bib15" title="" class="ltx_ref">15</a><span id="S1.p4.1.6.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S1.p4.1.7" class="ltx_text" style="font-size:90%;">. Trained directly
+on normalized character sequences and corresponding speech waveforms, our
+model learns to synthesize natural sounding speech that is difficult to
+distinguish from real human speech.</span></p>
+</div>
+<div id="S1.p5" class="ltx_para">
+<p id="S1.p5.1" class="ltx_p"><span id="S1.p5.1.1" class="ltx_text" style="font-size:90%;">Deep Voice 3 </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S1.p5.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib11" title="" class="ltx_ref">11</a><span id="S1.p5.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S1.p5.1.4" class="ltx_text" style="font-size:90%;"> describes a similar approach. However,
+unlike our system, its naturalness has not been shown to rival that of
+human speech.
+Char2Wav </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S1.p5.1.5.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib16" title="" class="ltx_ref">16</a><span id="S1.p5.1.6.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S1.p5.1.7" class="ltx_text" style="font-size:90%;"> describes yet another similar approach to
+end-to-end TTS using a neural vocoder. However, they use different intermediate
+representations (traditional vocoder features) and their model architecture
+differs significantly.</span></p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_section">2 </span>Model Architecture</h2>
+
+<div id="S2.p1" class="ltx_para">
+<p id="S2.p1.1" class="ltx_p"><span id="S2.p1.1.1" class="ltx_text" style="font-size:90%;">Our proposed system consists of two components, shown in Figure </span><a href="#S2.F1" title="Figure 1 ‣ 2.2 Spectrogram Prediction Network ‣ 2 Model Architecture ‣ Natural TTS Synthesis By Conditioning WaveNet On Mel Spectrogram Predictions" class="ltx_ref" style="font-size:90%;"><span class="ltx_text ltx_ref_tag">1</span></a><span id="S2.p1.1.2" class="ltx_text" style="font-size:90%;">:
+</span>
+<span id="S2.I1" class="ltx_inline-enumerate">
+<span id="S2.I1.i1" class="ltx_inline-item"><span class="ltx_tag ltx_tag_inline-item">(1)</span> <span id="S2.I1.i1.1" class="ltx_text" style="font-size:90%;">a recurrent sequence-to-sequence feature prediction network with
+attention which predicts a sequence of mel spectrogram frames from an
+input character sequence, and
+</span></span>
+<span id="S2.I1.i2" class="ltx_inline-item"><span class="ltx_tag ltx_tag_inline-item">(2)</span> <span id="S2.I1.i2.1" class="ltx_text" style="font-size:90%;">a modified version of WaveNet which generates time-domain waveform samples
+conditioned on the predicted mel spectrogram frames.
+</span></span>
+</span><span id="S2.p1.1.3" class="ltx_text" style="font-size:90%;"></span></p>
+</div>
+<section id="S2.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_subsection">2.1 </span>Intermediate Feature Representation</h3>
+
+<div id="S2.SS1.p1" class="ltx_para">
+<p id="S2.SS1.p1.1" class="ltx_p"><span id="S2.SS1.p1.1.1" class="ltx_text" style="font-size:90%;">In this work we choose a low-level acoustic representation: mel-frequency
+spectrograms, to bridge the two components. Using a representation
+that is easily computed from time-domain waveforms allows us to train the two
+components separately. This representation is also smoother than waveform
+samples and is easier to train using a squared error loss because it is
+invariant to phase within each frame.</span></p>
+</div>
+<div id="S2.SS1.p2" class="ltx_para">
+<p id="S2.SS1.p2.1" class="ltx_p"><span id="S2.SS1.p2.1.1" class="ltx_text" style="font-size:90%;">A mel-frequency spectrogram is related to the linear-frequency spectrogram, i.e., the short-time Fourier transform (STFT) magnitude. It is obtained by applying a
+nonlinear transform to the frequency axis of the STFT, inspired by measured
+responses from the human auditory system, and summarizes the frequency content
+with fewer dimensions.
+Using such an auditory frequency scale has the effect of emphasizing details in
+lower frequencies, which are critical to speech intelligibility, while
+de-emphasizing high frequency details, which are dominated by fricatives and
+other noise bursts and generally do not need to be modeled with high fidelity.
+Because of these properties, features derived from the mel scale have
+been used as an underlying representation for speech recognition for
+many decades </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS1.p2.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib17" title="" class="ltx_ref">17</a><span id="S2.SS1.p2.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS1.p2.1.4" class="ltx_text" style="font-size:90%;">.</span></p>
+</div>
+<div id="S2.SS1.p3" class="ltx_para">
+<p id="S2.SS1.p3.1" class="ltx_p"><span id="S2.SS1.p3.1.1" class="ltx_text" style="font-size:90%;">While linear spectrograms discard phase information (and are therefore lossy),
+algorithms such as Griffin-Lim </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS1.p3.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib14" title="" class="ltx_ref">14</a><span id="S2.SS1.p3.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS1.p3.1.4" class="ltx_text" style="font-size:90%;"> are capable of
+estimating this discarded information, which enables time-domain conversion
+via the inverse short-time Fourier transform. Mel spectrograms discard even more
+information, presenting a challenging inverse problem.
+However, in comparison to the linguistic and acoustic features used in
+WaveNet, the mel spectrogram is a simpler, lower-level acoustic
+representation of audio signals. It should therefore be straightforward for a
+similar WaveNet model conditioned on mel spectrograms to generate audio,
+essentially as a neural vocoder.
+Indeed, we will show that it is possible to generate high quality audio from mel
+spectrograms using a modified WaveNet architecture.
+</span></p>
+</div>
+</section>
+<section id="S2.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_subsection">2.2 </span>Spectrogram Prediction Network</h3>
+
+<div id="S2.SS2.p1" class="ltx_para">
+<p id="S2.SS2.p1.1" class="ltx_p"><span id="S2.SS2.p1.1.1" class="ltx_text" style="font-size:90%;">As in Tacotron, mel spectrograms are computed
+through a short-time Fourier transform (STFT) using a 50 ms frame size, 12.5 ms
+frame hop, and a Hann window function. We experimented with a 5 ms frame hop to
+match the frequency of the conditioning inputs in the original WaveNet, but
+the corresponding increase in temporal resolution resulted in significantly more
+pronunciation issues.
+</span></p>
+</div>
+<div id="S2.SS2.p2" class="ltx_para">
+<p id="S2.SS2.p2.1" class="ltx_p"><span id="S2.SS2.p2.1.1" class="ltx_text" style="font-size:90%;">We transform the STFT magnitude to the mel scale using an 80 channel
+mel filterbank spanning 125 Hz to 7.6 kHz, followed by log dynamic
+range compression.
+Prior to log compression, the filterbank output magnitudes are clipped to a
+minimum value of 0.01 in order to limit dynamic range in the logarithmic domain.
+</span></p>
+</div>
+<div id="S2.SS2.p3" class="ltx_para">
+<p id="S2.SS2.p3.2" class="ltx_p"><span id="S2.SS2.p3.2.1" class="ltx_text" style="font-size:90%;">The network is composed of an encoder and a decoder with attention.
+The encoder converts a character sequence into a hidden
+feature representation which the decoder consumes to predict a
+spectrogram.
+Input characters are represented using a learned 512-dimensional character
+embedding, which are passed through
+a stack of 3 convolutional layers each containing 512 filters with shape
+</span><math id="S2.SS2.p3.1.m1.1" class="ltx_Math" alttext="5\times 1" display="inline"><semantics id="S2.SS2.p3.1.m1.1a"><mrow id="S2.SS2.p3.1.m1.1.1" xref="S2.SS2.p3.1.m1.1.1.cmml"><mn mathsize="90%" id="S2.SS2.p3.1.m1.1.1.2" xref="S2.SS2.p3.1.m1.1.1.2.cmml">5</mn><mo lspace="0.222em" mathsize="90%" rspace="0.222em" id="S2.SS2.p3.1.m1.1.1.1" xref="S2.SS2.p3.1.m1.1.1.1.cmml">×</mo><mn mathsize="90%" id="S2.SS2.p3.1.m1.1.1.3" xref="S2.SS2.p3.1.m1.1.1.3.cmml">1</mn></mrow><annotation-xml encoding="MathML-Content" id="S2.SS2.p3.1.m1.1b"><apply id="S2.SS2.p3.1.m1.1.1.cmml" xref="S2.SS2.p3.1.m1.1.1"><times id="S2.SS2.p3.1.m1.1.1.1.cmml" xref="S2.SS2.p3.1.m1.1.1.1"></times><cn type="integer" id="S2.SS2.p3.1.m1.1.1.2.cmml" xref="S2.SS2.p3.1.m1.1.1.2">5</cn><cn type="integer" id="S2.SS2.p3.1.m1.1.1.3.cmml" xref="S2.SS2.p3.1.m1.1.1.3">1</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS2.p3.1.m1.1c">5\times 1</annotation></semantics></math><span id="S2.SS2.p3.2.2" class="ltx_text" style="font-size:90%;">, i.e., where each filter spans 5 characters, followed by batch
+normalization </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS2.p3.2.3.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib18" title="" class="ltx_ref">18</a><span id="S2.SS2.p3.2.4.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS2.p3.2.5" class="ltx_text" style="font-size:90%;"> and ReLU activations.
+As in Tacotron, these convolutional layers model longer-term
+context (e.g., </span><math id="S2.SS2.p3.2.m2.1" class="ltx_Math" alttext="N" display="inline"><semantics id="S2.SS2.p3.2.m2.1a"><mi mathsize="90%" id="S2.SS2.p3.2.m2.1.1" xref="S2.SS2.p3.2.m2.1.1.cmml">N</mi><annotation-xml encoding="MathML-Content" id="S2.SS2.p3.2.m2.1b"><ci id="S2.SS2.p3.2.m2.1.1.cmml" xref="S2.SS2.p3.2.m2.1.1">𝑁</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS2.p3.2.m2.1c">N</annotation></semantics></math><span id="S2.SS2.p3.2.6" class="ltx_text" style="font-size:90%;">-grams) in the input character sequence.
+The output of the final convolutional layer is passed into a single
+bi-directional </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS2.p3.2.7.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib19" title="" class="ltx_ref">19</a><span id="S2.SS2.p3.2.8.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS2.p3.2.9" class="ltx_text" style="font-size:90%;"> LSTM
+</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS2.p3.2.10.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib20" title="" class="ltx_ref">20</a><span id="S2.SS2.p3.2.11.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS2.p3.2.12" class="ltx_text" style="font-size:90%;"> layer containing 512 units
+(256 in each direction) to generate the encoded features.</span></p>
+</div>
+<div id="S2.SS2.p4" class="ltx_para">
+<p id="S2.SS2.p4.1" class="ltx_p"><span id="S2.SS2.p4.1.1" class="ltx_text" style="font-size:90%;">The encoder output is consumed by an attention network which
+summarizes the full encoded sequence as a fixed-length context vector
+for each decoder output step.
+We use the location-sensitive attention from
+</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS2.p4.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib21" title="" class="ltx_ref">21</a><span id="S2.SS2.p4.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS2.p4.1.4" class="ltx_text" style="font-size:90%;">, which extends the additive attention
+mechanism </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS2.p4.1.5.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib22" title="" class="ltx_ref">22</a><span id="S2.SS2.p4.1.6.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS2.p4.1.7" class="ltx_text" style="font-size:90%;"> to use cumulative attention
+weights from previous decoder time steps as an additional feature.
+This encourages the model to move forward consistently through the
+input, mitigating potential failure modes where some
+subsequences are repeated or ignored by the decoder.
+Attention probabilities are computed after projecting inputs and location features to 128-dimensional hidden representations.
+Location features are computed using 32 1-D convolution filters of
+length 31.
+</span></p>
+</div>
+<div id="S2.SS2.p5" class="ltx_para">
+<p id="S2.SS2.p5.2" class="ltx_p"><span id="S2.SS2.p5.2.1" class="ltx_text" style="font-size:90%;">The decoder is an autoregressive recurrent neural network which
+predicts a mel spectrogram from the encoded input sequence one
+frame at a time.
+The prediction from the previous time step is first passed through a
+small </span><em id="S2.SS2.p5.2.2" class="ltx_emph ltx_font_italic" style="font-size:90%;">pre-net</em><span id="S2.SS2.p5.2.3" class="ltx_text" style="font-size:90%;"> containing 2 fully connected layers of 256 hidden ReLU units.
+We found that the pre-net acting as an information bottleneck was essential for
+learning attention.
+The pre-net output and attention context vector are concatenated and
+passed through a stack of 2 uni-directional LSTM layers with 1024 units.
+The concatenation of the LSTM output and the attention context vector is
+projected through a linear transform to predict the target
+spectrogram frame.
+Finally, the predicted mel spectrogram is passed through a 5-layer convolutional
+</span><em id="S2.SS2.p5.2.4" class="ltx_emph ltx_font_italic" style="font-size:90%;">post-net</em><span id="S2.SS2.p5.2.5" class="ltx_text" style="font-size:90%;"> which predicts a residual to add to the prediction to improve the
+overall reconstruction.
+Each post-net layer is comprised of 512 filters with shape </span><math id="S2.SS2.p5.1.m1.1" class="ltx_Math" alttext="5\times 1" display="inline"><semantics id="S2.SS2.p5.1.m1.1a"><mrow id="S2.SS2.p5.1.m1.1.1" xref="S2.SS2.p5.1.m1.1.1.cmml"><mn mathsize="90%" id="S2.SS2.p5.1.m1.1.1.2" xref="S2.SS2.p5.1.m1.1.1.2.cmml">5</mn><mo lspace="0.222em" mathsize="90%" rspace="0.222em" id="S2.SS2.p5.1.m1.1.1.1" xref="S2.SS2.p5.1.m1.1.1.1.cmml">×</mo><mn mathsize="90%" id="S2.SS2.p5.1.m1.1.1.3" xref="S2.SS2.p5.1.m1.1.1.3.cmml">1</mn></mrow><annotation-xml encoding="MathML-Content" id="S2.SS2.p5.1.m1.1b"><apply id="S2.SS2.p5.1.m1.1.1.cmml" xref="S2.SS2.p5.1.m1.1.1"><times id="S2.SS2.p5.1.m1.1.1.1.cmml" xref="S2.SS2.p5.1.m1.1.1.1"></times><cn type="integer" id="S2.SS2.p5.1.m1.1.1.2.cmml" xref="S2.SS2.p5.1.m1.1.1.2">5</cn><cn type="integer" id="S2.SS2.p5.1.m1.1.1.3.cmml" xref="S2.SS2.p5.1.m1.1.1.3">1</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS2.p5.1.m1.1c">5\times 1</annotation></semantics></math><span id="S2.SS2.p5.2.6" class="ltx_text" style="font-size:90%;"> with
+batch normalization, followed by </span><math id="S2.SS2.p5.2.m2.1" class="ltx_Math" alttext="\tanh" display="inline"><semantics id="S2.SS2.p5.2.m2.1a"><mi mathsize="90%" id="S2.SS2.p5.2.m2.1.1" xref="S2.SS2.p5.2.m2.1.1.cmml">tanh</mi><annotation-xml encoding="MathML-Content" id="S2.SS2.p5.2.m2.1b"><tanh id="S2.SS2.p5.2.m2.1.1.cmml" xref="S2.SS2.p5.2.m2.1.1"></tanh></annotation-xml><annotation encoding="application/x-tex" id="S2.SS2.p5.2.m2.1c">\tanh</annotation></semantics></math><span id="S2.SS2.p5.2.7" class="ltx_text" style="font-size:90%;"> activations on all but the final layer.</span></p>
+</div>
+<div id="S2.SS2.p6" class="ltx_para">
+<p id="S2.SS2.p6.1" class="ltx_p"><span id="S2.SS2.p6.1.1" class="ltx_text" style="font-size:90%;">We minimize the summed mean squared error (MSE) from before and after the
+post-net to aid convergence. We also experimented with a log-likelihood loss by
+modeling the output distribution with a Mixture Density Network
+</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS2.p6.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib23" title="" class="ltx_ref">23</a>, <a href="#bib.bib24" title="" class="ltx_ref">24</a><span id="S2.SS2.p6.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS2.p6.1.4" class="ltx_text" style="font-size:90%;"> to avoid assuming
+a constant variance over time, but found that these were more difficult to
+train and they did not lead to better sounding samples.</span></p>
+</div>
+<div id="S2.SS2.p7" class="ltx_para">
+<p id="S2.SS2.p7.1" class="ltx_p"><span id="S2.SS2.p7.1.1" class="ltx_text" style="font-size:90%;">In parallel to spectrogram frame prediction, the concatenation of
+decoder LSTM output and the attention context
+is projected down to a scalar and passed through a sigmoid activation
+to predict the probability that the output sequence has completed.
+This “stop token” prediction is used during inference to allow the model to
+dynamically determine when to terminate generation instead of always generating
+for a fixed duration.
+Specifically, generation completes at the first frame for which this probability
+exceeds a threshold of 0.5.
+</span></p>
+</div>
+<div id="S2.SS2.p8" class="ltx_para">
+<p id="S2.SS2.p8.1" class="ltx_p"><span id="S2.SS2.p8.1.1" class="ltx_text" style="font-size:90%;">The convolutional layers in the network are regularized using dropout
+</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS2.p8.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib25" title="" class="ltx_ref">25</a><span id="S2.SS2.p8.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS2.p8.1.4" class="ltx_text" style="font-size:90%;"> with probability 0.5, and LSTM layers are
+regularized using zoneout </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS2.p8.1.5.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib26" title="" class="ltx_ref">26</a><span id="S2.SS2.p8.1.6.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS2.p8.1.7" class="ltx_text" style="font-size:90%;"> with probability 0.1. In
+order to introduce output variation at inference time, dropout with probability
+0.5 is applied only to layers in the pre-net of the autoregressive decoder.</span></p>
+</div>
+<div id="S2.SS2.p9" class="ltx_para">
+<p id="S2.SS2.p9.1" class="ltx_p"><span id="S2.SS2.p9.1.1" class="ltx_text" style="font-size:90%;">In contrast to the original Tacotron, our model uses simpler
+building blocks, using vanilla LSTM and convolutional layers in
+the encoder and decoder instead of “CBHG” stacks and GRU recurrent
+layers.
+We do not use a “reduction factor”, i.e., each decoder step
+corresponds to a single spectrogram frame.</span></p>
+</div>
+<figure id="S2.F1" class="ltx_figure"><img src="/html/1712.05884/assets/x1.png" id="S2.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="452" height="335" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_figure"><span id="S2.F1.4.1.1" class="ltx_text ltx_font_bold">Fig. 1</span>: </span>Block diagram of the Tacotron 2 system architecture.</figcaption>
+</figure>
+</section>
+<section id="S2.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_subsection">2.3 </span>WaveNet Vocoder</h3>
+
+<div id="S2.SS3.p1" class="ltx_para">
+<p id="S2.SS3.p1.2" class="ltx_p"><span id="S2.SS3.p1.2.1" class="ltx_text" style="font-size:90%;">We use a modified version of the WaveNet architecture from </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS3.p1.2.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib8" title="" class="ltx_ref">8</a><span id="S2.SS3.p1.2.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS3.p1.2.4" class="ltx_text" style="font-size:90%;"> to
+invert the mel spectrogram feature representation into time-domain waveform
+samples.
+As in the original architecture, there are 30 dilated convolution layers,
+grouped into 3 dilation cycles, i.e., the dilation rate of layer k
+(</span><math id="S2.SS3.p1.1.m1.1" class="ltx_Math" alttext="k=0\ldots 29" display="inline"><semantics id="S2.SS3.p1.1.m1.1a"><mrow id="S2.SS3.p1.1.m1.1.1" xref="S2.SS3.p1.1.m1.1.1.cmml"><mi mathsize="90%" id="S2.SS3.p1.1.m1.1.1.2" xref="S2.SS3.p1.1.m1.1.1.2.cmml">k</mi><mo mathsize="90%" id="S2.SS3.p1.1.m1.1.1.1" xref="S2.SS3.p1.1.m1.1.1.1.cmml">=</mo><mrow id="S2.SS3.p1.1.m1.1.1.3" xref="S2.SS3.p1.1.m1.1.1.3.cmml"><mn mathsize="90%" id="S2.SS3.p1.1.m1.1.1.3.2" xref="S2.SS3.p1.1.m1.1.1.3.2.cmml">0</mn><mo lspace="0em" rspace="0em" id="S2.SS3.p1.1.m1.1.1.3.1" xref="S2.SS3.p1.1.m1.1.1.3.1.cmml">​</mo><mi mathsize="90%" mathvariant="normal" id="S2.SS3.p1.1.m1.1.1.3.3" xref="S2.SS3.p1.1.m1.1.1.3.3.cmml">…</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p1.1.m1.1.1.3.1a" xref="S2.SS3.p1.1.m1.1.1.3.1.cmml">​</mo><mn mathsize="90%" id="S2.SS3.p1.1.m1.1.1.3.4" xref="S2.SS3.p1.1.m1.1.1.3.4.cmml">29</mn></mrow></mrow><annotation-xml encoding="MathML-Content" id="S2.SS3.p1.1.m1.1b"><apply id="S2.SS3.p1.1.m1.1.1.cmml" xref="S2.SS3.p1.1.m1.1.1"><eq id="S2.SS3.p1.1.m1.1.1.1.cmml" xref="S2.SS3.p1.1.m1.1.1.1"></eq><ci id="S2.SS3.p1.1.m1.1.1.2.cmml" xref="S2.SS3.p1.1.m1.1.1.2">𝑘</ci><apply id="S2.SS3.p1.1.m1.1.1.3.cmml" xref="S2.SS3.p1.1.m1.1.1.3"><times id="S2.SS3.p1.1.m1.1.1.3.1.cmml" xref="S2.SS3.p1.1.m1.1.1.3.1"></times><cn type="integer" id="S2.SS3.p1.1.m1.1.1.3.2.cmml" xref="S2.SS3.p1.1.m1.1.1.3.2">0</cn><ci id="S2.SS3.p1.1.m1.1.1.3.3.cmml" xref="S2.SS3.p1.1.m1.1.1.3.3">…</ci><cn type="integer" id="S2.SS3.p1.1.m1.1.1.3.4.cmml" xref="S2.SS3.p1.1.m1.1.1.3.4">29</cn></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p1.1.m1.1c">k=0\ldots 29</annotation></semantics></math><span id="S2.SS3.p1.2.5" class="ltx_text" style="font-size:90%;">) is </span><math id="S2.SS3.p1.2.m2.2" class="ltx_Math" alttext="2^{k\pmod{10}}" display="inline"><semantics id="S2.SS3.p1.2.m2.2a"><msup id="S2.SS3.p1.2.m2.2.3" xref="S2.SS3.p1.2.m2.2.3.cmml"><mn mathsize="90%" id="S2.SS3.p1.2.m2.2.3.2" xref="S2.SS3.p1.2.m2.2.3.2.cmml">2</mn><mrow id="S2.SS3.p1.2.m2.2.2.2" xref="S2.SS3.p1.2.m2.2.2.2.cmml"><mi mathsize="90%" id="S2.SS3.p1.2.m2.2.2.2.4" xref="S2.SS3.p1.2.m2.2.2.2.4.cmml">k</mi><mspace width="0.949em" id="S2.SS3.p1.2.m2.2.2.2a" xref="S2.SS3.p1.2.m2.2.2.2.cmml"></mspace><mrow id="S2.SS3.p1.2.m2.2.2.2.2.2.2" xref="S2.SS3.p1.2.m2.2.2.2.2.3.cmml"><mo maxsize="90%" minsize="90%" id="S2.SS3.p1.2.m2.2.2.2.2.2.2.2" xref="S2.SS3.p1.2.m2.2.2.2.2.3.1.cmml">(</mo><mrow id="S2.SS3.p1.2.m2.2.2.2.2.2.2.1" xref="S2.SS3.p1.2.m2.2.2.2.2.3.cmml"><mo lspace="0em" mathsize="90%" rspace="0.167em" id="S2.SS3.p1.2.m2.2.2.2.2.2.2.1.1" xref="S2.SS3.p1.2.m2.2.2.2.2.3.1.cmml">mod</mo><mn mathsize="90%" id="S2.SS3.p1.2.m2.1.1.1.1.1.1" xref="S2.SS3.p1.2.m2.1.1.1.1.1.1.cmml">10</mn></mrow><mo maxsize="90%" minsize="90%" id="S2.SS3.p1.2.m2.2.2.2.2.2.2.3" xref="S2.SS3.p1.2.m2.2.2.2.2.3.1.cmml">)</mo></mrow></mrow></msup><annotation-xml encoding="MathML-Content" id="S2.SS3.p1.2.m2.2b"><apply id="S2.SS3.p1.2.m2.2.3.cmml" xref="S2.SS3.p1.2.m2.2.3"><csymbol cd="ambiguous" id="S2.SS3.p1.2.m2.2.3.1.cmml" xref="S2.SS3.p1.2.m2.2.3">superscript</csymbol><cn type="integer" id="S2.SS3.p1.2.m2.2.3.2.cmml" xref="S2.SS3.p1.2.m2.2.3.2">2</cn><apply id="S2.SS3.p1.2.m2.2.2.2.cmml" xref="S2.SS3.p1.2.m2.2.2.2"><csymbol cd="latexml" id="S2.SS3.p1.2.m2.2.2.2.3.cmml" xref="S2.SS3.p1.2.m2.2.2.2">annotated</csymbol><ci id="S2.SS3.p1.2.m2.2.2.2.4.cmml" xref="S2.SS3.p1.2.m2.2.2.2.4">𝑘</ci><apply id="S2.SS3.p1.2.m2.2.2.2.2.3.cmml" xref="S2.SS3.p1.2.m2.2.2.2.2.2.2"><ci id="S2.SS3.p1.2.m2.2.2.2.2.3.1.cmml" xref="S2.SS3.p1.2.m2.2.2.2.2.2.2.2">pmod</ci><cn type="integer" id="S2.SS3.p1.2.m2.1.1.1.1.1.1.cmml" xref="S2.SS3.p1.2.m2.1.1.1.1.1.1">10</cn></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p1.2.m2.2c">2^{k\pmod{10}}</annotation></semantics></math><span id="S2.SS3.p1.2.6" class="ltx_text" style="font-size:90%;">.
+To work with the 12.5 ms frame hop of the spectrogram frames, only 2 upsampling
+layers are used in the conditioning stack instead of 3 layers.</span></p>
+</div>
+<div id="S2.SS3.p2" class="ltx_para">
+<p id="S2.SS3.p2.1" class="ltx_p"><span id="S2.SS3.p2.1.1" class="ltx_text" style="font-size:90%;">Instead of predicting discretized buckets with a softmax layer,
+we follow PixelCNN++ </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS3.p2.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib27" title="" class="ltx_ref">27</a><span id="S2.SS3.p2.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS3.p2.1.4" class="ltx_text" style="font-size:90%;"> and
+Parallel WaveNet </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S2.SS3.p2.1.5.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib28" title="" class="ltx_ref">28</a><span id="S2.SS3.p2.1.6.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S2.SS3.p2.1.7" class="ltx_text" style="font-size:90%;"> and use a 10-component
+mixture of logistic distributions (MoL) to generate 16-bit samples at 24 kHz.
+To compute the logistic mixture distribution, the WaveNet stack output is passed
+through a ReLU activation followed by a linear projection to predict
+parameters (mean, log scale, mixture weight) for each mixture component.
+The loss is computed as the negative log-likelihood of the ground truth sample.</span></p>
+</div>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_section">3 </span>Experiments &amp; Results</h2>
+
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_subsection">3.1 </span>Training Setup</h3>
+
+<div id="S3.SS1.p1" class="ltx_para">
+<p id="S3.SS1.p1.1" class="ltx_p"><span id="S3.SS1.p1.1.1" class="ltx_text" style="font-size:90%;">Our training process involves first training the feature prediction network
+on its own, followed by training a modified WaveNet independently on the outputs
+generated by the first network.</span></p>
+</div>
+<div id="S3.SS1.p2" class="ltx_para">
+<p id="S3.SS1.p2.5" class="ltx_p"><span id="S3.SS1.p2.5.1" class="ltx_text" style="font-size:90%;">To train the feature prediction network, we apply the standard
+maximum-likelihood training procedure (feeding in the
+correct output instead of the predicted output on the decoder side, also
+referred to as </span><span id="S3.SS1.p2.5.2" class="ltx_text ltx_font_italic" style="font-size:90%;">teacher-forcing</span><span id="S3.SS1.p2.5.3" class="ltx_text" style="font-size:90%;">)
+with a batch size of 64 on a single GPU. We use the Adam optimizer
+</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S3.SS1.p2.5.4.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib29" title="" class="ltx_ref">29</a><span id="S3.SS1.p2.5.5.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S3.SS1.p2.5.6" class="ltx_text" style="font-size:90%;"> with
+</span><math id="S3.SS1.p2.1.m1.2" class="ltx_Math" alttext="\beta_{1}=0.9,\beta_{2}=0.999,\epsilon=10^{-6}" display="inline"><semantics id="S3.SS1.p2.1.m1.2a"><mrow id="S3.SS1.p2.1.m1.2.2.2" xref="S3.SS1.p2.1.m1.2.2.3.cmml"><mrow id="S3.SS1.p2.1.m1.1.1.1.1" xref="S3.SS1.p2.1.m1.1.1.1.1.cmml"><msub id="S3.SS1.p2.1.m1.1.1.1.1.2" xref="S3.SS1.p2.1.m1.1.1.1.1.2.cmml"><mi mathsize="90%" id="S3.SS1.p2.1.m1.1.1.1.1.2.2" xref="S3.SS1.p2.1.m1.1.1.1.1.2.2.cmml">β</mi><mn mathsize="90%" id="S3.SS1.p2.1.m1.1.1.1.1.2.3" xref="S3.SS1.p2.1.m1.1.1.1.1.2.3.cmml">1</mn></msub><mo mathsize="90%" id="S3.SS1.p2.1.m1.1.1.1.1.1" xref="S3.SS1.p2.1.m1.1.1.1.1.1.cmml">=</mo><mn mathsize="90%" id="S3.SS1.p2.1.m1.1.1.1.1.3" xref="S3.SS1.p2.1.m1.1.1.1.1.3.cmml">0.9</mn></mrow><mo mathsize="90%" id="S3.SS1.p2.1.m1.2.2.2.3" xref="S3.SS1.p2.1.m1.2.2.3a.cmml">,</mo><mrow id="S3.SS1.p2.1.m1.2.2.2.2.2" xref="S3.SS1.p2.1.m1.2.2.2.2.3.cmml"><mrow id="S3.SS1.p2.1.m1.2.2.2.2.1.1" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1.cmml"><msub id="S3.SS1.p2.1.m1.2.2.2.2.1.1.2" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1.2.cmml"><mi mathsize="90%" id="S3.SS1.p2.1.m1.2.2.2.2.1.1.2.2" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1.2.2.cmml">β</mi><mn mathsize="90%" id="S3.SS1.p2.1.m1.2.2.2.2.1.1.2.3" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1.2.3.cmml">2</mn></msub><mo mathsize="90%" id="S3.SS1.p2.1.m1.2.2.2.2.1.1.1" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1.1.cmml">=</mo><mn mathsize="90%" id="S3.SS1.p2.1.m1.2.2.2.2.1.1.3" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1.3.cmml">0.999</mn></mrow><mo mathsize="90%" id="S3.SS1.p2.1.m1.2.2.2.2.2.3" xref="S3.SS1.p2.1.m1.2.2.2.2.3a.cmml">,</mo><mrow id="S3.SS1.p2.1.m1.2.2.2.2.2.2" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.cmml"><mi mathsize="90%" id="S3.SS1.p2.1.m1.2.2.2.2.2.2.2" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.2.cmml">ϵ</mi><mo mathsize="90%" id="S3.SS1.p2.1.m1.2.2.2.2.2.2.1" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.1.cmml">=</mo><msup id="S3.SS1.p2.1.m1.2.2.2.2.2.2.3" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.cmml"><mn mathsize="90%" id="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.2" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.2.cmml">10</mn><mrow id="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.3" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.3.cmml"><mo mathsize="90%" id="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.3a" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.3.cmml">−</mo><mn mathsize="90%" id="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.3.2" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.3.2.cmml">6</mn></mrow></msup></mrow></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.1.m1.2b"><apply id="S3.SS1.p2.1.m1.2.2.3.cmml" xref="S3.SS1.p2.1.m1.2.2.2"><csymbol cd="ambiguous" id="S3.SS1.p2.1.m1.2.2.3a.cmml" xref="S3.SS1.p2.1.m1.2.2.2.3">formulae-sequence</csymbol><apply id="S3.SS1.p2.1.m1.1.1.1.1.cmml" xref="S3.SS1.p2.1.m1.1.1.1.1"><eq id="S3.SS1.p2.1.m1.1.1.1.1.1.cmml" xref="S3.SS1.p2.1.m1.1.1.1.1.1"></eq><apply id="S3.SS1.p2.1.m1.1.1.1.1.2.cmml" xref="S3.SS1.p2.1.m1.1.1.1.1.2"><csymbol cd="ambiguous" id="S3.SS1.p2.1.m1.1.1.1.1.2.1.cmml" xref="S3.SS1.p2.1.m1.1.1.1.1.2">subscript</csymbol><ci id="S3.SS1.p2.1.m1.1.1.1.1.2.2.cmml" xref="S3.SS1.p2.1.m1.1.1.1.1.2.2">𝛽</ci><cn type="integer" id="S3.SS1.p2.1.m1.1.1.1.1.2.3.cmml" xref="S3.SS1.p2.1.m1.1.1.1.1.2.3">1</cn></apply><cn type="float" id="S3.SS1.p2.1.m1.1.1.1.1.3.cmml" xref="S3.SS1.p2.1.m1.1.1.1.1.3">0.9</cn></apply><apply id="S3.SS1.p2.1.m1.2.2.2.2.3.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.2"><csymbol cd="ambiguous" id="S3.SS1.p2.1.m1.2.2.2.2.3a.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.2.3">formulae-sequence</csymbol><apply id="S3.SS1.p2.1.m1.2.2.2.2.1.1.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1"><eq id="S3.SS1.p2.1.m1.2.2.2.2.1.1.1.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1.1"></eq><apply id="S3.SS1.p2.1.m1.2.2.2.2.1.1.2.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1.2"><csymbol cd="ambiguous" id="S3.SS1.p2.1.m1.2.2.2.2.1.1.2.1.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1.2">subscript</csymbol><ci id="S3.SS1.p2.1.m1.2.2.2.2.1.1.2.2.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1.2.2">𝛽</ci><cn type="integer" id="S3.SS1.p2.1.m1.2.2.2.2.1.1.2.3.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1.2.3">2</cn></apply><cn type="float" id="S3.SS1.p2.1.m1.2.2.2.2.1.1.3.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.1.1.3">0.999</cn></apply><apply id="S3.SS1.p2.1.m1.2.2.2.2.2.2.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2"><eq id="S3.SS1.p2.1.m1.2.2.2.2.2.2.1.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.1"></eq><ci id="S3.SS1.p2.1.m1.2.2.2.2.2.2.2.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.2">italic-ϵ</ci><apply id="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.3"><csymbol cd="ambiguous" id="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.1.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.3">superscript</csymbol><cn type="integer" id="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.2.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.2">10</cn><apply id="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.3.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.3"><minus id="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.3.1.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.3"></minus><cn type="integer" id="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.3.2.cmml" xref="S3.SS1.p2.1.m1.2.2.2.2.2.2.3.3.2">6</cn></apply></apply></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.1.m1.2c">\beta_{1}=0.9,\beta_{2}=0.999,\epsilon=10^{-6}</annotation></semantics></math><span id="S3.SS1.p2.5.7" class="ltx_text" style="font-size:90%;"> and a learning rate of
+</span><math id="S3.SS1.p2.2.m2.1" class="ltx_Math" alttext="10^{-3}" display="inline"><semantics id="S3.SS1.p2.2.m2.1a"><msup id="S3.SS1.p2.2.m2.1.1" xref="S3.SS1.p2.2.m2.1.1.cmml"><mn mathsize="90%" id="S3.SS1.p2.2.m2.1.1.2" xref="S3.SS1.p2.2.m2.1.1.2.cmml">10</mn><mrow id="S3.SS1.p2.2.m2.1.1.3" xref="S3.SS1.p2.2.m2.1.1.3.cmml"><mo mathsize="90%" id="S3.SS1.p2.2.m2.1.1.3a" xref="S3.SS1.p2.2.m2.1.1.3.cmml">−</mo><mn mathsize="90%" id="S3.SS1.p2.2.m2.1.1.3.2" xref="S3.SS1.p2.2.m2.1.1.3.2.cmml">3</mn></mrow></msup><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.2.m2.1b"><apply id="S3.SS1.p2.2.m2.1.1.cmml" xref="S3.SS1.p2.2.m2.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.2.m2.1.1.1.cmml" xref="S3.SS1.p2.2.m2.1.1">superscript</csymbol><cn type="integer" id="S3.SS1.p2.2.m2.1.1.2.cmml" xref="S3.SS1.p2.2.m2.1.1.2">10</cn><apply id="S3.SS1.p2.2.m2.1.1.3.cmml" xref="S3.SS1.p2.2.m2.1.1.3"><minus id="S3.SS1.p2.2.m2.1.1.3.1.cmml" xref="S3.SS1.p2.2.m2.1.1.3"></minus><cn type="integer" id="S3.SS1.p2.2.m2.1.1.3.2.cmml" xref="S3.SS1.p2.2.m2.1.1.3.2">3</cn></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.2.m2.1c">10^{-3}</annotation></semantics></math><span id="S3.SS1.p2.5.8" class="ltx_text" style="font-size:90%;"> exponentially decaying to </span><math id="S3.SS1.p2.3.m3.1" class="ltx_Math" alttext="10^{-5}" display="inline"><semantics id="S3.SS1.p2.3.m3.1a"><msup id="S3.SS1.p2.3.m3.1.1" xref="S3.SS1.p2.3.m3.1.1.cmml"><mn mathsize="90%" id="S3.SS1.p2.3.m3.1.1.2" xref="S3.SS1.p2.3.m3.1.1.2.cmml">10</mn><mrow id="S3.SS1.p2.3.m3.1.1.3" xref="S3.SS1.p2.3.m3.1.1.3.cmml"><mo mathsize="90%" id="S3.SS1.p2.3.m3.1.1.3a" xref="S3.SS1.p2.3.m3.1.1.3.cmml">−</mo><mn mathsize="90%" id="S3.SS1.p2.3.m3.1.1.3.2" xref="S3.SS1.p2.3.m3.1.1.3.2.cmml">5</mn></mrow></msup><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.3.m3.1b"><apply id="S3.SS1.p2.3.m3.1.1.cmml" xref="S3.SS1.p2.3.m3.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.3.m3.1.1.1.cmml" xref="S3.SS1.p2.3.m3.1.1">superscript</csymbol><cn type="integer" id="S3.SS1.p2.3.m3.1.1.2.cmml" xref="S3.SS1.p2.3.m3.1.1.2">10</cn><apply id="S3.SS1.p2.3.m3.1.1.3.cmml" xref="S3.SS1.p2.3.m3.1.1.3"><minus id="S3.SS1.p2.3.m3.1.1.3.1.cmml" xref="S3.SS1.p2.3.m3.1.1.3"></minus><cn type="integer" id="S3.SS1.p2.3.m3.1.1.3.2.cmml" xref="S3.SS1.p2.3.m3.1.1.3.2">5</cn></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.3.m3.1c">10^{-5}</annotation></semantics></math><span id="S3.SS1.p2.5.9" class="ltx_text" style="font-size:90%;"> starting after 50,000 iterations.
+We also apply </span><math id="S3.SS1.p2.4.m4.1" class="ltx_Math" alttext="L_{2}" display="inline"><semantics id="S3.SS1.p2.4.m4.1a"><msub id="S3.SS1.p2.4.m4.1.1" xref="S3.SS1.p2.4.m4.1.1.cmml"><mi mathsize="90%" id="S3.SS1.p2.4.m4.1.1.2" xref="S3.SS1.p2.4.m4.1.1.2.cmml">L</mi><mn mathsize="90%" id="S3.SS1.p2.4.m4.1.1.3" xref="S3.SS1.p2.4.m4.1.1.3.cmml">2</mn></msub><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.4.m4.1b"><apply id="S3.SS1.p2.4.m4.1.1.cmml" xref="S3.SS1.p2.4.m4.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.4.m4.1.1.1.cmml" xref="S3.SS1.p2.4.m4.1.1">subscript</csymbol><ci id="S3.SS1.p2.4.m4.1.1.2.cmml" xref="S3.SS1.p2.4.m4.1.1.2">𝐿</ci><cn type="integer" id="S3.SS1.p2.4.m4.1.1.3.cmml" xref="S3.SS1.p2.4.m4.1.1.3">2</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.4.m4.1c">L_{2}</annotation></semantics></math><span id="S3.SS1.p2.5.10" class="ltx_text" style="font-size:90%;"> regularization with weight </span><math id="S3.SS1.p2.5.m5.1" class="ltx_Math" alttext="10^{-6}" display="inline"><semantics id="S3.SS1.p2.5.m5.1a"><msup id="S3.SS1.p2.5.m5.1.1" xref="S3.SS1.p2.5.m5.1.1.cmml"><mn mathsize="90%" id="S3.SS1.p2.5.m5.1.1.2" xref="S3.SS1.p2.5.m5.1.1.2.cmml">10</mn><mrow id="S3.SS1.p2.5.m5.1.1.3" xref="S3.SS1.p2.5.m5.1.1.3.cmml"><mo mathsize="90%" id="S3.SS1.p2.5.m5.1.1.3a" xref="S3.SS1.p2.5.m5.1.1.3.cmml">−</mo><mn mathsize="90%" id="S3.SS1.p2.5.m5.1.1.3.2" xref="S3.SS1.p2.5.m5.1.1.3.2.cmml">6</mn></mrow></msup><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.5.m5.1b"><apply id="S3.SS1.p2.5.m5.1.1.cmml" xref="S3.SS1.p2.5.m5.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.5.m5.1.1.1.cmml" xref="S3.SS1.p2.5.m5.1.1">superscript</csymbol><cn type="integer" id="S3.SS1.p2.5.m5.1.1.2.cmml" xref="S3.SS1.p2.5.m5.1.1.2">10</cn><apply id="S3.SS1.p2.5.m5.1.1.3.cmml" xref="S3.SS1.p2.5.m5.1.1.3"><minus id="S3.SS1.p2.5.m5.1.1.3.1.cmml" xref="S3.SS1.p2.5.m5.1.1.3"></minus><cn type="integer" id="S3.SS1.p2.5.m5.1.1.3.2.cmml" xref="S3.SS1.p2.5.m5.1.1.3.2">6</cn></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.5.m5.1c">10^{-6}</annotation></semantics></math><span id="S3.SS1.p2.5.11" class="ltx_text" style="font-size:90%;">.</span></p>
+</div>
+<div id="S3.SS1.p3" class="ltx_para">
+<p id="S3.SS1.p3.1" class="ltx_p"><span id="S3.SS1.p3.1.1" class="ltx_text" style="font-size:90%;">We then train our modified WaveNet on the </span><em id="S3.SS1.p3.1.2" class="ltx_emph ltx_font_italic" style="font-size:90%;">ground truth-aligned</em><span id="S3.SS1.p3.1.3" class="ltx_text" style="font-size:90%;">
+predictions of the feature prediction network.
+That is, the prediction network is run in teacher-forcing mode,
+where each predicted frame is conditioned on the encoded input sequence and the
+corresponding previous frame in the ground truth spectrogram. This ensures that
+each predicted frame exactly aligns with the target waveform samples.</span></p>
+</div>
+<div id="S3.SS1.p4" class="ltx_para">
+<p id="S3.SS1.p4.3" class="ltx_p"><span id="S3.SS1.p4.3.1" class="ltx_text" style="font-size:90%;">We train with a batch size of 128 distributed across 32 GPUs
+with synchronous updates, using the Adam optimizer with
+</span><math id="S3.SS1.p4.1.m1.2" class="ltx_Math" alttext="\beta_{1}=0.9,\beta_{2}=0.999,\epsilon=10^{-8}" display="inline"><semantics id="S3.SS1.p4.1.m1.2a"><mrow id="S3.SS1.p4.1.m1.2.2.2" xref="S3.SS1.p4.1.m1.2.2.3.cmml"><mrow id="S3.SS1.p4.1.m1.1.1.1.1" xref="S3.SS1.p4.1.m1.1.1.1.1.cmml"><msub id="S3.SS1.p4.1.m1.1.1.1.1.2" xref="S3.SS1.p4.1.m1.1.1.1.1.2.cmml"><mi mathsize="90%" id="S3.SS1.p4.1.m1.1.1.1.1.2.2" xref="S3.SS1.p4.1.m1.1.1.1.1.2.2.cmml">β</mi><mn mathsize="90%" id="S3.SS1.p4.1.m1.1.1.1.1.2.3" xref="S3.SS1.p4.1.m1.1.1.1.1.2.3.cmml">1</mn></msub><mo mathsize="90%" id="S3.SS1.p4.1.m1.1.1.1.1.1" xref="S3.SS1.p4.1.m1.1.1.1.1.1.cmml">=</mo><mn mathsize="90%" id="S3.SS1.p4.1.m1.1.1.1.1.3" xref="S3.SS1.p4.1.m1.1.1.1.1.3.cmml">0.9</mn></mrow><mo mathsize="90%" id="S3.SS1.p4.1.m1.2.2.2.3" xref="S3.SS1.p4.1.m1.2.2.3a.cmml">,</mo><mrow id="S3.SS1.p4.1.m1.2.2.2.2.2" xref="S3.SS1.p4.1.m1.2.2.2.2.3.cmml"><mrow id="S3.SS1.p4.1.m1.2.2.2.2.1.1" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1.cmml"><msub id="S3.SS1.p4.1.m1.2.2.2.2.1.1.2" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1.2.cmml"><mi mathsize="90%" id="S3.SS1.p4.1.m1.2.2.2.2.1.1.2.2" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1.2.2.cmml">β</mi><mn mathsize="90%" id="S3.SS1.p4.1.m1.2.2.2.2.1.1.2.3" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1.2.3.cmml">2</mn></msub><mo mathsize="90%" id="S3.SS1.p4.1.m1.2.2.2.2.1.1.1" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1.1.cmml">=</mo><mn mathsize="90%" id="S3.SS1.p4.1.m1.2.2.2.2.1.1.3" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1.3.cmml">0.999</mn></mrow><mo mathsize="90%" id="S3.SS1.p4.1.m1.2.2.2.2.2.3" xref="S3.SS1.p4.1.m1.2.2.2.2.3a.cmml">,</mo><mrow id="S3.SS1.p4.1.m1.2.2.2.2.2.2" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.cmml"><mi mathsize="90%" id="S3.SS1.p4.1.m1.2.2.2.2.2.2.2" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.2.cmml">ϵ</mi><mo mathsize="90%" id="S3.SS1.p4.1.m1.2.2.2.2.2.2.1" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.1.cmml">=</mo><msup id="S3.SS1.p4.1.m1.2.2.2.2.2.2.3" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.cmml"><mn mathsize="90%" id="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.2" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.2.cmml">10</mn><mrow id="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.3" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.3.cmml"><mo mathsize="90%" id="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.3a" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.3.cmml">−</mo><mn mathsize="90%" id="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.3.2" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.3.2.cmml">8</mn></mrow></msup></mrow></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.SS1.p4.1.m1.2b"><apply id="S3.SS1.p4.1.m1.2.2.3.cmml" xref="S3.SS1.p4.1.m1.2.2.2"><csymbol cd="ambiguous" id="S3.SS1.p4.1.m1.2.2.3a.cmml" xref="S3.SS1.p4.1.m1.2.2.2.3">formulae-sequence</csymbol><apply id="S3.SS1.p4.1.m1.1.1.1.1.cmml" xref="S3.SS1.p4.1.m1.1.1.1.1"><eq id="S3.SS1.p4.1.m1.1.1.1.1.1.cmml" xref="S3.SS1.p4.1.m1.1.1.1.1.1"></eq><apply id="S3.SS1.p4.1.m1.1.1.1.1.2.cmml" xref="S3.SS1.p4.1.m1.1.1.1.1.2"><csymbol cd="ambiguous" id="S3.SS1.p4.1.m1.1.1.1.1.2.1.cmml" xref="S3.SS1.p4.1.m1.1.1.1.1.2">subscript</csymbol><ci id="S3.SS1.p4.1.m1.1.1.1.1.2.2.cmml" xref="S3.SS1.p4.1.m1.1.1.1.1.2.2">𝛽</ci><cn type="integer" id="S3.SS1.p4.1.m1.1.1.1.1.2.3.cmml" xref="S3.SS1.p4.1.m1.1.1.1.1.2.3">1</cn></apply><cn type="float" id="S3.SS1.p4.1.m1.1.1.1.1.3.cmml" xref="S3.SS1.p4.1.m1.1.1.1.1.3">0.9</cn></apply><apply id="S3.SS1.p4.1.m1.2.2.2.2.3.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.2"><csymbol cd="ambiguous" id="S3.SS1.p4.1.m1.2.2.2.2.3a.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.2.3">formulae-sequence</csymbol><apply id="S3.SS1.p4.1.m1.2.2.2.2.1.1.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1"><eq id="S3.SS1.p4.1.m1.2.2.2.2.1.1.1.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1.1"></eq><apply id="S3.SS1.p4.1.m1.2.2.2.2.1.1.2.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1.2"><csymbol cd="ambiguous" id="S3.SS1.p4.1.m1.2.2.2.2.1.1.2.1.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1.2">subscript</csymbol><ci id="S3.SS1.p4.1.m1.2.2.2.2.1.1.2.2.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1.2.2">𝛽</ci><cn type="integer" id="S3.SS1.p4.1.m1.2.2.2.2.1.1.2.3.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1.2.3">2</cn></apply><cn type="float" id="S3.SS1.p4.1.m1.2.2.2.2.1.1.3.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.1.1.3">0.999</cn></apply><apply id="S3.SS1.p4.1.m1.2.2.2.2.2.2.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2"><eq id="S3.SS1.p4.1.m1.2.2.2.2.2.2.1.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.1"></eq><ci id="S3.SS1.p4.1.m1.2.2.2.2.2.2.2.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.2">italic-ϵ</ci><apply id="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.3"><csymbol cd="ambiguous" id="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.1.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.3">superscript</csymbol><cn type="integer" id="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.2.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.2">10</cn><apply id="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.3.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.3"><minus id="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.3.1.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.3"></minus><cn type="integer" id="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.3.2.cmml" xref="S3.SS1.p4.1.m1.2.2.2.2.2.2.3.3.2">8</cn></apply></apply></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p4.1.m1.2c">\beta_{1}=0.9,\beta_{2}=0.999,\epsilon=10^{-8}</annotation></semantics></math><span id="S3.SS1.p4.3.2" class="ltx_text" style="font-size:90%;"> and a fixed learning rate of
+</span><math id="S3.SS1.p4.2.m2.1" class="ltx_Math" alttext="10^{-4}" display="inline"><semantics id="S3.SS1.p4.2.m2.1a"><msup id="S3.SS1.p4.2.m2.1.1" xref="S3.SS1.p4.2.m2.1.1.cmml"><mn mathsize="90%" id="S3.SS1.p4.2.m2.1.1.2" xref="S3.SS1.p4.2.m2.1.1.2.cmml">10</mn><mrow id="S3.SS1.p4.2.m2.1.1.3" xref="S3.SS1.p4.2.m2.1.1.3.cmml"><mo mathsize="90%" id="S3.SS1.p4.2.m2.1.1.3a" xref="S3.SS1.p4.2.m2.1.1.3.cmml">−</mo><mn mathsize="90%" id="S3.SS1.p4.2.m2.1.1.3.2" xref="S3.SS1.p4.2.m2.1.1.3.2.cmml">4</mn></mrow></msup><annotation-xml encoding="MathML-Content" id="S3.SS1.p4.2.m2.1b"><apply id="S3.SS1.p4.2.m2.1.1.cmml" xref="S3.SS1.p4.2.m2.1.1"><csymbol cd="ambiguous" id="S3.SS1.p4.2.m2.1.1.1.cmml" xref="S3.SS1.p4.2.m2.1.1">superscript</csymbol><cn type="integer" id="S3.SS1.p4.2.m2.1.1.2.cmml" xref="S3.SS1.p4.2.m2.1.1.2">10</cn><apply id="S3.SS1.p4.2.m2.1.1.3.cmml" xref="S3.SS1.p4.2.m2.1.1.3"><minus id="S3.SS1.p4.2.m2.1.1.3.1.cmml" xref="S3.SS1.p4.2.m2.1.1.3"></minus><cn type="integer" id="S3.SS1.p4.2.m2.1.1.3.2.cmml" xref="S3.SS1.p4.2.m2.1.1.3.2">4</cn></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p4.2.m2.1c">10^{-4}</annotation></semantics></math><span id="S3.SS1.p4.3.3" class="ltx_text" style="font-size:90%;">. It helps quality to average model weights over recent updates. Therefore
+we maintain an exponentially-weighted moving average of the network parameters
+over update steps with a decay of 0.9999 – this version is used for inference
+(see also </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S3.SS1.p4.3.4.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib29" title="" class="ltx_ref">29</a><span id="S3.SS1.p4.3.5.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S3.SS1.p4.3.6" class="ltx_text" style="font-size:90%;">).
+To speed up convergence, we scale the waveform targets by a factor of </span><math id="S3.SS1.p4.3.m3.1" class="ltx_Math" alttext="127.5" display="inline"><semantics id="S3.SS1.p4.3.m3.1a"><mn mathsize="90%" id="S3.SS1.p4.3.m3.1.1" xref="S3.SS1.p4.3.m3.1.1.cmml">127.5</mn><annotation-xml encoding="MathML-Content" id="S3.SS1.p4.3.m3.1b"><cn type="float" id="S3.SS1.p4.3.m3.1.1.cmml" xref="S3.SS1.p4.3.m3.1.1">127.5</cn></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p4.3.m3.1c">127.5</annotation></semantics></math><span id="S3.SS1.p4.3.7" class="ltx_text" style="font-size:90%;">
+which brings the initial outputs of the mixture of logistics layer closer to
+the eventual distributions.</span></p>
+</div>
+<div id="S3.SS1.p5" class="ltx_para">
+<p id="S3.SS1.p5.1" class="ltx_p"><span id="S3.SS1.p5.1.1" class="ltx_text" style="font-size:90%;">We train all models on an internal US English dataset</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S3.SS1.p5.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib12" title="" class="ltx_ref">12</a><span id="S3.SS1.p5.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S3.SS1.p5.1.4" class="ltx_text" style="font-size:90%;">, which
+contains 24.6 hours of speech from a single professional female speaker.
+All text in our datasets is spelled out. e.g., “16” is written as “sixteen”,
+i.e., our models are all trained on normalized text.</span></p>
+</div>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_subsection">3.2 </span>Evaluation</h3>
+
+<div id="S3.SS2.p1" class="ltx_para">
+<p id="S3.SS2.p1.1" class="ltx_p"><span id="S3.SS2.p1.1.1" class="ltx_text" style="font-size:90%;">When generating speech in inference mode, the ground truth targets are
+not known. Therefore, the predicted outputs from the previous step
+are fed in during decoding, in contrast to the teacher-forcing
+configuration used for training.</span></p>
+</div>
+<div id="S3.SS2.p2" class="ltx_para">
+<p id="S3.SS2.p2.1" class="ltx_p"><span id="S3.SS2.p2.1.1" class="ltx_text" style="font-size:90%;">We randomly selected 100 fixed examples from the test set of our internal
+dataset as the evaluation set.
+Audio generated on this set are sent to a human rating service similar to
+Amazon’s Mechanical Turk where each sample is rated by at least 8 raters on a
+scale from 1 to 5 with 0.5 point increments, from which a subjective mean opinion score
+(MOS) is calculated. Each evaluation is conducted independently from each other,
+so the outputs of two different models are not directly compared when
+raters assign a score to them.</span></p>
+</div>
+<div id="S3.SS2.p3" class="ltx_para">
+<p id="S3.SS2.p3.1" class="ltx_p"><span id="S3.SS2.p3.1.1" class="ltx_text" style="font-size:90%;">Note that while instances in the evaluation set never appear in the training
+set, there are some recurring patterns and common words between the two sets.
+While this could potentially result in an inflated MOS compared to
+an evaluation set consisting of sentences generated from random words, using
+this set allows us to compare to the ground truth. Since all the systems
+we compare are trained on the same data, relative comparisons are still
+meaningful.</span></p>
+</div>
+<div id="S3.SS2.p4" class="ltx_para">
+<p id="S3.SS2.p4.1" class="ltx_p"><span id="S3.SS2.p4.1.1" class="ltx_text" style="font-size:90%;">Table </span><a href="#S3.T1" title="Table 1 ‣ 3.2 Evaluation ‣ 3 Experiments &amp; Results ‣ Natural TTS Synthesis By Conditioning WaveNet On Mel Spectrogram Predictions" class="ltx_ref" style="font-size:90%;"><span class="ltx_text ltx_ref_tag">1</span></a><span id="S3.SS2.p4.1.2" class="ltx_text" style="font-size:90%;"> shows
+a comparison of our method against various prior systems.
+In order to better isolate the effect of using mel spectrograms as features,
+we compare to a WaveNet conditioned on linguistic features</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S3.SS2.p4.1.3.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib8" title="" class="ltx_ref">8</a><span id="S3.SS2.p4.1.4.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S3.SS2.p4.1.5" class="ltx_text" style="font-size:90%;"> with similar
+modifications to the WaveNet architecture as introduced above. We also compare
+to the original
+Tacotron that predicts linear spectrograms and uses Griffin-Lim to synthesize
+audio, as well as concatenative </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S3.SS2.p4.1.6.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib30" title="" class="ltx_ref">30</a><span id="S3.SS2.p4.1.7.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S3.SS2.p4.1.8" class="ltx_text" style="font-size:90%;"> and parametric
+</span><cite class="ltx_cite ltx_citemacro_cite"><span id="S3.SS2.p4.1.9.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib31" title="" class="ltx_ref">31</a><span id="S3.SS2.p4.1.10.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S3.SS2.p4.1.11" class="ltx_text" style="font-size:90%;"> baseline systems, both of which have been used in production at Google.
+We find that the proposed system significantly outpeforms all other TTS systems,
+and results in an MOS comparable to that of the ground truth audio.
+</span><span id="footnotex1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">2</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">2</sup><span class="ltx_tag ltx_tag_note">2</span>Samples available at https://google.github.io/tacotron/publications/tacotron2.</span></span></span><span id="S3.SS2.p4.1.12" class="ltx_text" style="font-size:90%;"></span></p>
+</div>
+<figure id="S3.T1" class="ltx_table">
+<table id="S3.T1.6" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S3.T1.6.7" class="ltx_tr">
+<td id="S3.T1.6.7.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="S3.T1.6.7.1.1" class="ltx_text" style="font-size:90%;">System</span></td>
+<td id="S3.T1.6.7.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T1.6.7.2.1" class="ltx_text" style="font-size:90%;">MOS</span></td>
+</tr>
+<tr id="S3.T1.1.1" class="ltx_tr">
+<td id="S3.T1.1.1.2" class="ltx_td ltx_align_left ltx_border_t"><span id="S3.T1.1.1.2.1" class="ltx_text" style="font-size:90%;">Parametric</span></td>
+<td id="S3.T1.1.1.1" class="ltx_td ltx_align_center ltx_border_t"><math id="S3.T1.1.1.1.m1.1" class="ltx_Math" alttext="3.492\pm 0.096" display="inline"><semantics id="S3.T1.1.1.1.m1.1a"><mrow id="S3.T1.1.1.1.m1.1.1" xref="S3.T1.1.1.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T1.1.1.1.m1.1.1.2" xref="S3.T1.1.1.1.m1.1.1.2.cmml">3.492</mn><mo mathsize="90%" id="S3.T1.1.1.1.m1.1.1.1" xref="S3.T1.1.1.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T1.1.1.1.m1.1.1.3" xref="S3.T1.1.1.1.m1.1.1.3.cmml">0.096</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T1.1.1.1.m1.1b"><apply id="S3.T1.1.1.1.m1.1.1.cmml" xref="S3.T1.1.1.1.m1.1.1"><csymbol cd="latexml" id="S3.T1.1.1.1.m1.1.1.1.cmml" xref="S3.T1.1.1.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T1.1.1.1.m1.1.1.2.cmml" xref="S3.T1.1.1.1.m1.1.1.2">3.492</cn><cn type="float" id="S3.T1.1.1.1.m1.1.1.3.cmml" xref="S3.T1.1.1.1.m1.1.1.3">0.096</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T1.1.1.1.m1.1c">3.492\pm 0.096</annotation></semantics></math></td>
+</tr>
+<tr id="S3.T1.2.2" class="ltx_tr">
+<td id="S3.T1.2.2.2" class="ltx_td ltx_align_left"><span id="S3.T1.2.2.2.1" class="ltx_text" style="font-size:90%;">Tacotron (Griffin-Lim)</span></td>
+<td id="S3.T1.2.2.1" class="ltx_td ltx_align_center"><math id="S3.T1.2.2.1.m1.1" class="ltx_Math" alttext="4.001\pm 0.087" display="inline"><semantics id="S3.T1.2.2.1.m1.1a"><mrow id="S3.T1.2.2.1.m1.1.1" xref="S3.T1.2.2.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T1.2.2.1.m1.1.1.2" xref="S3.T1.2.2.1.m1.1.1.2.cmml">4.001</mn><mo mathsize="90%" id="S3.T1.2.2.1.m1.1.1.1" xref="S3.T1.2.2.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T1.2.2.1.m1.1.1.3" xref="S3.T1.2.2.1.m1.1.1.3.cmml">0.087</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T1.2.2.1.m1.1b"><apply id="S3.T1.2.2.1.m1.1.1.cmml" xref="S3.T1.2.2.1.m1.1.1"><csymbol cd="latexml" id="S3.T1.2.2.1.m1.1.1.1.cmml" xref="S3.T1.2.2.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T1.2.2.1.m1.1.1.2.cmml" xref="S3.T1.2.2.1.m1.1.1.2">4.001</cn><cn type="float" id="S3.T1.2.2.1.m1.1.1.3.cmml" xref="S3.T1.2.2.1.m1.1.1.3">0.087</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T1.2.2.1.m1.1c">4.001\pm 0.087</annotation></semantics></math></td>
+</tr>
+<tr id="S3.T1.3.3" class="ltx_tr">
+<td id="S3.T1.3.3.2" class="ltx_td ltx_align_left"><span id="S3.T1.3.3.2.1" class="ltx_text" style="font-size:90%;">Concatenative</span></td>
+<td id="S3.T1.3.3.1" class="ltx_td ltx_align_center"><math id="S3.T1.3.3.1.m1.1" class="ltx_Math" alttext="4.166\pm 0.091" display="inline"><semantics id="S3.T1.3.3.1.m1.1a"><mrow id="S3.T1.3.3.1.m1.1.1" xref="S3.T1.3.3.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T1.3.3.1.m1.1.1.2" xref="S3.T1.3.3.1.m1.1.1.2.cmml">4.166</mn><mo mathsize="90%" id="S3.T1.3.3.1.m1.1.1.1" xref="S3.T1.3.3.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T1.3.3.1.m1.1.1.3" xref="S3.T1.3.3.1.m1.1.1.3.cmml">0.091</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T1.3.3.1.m1.1b"><apply id="S3.T1.3.3.1.m1.1.1.cmml" xref="S3.T1.3.3.1.m1.1.1"><csymbol cd="latexml" id="S3.T1.3.3.1.m1.1.1.1.cmml" xref="S3.T1.3.3.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T1.3.3.1.m1.1.1.2.cmml" xref="S3.T1.3.3.1.m1.1.1.2">4.166</cn><cn type="float" id="S3.T1.3.3.1.m1.1.1.3.cmml" xref="S3.T1.3.3.1.m1.1.1.3">0.091</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T1.3.3.1.m1.1c">4.166\pm 0.091</annotation></semantics></math></td>
+</tr>
+<tr id="S3.T1.4.4" class="ltx_tr">
+<td id="S3.T1.4.4.2" class="ltx_td ltx_align_left"><span id="S3.T1.4.4.2.1" class="ltx_text" style="font-size:90%;">WaveNet (Linguistic)</span></td>
+<td id="S3.T1.4.4.1" class="ltx_td ltx_align_center"><math id="S3.T1.4.4.1.m1.1" class="ltx_Math" alttext="4.341\pm 0.051" display="inline"><semantics id="S3.T1.4.4.1.m1.1a"><mrow id="S3.T1.4.4.1.m1.1.1" xref="S3.T1.4.4.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T1.4.4.1.m1.1.1.2" xref="S3.T1.4.4.1.m1.1.1.2.cmml">4.341</mn><mo mathsize="90%" id="S3.T1.4.4.1.m1.1.1.1" xref="S3.T1.4.4.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T1.4.4.1.m1.1.1.3" xref="S3.T1.4.4.1.m1.1.1.3.cmml">0.051</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T1.4.4.1.m1.1b"><apply id="S3.T1.4.4.1.m1.1.1.cmml" xref="S3.T1.4.4.1.m1.1.1"><csymbol cd="latexml" id="S3.T1.4.4.1.m1.1.1.1.cmml" xref="S3.T1.4.4.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T1.4.4.1.m1.1.1.2.cmml" xref="S3.T1.4.4.1.m1.1.1.2">4.341</cn><cn type="float" id="S3.T1.4.4.1.m1.1.1.3.cmml" xref="S3.T1.4.4.1.m1.1.1.3">0.051</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T1.4.4.1.m1.1c">4.341\pm 0.051</annotation></semantics></math></td>
+</tr>
+<tr id="S3.T1.5.5" class="ltx_tr">
+<td id="S3.T1.5.5.2" class="ltx_td ltx_align_left"><span id="S3.T1.5.5.2.1" class="ltx_text" style="font-size:90%;">Ground truth</span></td>
+<td id="S3.T1.5.5.1" class="ltx_td ltx_align_center"><math id="S3.T1.5.5.1.m1.1" class="ltx_Math" alttext="4.582\pm 0.053" display="inline"><semantics id="S3.T1.5.5.1.m1.1a"><mrow id="S3.T1.5.5.1.m1.1.1" xref="S3.T1.5.5.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T1.5.5.1.m1.1.1.2" xref="S3.T1.5.5.1.m1.1.1.2.cmml">4.582</mn><mo mathsize="90%" id="S3.T1.5.5.1.m1.1.1.1" xref="S3.T1.5.5.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T1.5.5.1.m1.1.1.3" xref="S3.T1.5.5.1.m1.1.1.3.cmml">0.053</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T1.5.5.1.m1.1b"><apply id="S3.T1.5.5.1.m1.1.1.cmml" xref="S3.T1.5.5.1.m1.1.1"><csymbol cd="latexml" id="S3.T1.5.5.1.m1.1.1.1.cmml" xref="S3.T1.5.5.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T1.5.5.1.m1.1.1.2.cmml" xref="S3.T1.5.5.1.m1.1.1.2">4.582</cn><cn type="float" id="S3.T1.5.5.1.m1.1.1.3.cmml" xref="S3.T1.5.5.1.m1.1.1.3">0.053</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T1.5.5.1.m1.1c">4.582\pm 0.053</annotation></semantics></math></td>
+</tr>
+<tr id="S3.T1.6.6" class="ltx_tr">
+<td id="S3.T1.6.6.2" class="ltx_td ltx_align_left ltx_border_bb ltx_border_t"><span id="S3.T1.6.6.2.1" class="ltx_text" style="font-size:90%;">Tacotron 2 (this paper)</span></td>
+<td id="S3.T1.6.6.1" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t"><math id="S3.T1.6.6.1.m1.1" class="ltx_Math" alttext="4.526\pm 0.066" display="inline"><semantics id="S3.T1.6.6.1.m1.1a"><mrow id="S3.T1.6.6.1.m1.1.1" xref="S3.T1.6.6.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T1.6.6.1.m1.1.1.2" xref="S3.T1.6.6.1.m1.1.1.2.cmml">4.526</mn><mo mathsize="90%" id="S3.T1.6.6.1.m1.1.1.1" xref="S3.T1.6.6.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T1.6.6.1.m1.1.1.3" xref="S3.T1.6.6.1.m1.1.1.3.cmml">0.066</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T1.6.6.1.m1.1b"><apply id="S3.T1.6.6.1.m1.1.1.cmml" xref="S3.T1.6.6.1.m1.1.1"><csymbol cd="latexml" id="S3.T1.6.6.1.m1.1.1.1.cmml" xref="S3.T1.6.6.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T1.6.6.1.m1.1.1.2.cmml" xref="S3.T1.6.6.1.m1.1.1.2">4.526</cn><cn type="float" id="S3.T1.6.6.1.m1.1.1.3.cmml" xref="S3.T1.6.6.1.m1.1.1.3">0.066</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T1.6.6.1.m1.1c">4.526\pm 0.066</annotation></semantics></math></td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_table"><span id="S3.T1.10.1.1" class="ltx_text ltx_font_bold">Table 1</span>: </span>Mean Opinion Score (MOS) evaluations with 95% confidence intervals
+computed from the t-distribution for various systems.</figcaption>
+</figure>
+<div id="S3.SS2.p5" class="ltx_para">
+<p id="S3.SS2.p5.1" class="ltx_p"><span id="S3.SS2.p5.1.1" class="ltx_text" style="font-size:90%;">We also conduct a side-by-side evaluation between audio synthesized by
+our system and the ground truth.
+For each pair of utterances, raters are asked to give a score ranging from -3
+(synthesized much worse than ground truth) to 3 (synthesized much better than
+ground truth).
+The overall mean score of </span><math id="S3.SS2.p5.1.m1.1" class="ltx_Math" alttext="-0.270\pm 0.155" display="inline"><semantics id="S3.SS2.p5.1.m1.1a"><mrow id="S3.SS2.p5.1.m1.1.1" xref="S3.SS2.p5.1.m1.1.1.cmml"><mrow id="S3.SS2.p5.1.m1.1.1.2" xref="S3.SS2.p5.1.m1.1.1.2.cmml"><mo mathsize="90%" id="S3.SS2.p5.1.m1.1.1.2a" xref="S3.SS2.p5.1.m1.1.1.2.cmml">−</mo><mn mathsize="90%" id="S3.SS2.p5.1.m1.1.1.2.2" xref="S3.SS2.p5.1.m1.1.1.2.2.cmml">0.270</mn></mrow><mo mathsize="90%" id="S3.SS2.p5.1.m1.1.1.1" xref="S3.SS2.p5.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.SS2.p5.1.m1.1.1.3" xref="S3.SS2.p5.1.m1.1.1.3.cmml">0.155</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.SS2.p5.1.m1.1b"><apply id="S3.SS2.p5.1.m1.1.1.cmml" xref="S3.SS2.p5.1.m1.1.1"><csymbol cd="latexml" id="S3.SS2.p5.1.m1.1.1.1.cmml" xref="S3.SS2.p5.1.m1.1.1.1">plus-or-minus</csymbol><apply id="S3.SS2.p5.1.m1.1.1.2.cmml" xref="S3.SS2.p5.1.m1.1.1.2"><minus id="S3.SS2.p5.1.m1.1.1.2.1.cmml" xref="S3.SS2.p5.1.m1.1.1.2"></minus><cn type="float" id="S3.SS2.p5.1.m1.1.1.2.2.cmml" xref="S3.SS2.p5.1.m1.1.1.2.2">0.270</cn></apply><cn type="float" id="S3.SS2.p5.1.m1.1.1.3.cmml" xref="S3.SS2.p5.1.m1.1.1.3">0.155</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS2.p5.1.m1.1c">-0.270\pm 0.155</annotation></semantics></math><span id="S3.SS2.p5.1.2" class="ltx_text" style="font-size:90%;"> shows that raters have a small but
+statistically significant preference towards ground truth over our results.
+See Figure </span><a href="#S3.F2" title="Figure 2 ‣ 3.2 Evaluation ‣ 3 Experiments &amp; Results ‣ Natural TTS Synthesis By Conditioning WaveNet On Mel Spectrogram Predictions" class="ltx_ref" style="font-size:90%;"><span class="ltx_text ltx_ref_tag">2</span></a><span id="S3.SS2.p5.1.3" class="ltx_text" style="font-size:90%;"> for a detailed breakdown.
+The comments from raters indicate that occasional mispronunciation by our
+system is the primary reason for this preference.</span></p>
+</div>
+<figure id="S3.F2" class="ltx_figure"><img src="/html/1712.05884/assets/x2.png" id="S3.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="182" height="73" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_figure"><span id="S3.F2.4.1.1" class="ltx_text ltx_font_bold">Fig. 2</span>: </span>Synthesized vs. ground truth: 800 ratings on 100 items.</figcaption>
+</figure>
+<div id="S3.SS2.p6" class="ltx_para">
+<p id="S3.SS2.p6.1" class="ltx_p"><span id="S3.SS2.p6.1.1" class="ltx_text" style="font-size:90%;">We ran a separate rating experiment on the custom 100-sentence test set from
+Appendix E of </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S3.SS2.p6.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib11" title="" class="ltx_ref">11</a><span id="S3.SS2.p6.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S3.SS2.p6.1.4" class="ltx_text" style="font-size:90%;">, obtaining a MOS of 4.354.
+In a manual analysis of the error modes of our system, counting errors in
+each category independently, 0 sentences contained repeated words,
+6 contained mispronunciations, 1 contained skipped words, and 23 were
+subjectively decided to contain unnatural prosody, such as emphasis on the
+wrong syllables or words, or unnatural pitch. End-point prediction failed in a
+single case, on the input sentence containing the most characters.
+These results show that while our system is able to reliably attend to the
+entire input, there is still room for improvement in prosody modeling.</span></p>
+</div>
+<div id="S3.SS2.p7" class="ltx_para">
+<p id="S3.SS2.p7.3" class="ltx_p"><span id="S3.SS2.p7.3.1" class="ltx_text" style="font-size:90%;">Finally, we evaluate samples generated from 37 news headlines to test the
+generalization ability of our system to out-of-domain text. On this task, our
+model receives a MOS of </span><math id="S3.SS2.p7.1.m1.1" class="ltx_Math" alttext="4.148\pm 0.124" display="inline"><semantics id="S3.SS2.p7.1.m1.1a"><mrow id="S3.SS2.p7.1.m1.1.1" xref="S3.SS2.p7.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.SS2.p7.1.m1.1.1.2" xref="S3.SS2.p7.1.m1.1.1.2.cmml">4.148</mn><mo mathsize="90%" id="S3.SS2.p7.1.m1.1.1.1" xref="S3.SS2.p7.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.SS2.p7.1.m1.1.1.3" xref="S3.SS2.p7.1.m1.1.1.3.cmml">0.124</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.SS2.p7.1.m1.1b"><apply id="S3.SS2.p7.1.m1.1.1.cmml" xref="S3.SS2.p7.1.m1.1.1"><csymbol cd="latexml" id="S3.SS2.p7.1.m1.1.1.1.cmml" xref="S3.SS2.p7.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.SS2.p7.1.m1.1.1.2.cmml" xref="S3.SS2.p7.1.m1.1.1.2">4.148</cn><cn type="float" id="S3.SS2.p7.1.m1.1.1.3.cmml" xref="S3.SS2.p7.1.m1.1.1.3">0.124</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS2.p7.1.m1.1c">4.148\pm 0.124</annotation></semantics></math><span id="S3.SS2.p7.3.2" class="ltx_text" style="font-size:90%;"> while WaveNet conditioned on
+linguistic features receives a MOS of </span><math id="S3.SS2.p7.2.m2.1" class="ltx_Math" alttext="4.137\pm 0.128" display="inline"><semantics id="S3.SS2.p7.2.m2.1a"><mrow id="S3.SS2.p7.2.m2.1.1" xref="S3.SS2.p7.2.m2.1.1.cmml"><mn mathsize="90%" id="S3.SS2.p7.2.m2.1.1.2" xref="S3.SS2.p7.2.m2.1.1.2.cmml">4.137</mn><mo mathsize="90%" id="S3.SS2.p7.2.m2.1.1.1" xref="S3.SS2.p7.2.m2.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.SS2.p7.2.m2.1.1.3" xref="S3.SS2.p7.2.m2.1.1.3.cmml">0.128</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.SS2.p7.2.m2.1b"><apply id="S3.SS2.p7.2.m2.1.1.cmml" xref="S3.SS2.p7.2.m2.1.1"><csymbol cd="latexml" id="S3.SS2.p7.2.m2.1.1.1.cmml" xref="S3.SS2.p7.2.m2.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.SS2.p7.2.m2.1.1.2.cmml" xref="S3.SS2.p7.2.m2.1.1.2">4.137</cn><cn type="float" id="S3.SS2.p7.2.m2.1.1.3.cmml" xref="S3.SS2.p7.2.m2.1.1.3">0.128</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS2.p7.2.m2.1c">4.137\pm 0.128</annotation></semantics></math><span id="S3.SS2.p7.3.3" class="ltx_text" style="font-size:90%;">.
+A side-by-side evaluation comparing the output of these systems also
+shows a virtual tie – a statistically insignificant preference towards our
+results by </span><math id="S3.SS2.p7.3.m3.1" class="ltx_Math" alttext="0.142\pm 0.338" display="inline"><semantics id="S3.SS2.p7.3.m3.1a"><mrow id="S3.SS2.p7.3.m3.1.1" xref="S3.SS2.p7.3.m3.1.1.cmml"><mn mathsize="90%" id="S3.SS2.p7.3.m3.1.1.2" xref="S3.SS2.p7.3.m3.1.1.2.cmml">0.142</mn><mo mathsize="90%" id="S3.SS2.p7.3.m3.1.1.1" xref="S3.SS2.p7.3.m3.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.SS2.p7.3.m3.1.1.3" xref="S3.SS2.p7.3.m3.1.1.3.cmml">0.338</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.SS2.p7.3.m3.1b"><apply id="S3.SS2.p7.3.m3.1.1.cmml" xref="S3.SS2.p7.3.m3.1.1"><csymbol cd="latexml" id="S3.SS2.p7.3.m3.1.1.1.cmml" xref="S3.SS2.p7.3.m3.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.SS2.p7.3.m3.1.1.2.cmml" xref="S3.SS2.p7.3.m3.1.1.2">0.142</cn><cn type="float" id="S3.SS2.p7.3.m3.1.1.3.cmml" xref="S3.SS2.p7.3.m3.1.1.3">0.338</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS2.p7.3.m3.1c">0.142\pm 0.338</annotation></semantics></math><span id="S3.SS2.p7.3.4" class="ltx_text" style="font-size:90%;">. Examination of rater comments shows that our
+neural system tends to generate speech that feels more natural and human-like,
+but it sometimes runs into pronunciation difficulties, e.g., when
+handling names. This result points to a challenge for end-to-end
+approaches – they require training on data that cover intended usage.</span></p>
+</div>
+</section>
+<section id="S3.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_subsection">3.3 </span>Ablation Studies</h3>
+
+<section id="S3.SS3.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_subsubsection">3.3.1 </span>Predicted Features versus Ground Truth</h4>
+
+<div id="S3.SS3.SSS1.p1" class="ltx_para">
+<p id="S3.SS3.SSS1.p1.1" class="ltx_p"><span id="S3.SS3.SSS1.p1.1.1" class="ltx_text" style="font-size:90%;">While the two components of our model were trained separately, the WaveNet component
+depends on the predicted features for training. An alternative
+is to train WaveNet independently on mel spectrograms extracted from ground
+truth audio. We explore this in Table </span><a href="#S3.T2" title="Table 2 ‣ 3.3.1 Predicted Features versus Ground Truth ‣ 3.3 Ablation Studies ‣ 3 Experiments &amp; Results ‣ Natural TTS Synthesis By Conditioning WaveNet On Mel Spectrogram Predictions" class="ltx_ref" style="font-size:90%;"><span class="ltx_text ltx_ref_tag">2</span></a><span id="S3.SS3.SSS1.p1.1.2" class="ltx_text" style="font-size:90%;">.</span></p>
+</div>
+<figure id="S3.T2" class="ltx_table">
+<table id="S3.T2.4" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S3.T2.4.5" class="ltx_tr">
+<td id="S3.T2.4.5.1" class="ltx_td ltx_border_tt"></td>
+<td id="S3.T2.4.5.2" class="ltx_td ltx_align_center ltx_border_tt" colspan="2"><span id="S3.T2.4.5.2.1" class="ltx_text" style="font-size:90%;">Synthesis</span></td>
+</tr>
+<tr id="S3.T2.4.6" class="ltx_tr">
+<td id="S3.T2.4.6.1" class="ltx_td ltx_align_left"><span id="S3.T2.4.6.1.1" class="ltx_text" style="font-size:90%;">Training</span></td>
+<td id="S3.T2.4.6.2" class="ltx_td ltx_align_center"><span id="S3.T2.4.6.2.1" class="ltx_text" style="font-size:90%;">Predicted</span></td>
+<td id="S3.T2.4.6.3" class="ltx_td ltx_align_center"><span id="S3.T2.4.6.3.1" class="ltx_text" style="font-size:90%;">Ground truth</span></td>
+</tr>
+<tr id="S3.T2.2.2" class="ltx_tr">
+<td id="S3.T2.2.2.3" class="ltx_td ltx_align_left ltx_border_t"><span id="S3.T2.2.2.3.1" class="ltx_text" style="font-size:90%;">Predicted</span></td>
+<td id="S3.T2.1.1.1" class="ltx_td ltx_align_center ltx_border_t"><math id="S3.T2.1.1.1.m1.1" class="ltx_Math" alttext="4.526\pm 0.066" display="inline"><semantics id="S3.T2.1.1.1.m1.1a"><mrow id="S3.T2.1.1.1.m1.1.1" xref="S3.T2.1.1.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T2.1.1.1.m1.1.1.2" xref="S3.T2.1.1.1.m1.1.1.2.cmml">4.526</mn><mo mathsize="90%" id="S3.T2.1.1.1.m1.1.1.1" xref="S3.T2.1.1.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T2.1.1.1.m1.1.1.3" xref="S3.T2.1.1.1.m1.1.1.3.cmml">0.066</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T2.1.1.1.m1.1b"><apply id="S3.T2.1.1.1.m1.1.1.cmml" xref="S3.T2.1.1.1.m1.1.1"><csymbol cd="latexml" id="S3.T2.1.1.1.m1.1.1.1.cmml" xref="S3.T2.1.1.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T2.1.1.1.m1.1.1.2.cmml" xref="S3.T2.1.1.1.m1.1.1.2">4.526</cn><cn type="float" id="S3.T2.1.1.1.m1.1.1.3.cmml" xref="S3.T2.1.1.1.m1.1.1.3">0.066</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T2.1.1.1.m1.1c">4.526\pm 0.066</annotation></semantics></math></td>
+<td id="S3.T2.2.2.2" class="ltx_td ltx_align_center ltx_border_t"><math id="S3.T2.2.2.2.m1.1" class="ltx_Math" alttext="4.449\pm 0.060" display="inline"><semantics id="S3.T2.2.2.2.m1.1a"><mrow id="S3.T2.2.2.2.m1.1.1" xref="S3.T2.2.2.2.m1.1.1.cmml"><mn mathsize="90%" id="S3.T2.2.2.2.m1.1.1.2" xref="S3.T2.2.2.2.m1.1.1.2.cmml">4.449</mn><mo mathsize="90%" id="S3.T2.2.2.2.m1.1.1.1" xref="S3.T2.2.2.2.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T2.2.2.2.m1.1.1.3" xref="S3.T2.2.2.2.m1.1.1.3.cmml">0.060</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T2.2.2.2.m1.1b"><apply id="S3.T2.2.2.2.m1.1.1.cmml" xref="S3.T2.2.2.2.m1.1.1"><csymbol cd="latexml" id="S3.T2.2.2.2.m1.1.1.1.cmml" xref="S3.T2.2.2.2.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T2.2.2.2.m1.1.1.2.cmml" xref="S3.T2.2.2.2.m1.1.1.2">4.449</cn><cn type="float" id="S3.T2.2.2.2.m1.1.1.3.cmml" xref="S3.T2.2.2.2.m1.1.1.3">0.060</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T2.2.2.2.m1.1c">4.449\pm 0.060</annotation></semantics></math></td>
+</tr>
+<tr id="S3.T2.4.4" class="ltx_tr">
+<td id="S3.T2.4.4.3" class="ltx_td ltx_align_left ltx_border_bb"><span id="S3.T2.4.4.3.1" class="ltx_text" style="font-size:90%;">Ground truth</span></td>
+<td id="S3.T2.3.3.1" class="ltx_td ltx_align_center ltx_border_bb"><math id="S3.T2.3.3.1.m1.1" class="ltx_Math" alttext="4.362\pm 0.066" display="inline"><semantics id="S3.T2.3.3.1.m1.1a"><mrow id="S3.T2.3.3.1.m1.1.1" xref="S3.T2.3.3.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T2.3.3.1.m1.1.1.2" xref="S3.T2.3.3.1.m1.1.1.2.cmml">4.362</mn><mo mathsize="90%" id="S3.T2.3.3.1.m1.1.1.1" xref="S3.T2.3.3.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T2.3.3.1.m1.1.1.3" xref="S3.T2.3.3.1.m1.1.1.3.cmml">0.066</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T2.3.3.1.m1.1b"><apply id="S3.T2.3.3.1.m1.1.1.cmml" xref="S3.T2.3.3.1.m1.1.1"><csymbol cd="latexml" id="S3.T2.3.3.1.m1.1.1.1.cmml" xref="S3.T2.3.3.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T2.3.3.1.m1.1.1.2.cmml" xref="S3.T2.3.3.1.m1.1.1.2">4.362</cn><cn type="float" id="S3.T2.3.3.1.m1.1.1.3.cmml" xref="S3.T2.3.3.1.m1.1.1.3">0.066</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T2.3.3.1.m1.1c">4.362\pm 0.066</annotation></semantics></math></td>
+<td id="S3.T2.4.4.2" class="ltx_td ltx_align_center ltx_border_bb"><math id="S3.T2.4.4.2.m1.1" class="ltx_Math" alttext="4.522\pm 0.055" display="inline"><semantics id="S3.T2.4.4.2.m1.1a"><mrow id="S3.T2.4.4.2.m1.1.1" xref="S3.T2.4.4.2.m1.1.1.cmml"><mn mathsize="90%" id="S3.T2.4.4.2.m1.1.1.2" xref="S3.T2.4.4.2.m1.1.1.2.cmml">4.522</mn><mo mathsize="90%" id="S3.T2.4.4.2.m1.1.1.1" xref="S3.T2.4.4.2.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T2.4.4.2.m1.1.1.3" xref="S3.T2.4.4.2.m1.1.1.3.cmml">0.055</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T2.4.4.2.m1.1b"><apply id="S3.T2.4.4.2.m1.1.1.cmml" xref="S3.T2.4.4.2.m1.1.1"><csymbol cd="latexml" id="S3.T2.4.4.2.m1.1.1.1.cmml" xref="S3.T2.4.4.2.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T2.4.4.2.m1.1.1.2.cmml" xref="S3.T2.4.4.2.m1.1.1.2">4.522</cn><cn type="float" id="S3.T2.4.4.2.m1.1.1.3.cmml" xref="S3.T2.4.4.2.m1.1.1.3">0.055</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T2.4.4.2.m1.1c">4.522\pm 0.055</annotation></semantics></math></td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_table"><span id="S3.T2.8.1.1" class="ltx_text ltx_font_bold">Table 2</span>: </span>Comparison of evaluated MOS for our system when WaveNet trained on
+predicted/ground truth mel spectrograms are made to synthesize from
+predicted/ground truth mel spectrograms.</figcaption>
+</figure>
+<div id="S3.SS3.SSS1.p2" class="ltx_para">
+<p id="S3.SS3.SSS1.p2.1" class="ltx_p"><span id="S3.SS3.SSS1.p2.1.1" class="ltx_text" style="font-size:90%;">As expected, the best performance is obtained when the features used for
+training match those used for inference. However, when trained on
+ground truth features and made to synthesize from
+predicted features, the result is worse than the opposite.
+This is due to the tendency of the predicted spectrograms to be oversmoothed and less
+detailed than the ground truth – a consequence of the squared error loss
+optimized by the feature prediction network. When trained on ground truth
+spectrograms, the network does not learn to generate high quality speech
+waveforms from oversmoothed features.</span></p>
+</div>
+</section>
+<section id="S3.SS3.SSS2" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_subsubsection">3.3.2 </span>Linear Spectrograms</h4>
+
+<div id="S3.SS3.SSS2.p1" class="ltx_para">
+<p id="S3.SS3.SSS2.p1.1" class="ltx_p"><span id="S3.SS3.SSS2.p1.1.1" class="ltx_text" style="font-size:90%;">Instead of predicting mel spectrograms, we experiment with training
+to predict linear-frequency spectrograms instead, making it
+possible to invert the spectrogram using Griffin-Lim.</span></p>
+</div>
+<figure id="S3.T3" class="ltx_table">
+<table id="S3.T3.3" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S3.T3.3.4" class="ltx_tr">
+<td id="S3.T3.3.4.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="S3.T3.3.4.1.1" class="ltx_text" style="font-size:90%;">System</span></td>
+<td id="S3.T3.3.4.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.3.4.2.1" class="ltx_text" style="font-size:90%;">MOS</span></td>
+</tr>
+<tr id="S3.T3.1.1" class="ltx_tr">
+<td id="S3.T3.1.1.2" class="ltx_td ltx_align_left ltx_border_t"><span id="S3.T3.1.1.2.1" class="ltx_text" style="font-size:90%;">Tacotron 2 (Linear + G-L)</span></td>
+<td id="S3.T3.1.1.1" class="ltx_td ltx_align_center ltx_border_t"><math id="S3.T3.1.1.1.m1.1" class="ltx_Math" alttext="3.944\pm 0.091" display="inline"><semantics id="S3.T3.1.1.1.m1.1a"><mrow id="S3.T3.1.1.1.m1.1.1" xref="S3.T3.1.1.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T3.1.1.1.m1.1.1.2" xref="S3.T3.1.1.1.m1.1.1.2.cmml">3.944</mn><mo mathsize="90%" id="S3.T3.1.1.1.m1.1.1.1" xref="S3.T3.1.1.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T3.1.1.1.m1.1.1.3" xref="S3.T3.1.1.1.m1.1.1.3.cmml">0.091</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T3.1.1.1.m1.1b"><apply id="S3.T3.1.1.1.m1.1.1.cmml" xref="S3.T3.1.1.1.m1.1.1"><csymbol cd="latexml" id="S3.T3.1.1.1.m1.1.1.1.cmml" xref="S3.T3.1.1.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T3.1.1.1.m1.1.1.2.cmml" xref="S3.T3.1.1.1.m1.1.1.2">3.944</cn><cn type="float" id="S3.T3.1.1.1.m1.1.1.3.cmml" xref="S3.T3.1.1.1.m1.1.1.3">0.091</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T3.1.1.1.m1.1c">3.944\pm 0.091</annotation></semantics></math></td>
+</tr>
+<tr id="S3.T3.2.2" class="ltx_tr">
+<td id="S3.T3.2.2.2" class="ltx_td ltx_align_left"><span id="S3.T3.2.2.2.1" class="ltx_text" style="font-size:90%;">Tacotron 2 (Linear + WaveNet)</span></td>
+<td id="S3.T3.2.2.1" class="ltx_td ltx_align_center"><math id="S3.T3.2.2.1.m1.1" class="ltx_Math" alttext="4.510\pm 0.054" display="inline"><semantics id="S3.T3.2.2.1.m1.1a"><mrow id="S3.T3.2.2.1.m1.1.1" xref="S3.T3.2.2.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T3.2.2.1.m1.1.1.2" xref="S3.T3.2.2.1.m1.1.1.2.cmml">4.510</mn><mo mathsize="90%" id="S3.T3.2.2.1.m1.1.1.1" xref="S3.T3.2.2.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T3.2.2.1.m1.1.1.3" xref="S3.T3.2.2.1.m1.1.1.3.cmml">0.054</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T3.2.2.1.m1.1b"><apply id="S3.T3.2.2.1.m1.1.1.cmml" xref="S3.T3.2.2.1.m1.1.1"><csymbol cd="latexml" id="S3.T3.2.2.1.m1.1.1.1.cmml" xref="S3.T3.2.2.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T3.2.2.1.m1.1.1.2.cmml" xref="S3.T3.2.2.1.m1.1.1.2">4.510</cn><cn type="float" id="S3.T3.2.2.1.m1.1.1.3.cmml" xref="S3.T3.2.2.1.m1.1.1.3">0.054</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T3.2.2.1.m1.1c">4.510\pm 0.054</annotation></semantics></math></td>
+</tr>
+<tr id="S3.T3.3.3" class="ltx_tr">
+<td id="S3.T3.3.3.2" class="ltx_td ltx_align_left ltx_border_bb"><span id="S3.T3.3.3.2.1" class="ltx_text" style="font-size:90%;">Tacotron 2 (Mel + WaveNet)</span></td>
+<td id="S3.T3.3.3.1" class="ltx_td ltx_align_center ltx_border_bb"><math id="S3.T3.3.3.1.m1.1" class="ltx_Math" alttext="\bm{4.526\pm 0.066}" display="inline"><semantics id="S3.T3.3.3.1.m1.1a"><mrow id="S3.T3.3.3.1.m1.1.1" xref="S3.T3.3.3.1.m1.1.1.cmml"><mn class="ltx_mathvariant_bold" mathsize="90%" mathvariant="bold" id="S3.T3.3.3.1.m1.1.1.2" xref="S3.T3.3.3.1.m1.1.1.2.cmml">4.526</mn><mo class="ltx_mathvariant_bold" mathsize="90%" mathvariant="bold" id="S3.T3.3.3.1.m1.1.1.1" xref="S3.T3.3.3.1.m1.1.1.1.cmml">±</mo><mn class="ltx_mathvariant_bold" mathsize="90%" mathvariant="bold" id="S3.T3.3.3.1.m1.1.1.3" xref="S3.T3.3.3.1.m1.1.1.3.cmml">0.066</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T3.3.3.1.m1.1b"><apply id="S3.T3.3.3.1.m1.1.1.cmml" xref="S3.T3.3.3.1.m1.1.1"><csymbol cd="latexml" id="S3.T3.3.3.1.m1.1.1.1.cmml" xref="S3.T3.3.3.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T3.3.3.1.m1.1.1.2.cmml" xref="S3.T3.3.3.1.m1.1.1.2">4.526</cn><cn type="float" id="S3.T3.3.3.1.m1.1.1.3.cmml" xref="S3.T3.3.3.1.m1.1.1.3">0.066</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T3.3.3.1.m1.1c">\bm{4.526\pm 0.066}</annotation></semantics></math></td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_table"><span id="S3.T3.7.1.1" class="ltx_text ltx_font_bold">Table 3</span>: </span>Comparison of evaluated MOS for Griffin-Lim vs. WaveNet as a vocoder,
+and using 1,025-dimensional linear spectrograms vs. 80-dimensional
+mel spectrograms as conditioning inputs to WaveNet.</figcaption>
+</figure>
+<div id="S3.SS3.SSS2.p2" class="ltx_para">
+<p id="S3.SS3.SSS2.p2.1" class="ltx_p"><span id="S3.SS3.SSS2.p2.1.1" class="ltx_text" style="font-size:90%;">As noted in </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S3.SS3.SSS2.p2.1.2.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib10" title="" class="ltx_ref">10</a><span id="S3.SS3.SSS2.p2.1.3.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S3.SS3.SSS2.p2.1.4" class="ltx_text" style="font-size:90%;">, WaveNet produces much
+higher quality audio compared to Griffin-Lim. However, there is not much
+difference between the use of linear-scale or mel-scale spectrograms. As such,
+the use of mel spectrograms seems to be a strictly better choice since it is a
+more compact representation. It would be interesting to explore the
+trade-off between the number of mel frequency bins versus audio quality
+in future work.</span></p>
+</div>
+</section>
+<section id="S3.SS3.SSS3" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_subsubsection">3.3.3 </span>Post-Processing Network</h4>
+
+<div id="S3.SS3.SSS3.p1" class="ltx_para">
+<p id="S3.SS3.SSS3.p1.2" class="ltx_p"><span id="S3.SS3.SSS3.p1.2.1" class="ltx_text" style="font-size:90%;">Since it is not possible to use the information of predicted future frames
+before they have been decoded, we use a convolutional post-processing network
+to incorporate past and future frames after decoding to improve the feature
+predictions. However, because WaveNet already contains convolutional layers,
+one may wonder if the post-net is still necessary when WaveNet is used as the
+vocoder. To answer this
+question, we compared our model with and without the post-net, and found that
+without it, our model only obtains a MOS score of </span><math id="S3.SS3.SSS3.p1.1.m1.1" class="ltx_Math" alttext="4.429\pm 0.071" display="inline"><semantics id="S3.SS3.SSS3.p1.1.m1.1a"><mrow id="S3.SS3.SSS3.p1.1.m1.1.1" xref="S3.SS3.SSS3.p1.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.SS3.SSS3.p1.1.m1.1.1.2" xref="S3.SS3.SSS3.p1.1.m1.1.1.2.cmml">4.429</mn><mo mathsize="90%" id="S3.SS3.SSS3.p1.1.m1.1.1.1" xref="S3.SS3.SSS3.p1.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.SS3.SSS3.p1.1.m1.1.1.3" xref="S3.SS3.SSS3.p1.1.m1.1.1.3.cmml">0.071</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS3.p1.1.m1.1b"><apply id="S3.SS3.SSS3.p1.1.m1.1.1.cmml" xref="S3.SS3.SSS3.p1.1.m1.1.1"><csymbol cd="latexml" id="S3.SS3.SSS3.p1.1.m1.1.1.1.cmml" xref="S3.SS3.SSS3.p1.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.SS3.SSS3.p1.1.m1.1.1.2.cmml" xref="S3.SS3.SSS3.p1.1.m1.1.1.2">4.429</cn><cn type="float" id="S3.SS3.SSS3.p1.1.m1.1.1.3.cmml" xref="S3.SS3.SSS3.p1.1.m1.1.1.3">0.071</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS3.p1.1.m1.1c">4.429\pm 0.071</annotation></semantics></math><span id="S3.SS3.SSS3.p1.2.2" class="ltx_text" style="font-size:90%;">, compared to
+</span><math id="S3.SS3.SSS3.p1.2.m2.1" class="ltx_Math" alttext="4.526\pm 0.066" display="inline"><semantics id="S3.SS3.SSS3.p1.2.m2.1a"><mrow id="S3.SS3.SSS3.p1.2.m2.1.1" xref="S3.SS3.SSS3.p1.2.m2.1.1.cmml"><mn mathsize="90%" id="S3.SS3.SSS3.p1.2.m2.1.1.2" xref="S3.SS3.SSS3.p1.2.m2.1.1.2.cmml">4.526</mn><mo mathsize="90%" id="S3.SS3.SSS3.p1.2.m2.1.1.1" xref="S3.SS3.SSS3.p1.2.m2.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.SS3.SSS3.p1.2.m2.1.1.3" xref="S3.SS3.SSS3.p1.2.m2.1.1.3.cmml">0.066</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS3.p1.2.m2.1b"><apply id="S3.SS3.SSS3.p1.2.m2.1.1.cmml" xref="S3.SS3.SSS3.p1.2.m2.1.1"><csymbol cd="latexml" id="S3.SS3.SSS3.p1.2.m2.1.1.1.cmml" xref="S3.SS3.SSS3.p1.2.m2.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.SS3.SSS3.p1.2.m2.1.1.2.cmml" xref="S3.SS3.SSS3.p1.2.m2.1.1.2">4.526</cn><cn type="float" id="S3.SS3.SSS3.p1.2.m2.1.1.3.cmml" xref="S3.SS3.SSS3.p1.2.m2.1.1.3">0.066</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS3.p1.2.m2.1c">4.526\pm 0.066</annotation></semantics></math><span id="S3.SS3.SSS3.p1.2.3" class="ltx_text" style="font-size:90%;"> with it, meaning that empirically the post-net is still an
+important part of the network design.</span></p>
+</div>
+</section>
+<section id="S3.SS3.SSS4" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_subsubsection">3.3.4 </span>Simplifying WaveNet</h4>
+
+<div id="S3.SS3.SSS4.p1" class="ltx_para">
+<p id="S3.SS3.SSS4.p1.1" class="ltx_p"><span id="S3.SS3.SSS4.p1.1.1" class="ltx_text" style="font-size:90%;">A defining feature of WaveNet is its use of dilated convolution to increase
+the receptive field exponentially with the number of layers.
+We evaluate models with varying receptive field sizes and number of
+layers to test our hypothesis that a shallow network with a small receptive
+field may solve the problem satisfactorily since mel spectrograms are a much
+closer representation of the waveform than linguistic features and already
+capture long-term dependencies across frames.</span></p>
+</div>
+<div id="S3.SS3.SSS4.p2" class="ltx_para">
+<p id="S3.SS3.SSS4.p2.1" class="ltx_p"><span id="S3.SS3.SSS4.p2.1.1" class="ltx_text" style="font-size:90%;">As shown in Table </span><a href="#S3.T4" title="Table 4 ‣ 3.3.4 Simplifying WaveNet ‣ 3.3 Ablation Studies ‣ 3 Experiments &amp; Results ‣ Natural TTS Synthesis By Conditioning WaveNet On Mel Spectrogram Predictions" class="ltx_ref" style="font-size:90%;"><span class="ltx_text ltx_ref_tag">4</span></a><span id="S3.SS3.SSS4.p2.1.2" class="ltx_text" style="font-size:90%;">, we find that our model can generate
+high-quality audio using as few as 12 layers with a receptive field of
+10.5 ms, compared to 30 layers and 256 ms in the baseline model. These
+results confirm the observations in </span><cite class="ltx_cite ltx_citemacro_cite"><span id="S3.SS3.SSS4.p2.1.3.1" class="ltx_text" style="font-size:90%;">[</span><a href="#bib.bib9" title="" class="ltx_ref">9</a><span id="S3.SS3.SSS4.p2.1.4.2" class="ltx_text" style="font-size:90%;">]</span></cite><span id="S3.SS3.SSS4.p2.1.5" class="ltx_text" style="font-size:90%;">
+that a large receptive field size is not an essential factor for audio
+quality. However, we hypothesize that it is the choice to condition on mel
+spectrograms that allows this reduction in complexity.</span></p>
+</div>
+<div id="S3.SS3.SSS4.p3" class="ltx_para">
+<p id="S3.SS3.SSS4.p3.1" class="ltx_p"><span id="S3.SS3.SSS4.p3.1.1" class="ltx_text" style="font-size:90%;">On the other hand, if we eliminate dilated convolutions altogether, the
+receptive field becomes two orders of magnitude smaller than the baseline and
+the quality degrades significantly even though the stack is as deep as the
+baseline model.
+This indicates that the model requires sufficient context at the time scale of
+waveform samples in order to generate high quality sound.</span></p>
+</div>
+<figure id="S3.T4" class="ltx_table">
+<table id="S3.T4.4" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S3.T4.4.5" class="ltx_tr">
+<td id="S3.T4.4.5.1" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T4.4.5.1.1" class="ltx_text"></span><span id="S3.T4.4.5.1.2" class="ltx_text" style="font-size:90%;"> </span><span id="S3.T4.4.5.1.3" class="ltx_text" style="font-size:90%;">
+<span id="S3.T4.4.5.1.3.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T4.4.5.1.3.1.1" class="ltx_tr">
+<span id="S3.T4.4.5.1.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">Total</span></span>
+<span id="S3.T4.4.5.1.3.1.2" class="ltx_tr">
+<span id="S3.T4.4.5.1.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">layers</span></span>
+</span></span><span id="S3.T4.4.5.1.4" class="ltx_text"></span><span id="S3.T4.4.5.1.5" class="ltx_text" style="font-size:90%;"></span>
+</td>
+<td id="S3.T4.4.5.2" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T4.4.5.2.1" class="ltx_text"></span><span id="S3.T4.4.5.2.2" class="ltx_text" style="font-size:90%;"> </span><span id="S3.T4.4.5.2.3" class="ltx_text" style="font-size:90%;">
+<span id="S3.T4.4.5.2.3.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T4.4.5.2.3.1.1" class="ltx_tr">
+<span id="S3.T4.4.5.2.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">Num</span></span>
+<span id="S3.T4.4.5.2.3.1.2" class="ltx_tr">
+<span id="S3.T4.4.5.2.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">cycles</span></span>
+</span></span><span id="S3.T4.4.5.2.4" class="ltx_text"></span><span id="S3.T4.4.5.2.5" class="ltx_text" style="font-size:90%;"></span>
+</td>
+<td id="S3.T4.4.5.3" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T4.4.5.3.1" class="ltx_text"></span><span id="S3.T4.4.5.3.2" class="ltx_text" style="font-size:90%;"> </span><span id="S3.T4.4.5.3.3" class="ltx_text" style="font-size:90%;">
+<span id="S3.T4.4.5.3.3.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T4.4.5.3.3.1.1" class="ltx_tr">
+<span id="S3.T4.4.5.3.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">Dilation</span></span>
+<span id="S3.T4.4.5.3.3.1.2" class="ltx_tr">
+<span id="S3.T4.4.5.3.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">cycle size</span></span>
+</span></span><span id="S3.T4.4.5.3.4" class="ltx_text"></span><span id="S3.T4.4.5.3.5" class="ltx_text" style="font-size:90%;"></span>
+</td>
+<td id="S3.T4.4.5.4" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T4.4.5.4.1" class="ltx_text"></span><span id="S3.T4.4.5.4.2" class="ltx_text" style="font-size:90%;"> </span><span id="S3.T4.4.5.4.3" class="ltx_text" style="font-size:90%;">
+<span id="S3.T4.4.5.4.3.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T4.4.5.4.3.1.1" class="ltx_tr">
+<span id="S3.T4.4.5.4.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">Receptive field</span></span>
+<span id="S3.T4.4.5.4.3.1.2" class="ltx_tr">
+<span id="S3.T4.4.5.4.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">(samples / ms)</span></span>
+</span></span><span id="S3.T4.4.5.4.4" class="ltx_text"></span><span id="S3.T4.4.5.4.5" class="ltx_text" style="font-size:90%;"></span>
+</td>
+<td id="S3.T4.4.5.5" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T4.4.5.5.1" class="ltx_text" style="font-size:90%;">MOS</span></td>
+</tr>
+<tr id="S3.T4.1.1" class="ltx_tr">
+<td id="S3.T4.1.1.2" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T4.1.1.2.1" class="ltx_text" style="font-size:90%;">30</span></td>
+<td id="S3.T4.1.1.3" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T4.1.1.3.1" class="ltx_text" style="font-size:90%;">3</span></td>
+<td id="S3.T4.1.1.4" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T4.1.1.4.1" class="ltx_text" style="font-size:90%;">10</span></td>
+<td id="S3.T4.1.1.5" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T4.1.1.5.1" class="ltx_text" style="font-size:90%;">6,139 / 255.8</span></td>
+<td id="S3.T4.1.1.1" class="ltx_td ltx_align_center ltx_border_t"><math id="S3.T4.1.1.1.m1.1" class="ltx_Math" alttext="4.526\pm 0.066" display="inline"><semantics id="S3.T4.1.1.1.m1.1a"><mrow id="S3.T4.1.1.1.m1.1.1" xref="S3.T4.1.1.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T4.1.1.1.m1.1.1.2" xref="S3.T4.1.1.1.m1.1.1.2.cmml">4.526</mn><mo mathsize="90%" id="S3.T4.1.1.1.m1.1.1.1" xref="S3.T4.1.1.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T4.1.1.1.m1.1.1.3" xref="S3.T4.1.1.1.m1.1.1.3.cmml">0.066</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T4.1.1.1.m1.1b"><apply id="S3.T4.1.1.1.m1.1.1.cmml" xref="S3.T4.1.1.1.m1.1.1"><csymbol cd="latexml" id="S3.T4.1.1.1.m1.1.1.1.cmml" xref="S3.T4.1.1.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T4.1.1.1.m1.1.1.2.cmml" xref="S3.T4.1.1.1.m1.1.1.2">4.526</cn><cn type="float" id="S3.T4.1.1.1.m1.1.1.3.cmml" xref="S3.T4.1.1.1.m1.1.1.3">0.066</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T4.1.1.1.m1.1c">4.526\pm 0.066</annotation></semantics></math></td>
+</tr>
+<tr id="S3.T4.2.2" class="ltx_tr">
+<td id="S3.T4.2.2.2" class="ltx_td ltx_align_center"><span id="S3.T4.2.2.2.1" class="ltx_text" style="font-size:90%;">24</span></td>
+<td id="S3.T4.2.2.3" class="ltx_td ltx_align_center"><span id="S3.T4.2.2.3.1" class="ltx_text" style="font-size:90%;">4</span></td>
+<td id="S3.T4.2.2.4" class="ltx_td ltx_align_center"><span id="S3.T4.2.2.4.1" class="ltx_text" style="font-size:90%;">6</span></td>
+<td id="S3.T4.2.2.5" class="ltx_td ltx_align_center"><span id="S3.T4.2.2.5.1" class="ltx_text" style="font-size:90%;">505 / 21.0</span></td>
+<td id="S3.T4.2.2.1" class="ltx_td ltx_align_center"><math id="S3.T4.2.2.1.m1.1" class="ltx_Math" alttext="4.547\pm 0.056" display="inline"><semantics id="S3.T4.2.2.1.m1.1a"><mrow id="S3.T4.2.2.1.m1.1.1" xref="S3.T4.2.2.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T4.2.2.1.m1.1.1.2" xref="S3.T4.2.2.1.m1.1.1.2.cmml">4.547</mn><mo mathsize="90%" id="S3.T4.2.2.1.m1.1.1.1" xref="S3.T4.2.2.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T4.2.2.1.m1.1.1.3" xref="S3.T4.2.2.1.m1.1.1.3.cmml">0.056</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T4.2.2.1.m1.1b"><apply id="S3.T4.2.2.1.m1.1.1.cmml" xref="S3.T4.2.2.1.m1.1.1"><csymbol cd="latexml" id="S3.T4.2.2.1.m1.1.1.1.cmml" xref="S3.T4.2.2.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T4.2.2.1.m1.1.1.2.cmml" xref="S3.T4.2.2.1.m1.1.1.2">4.547</cn><cn type="float" id="S3.T4.2.2.1.m1.1.1.3.cmml" xref="S3.T4.2.2.1.m1.1.1.3">0.056</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T4.2.2.1.m1.1c">4.547\pm 0.056</annotation></semantics></math></td>
+</tr>
+<tr id="S3.T4.3.3" class="ltx_tr">
+<td id="S3.T4.3.3.2" class="ltx_td ltx_align_center"><span id="S3.T4.3.3.2.1" class="ltx_text" style="font-size:90%;">12</span></td>
+<td id="S3.T4.3.3.3" class="ltx_td ltx_align_center"><span id="S3.T4.3.3.3.1" class="ltx_text" style="font-size:90%;">2</span></td>
+<td id="S3.T4.3.3.4" class="ltx_td ltx_align_center"><span id="S3.T4.3.3.4.1" class="ltx_text" style="font-size:90%;">6</span></td>
+<td id="S3.T4.3.3.5" class="ltx_td ltx_align_center"><span id="S3.T4.3.3.5.1" class="ltx_text" style="font-size:90%;">253 / 10.5</span></td>
+<td id="S3.T4.3.3.1" class="ltx_td ltx_align_center"><math id="S3.T4.3.3.1.m1.1" class="ltx_Math" alttext="4.481\pm 0.059" display="inline"><semantics id="S3.T4.3.3.1.m1.1a"><mrow id="S3.T4.3.3.1.m1.1.1" xref="S3.T4.3.3.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T4.3.3.1.m1.1.1.2" xref="S3.T4.3.3.1.m1.1.1.2.cmml">4.481</mn><mo mathsize="90%" id="S3.T4.3.3.1.m1.1.1.1" xref="S3.T4.3.3.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T4.3.3.1.m1.1.1.3" xref="S3.T4.3.3.1.m1.1.1.3.cmml">0.059</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T4.3.3.1.m1.1b"><apply id="S3.T4.3.3.1.m1.1.1.cmml" xref="S3.T4.3.3.1.m1.1.1"><csymbol cd="latexml" id="S3.T4.3.3.1.m1.1.1.1.cmml" xref="S3.T4.3.3.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T4.3.3.1.m1.1.1.2.cmml" xref="S3.T4.3.3.1.m1.1.1.2">4.481</cn><cn type="float" id="S3.T4.3.3.1.m1.1.1.3.cmml" xref="S3.T4.3.3.1.m1.1.1.3">0.059</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T4.3.3.1.m1.1c">4.481\pm 0.059</annotation></semantics></math></td>
+</tr>
+<tr id="S3.T4.4.4" class="ltx_tr">
+<td id="S3.T4.4.4.2" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T4.4.4.2.1" class="ltx_text" style="font-size:90%;">30</span></td>
+<td id="S3.T4.4.4.3" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T4.4.4.3.1" class="ltx_text" style="font-size:90%;">30</span></td>
+<td id="S3.T4.4.4.4" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T4.4.4.4.1" class="ltx_text" style="font-size:90%;">1</span></td>
+<td id="S3.T4.4.4.5" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T4.4.4.5.1" class="ltx_text" style="font-size:90%;">61 / 2.5</span></td>
+<td id="S3.T4.4.4.1" class="ltx_td ltx_align_center ltx_border_bb"><math id="S3.T4.4.4.1.m1.1" class="ltx_Math" alttext="3.930\pm 0.076" display="inline"><semantics id="S3.T4.4.4.1.m1.1a"><mrow id="S3.T4.4.4.1.m1.1.1" xref="S3.T4.4.4.1.m1.1.1.cmml"><mn mathsize="90%" id="S3.T4.4.4.1.m1.1.1.2" xref="S3.T4.4.4.1.m1.1.1.2.cmml">3.930</mn><mo mathsize="90%" id="S3.T4.4.4.1.m1.1.1.1" xref="S3.T4.4.4.1.m1.1.1.1.cmml">±</mo><mn mathsize="90%" id="S3.T4.4.4.1.m1.1.1.3" xref="S3.T4.4.4.1.m1.1.1.3.cmml">0.076</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.T4.4.4.1.m1.1b"><apply id="S3.T4.4.4.1.m1.1.1.cmml" xref="S3.T4.4.4.1.m1.1.1"><csymbol cd="latexml" id="S3.T4.4.4.1.m1.1.1.1.cmml" xref="S3.T4.4.4.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S3.T4.4.4.1.m1.1.1.2.cmml" xref="S3.T4.4.4.1.m1.1.1.2">3.930</cn><cn type="float" id="S3.T4.4.4.1.m1.1.1.3.cmml" xref="S3.T4.4.4.1.m1.1.1.3">0.076</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.T4.4.4.1.m1.1c">3.930\pm 0.076</annotation></semantics></math></td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_table"><span id="S3.T4.8.1.1" class="ltx_text ltx_font_bold">Table 4</span>: </span>WaveNet with various layer and receptive field sizes.</figcaption>
+</figure>
+</section>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_section">4 </span>Conclusion</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p"><span id="S4.p1.1.1" class="ltx_text" style="font-size:90%;">This paper describes Tacotron 2, a fully neural
+TTS system that combines a sequence-to-sequence recurrent network with attention
+to predicts mel spectrograms with a modified WaveNet vocoder. The resulting system synthesizes
+speech with Tacotron-level prosody and WaveNet-level audio quality. This system
+can be trained directly from data without relying on complex feature
+engineering, and achieves state-of-the-art sound quality close to that of
+natural human speech.</span></p>
+</div>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section" style="font-size:90%;">
+<span class="ltx_tag ltx_tag_section">5 </span>Acknowledgments</h2>
+
+<div id="S5.p1" class="ltx_para">
+<p id="S5.p1.1" class="ltx_p"><span id="S5.p1.1.1" class="ltx_text" style="font-size:90%;">The authors thank Jan Chorowski, Samy Bengio, Aäron van den Oord, and the
+WaveNet and Machine Hearing teams for their helpful discussions and advice, as
+well as Heiga Zen and the Google TTS team for their feedback and assistance
+with running evaluations.
+The authors are also grateful to the very thorough reviewers.</span></p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography" style="font-size:90%;">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[1]</span>
+<span class="ltx_bibblock"><span id="bib.bib1.1.1" class="ltx_text" style="font-size:90%;">
+P. Taylor,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib1.2.1" class="ltx_text ltx_font_italic" style="font-size:90%;">Text-to-Speech Synthesis</span><span id="bib.bib1.3.2" class="ltx_text" style="font-size:90%;">,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib1.4.1" class="ltx_text" style="font-size:90%;">Cambridge University Press, New York, NY, USA, 1st edition, 2009.
+</span>
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[2]</span>
+<span class="ltx_bibblock"><span id="bib.bib2.1.1" class="ltx_text" style="font-size:90%;">
+A. J. Hunt and A. W. Black,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib2.2.1" class="ltx_text" style="font-size:90%;">“Unit selection in a concatenative speech synthesis system using a
+large speech database,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib2.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib2.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. ICASSP</span><span id="bib.bib2.5.3" class="ltx_text" style="font-size:90%;">, 1996, pp. 373–376.
+</span>
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[3]</span>
+<span class="ltx_bibblock"><span id="bib.bib3.1.1" class="ltx_text" style="font-size:90%;">
+A. W. Black and P. Taylor,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib3.2.1" class="ltx_text" style="font-size:90%;">“Automatically clustering similar units for unit selection in speech
+synthesis,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib3.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib3.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. Eurospeech</span><span id="bib.bib3.5.3" class="ltx_text" style="font-size:90%;">, September 1997, pp. 601–604.
+</span>
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[4]</span>
+<span class="ltx_bibblock"><span id="bib.bib4.1.1" class="ltx_text" style="font-size:90%;">
+K. Tokuda, T. Yoshimura, T. Masuko, T. Kobayashi, and T. Kitamura,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib4.2.1" class="ltx_text" style="font-size:90%;">“Speech parameter generation algorithms for HMM-based speech
+synthesis,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib4.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib4.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. ICASSP</span><span id="bib.bib4.5.3" class="ltx_text" style="font-size:90%;">, 2000, pp. 1315–1318.
+</span>
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[5]</span>
+<span class="ltx_bibblock"><span id="bib.bib5.1.1" class="ltx_text" style="font-size:90%;">
+H. Zen, K. Tokuda, and A. W. Black,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib5.2.1" class="ltx_text" style="font-size:90%;">“Statistical parametric speech synthesis,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib5.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">Speech Communication</span><span id="bib.bib5.4.2" class="ltx_text" style="font-size:90%;">, vol. 51, no. 11, pp. 1039–1064, 2009.
+</span>
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[6]</span>
+<span class="ltx_bibblock"><span id="bib.bib6.1.1" class="ltx_text" style="font-size:90%;">
+H. Zen, A. Senior, and M. Schuster,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib6.2.1" class="ltx_text" style="font-size:90%;">“Statistical parametric speech synthesis using deep neural
+networks,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib6.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib6.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. ICASSP</span><span id="bib.bib6.5.3" class="ltx_text" style="font-size:90%;">, 2013, pp. 7962–7966.
+</span>
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[7]</span>
+<span class="ltx_bibblock"><span id="bib.bib7.1.1" class="ltx_text" style="font-size:90%;">
+K. Tokuda, Y. Nankaku, T. Toda, H. Zen, J. Yamagishi, and K. Oura,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib7.2.1" class="ltx_text" style="font-size:90%;">“Speech synthesis based on hidden Markov models,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib7.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. IEEE</span><span id="bib.bib7.4.2" class="ltx_text" style="font-size:90%;">, vol. 101, no. 5, pp. 1234–1252, 2013.
+</span>
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[8]</span>
+<span class="ltx_bibblock"><span id="bib.bib8.1.1" class="ltx_text" style="font-size:90%;">
+A. van den Oord, S. Dieleman, H. Zen, K. Simonyan, O. Vinyals, A. Graves,
+N. Kalchbrenner, A. W. Senior, and K. Kavukcuoglu,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib8.2.1" class="ltx_text" style="font-size:90%;">“WaveNet: A generative model for raw audio,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib8.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">CoRR</span><span id="bib.bib8.4.2" class="ltx_text" style="font-size:90%;">, vol. abs/1609.03499, 2016.
+</span>
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[9]</span>
+<span class="ltx_bibblock"><span id="bib.bib9.1.1" class="ltx_text" style="font-size:90%;">
+S. Ö. Arik, M. Chrzanowski, A. Coates, G. Diamos, A. Gibiansky, Y. Kang,
+X. Li, J. Miller, J. Raiman, S. Sengupta, and M. Shoeybi,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib9.2.1" class="ltx_text" style="font-size:90%;">“Deep voice: Real-time neural text-to-speech,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib9.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">CoRR</span><span id="bib.bib9.4.2" class="ltx_text" style="font-size:90%;">, vol. abs/1702.07825, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[10]</span>
+<span class="ltx_bibblock"><span id="bib.bib10.1.1" class="ltx_text" style="font-size:90%;">
+S. Ö. Arik, G. F. Diamos, A. Gibiansky, J. Miller, K. Peng, W. Ping,
+J. Raiman, and Y. Zhou,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib10.2.1" class="ltx_text" style="font-size:90%;">“Deep voice 2: Multi-speaker neural text-to-speech,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib10.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">CoRR</span><span id="bib.bib10.4.2" class="ltx_text" style="font-size:90%;">, vol. abs/1705.08947, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[11]</span>
+<span class="ltx_bibblock"><span id="bib.bib11.1.1" class="ltx_text" style="font-size:90%;">
+W. Ping, K. Peng, A. Gibiansky, S. Ö. Arik, A. Kannan, S. Narang,
+J. Raiman, and J. Miller,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib11.2.1" class="ltx_text" style="font-size:90%;">“Deep voice 3: 2000-speaker neural text-to-speech,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib11.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">CoRR</span><span id="bib.bib11.4.2" class="ltx_text" style="font-size:90%;">, vol. abs/1710.07654, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[12]</span>
+<span class="ltx_bibblock"><span id="bib.bib12.1.1" class="ltx_text" style="font-size:90%;">
+Y. Wang, R. Skerry-Ryan, D. Stanton, Y. Wu, R. J. Weiss, N. Jaitly, Z. Yang,
+Y. Xiao, Z. Chen, S. Bengio, Q. Le, Y. Agiomyrgiannakis, R. Clark, and R. A.
+Saurous,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib12.2.1" class="ltx_text" style="font-size:90%;">“Tacotron: Towards end-to-end speech synthesis,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib12.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib12.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. Interspeech</span><span id="bib.bib12.5.3" class="ltx_text" style="font-size:90%;">, Aug. 2017, pp. 4006–4010.
+</span>
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[13]</span>
+<span class="ltx_bibblock"><span id="bib.bib13.1.1" class="ltx_text" style="font-size:90%;">
+I. Sutskever, O. Vinyals, and Q. V. Le,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib13.2.1" class="ltx_text" style="font-size:90%;">“Sequence to sequence learning with neural networks.,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib13.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib13.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. NIPS</span><span id="bib.bib13.5.3" class="ltx_text" style="font-size:90%;">, Z. Ghahramani, M. Welling, C. Cortes, N. D.
+Lawrence, and K. Q. Weinberger, Eds., 2014, pp. 3104–3112.
+</span>
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[14]</span>
+<span class="ltx_bibblock"><span id="bib.bib14.1.1" class="ltx_text" style="font-size:90%;">
+D. W. Griffin and J. S. Lim,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib14.2.1" class="ltx_text" style="font-size:90%;">“Signal estimation from modified short-time Fourier transform,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib14.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">IEEE Transactions on Acoustics, Speech and Signal Processing</span><span id="bib.bib14.4.2" class="ltx_text" style="font-size:90%;">,
+pp. 236–243, 1984.
+</span>
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[15]</span>
+<span class="ltx_bibblock"><span id="bib.bib15.1.1" class="ltx_text" style="font-size:90%;">
+A. Tamamori, T. Hayashi, K. Kobayashi, K. Takeda, and T. Toda,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib15.2.1" class="ltx_text" style="font-size:90%;">“Speaker-dependent WaveNet vocoder,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib15.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib15.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. Interspeech</span><span id="bib.bib15.5.3" class="ltx_text" style="font-size:90%;">, 2017, pp. 1118–1122.
+</span>
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[16]</span>
+<span class="ltx_bibblock"><span id="bib.bib16.1.1" class="ltx_text" style="font-size:90%;">
+J. Sotelo, S. Mehri, K. Kumar, J. F. Santos, K. Kastner, A. Courville, and
+Y. Bengio,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib16.2.1" class="ltx_text" style="font-size:90%;">“Char2Wav: End-to-end speech synthesis,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib16.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib16.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. ICLR</span><span id="bib.bib16.5.3" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[17]</span>
+<span class="ltx_bibblock"><span id="bib.bib17.1.1" class="ltx_text" style="font-size:90%;">
+S. Davis and P. Mermelstein,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib17.2.1" class="ltx_text" style="font-size:90%;">“Comparison of parametric representations for monosyllabic word
+recognition in continuously spoken sentences,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib17.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">IEEE Transactions on Acoustics, Speech and Signal Processing</span><span id="bib.bib17.4.2" class="ltx_text" style="font-size:90%;">,
+vol. 28, no. 4, pp. 357 – 366, 1980.
+</span>
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[18]</span>
+<span class="ltx_bibblock"><span id="bib.bib18.1.1" class="ltx_text" style="font-size:90%;">
+S. Ioffe and C. Szegedy,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib18.2.1" class="ltx_text" style="font-size:90%;">“Batch normalization: Accelerating deep network training by reducing
+internal covariate shift,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib18.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib18.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. ICML</span><span id="bib.bib18.5.3" class="ltx_text" style="font-size:90%;">, 2015, pp. 448–456.
+</span>
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[19]</span>
+<span class="ltx_bibblock"><span id="bib.bib19.1.1" class="ltx_text" style="font-size:90%;">
+M. Schuster and K. K. Paliwal,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib19.2.1" class="ltx_text" style="font-size:90%;">“Bidirectional recurrent neural networks,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib19.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">IEEE Transactions on Signal Processing</span><span id="bib.bib19.4.2" class="ltx_text" style="font-size:90%;">, vol. 45, no. 11, pp.
+2673–2681, Nov. 1997.
+</span>
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[20]</span>
+<span class="ltx_bibblock"><span id="bib.bib20.1.1" class="ltx_text" style="font-size:90%;">
+S. Hochreiter and J. Schmidhuber,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib20.2.1" class="ltx_text" style="font-size:90%;">“Long short-term memory,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib20.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">Neural Computation</span><span id="bib.bib20.4.2" class="ltx_text" style="font-size:90%;">, vol. 9, no. 8, pp. 1735–1780, Nov. 1997.
+</span>
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[21]</span>
+<span class="ltx_bibblock"><span id="bib.bib21.1.1" class="ltx_text" style="font-size:90%;">
+J. K. Chorowski, D. Bahdanau, D. Serdyuk, K. Cho, and Y. Bengio,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib21.2.1" class="ltx_text" style="font-size:90%;">“Attention-based models for speech recognition,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib21.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib21.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. NIPS</span><span id="bib.bib21.5.3" class="ltx_text" style="font-size:90%;">, 2015, pp. 577–585.
+</span>
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[22]</span>
+<span class="ltx_bibblock"><span id="bib.bib22.1.1" class="ltx_text" style="font-size:90%;">
+D. Bahdanau, K. Cho, and Y. Bengio,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib22.2.1" class="ltx_text" style="font-size:90%;">“Neural machine translation by jointly learning to align and
+translate,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib22.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib22.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. ICLR</span><span id="bib.bib22.5.3" class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[23]</span>
+<span class="ltx_bibblock"><span id="bib.bib23.1.1" class="ltx_text" style="font-size:90%;">
+C. M. Bishop,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib23.2.1" class="ltx_text" style="font-size:90%;">“Mixture density networks,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib23.3.1" class="ltx_text" style="font-size:90%;">Tech. Rep., 1994.
+</span>
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[24]</span>
+<span class="ltx_bibblock"><span id="bib.bib24.1.1" class="ltx_text" style="font-size:90%;">
+M. Schuster,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib24.2.1" class="ltx_text ltx_font_italic" style="font-size:90%;">On supervised learning from sequential data with applications
+for speech recognition</span><span id="bib.bib24.3.2" class="ltx_text" style="font-size:90%;">,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib24.4.1" class="ltx_text" style="font-size:90%;">Ph.D. thesis, Nara Institute of Science and Technology, 1999.
+</span>
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[25]</span>
+<span class="ltx_bibblock"><span id="bib.bib25.1.1" class="ltx_text" style="font-size:90%;">
+N. Srivastava, G. E. Hinton, A. Krizhevsky, I. Sutskever, and R. Salakhutdinov,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib25.2.1" class="ltx_text" style="font-size:90%;">“Dropout: a simple way to prevent neural networks from
+overfitting.,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib25.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">Journal of Machine Learning Research</span><span id="bib.bib25.4.2" class="ltx_text" style="font-size:90%;">, vol. 15, no. 1, pp.
+1929–1958, 2014.
+</span>
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[26]</span>
+<span class="ltx_bibblock"><span id="bib.bib26.1.1" class="ltx_text" style="font-size:90%;">
+D. Krueger, T. Maharaj, J. Kramár, M. Pezeshki, N. Ballas, N. R. Ke,
+A. Goyal, Y. Bengio, H. Larochelle, A. Courville, et al.,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib26.2.1" class="ltx_text" style="font-size:90%;">“Zoneout: Regularizing RNNs by randomly preserving hidden
+activations,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib26.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib26.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. ICLR</span><span id="bib.bib26.5.3" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[27]</span>
+<span class="ltx_bibblock"><span id="bib.bib27.1.1" class="ltx_text" style="font-size:90%;">
+T. Salimans, A. Karpathy, X. Chen, and D. P. Kingma,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib27.2.1" class="ltx_text" style="font-size:90%;">“PixelCNN++: Improving the PixelCNN with discretized logistic
+mixture likelihood and other modifications,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib27.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib27.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. ICLR</span><span id="bib.bib27.5.3" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[28]</span>
+<span class="ltx_bibblock"><span id="bib.bib28.1.1" class="ltx_text" style="font-size:90%;">
+A. van den Oord, Y. Li, I. Babuschkin, K. Simonyan, O. Vinyals,
+K. Kavukcuoglu, G. van den Driessche, E. Lockhart, L. C. Cobo,
+F. Stimberg, N. Casagrande, D. Grewe, S. Noury, S. Dieleman,
+E. Elsen, N. Kalchbrenner, H. Zen, A. Graves, H. King,
+T. Walters, D. Belov, and D. Hassabis,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib28.2.1" class="ltx_text" style="font-size:90%;">“Parallel WaveNet: Fast High-Fidelity Speech Synthesis,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib28.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">CoRR</span><span id="bib.bib28.4.2" class="ltx_text" style="font-size:90%;">, vol. abs/1711.10433, Nov. 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[29]</span>
+<span class="ltx_bibblock"><span id="bib.bib29.1.1" class="ltx_text" style="font-size:90%;">
+D. P. Kingma and J. Ba,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib29.2.1" class="ltx_text" style="font-size:90%;">“Adam: A method for stochastic optimization,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib29.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib29.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. ICLR</span><span id="bib.bib29.5.3" class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[30]</span>
+<span class="ltx_bibblock"><span id="bib.bib30.1.1" class="ltx_text" style="font-size:90%;">
+X. Gonzalvo, S. Tazari, C.-a. Chan, M. Becker, A. Gutkin, and H. Silen,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib30.2.1" class="ltx_text" style="font-size:90%;">“Recent advances in Google real-time HMM-driven unit selection
+synthesizer,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib30.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib30.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. Interspeech</span><span id="bib.bib30.5.3" class="ltx_text" style="font-size:90%;">, 2016.
+</span>
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[31]</span>
+<span class="ltx_bibblock"><span id="bib.bib31.1.1" class="ltx_text" style="font-size:90%;">
+H. Zen, Y. Agiomyrgiannakis, N. Egberts, F. Henderson, and P. Szczepaniak,
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib31.2.1" class="ltx_text" style="font-size:90%;">“Fast, compact, and high quality LSTM-RNN based statistical
+parametric speech synthesizers for mobile devices,”
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib31.3.1" class="ltx_text" style="font-size:90%;">in </span><span id="bib.bib31.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proc. Interspeech</span><span id="bib.bib31.5.3" class="ltx_text" style="font-size:90%;">, 2016.
+</span>
+</span>
+</li>
+</ul>
+</section>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/1712.05883" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/1712.05884" class="ar5iv-text-button ar5iv-severity-warning">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+1712.05884">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/1712.05884" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/1712.05885" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Fri Mar  1 17:37:06 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

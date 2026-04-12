@@ -1,0 +1,1411 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2206.01062] DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis</title><meta property="og:description" content="Accurate document layout analysis is a key requirement for high-quality PDF document conversion. With the recent availability of public, large ground-truth datasets such as PubLayNet and DocBank, deep-learning models h…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2206.01062">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2206.01062">
+
+<!--Generated on Mon Mar 11 16:46:59 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="keywords" lang="en" content="PDF document conversion,  layout segmentation,  object-detection,  data set,  Machine Learning">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line ltx_leqno">
+<h1 class="ltx_title ltx_title_document">DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Birgit Pfitzmann
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation"><span id="id1.1.id1" class="ltx_text ltx_affiliation_institution">IBM Research</span><span id="id2.2.id2" class="ltx_text ltx_affiliation_city">Rueschlikon</span><span id="id3.3.id3" class="ltx_text ltx_affiliation_country">Switzerland</span>
+</span>
+<span class="ltx_contact ltx_role_email"><a href="mailto:bpf@zurich.ibm.com">bpf@zurich.ibm.com</a>
+</span></span></span>
+<span class="ltx_author_before">, </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Christoph Auer
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation"><span id="id4.1.id1" class="ltx_text ltx_affiliation_institution">IBM Research</span><span id="id5.2.id2" class="ltx_text ltx_affiliation_city">Rueschlikon</span><span id="id6.3.id3" class="ltx_text ltx_affiliation_country">Switzerland</span>
+</span>
+<span class="ltx_contact ltx_role_email"><a href="mailto:cau@zurich.ibm.com">cau@zurich.ibm.com</a>
+</span></span></span>
+<span class="ltx_author_before">, </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Michele Dolfi
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation"><span id="id7.1.id1" class="ltx_text ltx_affiliation_institution">IBM Research</span><span id="id8.2.id2" class="ltx_text ltx_affiliation_city">Rueschlikon</span><span id="id9.3.id3" class="ltx_text ltx_affiliation_country">Switzerland</span>
+</span>
+<span class="ltx_contact ltx_role_email"><a href="mailto:dol@zurich.ibm.com">dol@zurich.ibm.com</a>
+</span></span></span>
+<span class="ltx_author_before">, </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Ahmed S. Nassar
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation"><span id="id10.1.id1" class="ltx_text ltx_affiliation_institution">IBM Research</span><span id="id11.2.id2" class="ltx_text ltx_affiliation_city">Rueschlikon</span><span id="id12.3.id3" class="ltx_text ltx_affiliation_country">Switzerland</span>
+</span>
+<span class="ltx_contact ltx_role_email"><a href="mailto:ahn@zurich.ibm.com">ahn@zurich.ibm.com</a>
+</span></span></span>
+<span class="ltx_author_before"> and </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Peter Staar
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation"><span id="id13.1.id1" class="ltx_text ltx_affiliation_institution">IBM Research</span><span id="id14.2.id2" class="ltx_text ltx_affiliation_city">Rueschlikon</span><span id="id15.3.id3" class="ltx_text ltx_affiliation_country">Switzerland</span>
+</span>
+<span class="ltx_contact ltx_role_email"><a href="mailto:taa@zurich.ibm.com">taa@zurich.ibm.com</a>
+</span></span></span>
+</div>
+<div class="ltx_dates">(2022)</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract.</h6>
+<p id="id16.id1" class="ltx_p">Accurate document layout analysis is a key requirement for high-quality PDF document conversion. With the recent availability of public, large ground-truth datasets such as PubLayNet and DocBank, deep-learning models have proven to be very effective at layout detection and segmentation. While these datasets are of adequate size to train such models, they severely lack in layout variability since they are sourced from scientific article repositories such as PubMed and arXiv only. Consequently, the accuracy of the layout segmentation drops significantly when these models are applied on more challenging and diverse layouts. In this paper, we present <span id="id16.id1.1" class="ltx_text ltx_font_italic">DocLayNet</span>, a new, publicly available, document-layout annotation dataset in COCO format. It contains 80863 manually annotated pages from diverse data sources to represent a wide variability in layouts. For each PDF page, the layout annotations provide labelled bounding-boxes with a choice of 11 distinct classes. DocLayNet also provides a subset of double- and triple-annotated pages to determine the inter-annotator agreement. In multiple experiments, we provide baseline accuracy scores (in mAP) for a set of popular object detection models. We also demonstrate that these models fall approximately 10% behind the inter-annotator agreement. Furthermore, we provide evidence that DocLayNet is of sufficient size. Lastly, we compare models trained on PubLayNet, DocBank and DocLayNet, showing that layout predictions of the DocLayNet-trained models are more robust and thus the preferred choice for general-purpose document-layout analysis.</p>
+</div>
+<div class="ltx_keywords">PDF document conversion, layout segmentation, object-detection, data set, Machine Learning
+</div>
+<span id="id1" class="ltx_note ltx_note_frontmatter ltx_role_journalyear"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">journalyear: </span>2022</span></span></span><span id="id2" class="ltx_note ltx_note_frontmatter ltx_role_copyright"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">copyright: </span>rightsretained</span></span></span><span id="id3" class="ltx_note ltx_note_frontmatter ltx_role_conference"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">conference: </span>Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining; August 14–18, 2022; Washington, DC, USA</span></span></span><span id="id4" class="ltx_note ltx_note_frontmatter ltx_role_booktitle"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">booktitle: </span>Proceedings of the 28th ACM SIGKDD Conference on Knowledge Discovery and Data Mining (KDD ’22), August 14–18, 2022, Washington, DC, USA</span></span></span><span id="id5" class="ltx_note ltx_note_frontmatter ltx_role_doi"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">doi: </span>10.1145/3534678.3539043</span></span></span><span id="id6" class="ltx_note ltx_note_frontmatter ltx_role_isbn"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">isbn: </span>978-1-4503-9385-0/22/08</span></span></span><span id="id7" class="ltx_note ltx_note_frontmatter ltx_role_ccs"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">ccs: </span>Information systems Document structure</span></span></span><span id="id8" class="ltx_note ltx_note_frontmatter ltx_role_ccs"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">ccs: </span>Applied computing Document analysis</span></span></span><span id="id9" class="ltx_note ltx_note_frontmatter ltx_role_ccs"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">ccs: </span>Computing methodologies Machine learning</span></span></span><span id="id10" class="ltx_note ltx_note_frontmatter ltx_role_ccs"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">ccs: </span>Computing methodologies Computer vision</span></span></span><span id="id11" class="ltx_note ltx_note_frontmatter ltx_role_ccs"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">ccs: </span>Computing methodologies Object detection</span></span></span>
+<figure id="S0.F1" class="ltx_figure"><img src="/html/2206.01062/assets/x1.png" id="S0.F1.g1" class="ltx_graphics ltx_centering ltx_img_square" width="461" height="536" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1. </span> Four examples of complex page layouts across different document categories</figcaption>
+</figure>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1. </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">Despite the substantial improvements achieved with machine-learning (ML) approaches and deep neural networks in recent years, document conversion remains a challenging problem, as demonstrated by the numerous public competitions held on this topic <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib1" title="" class="ltx_ref">ICDAR2013, </a>; <a href="#bib.bib2" title="" class="ltx_ref">ICDAR2017, </a>; <a href="#bib.bib3" title="" class="ltx_ref">ICDAR2019, </a>; <a href="#bib.bib4" title="" class="ltx_ref">Jimeno-etal-2021-PubLayNetCompetition, </a>)</cite>. The challenge originates from the huge variability in PDF documents regarding layout, language and formats (scanned, programmatic or a combination of both). Engineering a single ML model that can be applied on all types of documents and provides high-quality layout segmentation remains to this day extremely challenging <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib5" title="" class="ltx_ref">SegNotDead, </a>)</cite>. To highlight the variability in document layouts, we show a few example documents from the DocLayNet dataset in Figure <a href="#S0.F1" title="Figure 1 ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">A key problem in the process of document conversion is to understand the structure of a single document page, i.e. which segments of text should be grouped together in a unit. To train models for this task, there are currently two large datasets available to the community, PubLayNet <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib6" title="" class="ltx_ref">Zhong-etal-2019-PubLayNet, </a>)</cite> and DocBank <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib7" title="" class="ltx_ref">Li-etal-2020-docbank, </a>)</cite>. They were introduced in 2019 and 2020 respectively and significantly accelerated the implementation of layout detection and segmentation models due to their sizes of 300K and 500K ground-truth pages. These sizes were achieved by leveraging an automation approach.
+The benefit of automated ground-truth generation is obvious: one can generate large ground-truth datasets at virtually no cost. However, the automation introduces a constraint on the variability in the dataset, because corresponding structured source data must be available. PubLayNet and DocBank were both generated from scientific document repositories (PubMed and arXiv), which provide XML or <span id="S1.p2.1.1" class="ltx_text ltx_LaTeX_logo" style="letter-spacing:-0.2em; margin-right:0.1em;">L<span id="S1.p2.1.1.1" class="ltx_text" style="position:relative; bottom:0.4ex;font-variant:small-caps;;">a</span>T<span id="S1.p2.1.1.2" class="ltx_text" style="position:relative; bottom:-0.2ex;font-variant:small-caps;font-size:120%;">e</span>X</span>   sources. Those scientific documents present a limited variability in their layouts, because they are typeset in uniform templates provided by the publishers. Obviously, documents such as technical manuals, annual company reports, legal text, government tenders, etc. have very different and partially unique layouts. As a consequence, the layout predictions obtained from models trained on PubLayNet or DocBank is very reasonable when applied on scientific documents. However, for more <span id="S1.p2.1.2" class="ltx_text ltx_font_italic">artistic</span> or <span id="S1.p2.1.3" class="ltx_text ltx_font_italic">free-style</span> layouts, we see sub-par prediction quality from these models, which we demonstrate in Section <a href="#S5" title="5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p">In this paper, we present the DocLayNet dataset. It provides page-by-page layout annotation ground-truth using bounding-boxes for 11 distinct class labels on 80863 unique document pages, of which a fraction carry double- or triple-annotations. DocLayNet is similar in spirit to PubLayNet and DocBank and will likewise be made available to the public<span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note">1</span><a target="_blank" href="https://developer.ibm.com/exchanges/data/all/doclaynet" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://developer.ibm.com/exchanges/data/all/doclaynet</a></span></span></span> in order to stimulate the document-layout analysis community. It distinguishes itself in the following aspects:</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<ol id="S1.I1" class="ltx_enumerate">
+<li id="S1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(1)</span> 
+<div id="S1.I1.i1.p1" class="ltx_para">
+<p id="S1.I1.i1.p1.1" class="ltx_p"><span id="S1.I1.i1.p1.1.1" class="ltx_text ltx_font_italic">Human Annotation</span>: In contrast to PubLayNet and DocBank, we relied on human annotation instead of automation approaches to generate the data set.</p>
+</div>
+</li>
+<li id="S1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(2)</span> 
+<div id="S1.I1.i2.p1" class="ltx_para">
+<p id="S1.I1.i2.p1.1" class="ltx_p"><span id="S1.I1.i2.p1.1.1" class="ltx_text ltx_font_italic">Large Layout Variability</span>: We include diverse and complex layouts from a large variety of public sources.</p>
+</div>
+</li>
+<li id="S1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(3)</span> 
+<div id="S1.I1.i3.p1" class="ltx_para">
+<p id="S1.I1.i3.p1.1" class="ltx_p"><span id="S1.I1.i3.p1.1.1" class="ltx_text ltx_font_italic">Detailed Label Set</span>: We define 11 class labels to distinguish layout features in high detail. PubLayNet provides 5 labels; DocBank provides 13, although not a superset of ours.</p>
+</div>
+</li>
+<li id="S1.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(4)</span> 
+<div id="S1.I1.i4.p1" class="ltx_para">
+<p id="S1.I1.i4.p1.1" class="ltx_p"><span id="S1.I1.i4.p1.1.1" class="ltx_text ltx_font_italic">Redundant Annotations</span>: A fraction of the pages in the DocLayNet data set carry more than one human annotation. This enables experimentation with annotation uncertainty and quality control analysis.</p>
+</div>
+</li>
+<li id="S1.I1.i5" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(5)</span> 
+<div id="S1.I1.i5.p1" class="ltx_para">
+<p id="S1.I1.i5.p1.1" class="ltx_p"><span id="S1.I1.i5.p1.1.1" class="ltx_text ltx_font_italic">Pre-defined Train-, Test- &amp; Validation-set</span>: Like DocBank, we provide fixed train-, test- &amp; validation-sets to ensure proportional representation of the class-labels. Further, we prevent leakage of unique layouts across sets, which has a large effect on model accuracy scores.
+</p>
+</div>
+</li>
+</ol>
+</div>
+<div id="S1.p5" class="ltx_para">
+<p id="S1.p5.1" class="ltx_p">All aspects outlined above are detailed in Section <a href="#S3" title="3. The DocLayNet Dataset ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>. In Section <a href="#S4" title="4. Annotation Campaign ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>, we will elaborate on how we designed and executed this large-scale human annotation campaign. We will also share key insights and lessons learned that might prove helpful for other parties planning to set up annotation campaigns.</p>
+</div>
+<div id="S1.p6" class="ltx_para">
+<p id="S1.p6.1" class="ltx_p">In Section <a href="#S5" title="5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>, we will present baseline accuracy numbers for a variety of object detection methods (Faster R-CNN, Mask R-CNN and YOLOv5) trained on DocLayNet. We further show how the model performance is impacted by varying the DocLayNet dataset size, reducing the label set and modifying the train/test-split. Last but not least, we compare the performance of models trained on PubLayNet, DocBank and DocLayNet and demonstrate that a model trained on DocLayNet provides overall more robust layout recovery.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2. </span>Related Work</h2>
+
+<div id="S2.p1" class="ltx_para">
+<p id="S2.p1.1" class="ltx_p">While early approaches in document-layout analysis used rule-based algorithms and heuristics <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib8" title="" class="ltx_ref">Ahmad2016InformationEF, </a>)</cite>, the problem is lately addressed with deep learning methods. The most common approach is to leverage object detection models <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib9" title="" class="ltx_ref">RCNN, </a>; <a href="#bib.bib10" title="" class="ltx_ref">Fast-RCNN, </a>; <a href="#bib.bib11" title="" class="ltx_ref">FasterRCNN, </a>; <a href="#bib.bib12" title="" class="ltx_ref">MaskRCNN, </a>; <a href="#bib.bib13" title="" class="ltx_ref">Yolov5, </a>; <a href="#bib.bib14" title="" class="ltx_ref">DETR, </a>; <a href="#bib.bib15" title="" class="ltx_ref">EfficientDet, </a>)</cite>. In the last decade, the accuracy and speed of these models has increased dramatically. Furthermore, most state-of-the-art object detection methods can be trained and applied with very little work, thanks to a standardisation effort of the ground-truth data format <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib16" title="" class="ltx_ref">Lin-etal-2014-COCO, </a>)</cite> and common deep-learning frameworks <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib17" title="" class="ltx_ref">detectron2, </a>)</cite>. Reference data sets such as PubLayNet <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib6" title="" class="ltx_ref">Zhong-etal-2019-PubLayNet, </a>)</cite> and DocBank provide their data in the commonly accepted COCO format <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib16" title="" class="ltx_ref">Lin-etal-2014-COCO, </a>)</cite>.</p>
+</div>
+<div id="S2.p2" class="ltx_para">
+<p id="S2.p2.1" class="ltx_p">Lately, new types of ML models for document-layout analysis have emerged in the community <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib18" title="" class="ltx_ref">Livathinos-et-al-2021-Seq2Seq, </a>; <a href="#bib.bib19" title="" class="ltx_ref">Xu-etal-2020-LayoutLM, </a>; <a href="#bib.bib20" title="" class="ltx_ref">Li-etal-2021-VTLayout, </a>; <a href="#bib.bib21" title="" class="ltx_ref">Zhang-etal-2021-VSR, </a>)</cite>. These models do not approach the problem of layout analysis purely based on an image representation of the page, as computer vision methods do. Instead, they combine the text tokens and image representation of a page in order to obtain a segmentation. While the reported accuracies appear to be promising, a broadly accepted data format which links geometric and textual features has yet to establish.</p>
+</div>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3. </span>The DocLayNet Dataset</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.1" class="ltx_p">DocLayNet contains 80863 PDF pages. Among these, 7059 carry two instances of human annotations, and 1591 carry three. This amounts to 91104 total annotation instances.
+The annotations provide layout information in the shape of labeled, rectangular bounding-boxes. We define 11 distinct labels for layout features, namely <span id="S3.p1.1.1" class="ltx_text ltx_font_italic">Caption</span>, <span id="S3.p1.1.2" class="ltx_text ltx_font_italic">Footnote</span>, <span id="S3.p1.1.3" class="ltx_text ltx_font_italic">Formula</span>, <span id="S3.p1.1.4" class="ltx_text ltx_font_italic">List-item</span>, <span id="S3.p1.1.5" class="ltx_text ltx_font_italic">Page-footer</span>, <span id="S3.p1.1.6" class="ltx_text ltx_font_italic">Page-header</span>, <span id="S3.p1.1.7" class="ltx_text ltx_font_italic">Picture</span>, <span id="S3.p1.1.8" class="ltx_text ltx_font_italic">Section-header</span>, <span id="S3.p1.1.9" class="ltx_text ltx_font_italic">Table</span>, <span id="S3.p1.1.10" class="ltx_text ltx_font_italic">Text</span>, and <span id="S3.p1.1.11" class="ltx_text ltx_font_italic">Title</span>. Our reasoning for picking this particular label set is detailed in Section <a href="#S4" title="4. Annotation Campaign ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>.</p>
+</div>
+<div id="S3.p2" class="ltx_para">
+<p id="S3.p2.1" class="ltx_p">In addition to open intellectual property constraints for the source documents, we required that the documents in DocLayNet adhere to a few conditions. Firstly, we kept scanned documents to a minimum, since they introduce difficulties in annotation (see Section <a href="#S4" title="4. Annotation Campaign ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>). As a second condition, we focussed on medium to large documents (<math id="S3.p2.1.m1.1" class="ltx_Math" alttext="&gt;10" display="inline"><semantics id="S3.p2.1.m1.1a"><mrow id="S3.p2.1.m1.1.1" xref="S3.p2.1.m1.1.1.cmml"><mi id="S3.p2.1.m1.1.1.2" xref="S3.p2.1.m1.1.1.2.cmml"></mi><mo id="S3.p2.1.m1.1.1.1" xref="S3.p2.1.m1.1.1.1.cmml">&gt;</mo><mn id="S3.p2.1.m1.1.1.3" xref="S3.p2.1.m1.1.1.3.cmml">10</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.p2.1.m1.1b"><apply id="S3.p2.1.m1.1.1.cmml" xref="S3.p2.1.m1.1.1"><gt id="S3.p2.1.m1.1.1.1.cmml" xref="S3.p2.1.m1.1.1.1"></gt><csymbol cd="latexml" id="S3.p2.1.m1.1.1.2.cmml" xref="S3.p2.1.m1.1.1.2">absent</csymbol><cn type="integer" id="S3.p2.1.m1.1.1.3.cmml" xref="S3.p2.1.m1.1.1.3">10</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.p2.1.m1.1c">&gt;10</annotation></semantics></math> pages) with technical content, dense in complex tables, figures, plots and captions. Such documents carry a lot of information value, but are often hard to analyse with high accuracy due to their challenging layouts. Counterexamples of documents not included in the dataset are receipts, invoices, hand-written documents or photographs showing “text in the wild”.</p>
+</div>
+<figure id="S3.T1" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 1. </span>DocLayNet dataset overview. Along with the frequency of each class label, we present the relative occurrence (as % of row “Total”) in the train, test and validation sets. The inter-annotator agreement is computed as the mAP@0.5-0.95 metric between pairwise annotations from the triple-annotated pages, from which we obtain accuracy ranges.
+</figcaption>
+<table id="S3.T1.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S3.T1.1.1.1" class="ltx_tr">
+<td id="S3.T1.1.1.1.1" class="ltx_td ltx_border_l ltx_border_r ltx_border_t"></td>
+<td id="S3.T1.1.1.1.2" class="ltx_td ltx_border_r ltx_border_t"></td>
+<td id="S3.T1.1.1.1.3" class="ltx_td ltx_align_center ltx_border_l ltx_border_r ltx_border_t" colspan="3">% of Total</td>
+<td id="S3.T1.1.1.1.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" colspan="7">triple inter-annotator  mAP @ 0.5-0.95 (%)</td>
+</tr>
+<tr id="S3.T1.1.2.2" class="ltx_tr">
+<td id="S3.T1.1.2.2.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r">class label</td>
+<td id="S3.T1.1.2.2.2" class="ltx_td ltx_align_right ltx_border_r">Count</td>
+<td id="S3.T1.1.2.2.3" class="ltx_td ltx_align_right">Train</td>
+<td id="S3.T1.1.2.2.4" class="ltx_td ltx_align_right">Test</td>
+<td id="S3.T1.1.2.2.5" class="ltx_td ltx_align_right ltx_border_r">Val</td>
+<td id="S3.T1.1.2.2.6" class="ltx_td ltx_align_right">All</td>
+<td id="S3.T1.1.2.2.7" class="ltx_td ltx_align_right">Fin</td>
+<td id="S3.T1.1.2.2.8" class="ltx_td ltx_align_right">Man</td>
+<td id="S3.T1.1.2.2.9" class="ltx_td ltx_align_right">Sci</td>
+<td id="S3.T1.1.2.2.10" class="ltx_td ltx_align_right">Law</td>
+<td id="S3.T1.1.2.2.11" class="ltx_td ltx_align_right">Pat</td>
+<td id="S3.T1.1.2.2.12" class="ltx_td ltx_align_right ltx_border_r">Ten</td>
+</tr>
+<tr id="S3.T1.1.3.3" class="ltx_tr">
+<td id="S3.T1.1.3.3.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t">Caption</td>
+<td id="S3.T1.1.3.3.2" class="ltx_td ltx_align_right ltx_border_r ltx_border_t">22524</td>
+<td id="S3.T1.1.3.3.3" class="ltx_td ltx_align_right ltx_border_t">2.04</td>
+<td id="S3.T1.1.3.3.4" class="ltx_td ltx_align_right ltx_border_t">1.77</td>
+<td id="S3.T1.1.3.3.5" class="ltx_td ltx_align_right ltx_border_r ltx_border_t">2.32</td>
+<td id="S3.T1.1.3.3.6" class="ltx_td ltx_align_right ltx_border_t">84-89</td>
+<td id="S3.T1.1.3.3.7" class="ltx_td ltx_align_right ltx_border_t">40-61</td>
+<td id="S3.T1.1.3.3.8" class="ltx_td ltx_align_right ltx_border_t">86-92</td>
+<td id="S3.T1.1.3.3.9" class="ltx_td ltx_align_right ltx_border_t">94-99</td>
+<td id="S3.T1.1.3.3.10" class="ltx_td ltx_align_right ltx_border_t">95-99</td>
+<td id="S3.T1.1.3.3.11" class="ltx_td ltx_align_right ltx_border_t">69-78</td>
+<td id="S3.T1.1.3.3.12" class="ltx_td ltx_align_right ltx_border_r ltx_border_t">n/a</td>
+</tr>
+<tr id="S3.T1.1.4.4" class="ltx_tr">
+<td id="S3.T1.1.4.4.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r">Footnote</td>
+<td id="S3.T1.1.4.4.2" class="ltx_td ltx_align_right ltx_border_r">6318</td>
+<td id="S3.T1.1.4.4.3" class="ltx_td ltx_align_right">0.60</td>
+<td id="S3.T1.1.4.4.4" class="ltx_td ltx_align_right">0.31</td>
+<td id="S3.T1.1.4.4.5" class="ltx_td ltx_align_right ltx_border_r">0.58</td>
+<td id="S3.T1.1.4.4.6" class="ltx_td ltx_align_right">83-91</td>
+<td id="S3.T1.1.4.4.7" class="ltx_td ltx_align_right">n/a</td>
+<td id="S3.T1.1.4.4.8" class="ltx_td ltx_align_right">100</td>
+<td id="S3.T1.1.4.4.9" class="ltx_td ltx_align_right">62-88</td>
+<td id="S3.T1.1.4.4.10" class="ltx_td ltx_align_right">85-94</td>
+<td id="S3.T1.1.4.4.11" class="ltx_td ltx_align_right">n/a</td>
+<td id="S3.T1.1.4.4.12" class="ltx_td ltx_align_right ltx_border_r">82-97</td>
+</tr>
+<tr id="S3.T1.1.5.5" class="ltx_tr">
+<td id="S3.T1.1.5.5.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r">Formula</td>
+<td id="S3.T1.1.5.5.2" class="ltx_td ltx_align_right ltx_border_r">25027</td>
+<td id="S3.T1.1.5.5.3" class="ltx_td ltx_align_right">2.25</td>
+<td id="S3.T1.1.5.5.4" class="ltx_td ltx_align_right">1.90</td>
+<td id="S3.T1.1.5.5.5" class="ltx_td ltx_align_right ltx_border_r">2.96</td>
+<td id="S3.T1.1.5.5.6" class="ltx_td ltx_align_right">83-85</td>
+<td id="S3.T1.1.5.5.7" class="ltx_td ltx_align_right">n/a</td>
+<td id="S3.T1.1.5.5.8" class="ltx_td ltx_align_right">n/a</td>
+<td id="S3.T1.1.5.5.9" class="ltx_td ltx_align_right">84-87</td>
+<td id="S3.T1.1.5.5.10" class="ltx_td ltx_align_right">86-96</td>
+<td id="S3.T1.1.5.5.11" class="ltx_td ltx_align_right">n/a</td>
+<td id="S3.T1.1.5.5.12" class="ltx_td ltx_align_right ltx_border_r">n/a</td>
+</tr>
+<tr id="S3.T1.1.6.6" class="ltx_tr">
+<td id="S3.T1.1.6.6.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r">List-item</td>
+<td id="S3.T1.1.6.6.2" class="ltx_td ltx_align_right ltx_border_r">185660</td>
+<td id="S3.T1.1.6.6.3" class="ltx_td ltx_align_right">17.19</td>
+<td id="S3.T1.1.6.6.4" class="ltx_td ltx_align_right">13.34</td>
+<td id="S3.T1.1.6.6.5" class="ltx_td ltx_align_right ltx_border_r">15.82</td>
+<td id="S3.T1.1.6.6.6" class="ltx_td ltx_align_right">87-88</td>
+<td id="S3.T1.1.6.6.7" class="ltx_td ltx_align_right">74-83</td>
+<td id="S3.T1.1.6.6.8" class="ltx_td ltx_align_right">90-92</td>
+<td id="S3.T1.1.6.6.9" class="ltx_td ltx_align_right">97-97</td>
+<td id="S3.T1.1.6.6.10" class="ltx_td ltx_align_right">81-85</td>
+<td id="S3.T1.1.6.6.11" class="ltx_td ltx_align_right">75-88</td>
+<td id="S3.T1.1.6.6.12" class="ltx_td ltx_align_right ltx_border_r">93-95</td>
+</tr>
+<tr id="S3.T1.1.7.7" class="ltx_tr">
+<td id="S3.T1.1.7.7.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r">Page-footer</td>
+<td id="S3.T1.1.7.7.2" class="ltx_td ltx_align_right ltx_border_r">70878</td>
+<td id="S3.T1.1.7.7.3" class="ltx_td ltx_align_right">6.51</td>
+<td id="S3.T1.1.7.7.4" class="ltx_td ltx_align_right">5.58</td>
+<td id="S3.T1.1.7.7.5" class="ltx_td ltx_align_right ltx_border_r">6.00</td>
+<td id="S3.T1.1.7.7.6" class="ltx_td ltx_align_right">93-94</td>
+<td id="S3.T1.1.7.7.7" class="ltx_td ltx_align_right">88-90</td>
+<td id="S3.T1.1.7.7.8" class="ltx_td ltx_align_right">95-96</td>
+<td id="S3.T1.1.7.7.9" class="ltx_td ltx_align_right">100</td>
+<td id="S3.T1.1.7.7.10" class="ltx_td ltx_align_right">92-97</td>
+<td id="S3.T1.1.7.7.11" class="ltx_td ltx_align_right">100</td>
+<td id="S3.T1.1.7.7.12" class="ltx_td ltx_align_right ltx_border_r">96-98</td>
+</tr>
+<tr id="S3.T1.1.8.8" class="ltx_tr">
+<td id="S3.T1.1.8.8.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r">Page-header</td>
+<td id="S3.T1.1.8.8.2" class="ltx_td ltx_align_right ltx_border_r">58022</td>
+<td id="S3.T1.1.8.8.3" class="ltx_td ltx_align_right">5.10</td>
+<td id="S3.T1.1.8.8.4" class="ltx_td ltx_align_right">6.70</td>
+<td id="S3.T1.1.8.8.5" class="ltx_td ltx_align_right ltx_border_r">5.06</td>
+<td id="S3.T1.1.8.8.6" class="ltx_td ltx_align_right">85-89</td>
+<td id="S3.T1.1.8.8.7" class="ltx_td ltx_align_right">66-76</td>
+<td id="S3.T1.1.8.8.8" class="ltx_td ltx_align_right">90-94</td>
+<td id="S3.T1.1.8.8.9" class="ltx_td ltx_align_right">98-100</td>
+<td id="S3.T1.1.8.8.10" class="ltx_td ltx_align_right">91-92</td>
+<td id="S3.T1.1.8.8.11" class="ltx_td ltx_align_right">97-99</td>
+<td id="S3.T1.1.8.8.12" class="ltx_td ltx_align_right ltx_border_r">81-86</td>
+</tr>
+<tr id="S3.T1.1.9.9" class="ltx_tr">
+<td id="S3.T1.1.9.9.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r">Picture</td>
+<td id="S3.T1.1.9.9.2" class="ltx_td ltx_align_right ltx_border_r">45976</td>
+<td id="S3.T1.1.9.9.3" class="ltx_td ltx_align_right">4.21</td>
+<td id="S3.T1.1.9.9.4" class="ltx_td ltx_align_right">2.78</td>
+<td id="S3.T1.1.9.9.5" class="ltx_td ltx_align_right ltx_border_r">5.31</td>
+<td id="S3.T1.1.9.9.6" class="ltx_td ltx_align_right">69-71</td>
+<td id="S3.T1.1.9.9.7" class="ltx_td ltx_align_right">56-59</td>
+<td id="S3.T1.1.9.9.8" class="ltx_td ltx_align_right">82-86</td>
+<td id="S3.T1.1.9.9.9" class="ltx_td ltx_align_right">69-82</td>
+<td id="S3.T1.1.9.9.10" class="ltx_td ltx_align_right">80-95</td>
+<td id="S3.T1.1.9.9.11" class="ltx_td ltx_align_right">66-71</td>
+<td id="S3.T1.1.9.9.12" class="ltx_td ltx_align_right ltx_border_r">59-76</td>
+</tr>
+<tr id="S3.T1.1.10.10" class="ltx_tr">
+<td id="S3.T1.1.10.10.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r">Section-header</td>
+<td id="S3.T1.1.10.10.2" class="ltx_td ltx_align_right ltx_border_r">142884</td>
+<td id="S3.T1.1.10.10.3" class="ltx_td ltx_align_right">12.60</td>
+<td id="S3.T1.1.10.10.4" class="ltx_td ltx_align_right">15.77</td>
+<td id="S3.T1.1.10.10.5" class="ltx_td ltx_align_right ltx_border_r">12.85</td>
+<td id="S3.T1.1.10.10.6" class="ltx_td ltx_align_right">83-84</td>
+<td id="S3.T1.1.10.10.7" class="ltx_td ltx_align_right">76-81</td>
+<td id="S3.T1.1.10.10.8" class="ltx_td ltx_align_right">90-92</td>
+<td id="S3.T1.1.10.10.9" class="ltx_td ltx_align_right">94-95</td>
+<td id="S3.T1.1.10.10.10" class="ltx_td ltx_align_right">87-94</td>
+<td id="S3.T1.1.10.10.11" class="ltx_td ltx_align_right">69-73</td>
+<td id="S3.T1.1.10.10.12" class="ltx_td ltx_align_right ltx_border_r">78-86</td>
+</tr>
+<tr id="S3.T1.1.11.11" class="ltx_tr">
+<td id="S3.T1.1.11.11.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r">Table</td>
+<td id="S3.T1.1.11.11.2" class="ltx_td ltx_align_right ltx_border_r">34733</td>
+<td id="S3.T1.1.11.11.3" class="ltx_td ltx_align_right">3.20</td>
+<td id="S3.T1.1.11.11.4" class="ltx_td ltx_align_right">2.27</td>
+<td id="S3.T1.1.11.11.5" class="ltx_td ltx_align_right ltx_border_r">3.60</td>
+<td id="S3.T1.1.11.11.6" class="ltx_td ltx_align_right">77-81</td>
+<td id="S3.T1.1.11.11.7" class="ltx_td ltx_align_right">75-80</td>
+<td id="S3.T1.1.11.11.8" class="ltx_td ltx_align_right">83-86</td>
+<td id="S3.T1.1.11.11.9" class="ltx_td ltx_align_right">98-99</td>
+<td id="S3.T1.1.11.11.10" class="ltx_td ltx_align_right">58-80</td>
+<td id="S3.T1.1.11.11.11" class="ltx_td ltx_align_right">79-84</td>
+<td id="S3.T1.1.11.11.12" class="ltx_td ltx_align_right ltx_border_r">70-85</td>
+</tr>
+<tr id="S3.T1.1.12.12" class="ltx_tr">
+<td id="S3.T1.1.12.12.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r">Text</td>
+<td id="S3.T1.1.12.12.2" class="ltx_td ltx_align_right ltx_border_r">510377</td>
+<td id="S3.T1.1.12.12.3" class="ltx_td ltx_align_right">45.82</td>
+<td id="S3.T1.1.12.12.4" class="ltx_td ltx_align_right">49.28</td>
+<td id="S3.T1.1.12.12.5" class="ltx_td ltx_align_right ltx_border_r">45.00</td>
+<td id="S3.T1.1.12.12.6" class="ltx_td ltx_align_right">84-86</td>
+<td id="S3.T1.1.12.12.7" class="ltx_td ltx_align_right">81-86</td>
+<td id="S3.T1.1.12.12.8" class="ltx_td ltx_align_right">88-93</td>
+<td id="S3.T1.1.12.12.9" class="ltx_td ltx_align_right">89-93</td>
+<td id="S3.T1.1.12.12.10" class="ltx_td ltx_align_right">87-92</td>
+<td id="S3.T1.1.12.12.11" class="ltx_td ltx_align_right">71-79</td>
+<td id="S3.T1.1.12.12.12" class="ltx_td ltx_align_right ltx_border_r">87-95</td>
+</tr>
+<tr id="S3.T1.1.13.13" class="ltx_tr">
+<td id="S3.T1.1.13.13.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r">Title</td>
+<td id="S3.T1.1.13.13.2" class="ltx_td ltx_align_right ltx_border_r">5071</td>
+<td id="S3.T1.1.13.13.3" class="ltx_td ltx_align_right">0.47</td>
+<td id="S3.T1.1.13.13.4" class="ltx_td ltx_align_right">0.30</td>
+<td id="S3.T1.1.13.13.5" class="ltx_td ltx_align_right ltx_border_r">0.50</td>
+<td id="S3.T1.1.13.13.6" class="ltx_td ltx_align_right">60-72</td>
+<td id="S3.T1.1.13.13.7" class="ltx_td ltx_align_right">24-63</td>
+<td id="S3.T1.1.13.13.8" class="ltx_td ltx_align_right">50-63</td>
+<td id="S3.T1.1.13.13.9" class="ltx_td ltx_align_right">94-100</td>
+<td id="S3.T1.1.13.13.10" class="ltx_td ltx_align_right">82-96</td>
+<td id="S3.T1.1.13.13.11" class="ltx_td ltx_align_right">68-79</td>
+<td id="S3.T1.1.13.13.12" class="ltx_td ltx_align_right ltx_border_r">24-56</td>
+</tr>
+<tr id="S3.T1.1.14.14" class="ltx_tr">
+<td id="S3.T1.1.14.14.1" class="ltx_td ltx_align_left ltx_border_b ltx_border_l ltx_border_r ltx_border_t">Total</td>
+<td id="S3.T1.1.14.14.2" class="ltx_td ltx_align_right ltx_border_b ltx_border_r ltx_border_t">1107470</td>
+<td id="S3.T1.1.14.14.3" class="ltx_td ltx_align_right ltx_border_b ltx_border_t">941123</td>
+<td id="S3.T1.1.14.14.4" class="ltx_td ltx_align_right ltx_border_b ltx_border_t">99816</td>
+<td id="S3.T1.1.14.14.5" class="ltx_td ltx_align_right ltx_border_b ltx_border_r ltx_border_t">66531</td>
+<td id="S3.T1.1.14.14.6" class="ltx_td ltx_align_right ltx_border_b ltx_border_t">82-83</td>
+<td id="S3.T1.1.14.14.7" class="ltx_td ltx_align_right ltx_border_b ltx_border_t">71-74</td>
+<td id="S3.T1.1.14.14.8" class="ltx_td ltx_align_right ltx_border_b ltx_border_t">79-81</td>
+<td id="S3.T1.1.14.14.9" class="ltx_td ltx_align_right ltx_border_b ltx_border_t">89-94</td>
+<td id="S3.T1.1.14.14.10" class="ltx_td ltx_align_right ltx_border_b ltx_border_t">86-91</td>
+<td id="S3.T1.1.14.14.11" class="ltx_td ltx_align_right ltx_border_b ltx_border_t">71-76</td>
+<td id="S3.T1.1.14.14.12" class="ltx_td ltx_align_right ltx_border_b ltx_border_r ltx_border_t">68-85</td>
+</tr>
+</tbody>
+</table>
+</figure>
+<div id="S3.p3" class="ltx_para">
+<p id="S3.p3.1" class="ltx_p">The pages in DocLayNet can be grouped into six distinct categories, namely <span id="S3.p3.1.1" class="ltx_text ltx_font_italic">Financial Reports</span>, <span id="S3.p3.1.2" class="ltx_text ltx_font_italic">Manuals</span>, <span id="S3.p3.1.3" class="ltx_text ltx_font_italic">Scientific Articles</span>, <span id="S3.p3.1.4" class="ltx_text ltx_font_italic">Laws &amp; Regulations</span>, <span id="S3.p3.1.5" class="ltx_text ltx_font_italic">Patents</span> and <span id="S3.p3.1.6" class="ltx_text ltx_font_italic">Government Tenders</span>. Each document category was sourced from various repositories. For example, Financial Reports contain both <span id="S3.p3.1.7" class="ltx_text ltx_font_italic">free-style</span> format annual reports<span id="footnote2" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">2</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">2</sup><span class="ltx_tag ltx_tag_note">2</span>e.g. AAPL from https://www.annualreports.com/</span></span></span> which expose company-specific, artistic layouts as well as the more formal SEC filings. The two largest categories (<span id="S3.p3.1.8" class="ltx_text ltx_font_italic">Financial Reports</span> and <span id="S3.p3.1.9" class="ltx_text ltx_font_italic">Manuals</span>) contain a large amount of free-style layouts in order to obtain maximum variability. In the other four categories, we boosted the variability by mixing documents from independent providers, such as different government websites or publishers. In Figure <a href="#S3.F2" title="Figure 2 ‣ 3. The DocLayNet Dataset ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, we show the document categories contained in DocLayNet with their respective sizes.</p>
+</div>
+<figure id="S3.F2" class="ltx_figure"><img src="/html/2206.01062/assets/x2.png" id="S3.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="461" height="263" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 2. </span>Distribution of DocLayNet pages across document categories.  
+</figcaption>
+</figure>
+<div id="S3.p4" class="ltx_para">
+<p id="S3.p4.1" class="ltx_p">We did not control the document selection with regard to language. The vast majority of documents contained in DocLayNet (close to 95%) are published in English language. However, DocLayNet also contains a number of documents in other languages such as German (2.5%), French (1.0%) and Japanese (1.0%). While the document language has negligible impact on the performance of computer vision methods such as object detection and segmentation models, it might prove challenging for layout analysis methods which exploit textual features.</p>
+</div>
+<div id="S3.p5" class="ltx_para">
+<p id="S3.p5.1" class="ltx_p">To ensure that future benchmarks in the document-layout analysis community can be easily compared, we have split up DocLayNet into pre-defined train-, test- and validation-sets.
+In this way, we can avoid spurious variations in the evaluation scores due to random splitting in train-, test- and validation-sets. We also ensured that less frequent labels are represented in train and test sets in equal proportions.</p>
+</div>
+<div id="S3.p6" class="ltx_para">
+<p id="S3.p6.1" class="ltx_p">Table <a href="#S3.T1" title="Table 1 ‣ 3. The DocLayNet Dataset ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> shows the overall frequency and distribution of the labels among the different sets. Importantly, we ensure that subsets are only split on full-document boundaries. This avoids that pages of the same document are spread over train, test and validation set, which can give an undesired evaluation advantage to models and lead to overestimation of their prediction accuracy. We will show the impact of this decision in Section <a href="#S5" title="5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>.</p>
+</div>
+<div id="S3.p7" class="ltx_para">
+<p id="S3.p7.1" class="ltx_p">In order to accommodate the different types of models currently in use by the community, we provide DocLayNet in an <span id="S3.p7.1.1" class="ltx_text ltx_font_italic">augmented</span> COCO format <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib16" title="" class="ltx_ref">Lin-etal-2014-COCO, </a>)</cite>. This entails the standard COCO ground-truth file (in JSON format) with the associated page images (in PNG format, 1025<math id="S3.p7.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.p7.1.m1.1a"><mo id="S3.p7.1.m1.1.1" xref="S3.p7.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.p7.1.m1.1b"><times id="S3.p7.1.m1.1.1.cmml" xref="S3.p7.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.p7.1.m1.1c">\times</annotation></semantics></math>1025 pixels). Furthermore, custom fields have been added to each COCO record to specify document category, original document filename and page number. In addition, we also provide the original PDF pages, as well as sidecar files containing parsed PDF text and text-cell coordinates (in JSON). All additional files are linked to the primary page images by their matching filenames.</p>
+</div>
+<div id="S3.p8" class="ltx_para">
+<p id="S3.p8.1" class="ltx_p">Despite being cost-intense and far less scalable than automation, human annotation has several benefits over automated ground-truth generation.
+The first and most obvious reason to leverage human annotations is the freedom to annotate any type of document without requiring a programmatic source. For most PDF documents, the original source document is not available. The latter is not a hard constraint with human annotation, but it is for automated methods.
+A second reason to use human annotations is that the latter usually provide a more natural interpretation of the page layout. The human-interpreted layout can significantly deviate from the programmatic layout used in typesetting. For example, “invisible” tables might be used solely for aligning text paragraphs on columns. Such typesetting tricks might be interpreted by automated methods incorrectly as an actual table, while the human annotation will interpret it correctly as <span id="S3.p8.1.1" class="ltx_text ltx_font_italic">Text</span> or other styles. The same applies to multi-line text elements, when authors decided to space them as “invisible” list elements without bullet symbols.
+A third reason to gather ground-truth through human annotation is to estimate a “natural” upper bound on the segmentation accuracy. As we will show in Section <a href="#S4" title="4. Annotation Campaign ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>, certain documents featuring complex layouts can have different but equally acceptable layout interpretations. This natural upper bound for segmentation accuracy can be found by annotating the same pages multiple times by different people and evaluating the inter-annotator agreement. Such a base-line consistency evaluation is very useful to define expectations for a good target accuracy in trained deep neural network models and avoid overfitting (see Table <a href="#S3.T1" title="Table 1 ‣ 3. The DocLayNet Dataset ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>). On the flip side, achieving high annotation consistency proved to be a key challenge in human annotation, as we outline in Section <a href="#S4" title="4. Annotation Campaign ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>.</p>
+</div>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4. </span>Annotation Campaign</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p">The annotation campaign was carried out in four phases. In phase one, we identified and prepared the data sources for annotation. In phase two, we determined the class labels and how annotations should be done on the documents in order to obtain maximum consistency. The latter was guided by a detailed requirement analysis and exhaustive experiments. In phase three, we trained the annotation staff and performed exams for quality assurance. In phase four, we distributed the annotation workload and performed continuous quality controls. Phase one and two required a small team of experts only. For phases three and four, a group of 40 dedicated annotators were assembled and supervised.</p>
+</div>
+<figure id="S4.F3" class="ltx_figure">
+<p id="S4.F3.1" class="ltx_p ltx_align_center"><span id="S4.F3.1.1" class="ltx_text ltx_framed ltx_framed_rectangle" style="border-color: #000000;padding:0.0pt;"><img src="/html/2206.01062/assets/x3.png" id="S4.F3.1.1.g1" class="ltx_graphics ltx_img_square" width="461" height="438" alt="Refer to caption"></span></p>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 3. </span>Corpus Conversion Service annotation user interface. The PDF page is shown in the background, with overlaid text-cells (in darker shades). The annotation boxes can be drawn by dragging a rectangle over each segment with the respective label from the palette on the right.
+</figcaption>
+</figure>
+<div id="S4.p2" class="ltx_para">
+<p id="S4.p2.1" class="ltx_p"><span id="S4.p2.1.1" class="ltx_text ltx_font_bold">Phase 1: Data selection and preparation.</span> Our inclusion criteria for documents were described in Section <a href="#S3" title="3. The DocLayNet Dataset ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>.
+A large effort went into ensuring that all documents are free to use. The data sources include publication repositories such as arXiv<span id="footnote3" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">3</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">3</sup><span class="ltx_tag ltx_tag_note">3</span><a target="_blank" href="https://arxiv.org/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/</a></span></span></span>, government offices, company websites as well as data directory services for financial reports and patents. Scanned documents were excluded wherever possible because they can be rotated or skewed. This would not allow us to perform annotation with rectangular bounding-boxes and therefore complicate the annotation process.</p>
+</div>
+<div id="S4.p3" class="ltx_para">
+<p id="S4.p3.1" class="ltx_p">Preparation work included uploading and parsing the sourced PDF documents in the Corpus Conversion Service (CCS) <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib22" title="" class="ltx_ref">Staar-etal-2018-CCS, </a>)</cite>, a cloud-native platform which provides a visual annotation interface and allows for dataset inspection and analysis. The annotation interface of CCS is shown in Figure <a href="#S4.F3" title="Figure 3 ‣ 4. Annotation Campaign ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>. The desired balance of pages between the different document categories was achieved by selective subsampling of pages with certain desired properties. For example, we made sure to include the title page of each document and bias the remaining page selection to those with figures or tables. The latter was achieved by leveraging pre-trained object detection models from PubLayNet, which helped us estimate how many figures and tables a given page contains.</p>
+</div>
+<div id="S4.p4" class="ltx_para">
+<p id="S4.p4.1" class="ltx_p"><span id="S4.p4.1.1" class="ltx_text ltx_font_bold">Phase 2: Label selection and guideline.</span> We reviewed the collected documents and identified the most common structural features they exhibit. This was achieved by identifying recurrent layout elements and lead us to the definition of 11 distinct class labels. These 11 class labels are <span id="S4.p4.1.2" class="ltx_text ltx_font_italic">Caption</span>, <span id="S4.p4.1.3" class="ltx_text ltx_font_italic">Footnote</span>, <span id="S4.p4.1.4" class="ltx_text ltx_font_italic">Formula</span>, <span id="S4.p4.1.5" class="ltx_text ltx_font_italic">List-item</span>, <span id="S4.p4.1.6" class="ltx_text ltx_font_italic">Page-footer</span>, <span id="S4.p4.1.7" class="ltx_text ltx_font_italic">Page-header</span>, <span id="S4.p4.1.8" class="ltx_text ltx_font_italic">Picture</span>, <span id="S4.p4.1.9" class="ltx_text ltx_font_italic">Section-header</span>, <span id="S4.p4.1.10" class="ltx_text ltx_font_italic">Table</span>, <span id="S4.p4.1.11" class="ltx_text ltx_font_italic">Text</span>, and <span id="S4.p4.1.12" class="ltx_text ltx_font_italic">Title</span>. Critical factors that were considered for the choice of these class labels were (1) the overall occurrence of the label, (2) the specificity of the label, (3) recognisability on a single page (i.e. no need for context from previous or next page) and (4) overall coverage of the page. Specificity ensures that the choice of label is not ambiguous, while coverage ensures that all meaningful items on a page can be annotated. We refrained from class labels that are very specific to a document category, such as <span id="S4.p4.1.13" class="ltx_text ltx_font_italic">Abstract</span> in the <span id="S4.p4.1.14" class="ltx_text ltx_font_italic">Scientific Articles</span> category. We also avoided class labels that are tightly linked to the semantics of the text. Labels such as <span id="S4.p4.1.15" class="ltx_text ltx_font_italic">Author</span> and <span id="S4.p4.1.16" class="ltx_text ltx_font_italic">Affiliation</span>, as seen in DocBank, are often only distinguishable by discriminating on the textual content of an element, which goes beyond visual layout recognition, in particular outside the <span id="S4.p4.1.17" class="ltx_text ltx_font_italic">Scientific Articles</span> category.</p>
+</div>
+<div id="S4.p5" class="ltx_para">
+<p id="S4.p5.1" class="ltx_p">At first sight, the task of visual document-layout interpretation appears intuitive enough to obtain plausible annotations in most cases.
+However, during early trial-runs in the core team, we observed many cases in which annotators use different annotation styles, especially for documents with challenging layouts. For example, if a figure is presented with subfigures, one annotator might draw a single figure bounding-box, while another might annotate each subfigure separately. The same applies for lists, where one might annotate all list items in one block or each list item separately. In essence, we observed that challenging layouts would be annotated in different but plausible ways. To illustrate this, we show in Figure <a href="#S4.F4" title="Figure 4 ‣ 4. Annotation Campaign ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a> multiple examples of plausible but inconsistent annotations on the same pages.</p>
+</div>
+<div id="S4.p6" class="ltx_para">
+<p id="S4.p6.1" class="ltx_p">Obviously, this inconsistency in annotations is not desirable for datasets which are intended to be used for model training. To minimise these inconsistencies, we created a detailed annotation guideline. While perfect consistency across 40 annotation staff members is clearly not possible to achieve, we saw a huge improvement in annotation consistency after the introduction of our annotation guideline. A few selected, non-trivial highlights of the guideline are:</p>
+<ol id="S4.I1" class="ltx_enumerate">
+<li id="S4.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(1)</span> 
+<div id="S4.I1.i1.p1" class="ltx_para">
+<p id="S4.I1.i1.p1.1" class="ltx_p">Every list-item is an individual object instance with class label <span id="S4.I1.i1.p1.1.1" class="ltx_text ltx_font_italic">List-item</span>. This definition is different from PubLayNet and DocBank, where all list-items are grouped together into one <span id="S4.I1.i1.p1.1.2" class="ltx_text ltx_font_italic">List</span> object.</p>
+</div>
+</li>
+<li id="S4.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(2)</span> 
+<div id="S4.I1.i2.p1" class="ltx_para">
+<p id="S4.I1.i2.p1.1" class="ltx_p">A <span id="S4.I1.i2.p1.1.1" class="ltx_text ltx_font_italic">List-item</span> is a paragraph with hanging indentation. Single-line elements can qualify as <span id="S4.I1.i2.p1.1.2" class="ltx_text ltx_font_italic">List-item</span> if the neighbour elements expose hanging indentation. Bullet or enumeration symbols are not a requirement.</p>
+</div>
+</li>
+<li id="S4.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(3)</span> 
+<div id="S4.I1.i3.p1" class="ltx_para">
+<p id="S4.I1.i3.p1.1" class="ltx_p">For every <span id="S4.I1.i3.p1.1.1" class="ltx_text ltx_font_italic">Caption</span>, there must be exactly one corresponding <span id="S4.I1.i3.p1.1.2" class="ltx_text ltx_font_italic">Picture</span> or <span id="S4.I1.i3.p1.1.3" class="ltx_text ltx_font_italic">Table</span>.</p>
+</div>
+</li>
+<li id="S4.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(4)</span> 
+<div id="S4.I1.i4.p1" class="ltx_para">
+<p id="S4.I1.i4.p1.1" class="ltx_p">Connected sub-pictures are grouped together in one <span id="S4.I1.i4.p1.1.1" class="ltx_text ltx_font_italic">Picture</span> object.</p>
+</div>
+</li>
+<li id="S4.I1.i5" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(5)</span> 
+<div id="S4.I1.i5.p1" class="ltx_para">
+<p id="S4.I1.i5.p1.1" class="ltx_p">Formula numbers are included in a <span id="S4.I1.i5.p1.1.1" class="ltx_text ltx_font_italic">Formula</span> object.</p>
+</div>
+</li>
+<li id="S4.I1.i6" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(6)</span> 
+<div id="S4.I1.i6.p1" class="ltx_para">
+<p id="S4.I1.i6.p1.1" class="ltx_p">Emphasised text (e.g. in italic or bold) at the beginning of a paragraph is not considered a <span id="S4.I1.i6.p1.1.1" class="ltx_text ltx_font_italic">Section-header</span>, unless it appears exclusively on its own line.</p>
+</div>
+</li>
+</ol>
+<p id="S4.p6.2" class="ltx_p">The complete annotation guideline is over 100 pages long and a detailed description is obviously out of scope for this paper. Nevertheless, it will be made publicly available alongside with DocLayNet for future reference.</p>
+</div>
+<div id="S4.p7" class="ltx_para">
+<p id="S4.p7.1" class="ltx_p"><span id="S4.p7.1.1" class="ltx_text ltx_font_bold">Phase 3: Training.</span> After a first trial with a small group of people, we realised that providing the annotation guideline and a set of random practice pages did not yield the desired quality level for layout annotation. Therefore we prepared a subset of pages with two different complexity levels, each with a practice and an exam part. 974 pages were reference-annotated by one proficient core team member. Annotation staff were then given the task to annotate the same subsets (blinded from the reference). By comparing the annotations of each staff member with the reference annotations, we could quantify how closely their annotations matched the reference. Only after passing two exam levels with high annotation quality, staff were admitted into the production phase. Practice iterations were carried out over a timeframe of 12 weeks, after which 8 of the 40 initially allocated annotators did not pass the bar.</p>
+</div>
+<figure id="S4.F4" class="ltx_figure"><img src="/html/2206.01062/assets/x4.png" id="S4.F4.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="461" height="719" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 4. </span>Examples of plausible annotation alternatives for the same page. Criteria in our annotation guideline can resolve cases A to C, while the case D remains ambiguous.</figcaption>
+</figure>
+<div id="S4.p8" class="ltx_para">
+<p id="S4.p8.1" class="ltx_p"><span id="S4.p8.1.1" class="ltx_text ltx_font_bold">Phase 4: Production annotation.</span> The previously selected 80K pages were annotated with the defined 11 class labels by 32 annotators. This production phase took around three months to complete. All annotations were created online through CCS, which visualises the programmatic PDF text-cells as an overlay on the page. The page annotation are obtained by drawing rectangular bounding-boxes, as shown in Figure <a href="#S4.F3" title="Figure 3 ‣ 4. Annotation Campaign ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>. With regard to the annotation practices, we implemented a few constraints and capabilities on the tooling level.
+First, we only allow non-overlapping, vertically oriented, rectangular boxes. For the large majority of documents, this constraint was sufficient and it speeds up the annotation considerably in comparison with arbitrary segmentation shapes.
+Second, annotator staff were not able to see each other’s annotations. This was enforced by design to avoid any bias in the annotation, which could skew the numbers of the inter-annotator agreement (see Table <a href="#S3.T1" title="Table 1 ‣ 3. The DocLayNet Dataset ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>). We wanted to avoid this at any cost in order to have clear, unbiased baseline numbers for human document-layout annotation.
+Third, we introduced the feature of <span id="S4.p8.1.2" class="ltx_text ltx_font_italic">snapping</span> boxes around text segments to obtain a pixel-accurate annotation and again reduce time and effort. The CCS annotation tool automatically shrinks every user-drawn box to the minimum bounding-box around the enclosed text-cells for all purely text-based segments, which excludes only <span id="S4.p8.1.3" class="ltx_text ltx_font_italic">Table</span> and <span id="S4.p8.1.4" class="ltx_text ltx_font_italic">Picture</span>. For the latter, we instructed annotation staff to minimise inclusion of surrounding whitespace while including all graphical lines. A downside of snapping boxes to enclosed text cells is that some wrongly parsed PDF pages cannot be annotated correctly and need to be skipped.
+Fourth, we established a way to flag pages as <span id="S4.p8.1.5" class="ltx_text ltx_font_italic">rejected</span> for cases where no valid annotation according to the label guidelines could be achieved. Example cases for this would be PDF pages that render incorrectly or contain layouts that are impossible to capture with non-overlapping rectangles. Such rejected pages are not contained in the final dataset.
+With all these measures in place, experienced annotation staff managed to annotate a single page in a typical timeframe of 20s to 60s, depending on its complexity.</p>
+</div>
+<figure id="S4.T2" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 2. </span>Prediction performance (mAP@0.5-0.95) of object detection networks on DocLayNet test set. The MRCNN (Mask R-CNN) and FRCNN (Faster R-CNN) models with ResNet-50 or ResNet-101 backbone were trained based on the network architectures from the <span id="S4.T2.2.1" class="ltx_text ltx_font_italic">detectron2</span> model zoo (Mask R-CNN R50, R101-FPN 3x, Faster R-CNN R101-FPN 3x), with default configurations. The YOLO implementation utilized was YOLOv5x6 <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib13" title="" class="ltx_ref">Yolov5, </a>)</cite>. All models were initialised using pre-trained weights from the COCO 2017 dataset.</figcaption>
+<table id="S4.T2.3" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S4.T2.3.1.1" class="ltx_tr">
+<th id="S4.T2.3.1.1.1" class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_r ltx_border_t"></th>
+<th id="S4.T2.3.1.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t">human</th>
+<th id="S4.T2.3.1.1.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" colspan="2">MRCNN</th>
+<th id="S4.T2.3.1.1.4" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t">FRCNN</th>
+<th id="S4.T2.3.1.1.5" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t">YOLO</th>
+</tr>
+<tr id="S4.T2.3.2.2" class="ltx_tr">
+<th id="S4.T2.3.2.2.1" class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_r"></th>
+<th id="S4.T2.3.2.2.2" class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_r"></th>
+<th id="S4.T2.3.2.2.3" class="ltx_td ltx_align_center ltx_th ltx_th_column">R50</th>
+<th id="S4.T2.3.2.2.4" class="ltx_td ltx_align_center ltx_th ltx_th_column">R101</th>
+<th id="S4.T2.3.2.2.5" class="ltx_td ltx_align_center ltx_th ltx_th_column">R101</th>
+<th id="S4.T2.3.2.2.6" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r">v5x6</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S4.T2.3.3.1" class="ltx_tr">
+<th id="S4.T2.3.3.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_t">Caption</th>
+<th id="S4.T2.3.3.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t">84-89</th>
+<td id="S4.T2.3.3.1.3" class="ltx_td ltx_align_center ltx_border_t">68.4</td>
+<td id="S4.T2.3.3.1.4" class="ltx_td ltx_align_center ltx_border_t">71.5</td>
+<td id="S4.T2.3.3.1.5" class="ltx_td ltx_align_center ltx_border_t">70.1</td>
+<td id="S4.T2.3.3.1.6" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">77.7</td>
+</tr>
+<tr id="S4.T2.3.4.2" class="ltx_tr">
+<th id="S4.T2.3.4.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Footnote</th>
+<th id="S4.T2.3.4.2.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r">83-91</th>
+<td id="S4.T2.3.4.2.3" class="ltx_td ltx_align_center">70.9</td>
+<td id="S4.T2.3.4.2.4" class="ltx_td ltx_align_center">71.8</td>
+<td id="S4.T2.3.4.2.5" class="ltx_td ltx_align_center">73.7</td>
+<td id="S4.T2.3.4.2.6" class="ltx_td ltx_align_center ltx_border_r">77.2</td>
+</tr>
+<tr id="S4.T2.3.5.3" class="ltx_tr">
+<th id="S4.T2.3.5.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Formula</th>
+<th id="S4.T2.3.5.3.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r">83-85</th>
+<td id="S4.T2.3.5.3.3" class="ltx_td ltx_align_center">60.1</td>
+<td id="S4.T2.3.5.3.4" class="ltx_td ltx_align_center">63.4</td>
+<td id="S4.T2.3.5.3.5" class="ltx_td ltx_align_center">63.5</td>
+<td id="S4.T2.3.5.3.6" class="ltx_td ltx_align_center ltx_border_r">66.2</td>
+</tr>
+<tr id="S4.T2.3.6.4" class="ltx_tr">
+<th id="S4.T2.3.6.4.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">List-item</th>
+<th id="S4.T2.3.6.4.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r">87-88</th>
+<td id="S4.T2.3.6.4.3" class="ltx_td ltx_align_center">81.2</td>
+<td id="S4.T2.3.6.4.4" class="ltx_td ltx_align_center">80.8</td>
+<td id="S4.T2.3.6.4.5" class="ltx_td ltx_align_center">81.0</td>
+<td id="S4.T2.3.6.4.6" class="ltx_td ltx_align_center ltx_border_r">86.2</td>
+</tr>
+<tr id="S4.T2.3.7.5" class="ltx_tr">
+<th id="S4.T2.3.7.5.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Page-footer</th>
+<th id="S4.T2.3.7.5.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r">93-94</th>
+<td id="S4.T2.3.7.5.3" class="ltx_td ltx_align_center">61.6</td>
+<td id="S4.T2.3.7.5.4" class="ltx_td ltx_align_center">59.3</td>
+<td id="S4.T2.3.7.5.5" class="ltx_td ltx_align_center">58.9</td>
+<td id="S4.T2.3.7.5.6" class="ltx_td ltx_align_center ltx_border_r">61.1</td>
+</tr>
+<tr id="S4.T2.3.8.6" class="ltx_tr">
+<th id="S4.T2.3.8.6.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Page-header</th>
+<th id="S4.T2.3.8.6.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r">85-89</th>
+<td id="S4.T2.3.8.6.3" class="ltx_td ltx_align_center">71.9</td>
+<td id="S4.T2.3.8.6.4" class="ltx_td ltx_align_center">70.0</td>
+<td id="S4.T2.3.8.6.5" class="ltx_td ltx_align_center">72.0</td>
+<td id="S4.T2.3.8.6.6" class="ltx_td ltx_align_center ltx_border_r">67.9</td>
+</tr>
+<tr id="S4.T2.3.9.7" class="ltx_tr">
+<th id="S4.T2.3.9.7.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Picture</th>
+<th id="S4.T2.3.9.7.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r">69-71</th>
+<td id="S4.T2.3.9.7.3" class="ltx_td ltx_align_center">71.7</td>
+<td id="S4.T2.3.9.7.4" class="ltx_td ltx_align_center">72.7</td>
+<td id="S4.T2.3.9.7.5" class="ltx_td ltx_align_center">72.0</td>
+<td id="S4.T2.3.9.7.6" class="ltx_td ltx_align_center ltx_border_r">77.1</td>
+</tr>
+<tr id="S4.T2.3.10.8" class="ltx_tr">
+<th id="S4.T2.3.10.8.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Section-header</th>
+<th id="S4.T2.3.10.8.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r">83-84</th>
+<td id="S4.T2.3.10.8.3" class="ltx_td ltx_align_center">67.6</td>
+<td id="S4.T2.3.10.8.4" class="ltx_td ltx_align_center">69.3</td>
+<td id="S4.T2.3.10.8.5" class="ltx_td ltx_align_center">68.4</td>
+<td id="S4.T2.3.10.8.6" class="ltx_td ltx_align_center ltx_border_r">74.6</td>
+</tr>
+<tr id="S4.T2.3.11.9" class="ltx_tr">
+<th id="S4.T2.3.11.9.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Table</th>
+<th id="S4.T2.3.11.9.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r">77-81</th>
+<td id="S4.T2.3.11.9.3" class="ltx_td ltx_align_center">82.2</td>
+<td id="S4.T2.3.11.9.4" class="ltx_td ltx_align_center">82.9</td>
+<td id="S4.T2.3.11.9.5" class="ltx_td ltx_align_center">82.2</td>
+<td id="S4.T2.3.11.9.6" class="ltx_td ltx_align_center ltx_border_r">86.3</td>
+</tr>
+<tr id="S4.T2.3.12.10" class="ltx_tr">
+<th id="S4.T2.3.12.10.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Text</th>
+<th id="S4.T2.3.12.10.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r">84-86</th>
+<td id="S4.T2.3.12.10.3" class="ltx_td ltx_align_center">84.6</td>
+<td id="S4.T2.3.12.10.4" class="ltx_td ltx_align_center">85.8</td>
+<td id="S4.T2.3.12.10.5" class="ltx_td ltx_align_center">85.4</td>
+<td id="S4.T2.3.12.10.6" class="ltx_td ltx_align_center ltx_border_r">88.1</td>
+</tr>
+<tr id="S4.T2.3.13.11" class="ltx_tr">
+<th id="S4.T2.3.13.11.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Title</th>
+<th id="S4.T2.3.13.11.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r">60-72</th>
+<td id="S4.T2.3.13.11.3" class="ltx_td ltx_align_center">76.7</td>
+<td id="S4.T2.3.13.11.4" class="ltx_td ltx_align_center">80.4</td>
+<td id="S4.T2.3.13.11.5" class="ltx_td ltx_align_center">79.9</td>
+<td id="S4.T2.3.13.11.6" class="ltx_td ltx_align_center ltx_border_r">82.7</td>
+</tr>
+<tr id="S4.T2.3.14.12" class="ltx_tr">
+<th id="S4.T2.3.14.12.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_l ltx_border_r ltx_border_t">All</th>
+<th id="S4.T2.3.14.12.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_b ltx_border_r ltx_border_t">82-83</th>
+<td id="S4.T2.3.14.12.3" class="ltx_td ltx_align_center ltx_border_b ltx_border_t">72.4</td>
+<td id="S4.T2.3.14.12.4" class="ltx_td ltx_align_center ltx_border_b ltx_border_t">73.5</td>
+<td id="S4.T2.3.14.12.5" class="ltx_td ltx_align_center ltx_border_b ltx_border_t">73.4</td>
+<td id="S4.T2.3.14.12.6" class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t">76.8</td>
+</tr>
+</tbody>
+</table>
+</figure>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5. </span>Experiments</h2>
+
+<div id="S5.p1" class="ltx_para">
+<p id="S5.p1.1" class="ltx_p">The primary goal of DocLayNet is to obtain high-quality ML models capable of accurate document-layout analysis on a wide variety of challenging layouts.
+As discussed in Section <a href="#S2" title="2. Related Work ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, object detection models are currently the easiest to use, due to the standardisation of ground-truth data in COCO format <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib16" title="" class="ltx_ref">Lin-etal-2014-COCO, </a>)</cite> and the availability of general frameworks such as <span id="S5.p1.1.1" class="ltx_text ltx_font_italic">detectron2</span> <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib17" title="" class="ltx_ref">detectron2, </a>)</cite>. Furthermore, baseline numbers in PubLayNet and DocBank were obtained using standard object detection models such as Mask R-CNN and Faster R-CNN. As such, we will relate to these object detection methods in this paper and leave the detailed evaluation of more recent methods mentioned in Section <a href="#S2" title="2. Related Work ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> for future work.</p>
+</div>
+<div id="S5.p2" class="ltx_para">
+<p id="S5.p2.1" class="ltx_p">In this section, we will present several aspects related to the performance of object detection models on DocLayNet. Similarly as in PubLayNet, we will evaluate the quality of their predictions using mean average precision (mAP) with 10 overlaps that range from 0.5 to 0.95 in steps of 0.05 (mAP@0.5-0.95). These scores are computed by leveraging the evaluation code provided by the COCO API <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib16" title="" class="ltx_ref">Lin-etal-2014-COCO, </a>)</cite>.</p>
+</div>
+<figure id="S5.F5" class="ltx_figure"><img src="/html/2206.01062/assets/x5.png" id="S5.F5.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="461" height="346" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 5. </span>Prediction performance (mAP@0.5-0.95) of a Mask R-CNN network with ResNet50 backbone trained on increasing fractions of the DocLayNet dataset. The learning curve flattens around the 80% mark, indicating that increasing the size of the DocLayNet dataset with similar data will not yield significantly better predictions.</figcaption>
+</figure>
+<section id="S5.SSx1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">Baselines for Object Detection</h3>
+
+<div id="S5.SSx1.p1" class="ltx_para">
+<p id="S5.SSx1.p1.1" class="ltx_p">In Table <a href="#S4.T2" title="Table 2 ‣ 4. Annotation Campaign ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, we present baseline experiments (given in mAP) on Mask R-CNN <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib12" title="" class="ltx_ref">MaskRCNN, </a>)</cite>, Faster R-CNN <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib11" title="" class="ltx_ref">FasterRCNN, </a>)</cite>, and YOLOv5 <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib13" title="" class="ltx_ref">Yolov5, </a>)</cite>. Both training and evaluation were performed on RGB images with dimensions of <math id="S5.SSx1.p1.1.m1.1" class="ltx_Math" alttext="1025\times 1025" display="inline"><semantics id="S5.SSx1.p1.1.m1.1a"><mrow id="S5.SSx1.p1.1.m1.1.1" xref="S5.SSx1.p1.1.m1.1.1.cmml"><mn id="S5.SSx1.p1.1.m1.1.1.2" xref="S5.SSx1.p1.1.m1.1.1.2.cmml">1025</mn><mo lspace="0.222em" rspace="0.222em" id="S5.SSx1.p1.1.m1.1.1.1" xref="S5.SSx1.p1.1.m1.1.1.1.cmml">×</mo><mn id="S5.SSx1.p1.1.m1.1.1.3" xref="S5.SSx1.p1.1.m1.1.1.3.cmml">1025</mn></mrow><annotation-xml encoding="MathML-Content" id="S5.SSx1.p1.1.m1.1b"><apply id="S5.SSx1.p1.1.m1.1.1.cmml" xref="S5.SSx1.p1.1.m1.1.1"><times id="S5.SSx1.p1.1.m1.1.1.1.cmml" xref="S5.SSx1.p1.1.m1.1.1.1"></times><cn type="integer" id="S5.SSx1.p1.1.m1.1.1.2.cmml" xref="S5.SSx1.p1.1.m1.1.1.2">1025</cn><cn type="integer" id="S5.SSx1.p1.1.m1.1.1.3.cmml" xref="S5.SSx1.p1.1.m1.1.1.3">1025</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.SSx1.p1.1.m1.1c">1025\times 1025</annotation></semantics></math> pixels.
+For training, we only used one annotation in case of redundantly annotated pages. As one can observe, the variation in mAP between the models is rather low, but overall between 6 and 10% lower than the mAP computed from the pairwise human annotations on triple-annotated pages.
+This gives a good indication that the DocLayNet dataset poses a worthwhile challenge for the research community to close the gap between human recognition and ML approaches. It is interesting to see that Mask R-CNN and Faster R-CNN produce very comparable mAP scores, indicating that pixel-based image segmentation derived from bounding-boxes does not help to obtain better predictions. On the other hand, the more recent Yolov5x model does very well and even out-performs humans on selected labels such as <span id="S5.SSx1.p1.1.1" class="ltx_text ltx_font_italic">Text</span>, <span id="S5.SSx1.p1.1.2" class="ltx_text ltx_font_italic">Table</span> and <span id="S5.SSx1.p1.1.3" class="ltx_text ltx_font_italic">Picture</span>. This is not entirely surprising, as <span id="S5.SSx1.p1.1.4" class="ltx_text ltx_font_italic">Text</span>, <span id="S5.SSx1.p1.1.5" class="ltx_text ltx_font_italic">Table</span> and <span id="S5.SSx1.p1.1.6" class="ltx_text ltx_font_italic">Picture</span> are abundant and the most visually distinctive in a document.</p>
+</div>
+</section>
+<section id="S5.SSx2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">Learning Curve</h3>
+
+<div id="S5.SSx2.p1" class="ltx_para">
+<p id="S5.SSx2.p1.1" class="ltx_p">One of the fundamental questions related to any dataset is if it is “large enough”. To answer this question for DocLayNet, we performed a data ablation study in which we evaluated a Mask R-CNN model trained on increasing fractions of the DocLayNet dataset. As can be seen in Figure <a href="#S5.F5" title="Figure 5 ‣ 5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>, the mAP score rises sharply in the beginning and eventually levels out. To estimate the error-bar on the metrics, we ran the training five times on the entire data-set. This resulted in a 1% error-bar, depicted by the shaded area in Figure <a href="#S5.F5" title="Figure 5 ‣ 5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>. In the inset of Figure <a href="#S5.F5" title="Figure 5 ‣ 5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>, we show the exact same data-points, but with a logarithmic scale on the x-axis. As is expected, the mAP score increases linearly as a function of the data-size in the inset. The curve ultimately flattens out between the 80% and 100% mark, with the 80% mark falling within the error-bars of the 100% mark. This provides a good indication that the model would not improve significantly by yet increasing the data size.
+Rather, it would probably benefit more from improved data consistency (as discussed in Section <a href="#S3" title="3. The DocLayNet Dataset ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>), data augmentation methods <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib23" title="" class="ltx_ref">Shorten:2019uq, </a>)</cite>, or the addition of more document categories and styles.</p>
+</div>
+<figure id="S5.T3" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 3. </span>Performance of a Mask R-CNN R50 network in mAP@0.5-0.95 scores trained on DocLayNet with different class label sets. The reduced label sets were obtained by either down-mapping or dropping labels. </figcaption>
+<table id="S5.T3.1" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S5.T3.1.1.1" class="ltx_tr">
+<th id="S5.T3.1.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_t">Class-count</th>
+<td id="S5.T3.1.1.1.2" class="ltx_td ltx_align_center ltx_border_t">11</td>
+<td id="S5.T3.1.1.1.3" class="ltx_td ltx_align_center ltx_border_t">6</td>
+<td id="S5.T3.1.1.1.4" class="ltx_td ltx_align_center ltx_border_t">5</td>
+<td id="S5.T3.1.1.1.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">4</td>
+</tr>
+<tr id="S5.T3.1.2.2" class="ltx_tr">
+<th id="S5.T3.1.2.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_t">Caption</th>
+<td id="S5.T3.1.2.2.2" class="ltx_td ltx_align_center ltx_border_t">68</td>
+<td id="S5.T3.1.2.2.3" class="ltx_td ltx_align_center ltx_border_t">Text</td>
+<td id="S5.T3.1.2.2.4" class="ltx_td ltx_align_center ltx_border_t">Text</td>
+<td id="S5.T3.1.2.2.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">Text</td>
+</tr>
+<tr id="S5.T3.1.3.3" class="ltx_tr">
+<th id="S5.T3.1.3.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Footnote</th>
+<td id="S5.T3.1.3.3.2" class="ltx_td ltx_align_center">71</td>
+<td id="S5.T3.1.3.3.3" class="ltx_td ltx_align_center">Text</td>
+<td id="S5.T3.1.3.3.4" class="ltx_td ltx_align_center">Text</td>
+<td id="S5.T3.1.3.3.5" class="ltx_td ltx_align_center ltx_border_r">Text</td>
+</tr>
+<tr id="S5.T3.1.4.4" class="ltx_tr">
+<th id="S5.T3.1.4.4.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Formula</th>
+<td id="S5.T3.1.4.4.2" class="ltx_td ltx_align_center">60</td>
+<td id="S5.T3.1.4.4.3" class="ltx_td ltx_align_center">Text</td>
+<td id="S5.T3.1.4.4.4" class="ltx_td ltx_align_center">Text</td>
+<td id="S5.T3.1.4.4.5" class="ltx_td ltx_align_center ltx_border_r">Text</td>
+</tr>
+<tr id="S5.T3.1.5.5" class="ltx_tr">
+<th id="S5.T3.1.5.5.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">List-item</th>
+<td id="S5.T3.1.5.5.2" class="ltx_td ltx_align_center">81</td>
+<td id="S5.T3.1.5.5.3" class="ltx_td ltx_align_center">Text</td>
+<td id="S5.T3.1.5.5.4" class="ltx_td ltx_align_center">82</td>
+<td id="S5.T3.1.5.5.5" class="ltx_td ltx_align_center ltx_border_r">Text</td>
+</tr>
+<tr id="S5.T3.1.6.6" class="ltx_tr">
+<th id="S5.T3.1.6.6.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Page-footer</th>
+<td id="S5.T3.1.6.6.2" class="ltx_td ltx_align_center">62</td>
+<td id="S5.T3.1.6.6.3" class="ltx_td ltx_align_center">62</td>
+<td id="S5.T3.1.6.6.4" class="ltx_td ltx_align_center">-</td>
+<td id="S5.T3.1.6.6.5" class="ltx_td ltx_align_center ltx_border_r">-</td>
+</tr>
+<tr id="S5.T3.1.7.7" class="ltx_tr">
+<th id="S5.T3.1.7.7.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Page-header</th>
+<td id="S5.T3.1.7.7.2" class="ltx_td ltx_align_center">72</td>
+<td id="S5.T3.1.7.7.3" class="ltx_td ltx_align_center">68</td>
+<td id="S5.T3.1.7.7.4" class="ltx_td ltx_align_center">-</td>
+<td id="S5.T3.1.7.7.5" class="ltx_td ltx_align_center ltx_border_r">-</td>
+</tr>
+<tr id="S5.T3.1.8.8" class="ltx_tr">
+<th id="S5.T3.1.8.8.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Picture</th>
+<td id="S5.T3.1.8.8.2" class="ltx_td ltx_align_center">72</td>
+<td id="S5.T3.1.8.8.3" class="ltx_td ltx_align_center">72</td>
+<td id="S5.T3.1.8.8.4" class="ltx_td ltx_align_center">72</td>
+<td id="S5.T3.1.8.8.5" class="ltx_td ltx_align_center ltx_border_r">72</td>
+</tr>
+<tr id="S5.T3.1.9.9" class="ltx_tr">
+<th id="S5.T3.1.9.9.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Section-header</th>
+<td id="S5.T3.1.9.9.2" class="ltx_td ltx_align_center">68</td>
+<td id="S5.T3.1.9.9.3" class="ltx_td ltx_align_center">67</td>
+<td id="S5.T3.1.9.9.4" class="ltx_td ltx_align_center">69</td>
+<td id="S5.T3.1.9.9.5" class="ltx_td ltx_align_center ltx_border_r">68</td>
+</tr>
+<tr id="S5.T3.1.10.10" class="ltx_tr">
+<th id="S5.T3.1.10.10.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Table</th>
+<td id="S5.T3.1.10.10.2" class="ltx_td ltx_align_center">82</td>
+<td id="S5.T3.1.10.10.3" class="ltx_td ltx_align_center">83</td>
+<td id="S5.T3.1.10.10.4" class="ltx_td ltx_align_center">82</td>
+<td id="S5.T3.1.10.10.5" class="ltx_td ltx_align_center ltx_border_r">82</td>
+</tr>
+<tr id="S5.T3.1.11.11" class="ltx_tr">
+<th id="S5.T3.1.11.11.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Text</th>
+<td id="S5.T3.1.11.11.2" class="ltx_td ltx_align_center">85</td>
+<td id="S5.T3.1.11.11.3" class="ltx_td ltx_align_center">84</td>
+<td id="S5.T3.1.11.11.4" class="ltx_td ltx_align_center">84</td>
+<td id="S5.T3.1.11.11.5" class="ltx_td ltx_align_center ltx_border_r">84</td>
+</tr>
+<tr id="S5.T3.1.12.12" class="ltx_tr">
+<th id="S5.T3.1.12.12.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Title</th>
+<td id="S5.T3.1.12.12.2" class="ltx_td ltx_align_center">77</td>
+<td id="S5.T3.1.12.12.3" class="ltx_td ltx_align_center">Sec.-h.</td>
+<td id="S5.T3.1.12.12.4" class="ltx_td ltx_align_center">Sec.-h.</td>
+<td id="S5.T3.1.12.12.5" class="ltx_td ltx_align_center ltx_border_r">Sec.-h.</td>
+</tr>
+<tr id="S5.T3.1.13.13" class="ltx_tr">
+<th id="S5.T3.1.13.13.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_l ltx_border_r ltx_border_t">Overall</th>
+<td id="S5.T3.1.13.13.2" class="ltx_td ltx_align_center ltx_border_b ltx_border_t">72</td>
+<td id="S5.T3.1.13.13.3" class="ltx_td ltx_align_center ltx_border_b ltx_border_t">73</td>
+<td id="S5.T3.1.13.13.4" class="ltx_td ltx_align_center ltx_border_b ltx_border_t">78</td>
+<td id="S5.T3.1.13.13.5" class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t">77</td>
+</tr>
+</tbody>
+</table>
+</figure>
+</section>
+<section id="S5.SSx3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">Impact of Class Labels</h3>
+
+<div id="S5.SSx3.p1" class="ltx_para">
+<p id="S5.SSx3.p1.1" class="ltx_p">The choice and number of labels can have a significant effect on the overall model performance. Since PubLayNet, DocBank and DocLayNet all have different label sets, it is of particular interest to understand and quantify this influence of the label set on the model performance. We investigate this by either down-mapping labels into more common ones (e.g. <span id="S5.SSx3.p1.1.1" class="ltx_text ltx_font_italic">Caption<math id="S5.SSx3.p1.1.1.m1.1" class="ltx_Math" alttext="\rightarrow" display="inline"><semantics id="S5.SSx3.p1.1.1.m1.1a"><mo stretchy="false" id="S5.SSx3.p1.1.1.m1.1.1" xref="S5.SSx3.p1.1.1.m1.1.1.cmml">→</mo><annotation-xml encoding="MathML-Content" id="S5.SSx3.p1.1.1.m1.1b"><ci id="S5.SSx3.p1.1.1.m1.1.1.cmml" xref="S5.SSx3.p1.1.1.m1.1.1">→</ci></annotation-xml><annotation encoding="application/x-tex" id="S5.SSx3.p1.1.1.m1.1c">\rightarrow</annotation></semantics></math>Text</span>) or excluding them from the annotations entirely. Furthermore, it must be stressed that all mappings and exclusions were performed on the data before model training. In Table <a href="#S5.T3" title="Table 3 ‣ Learning Curve ‣ 5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, we present the mAP scores for a Mask R-CNN R50 network on different label sets. Where a label is down-mapped, we show its corresponding label, otherwise it was excluded. We present three different label sets, with 6, 5 and 4 different labels respectively. The set of 5 labels contains the same labels as PubLayNet. However, due to the different definition of lists in PubLayNet (grouped list-items) versus DocLayNet (separate list-items), the label set of size 4 is the closest to PubLayNet, in the assumption that the <span id="S5.SSx3.p1.1.2" class="ltx_text ltx_font_italic">List</span> is down-mapped to <span id="S5.SSx3.p1.1.3" class="ltx_text ltx_font_italic">Text</span> in PubLayNet. The results in Table <a href="#S5.T3" title="Table 3 ‣ Learning Curve ‣ 5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> show that the prediction accuracy on the remaining class labels does not change significantly when other classes are merged into them. The overall macro-average improves by around 5%, in particular when <span id="S5.SSx3.p1.1.4" class="ltx_text ltx_font_italic">Page-footer</span> and <span id="S5.SSx3.p1.1.5" class="ltx_text ltx_font_italic">Page-header</span> are excluded.</p>
+</div>
+<figure id="S5.T4" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 4. </span>Performance of a Mask R-CNN R50 network with document-wise and page-wise split for different label sets. Naive page-wise split will result in <span id="S5.T4.2.1" class="ltx_text" style="position:relative; bottom:2.2pt;">~</span>10% point improvement.</figcaption>
+<table id="S5.T4.3" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S5.T4.3.1.1" class="ltx_tr">
+<th id="S5.T4.3.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_r ltx_border_t">Class-count</th>
+<th id="S5.T4.3.1.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" colspan="2">11</th>
+<th id="S5.T4.3.1.1.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" colspan="2">5</th>
+</tr>
+<tr id="S5.T4.3.2.2" class="ltx_tr">
+<th id="S5.T4.3.2.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_r">Split</th>
+<th id="S5.T4.3.2.2.2" class="ltx_td ltx_align_center ltx_th ltx_th_column">Doc</th>
+<th id="S5.T4.3.2.2.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r">Page</th>
+<th id="S5.T4.3.2.2.4" class="ltx_td ltx_align_center ltx_th ltx_th_column">Doc</th>
+<th id="S5.T4.3.2.2.5" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r">Page</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S5.T4.3.3.1" class="ltx_tr">
+<th id="S5.T4.3.3.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r ltx_border_t">Caption</th>
+<td id="S5.T4.3.3.1.2" class="ltx_td ltx_align_center ltx_border_t">68</td>
+<td id="S5.T4.3.3.1.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">83</td>
+<td id="S5.T4.3.3.1.4" class="ltx_td ltx_border_t"></td>
+<td id="S5.T4.3.3.1.5" class="ltx_td ltx_border_r ltx_border_t"></td>
+</tr>
+<tr id="S5.T4.3.4.2" class="ltx_tr">
+<th id="S5.T4.3.4.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Footnote</th>
+<td id="S5.T4.3.4.2.2" class="ltx_td ltx_align_center">71</td>
+<td id="S5.T4.3.4.2.3" class="ltx_td ltx_align_center ltx_border_r">84</td>
+<td id="S5.T4.3.4.2.4" class="ltx_td"></td>
+<td id="S5.T4.3.4.2.5" class="ltx_td ltx_border_r"></td>
+</tr>
+<tr id="S5.T4.3.5.3" class="ltx_tr">
+<th id="S5.T4.3.5.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Formula</th>
+<td id="S5.T4.3.5.3.2" class="ltx_td ltx_align_center">60</td>
+<td id="S5.T4.3.5.3.3" class="ltx_td ltx_align_center ltx_border_r">66</td>
+<td id="S5.T4.3.5.3.4" class="ltx_td"></td>
+<td id="S5.T4.3.5.3.5" class="ltx_td ltx_border_r"></td>
+</tr>
+<tr id="S5.T4.3.6.4" class="ltx_tr">
+<th id="S5.T4.3.6.4.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">List-item</th>
+<td id="S5.T4.3.6.4.2" class="ltx_td ltx_align_center">81</td>
+<td id="S5.T4.3.6.4.3" class="ltx_td ltx_align_center ltx_border_r">88</td>
+<td id="S5.T4.3.6.4.4" class="ltx_td ltx_align_center">82</td>
+<td id="S5.T4.3.6.4.5" class="ltx_td ltx_align_center ltx_border_r">88</td>
+</tr>
+<tr id="S5.T4.3.7.5" class="ltx_tr">
+<th id="S5.T4.3.7.5.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Page-footer</th>
+<td id="S5.T4.3.7.5.2" class="ltx_td ltx_align_center">62</td>
+<td id="S5.T4.3.7.5.3" class="ltx_td ltx_align_center ltx_border_r">89</td>
+<td id="S5.T4.3.7.5.4" class="ltx_td"></td>
+<td id="S5.T4.3.7.5.5" class="ltx_td ltx_border_r"></td>
+</tr>
+<tr id="S5.T4.3.8.6" class="ltx_tr">
+<th id="S5.T4.3.8.6.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Page-header</th>
+<td id="S5.T4.3.8.6.2" class="ltx_td ltx_align_center">72</td>
+<td id="S5.T4.3.8.6.3" class="ltx_td ltx_align_center ltx_border_r">90</td>
+<td id="S5.T4.3.8.6.4" class="ltx_td"></td>
+<td id="S5.T4.3.8.6.5" class="ltx_td ltx_border_r"></td>
+</tr>
+<tr id="S5.T4.3.9.7" class="ltx_tr">
+<th id="S5.T4.3.9.7.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Picture</th>
+<td id="S5.T4.3.9.7.2" class="ltx_td ltx_align_center">72</td>
+<td id="S5.T4.3.9.7.3" class="ltx_td ltx_align_center ltx_border_r">82</td>
+<td id="S5.T4.3.9.7.4" class="ltx_td ltx_align_center">72</td>
+<td id="S5.T4.3.9.7.5" class="ltx_td ltx_align_center ltx_border_r">82</td>
+</tr>
+<tr id="S5.T4.3.10.8" class="ltx_tr">
+<th id="S5.T4.3.10.8.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Section-header</th>
+<td id="S5.T4.3.10.8.2" class="ltx_td ltx_align_center">68</td>
+<td id="S5.T4.3.10.8.3" class="ltx_td ltx_align_center ltx_border_r">83</td>
+<td id="S5.T4.3.10.8.4" class="ltx_td ltx_align_center">69</td>
+<td id="S5.T4.3.10.8.5" class="ltx_td ltx_align_center ltx_border_r">83</td>
+</tr>
+<tr id="S5.T4.3.11.9" class="ltx_tr">
+<th id="S5.T4.3.11.9.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Table</th>
+<td id="S5.T4.3.11.9.2" class="ltx_td ltx_align_center">82</td>
+<td id="S5.T4.3.11.9.3" class="ltx_td ltx_align_center ltx_border_r">89</td>
+<td id="S5.T4.3.11.9.4" class="ltx_td ltx_align_center">82</td>
+<td id="S5.T4.3.11.9.5" class="ltx_td ltx_align_center ltx_border_r">90</td>
+</tr>
+<tr id="S5.T4.3.12.10" class="ltx_tr">
+<th id="S5.T4.3.12.10.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Text</th>
+<td id="S5.T4.3.12.10.2" class="ltx_td ltx_align_center">85</td>
+<td id="S5.T4.3.12.10.3" class="ltx_td ltx_align_center ltx_border_r">91</td>
+<td id="S5.T4.3.12.10.4" class="ltx_td ltx_align_center">84</td>
+<td id="S5.T4.3.12.10.5" class="ltx_td ltx_align_center ltx_border_r">90</td>
+</tr>
+<tr id="S5.T4.3.13.11" class="ltx_tr">
+<th id="S5.T4.3.13.11.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_r">Title</th>
+<td id="S5.T4.3.13.11.2" class="ltx_td ltx_align_center">77</td>
+<td id="S5.T4.3.13.11.3" class="ltx_td ltx_align_center ltx_border_r">81</td>
+<td id="S5.T4.3.13.11.4" class="ltx_td"></td>
+<td id="S5.T4.3.13.11.5" class="ltx_td ltx_border_r"></td>
+</tr>
+<tr id="S5.T4.3.14.12" class="ltx_tr">
+<th id="S5.T4.3.14.12.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_l ltx_border_r ltx_border_t">All</th>
+<td id="S5.T4.3.14.12.2" class="ltx_td ltx_align_center ltx_border_b ltx_border_t">72</td>
+<td id="S5.T4.3.14.12.3" class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t">84</td>
+<td id="S5.T4.3.14.12.4" class="ltx_td ltx_align_center ltx_border_b ltx_border_t">78</td>
+<td id="S5.T4.3.14.12.5" class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t">87</td>
+</tr>
+</tbody>
+</table>
+</figure>
+</section>
+<section id="S5.SSx4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">Impact of Document Split in Train and Test Set</h3>
+
+<div id="S5.SSx4.p1" class="ltx_para">
+<p id="S5.SSx4.p1.1" class="ltx_p">Many documents in DocLayNet have a unique styling. In order to avoid overfitting on a particular style, we have split the train-, test- and validation-sets of DocLayNet on document boundaries, i.e. every document contributes pages to only one set. To the best of our knowledge, this was not considered in PubLayNet or DocBank. To quantify how this affects model performance, we trained and evaluated a Mask R-CNN R50 model on a modified dataset version. Here, the train-, test- and validation-sets were obtained by a randomised draw over the individual pages. As can be seen in Table <a href="#S5.T4" title="Table 4 ‣ Impact of Class Labels ‣ 5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>, the difference in model performance is surprisingly large: page-wise splitting gains 1̃0% in mAP over the document-wise splitting. Thus, random page-wise splitting of DocLayNet can easily lead to accidental overestimation of model performance and should be avoided.</p>
+</div>
+</section>
+<section id="S5.SSx5" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">Dataset Comparison</h3>
+
+<div id="S5.SSx5.p1" class="ltx_para">
+<p id="S5.SSx5.p1.1" class="ltx_p">Throughout this paper, we claim that DocLayNet’s wider variety of document layouts leads to more robust layout detection models. In Table <a href="#S5.T5" title="Table 5 ‣ Dataset Comparison ‣ 5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>, we provide evidence for that. We trained models on each of the available datasets (PubLayNet, DocBank and DocLayNet) and evaluated them on the test sets of the other datasets. Due to the different label sets and annotation styles, a direct comparison is not possible. Hence, we focussed on the common labels among the datasets. Between PubLayNet and DocLayNet, these are <span id="S5.SSx5.p1.1.1" class="ltx_text ltx_font_italic">Picture</span>, <span id="S5.SSx5.p1.1.2" class="ltx_text ltx_font_italic">Section-header</span>, <span id="S5.SSx5.p1.1.3" class="ltx_text ltx_font_italic">Table</span> and <span id="S5.SSx5.p1.1.4" class="ltx_text ltx_font_italic">Text</span>. Before training, we either mapped or excluded DocLayNet’s other labels as specified in table <a href="#S5.T3" title="Table 3 ‣ Learning Curve ‣ 5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, and also PubLayNet’s <span id="S5.SSx5.p1.1.5" class="ltx_text ltx_font_italic">List</span> to <span id="S5.SSx5.p1.1.6" class="ltx_text ltx_font_italic">Text</span>. Note that the different clustering of lists (by list-element vs. whole list objects) naturally decreases the mAP score for <span id="S5.SSx5.p1.1.7" class="ltx_text ltx_font_italic">Text</span>.</p>
+</div>
+<figure id="S5.T5" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 5. </span>Prediction Performance (mAP@0.5-0.95) of a Mask R-CNN R50 network across the PubLayNet, DocBank &amp; DocLayNet data-sets. By evaluating on common label classes of each dataset, we observe that the DocLayNet-trained model has much less pronounced variations in performance across all datasets.</figcaption>
+<table id="S5.T5.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S5.T5.1.1.1" class="ltx_tr">
+<td id="S5.T5.1.1.1.1" class="ltx_td ltx_border_l ltx_border_r ltx_border_t"></td>
+<td id="S5.T5.1.1.1.2" class="ltx_td ltx_border_r ltx_border_t"></td>
+<td id="S5.T5.1.1.1.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" colspan="3">Testing on</td>
+</tr>
+<tr id="S5.T5.1.2.2" class="ltx_tr">
+<td id="S5.T5.1.2.2.1" class="ltx_td ltx_align_center ltx_border_l ltx_border_r">Training on</td>
+<td id="S5.T5.1.2.2.2" class="ltx_td ltx_align_left ltx_border_r">labels</td>
+<td id="S5.T5.1.2.2.3" class="ltx_td ltx_align_center">PLN</td>
+<td id="S5.T5.1.2.2.4" class="ltx_td ltx_align_center">DB</td>
+<td id="S5.T5.1.2.2.5" class="ltx_td ltx_align_center ltx_border_r">DLN</td>
+</tr>
+<tr id="S5.T5.1.3.3" class="ltx_tr">
+<td id="S5.T5.1.3.3.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" rowspan="5"><span id="S5.T5.1.3.3.1.1" class="ltx_text">PubLayNet (PLN)</span></td>
+<td id="S5.T5.1.3.3.2" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Figure</td>
+<td id="S5.T5.1.3.3.3" class="ltx_td ltx_align_center ltx_border_t">96</td>
+<td id="S5.T5.1.3.3.4" class="ltx_td ltx_align_center ltx_border_t">43</td>
+<td id="S5.T5.1.3.3.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">23</td>
+</tr>
+<tr id="S5.T5.1.4.4" class="ltx_tr">
+<td id="S5.T5.1.4.4.1" class="ltx_td ltx_align_left ltx_border_r">Sec-header</td>
+<td id="S5.T5.1.4.4.2" class="ltx_td ltx_align_center">87</td>
+<td id="S5.T5.1.4.4.3" class="ltx_td ltx_align_center">-</td>
+<td id="S5.T5.1.4.4.4" class="ltx_td ltx_align_center ltx_border_r">32</td>
+</tr>
+<tr id="S5.T5.1.5.5" class="ltx_tr">
+<td id="S5.T5.1.5.5.1" class="ltx_td ltx_align_left ltx_border_r">Table</td>
+<td id="S5.T5.1.5.5.2" class="ltx_td ltx_align_center">95</td>
+<td id="S5.T5.1.5.5.3" class="ltx_td ltx_align_center">24</td>
+<td id="S5.T5.1.5.5.4" class="ltx_td ltx_align_center ltx_border_r">49</td>
+</tr>
+<tr id="S5.T5.1.6.6" class="ltx_tr">
+<td id="S5.T5.1.6.6.1" class="ltx_td ltx_align_left ltx_border_r">Text</td>
+<td id="S5.T5.1.6.6.2" class="ltx_td ltx_align_center">96</td>
+<td id="S5.T5.1.6.6.3" class="ltx_td ltx_align_center">-</td>
+<td id="S5.T5.1.6.6.4" class="ltx_td ltx_align_center ltx_border_r">42</td>
+</tr>
+<tr id="S5.T5.1.7.7" class="ltx_tr">
+<td id="S5.T5.1.7.7.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">total</td>
+<td id="S5.T5.1.7.7.2" class="ltx_td ltx_align_center ltx_border_t">93</td>
+<td id="S5.T5.1.7.7.3" class="ltx_td ltx_align_center ltx_border_t">34</td>
+<td id="S5.T5.1.7.7.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">30</td>
+</tr>
+<tr id="S5.T5.1.8.8" class="ltx_tr">
+<td id="S5.T5.1.8.8.1" class="ltx_td ltx_align_left ltx_border_l ltx_border_r ltx_border_t" rowspan="3"><span id="S5.T5.1.8.8.1.1" class="ltx_text">DocBank (DB)</span></td>
+<td id="S5.T5.1.8.8.2" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Figure</td>
+<td id="S5.T5.1.8.8.3" class="ltx_td ltx_align_center ltx_border_t">77</td>
+<td id="S5.T5.1.8.8.4" class="ltx_td ltx_align_center ltx_border_t">71</td>
+<td id="S5.T5.1.8.8.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">31</td>
+</tr>
+<tr id="S5.T5.1.9.9" class="ltx_tr">
+<td id="S5.T5.1.9.9.1" class="ltx_td ltx_align_left ltx_border_r">Table</td>
+<td id="S5.T5.1.9.9.2" class="ltx_td ltx_align_center">19</td>
+<td id="S5.T5.1.9.9.3" class="ltx_td ltx_align_center">65</td>
+<td id="S5.T5.1.9.9.4" class="ltx_td ltx_align_center ltx_border_r">22</td>
+</tr>
+<tr id="S5.T5.1.10.10" class="ltx_tr">
+<td id="S5.T5.1.10.10.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">total</td>
+<td id="S5.T5.1.10.10.2" class="ltx_td ltx_align_center ltx_border_t">48</td>
+<td id="S5.T5.1.10.10.3" class="ltx_td ltx_align_center ltx_border_t">68</td>
+<td id="S5.T5.1.10.10.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">27</td>
+</tr>
+<tr id="S5.T5.1.11.11" class="ltx_tr">
+<td id="S5.T5.1.11.11.1" class="ltx_td ltx_align_left ltx_border_b ltx_border_l ltx_border_r ltx_border_t" rowspan="5"><span id="S5.T5.1.11.11.1.1" class="ltx_text">DocLayNet (DLN)</span></td>
+<td id="S5.T5.1.11.11.2" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Figure</td>
+<td id="S5.T5.1.11.11.3" class="ltx_td ltx_align_center ltx_border_t">67</td>
+<td id="S5.T5.1.11.11.4" class="ltx_td ltx_align_center ltx_border_t">51</td>
+<td id="S5.T5.1.11.11.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">72</td>
+</tr>
+<tr id="S5.T5.1.12.12" class="ltx_tr">
+<td id="S5.T5.1.12.12.1" class="ltx_td ltx_align_left ltx_border_r">Sec-header</td>
+<td id="S5.T5.1.12.12.2" class="ltx_td ltx_align_center">53</td>
+<td id="S5.T5.1.12.12.3" class="ltx_td ltx_align_center">-</td>
+<td id="S5.T5.1.12.12.4" class="ltx_td ltx_align_center ltx_border_r">68</td>
+</tr>
+<tr id="S5.T5.1.13.13" class="ltx_tr">
+<td id="S5.T5.1.13.13.1" class="ltx_td ltx_align_left ltx_border_r">Table</td>
+<td id="S5.T5.1.13.13.2" class="ltx_td ltx_align_center">87</td>
+<td id="S5.T5.1.13.13.3" class="ltx_td ltx_align_center">43</td>
+<td id="S5.T5.1.13.13.4" class="ltx_td ltx_align_center ltx_border_r">82</td>
+</tr>
+<tr id="S5.T5.1.14.14" class="ltx_tr">
+<td id="S5.T5.1.14.14.1" class="ltx_td ltx_align_left ltx_border_r">Text</td>
+<td id="S5.T5.1.14.14.2" class="ltx_td ltx_align_center">77</td>
+<td id="S5.T5.1.14.14.3" class="ltx_td ltx_align_center">-</td>
+<td id="S5.T5.1.14.14.4" class="ltx_td ltx_align_center ltx_border_r">84</td>
+</tr>
+<tr id="S5.T5.1.15.15" class="ltx_tr">
+<td id="S5.T5.1.15.15.1" class="ltx_td ltx_align_left ltx_border_b ltx_border_r ltx_border_t">total</td>
+<td id="S5.T5.1.15.15.2" class="ltx_td ltx_align_center ltx_border_b ltx_border_t">59</td>
+<td id="S5.T5.1.15.15.3" class="ltx_td ltx_align_center ltx_border_b ltx_border_t">47</td>
+<td id="S5.T5.1.15.15.4" class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t">78</td>
+</tr>
+</tbody>
+</table>
+</figure>
+<figure id="S5.F6" class="ltx_figure"><img src="/html/2206.01062/assets/x6.png" id="S5.F6.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="461" height="334" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 6. </span>Example layout predictions on selected pages from the DocLayNet test-set. (A, D) exhibit favourable results on coloured backgrounds. (B, C) show accurate list-item and paragraph differentiation despite densely-spaced lines. (E) demonstrates good table and figure distinction. (F) shows predictions on a Chinese patent with multiple overlaps, label confusion and missing boxes.
+</figcaption>
+</figure>
+<div id="S5.SSx5.p2" class="ltx_para">
+<p id="S5.SSx5.p2.1" class="ltx_p">For comparison of DocBank with DocLayNet, we trained only on <span id="S5.SSx5.p2.1.1" class="ltx_text ltx_font_italic">Picture</span> and <span id="S5.SSx5.p2.1.2" class="ltx_text ltx_font_italic">Table</span> clusters of each dataset. We had to exclude <span id="S5.SSx5.p2.1.3" class="ltx_text ltx_font_italic">Text</span> because successive paragraphs are often grouped together into a single object in DocBank. This paragraph grouping is incompatible with the individual paragraphs of DocLayNet.
+As can be seen in Table <a href="#S5.T5" title="Table 5 ‣ Dataset Comparison ‣ 5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>, DocLayNet trained models yield better performance compared to the previous datasets. It is noteworthy that the models trained on PubLayNet and DocBank perform very well on their own test set, but have a much lower performance on the foreign datasets. While this also applies to DocLayNet, the difference is far less pronounced. Thus we conclude that DocLayNet trained models are overall more robust and will produce better results for challenging, unseen layouts.</p>
+</div>
+</section>
+<section id="S5.SSx6" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">Example Predictions</h3>
+
+<div id="S5.SSx6.p1" class="ltx_para">
+<p id="S5.SSx6.p1.1" class="ltx_p">To conclude this section, we illustrate the quality of layout predictions one can expect from DocLayNet-trained models by providing a selection of examples without any further post-processing applied. Figure <a href="#S5.F6" title="Figure 6 ‣ Dataset Comparison ‣ 5. Experiments ‣ DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysis" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> shows selected layout predictions on pages from the test-set of DocLayNet. Results look decent in general across document categories, however one can also observe mistakes such as overlapping clusters of different classes, or entirely missing boxes due to low confidence.</p>
+</div>
+</section>
+</section>
+<section id="S6" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6. </span>Conclusion</h2>
+
+<div id="S6.p1" class="ltx_para">
+<p id="S6.p1.1" class="ltx_p">In this paper, we presented the DocLayNet dataset. It provides the document conversion and layout analysis research community a new and challenging dataset to improve and fine-tune novel ML methods on. In contrast to many other datasets, DocLayNet was created by human annotation in order to obtain reliable layout ground-truth on a wide variety of publication- and typesetting-styles. Including a large proportion of documents outside the scientific publishing domain adds significant value in this respect.</p>
+</div>
+<div id="S6.p2" class="ltx_para">
+<p id="S6.p2.1" class="ltx_p">From the dataset, we have derived on the one hand reference metrics for human performance on document-layout annotation (through double and triple annotations) and on the other hand evaluated the baseline performance of commonly used object detection methods. We also illustrated the impact of various dataset-related aspects on model performance through data-ablation experiments, both from a size and class-label perspective. Last but not least, we compared the accuracy of models trained on other public datasets and showed that DocLayNet trained models are more robust.</p>
+</div>
+<div id="S6.p3" class="ltx_para">
+<p id="S6.p3.1" class="ltx_p">To date, there is still a significant gap between human and ML accuracy on the layout interpretation task, and we hope that this work will inspire the research community to close that gap.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[1]</span>
+<span class="ltx_bibblock">
+Max Göbel, Tamir Hassan, Ermelinda Oro, and Giorgio Orsi.
+
+</span>
+<span class="ltx_bibblock">Icdar 2013 table competition.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib1.1.1" class="ltx_text ltx_font_italic">2013 12th International Conference on Document Analysis and
+Recognition</span>, pages 1449–1453, 2013.
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[2]</span>
+<span class="ltx_bibblock">
+Christian Clausner, Apostolos Antonacopoulos, and Stefan Pletschacher.
+
+</span>
+<span class="ltx_bibblock">Icdar2017 competition on recognition of documents with complex
+layouts - rdcl2017.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib2.1.1" class="ltx_text ltx_font_italic">2017 14th IAPR International Conference on Document Analysis
+and Recognition (ICDAR)</span>, volume 01, pages 1404–1410, 2017.
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[3]</span>
+<span class="ltx_bibblock">
+Hervé Déjean, Jean-Luc Meunier, Liangcai Gao, Yilun Huang, Yu Fang,
+Florian Kleber, and Eva-Maria Lang.
+
+</span>
+<span class="ltx_bibblock">ICDAR 2019 Competition on Table Detection and Recognition (cTDaR),
+April 2019.
+
+</span>
+<span class="ltx_bibblock">http://sac.founderit.com/.
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[4]</span>
+<span class="ltx_bibblock">
+Antonio Jimeno Yepes, Peter Zhong, and Douglas Burdick.
+
+</span>
+<span class="ltx_bibblock">Competition on scientific literature parsing.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib4.1.1" class="ltx_text ltx_font_italic">Proceedings of the International Conference on Document
+Analysis and Recognition</span>, ICDAR, pages 605–617. LNCS 12824,
+Springer-Verlag, sep 2021.
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[5]</span>
+<span class="ltx_bibblock">
+Logan Markewich, Hao Zhang, Yubin Xing, Navid Lambert-Shirzad, Jiang Zhexin,
+Roy Lee, Zhi Li, and Seok-Bum Ko.
+
+</span>
+<span class="ltx_bibblock">Segmentation for document layout analysis: not dead yet.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib5.1.1" class="ltx_text ltx_font_italic">International Journal on Document Analysis and Recognition
+(IJDAR)</span>, pages 1–11, 01 2022.
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[6]</span>
+<span class="ltx_bibblock">
+Xu Zhong, Jianbin Tang, and Antonio Jimeno-Yepes.
+
+</span>
+<span class="ltx_bibblock">Publaynet: Largest dataset ever for document layout analysis.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib6.1.1" class="ltx_text ltx_font_italic">Proceedings of the International Conference on Document
+Analysis and Recognition</span>, ICDAR, pages 1015–1022, sep 2019.
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[7]</span>
+<span class="ltx_bibblock">
+Minghao Li, Yiheng Xu, Lei Cui, Shaohan Huang, Furu Wei, Zhoujun Li, and Ming
+Zhou.
+
+</span>
+<span class="ltx_bibblock">Docbank: A benchmark dataset for document layout analysis.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib7.1.1" class="ltx_text ltx_font_italic">Proceedings of the 28th International Conference on
+Computational Linguistics</span>, COLING, pages 949–960. International Committee
+on Computational Linguistics, dec 2020.
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[8]</span>
+<span class="ltx_bibblock">
+Riaz Ahmad, Muhammad Tanvir Afzal, and M. Qadir.
+
+</span>
+<span class="ltx_bibblock">Information extraction from pdf sources based on rule-based system
+using integrated formats.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib8.1.1" class="ltx_text ltx_font_italic">SemWebEval@ESWC</span>, 2016.
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[9]</span>
+<span class="ltx_bibblock">
+Ross B. Girshick, Jeff Donahue, Trevor Darrell, and Jitendra Malik.
+
+</span>
+<span class="ltx_bibblock">Rich feature hierarchies for accurate object detection and semantic
+segmentation.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib9.1.1" class="ltx_text ltx_font_italic">IEEE Conference on Computer Vision and Pattern
+Recognition</span>, CVPR, pages 580–587. IEEE Computer Society, jun 2014.
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[10]</span>
+<span class="ltx_bibblock">
+Ross B. Girshick.
+
+</span>
+<span class="ltx_bibblock">Fast R-CNN.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib10.1.1" class="ltx_text ltx_font_italic">2015 IEEE International Conference on Computer Vision</span>,
+ICCV, pages 1440–1448. IEEE Computer Society, dec 2015.
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[11]</span>
+<span class="ltx_bibblock">
+Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun.
+
+</span>
+<span class="ltx_bibblock">Faster r-cnn: Towards real-time object detection with region proposal
+networks.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib11.1.1" class="ltx_text ltx_font_italic">IEEE Transactions on Pattern Analysis and Machine Intelligence</span>,
+39(6):1137–1149, 2017.
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[12]</span>
+<span class="ltx_bibblock">
+Kaiming He, Georgia Gkioxari, Piotr Dollár, and Ross B. Girshick.
+
+</span>
+<span class="ltx_bibblock">Mask R-CNN.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib12.1.1" class="ltx_text ltx_font_italic">IEEE International Conference on Computer Vision</span>, ICCV,
+pages 2980–2988. IEEE Computer Society, Oct 2017.
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[13]</span>
+<span class="ltx_bibblock">
+Glenn Jocher, Alex Stoken, Ayush Chaurasia, Jirka Borovec, NanoCode012, TaoXie,
+Yonghye Kwon, Kalen Michael, Liu Changyu, Jiacong Fang, Abhiram V, Laughing,
+tkianai, yxNONG, Piotr Skalski, Adam Hogan, Jebastin Nadar, imyhxy, Lorenzo
+Mammana, Alex Wang, Cristi Fati, Diego Montes, Jan Hajek, Laurentiu Diaconu,
+Mai Thanh Minh, Marc, albinxavi, fatih, oleg, and wanghao yang.
+
+</span>
+<span class="ltx_bibblock">ultralytics/yolov5: v6.0 - yolov5n nano models, roboflow integration,
+tensorflow export, opencv dnn support, October 2021.
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[14]</span>
+<span class="ltx_bibblock">
+Nicolas Carion, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier, Alexander
+Kirillov, and Sergey Zagoruyko.
+
+</span>
+<span class="ltx_bibblock">End-to-end object detection with transformers.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib14.1.1" class="ltx_text ltx_font_italic">CoRR</span>, abs/2005.12872, 2020.
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[15]</span>
+<span class="ltx_bibblock">
+Mingxing Tan, Ruoming Pang, and Quoc V. Le.
+
+</span>
+<span class="ltx_bibblock">Efficientdet: Scalable and efficient object detection.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib15.1.1" class="ltx_text ltx_font_italic">CoRR</span>, abs/1911.09070, 2019.
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[16]</span>
+<span class="ltx_bibblock">
+Tsung-Yi Lin, Michael Maire, Serge J. Belongie, Lubomir D. Bourdev, Ross B.
+Girshick, James Hays, Pietro Perona, Deva Ramanan, Piotr Dollár, and
+C. Lawrence Zitnick.
+
+</span>
+<span class="ltx_bibblock">Microsoft COCO: common objects in context, 2014.
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[17]</span>
+<span class="ltx_bibblock">
+Yuxin Wu, Alexander Kirillov, Francisco Massa, Wan-Yen Lo, and Ross Girshick.
+
+</span>
+<span class="ltx_bibblock">Detectron2, 2019.
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[18]</span>
+<span class="ltx_bibblock">
+Nikolaos Livathinos, Cesar Berrospi, Maksym Lysak, Viktor Kuropiatnyk, Ahmed
+Nassar, Andre Carvalho, Michele Dolfi, Christoph Auer, Kasper Dinkla, and
+Peter W. J. Staar.
+
+</span>
+<span class="ltx_bibblock">Robust pdf document conversion using recurrent neural networks.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib18.1.1" class="ltx_text ltx_font_italic">Proceedings of the 35th Conference on Artificial
+Intelligence</span>, AAAI, pages 15137–15145, feb 2021.
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[19]</span>
+<span class="ltx_bibblock">
+Yiheng Xu, Minghao Li, Lei Cui, Shaohan Huang, Furu Wei, and Ming Zhou.
+
+</span>
+<span class="ltx_bibblock">Layoutlm: Pre-training of text and layout for document image
+understanding.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib19.1.1" class="ltx_text ltx_font_italic">Proceedings of the 26th ACM SIGKDD International Conference
+on Knowledge Discovery and Data Mining</span>, KDD, pages 1192–1200, New York,
+USA, 2020. Association for Computing Machinery.
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[20]</span>
+<span class="ltx_bibblock">
+Shoubin Li, Xuyan Ma, Shuaiqun Pan, Jun Hu, Lin Shi, and Qing Wang.
+
+</span>
+<span class="ltx_bibblock">Vtlayout: Fusion of visual and text features for document layout
+analysis, 2021.
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[21]</span>
+<span class="ltx_bibblock">
+Peng Zhang, Can Li, Liang Qiao, Zhanzhan Cheng, Shiliang Pu, Yi Niu, and Fei
+Wu.
+
+</span>
+<span class="ltx_bibblock">Vsr: A unified framework for document layout analysis combining
+vision, semantics and relations, 2021.
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[22]</span>
+<span class="ltx_bibblock">
+Peter W J Staar, Michele Dolfi, Christoph Auer, and Costas Bekas.
+
+</span>
+<span class="ltx_bibblock">Corpus conversion service: A machine learning platform to ingest
+documents at scale.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib22.1.1" class="ltx_text ltx_font_italic">Proceedings of the 24th ACM SIGKDD International Conference
+on Knowledge Discovery and Data Mining</span>, KDD, pages 774–782. ACM, 2018.
+
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">[23]</span>
+<span class="ltx_bibblock">
+Connor Shorten and Taghi M. Khoshgoftaar.
+
+</span>
+<span class="ltx_bibblock">A survey on image data augmentation for deep learning.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib23.1.1" class="ltx_text ltx_font_italic">Journal of Big Data</span>, 6(1):60, 2019.
+
+</span>
+</li>
+</ul>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2206.01061" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2206.01062" class="ar5iv-text-button ar5iv-severity-ok">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2206.01062">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2206.01062" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2206.01063" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Mon Mar 11 16:46:59 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

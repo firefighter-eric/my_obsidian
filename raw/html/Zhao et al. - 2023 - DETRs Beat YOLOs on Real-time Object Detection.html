@@ -1,0 +1,899 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2304.08069] DETRs Beat YOLOs on Real-time Object Detection</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="DETRs Beat YOLOs on Real-time Object Detection">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="DETRs Beat YOLOs on Real-time Object Detection">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2304.08069">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2304.08069">
+
+<!--Generated on Thu Feb 29 14:23:10 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_title_document">DETRs Beat YOLOs on Real-time Object Detection</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Wenyu Lv
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> Yian Zhao
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> Shangliang Xu
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> Jinman Wei
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> Guanzhong Wang
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> Cheng Cui
+<br class="ltx_break">Yuning Du
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> Qingqing Dang
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> Yi Liu 
+<br class="ltx_break">Baidu Inc.
+<br class="ltx_break"><span id="id1.1.id1" class="ltx_text ltx_font_typewriter" style="font-size:90%;">{lvwenyu01</span>
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> zhaoyian
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> xushangliang
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> wangguanzhong} @baidu.com
+</span></span>
+</div>
+
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography" style="font-size:90%;">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[1]</span>
+<span class="ltx_bibblock"><span id="bib.bib1.1.1" class="ltx_text" style="font-size:90%;">
+Alexey Bochkovskiy, Chien-Yao Wang, and Hong-Yuan Mark Liao.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib1.2.1" class="ltx_text" style="font-size:90%;">Yolov4: Optimal speed and accuracy of object detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib1.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2004.10934</span><span id="bib.bib1.4.2" class="ltx_text" style="font-size:90%;">, 2020.
+</span>
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[2]</span>
+<span class="ltx_bibblock"><span id="bib.bib2.1.1" class="ltx_text" style="font-size:90%;">
+Daniel Bogdoll, Maximilian Nitsche, and J Marius Zöllner.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib2.2.1" class="ltx_text" style="font-size:90%;">Anomaly detection in autonomous driving: A survey.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib2.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib2.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE/CVF conference on computer vision and
+pattern recognition</span><span id="bib.bib2.5.3" class="ltx_text" style="font-size:90%;">, pages 4488–4499, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[3]</span>
+<span class="ltx_bibblock"><span id="bib.bib3.1.1" class="ltx_text" style="font-size:90%;">
+Yuxuan Cai, Yizhuang Zhou, Qi Han, Jianjian Sun, Xiangwen Kong, Jun Li, and
+Xiangyu Zhang.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib3.2.1" class="ltx_text" style="font-size:90%;">Reversible column networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib3.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2212.11696</span><span id="bib.bib3.4.2" class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[4]</span>
+<span class="ltx_bibblock"><span id="bib.bib4.1.1" class="ltx_text" style="font-size:90%;">
+Zhaowei Cai and Nuno Vasconcelos.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib4.2.1" class="ltx_text" style="font-size:90%;">Cascade r-cnn: Delving into high quality object detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib4.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib4.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE conference on computer vision and
+pattern recognition</span><span id="bib.bib4.5.3" class="ltx_text" style="font-size:90%;">, pages 6154–6162, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[5]</span>
+<span class="ltx_bibblock"><span id="bib.bib5.1.1" class="ltx_text" style="font-size:90%;">
+Nicolas Carion, Francisco Massa, Gabriel Synnaeve, Nicolas Usunier, Alexander
+Kirillov, and Sergey Zagoruyko.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib5.2.1" class="ltx_text" style="font-size:90%;">End-to-end object detection with transformers.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib5.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib5.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Computer Vision–ECCV 2020: 16th European Conference,
+Glasgow, UK, August 23–28, 2020, Proceedings, Part I 16</span><span id="bib.bib5.5.3" class="ltx_text" style="font-size:90%;">, pages 213–229.
+Springer, 2020.
+</span>
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[6]</span>
+<span class="ltx_bibblock"><span id="bib.bib6.1.1" class="ltx_text" style="font-size:90%;">
+Qiang Chen, Xiaokang Chen, Gang Zeng, and Jingdong Wang.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib6.2.1" class="ltx_text" style="font-size:90%;">Group detr: Fast training convergence with decoupled one-to-many
+label assignment.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib6.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2207.13085</span><span id="bib.bib6.4.2" class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[7]</span>
+<span class="ltx_bibblock"><span id="bib.bib7.1.1" class="ltx_text" style="font-size:90%;">
+Qiang Chen, Jian Wang, Chuchu Han, Shan Zhang, Zexian Li, Xiaokang Chen, Jiahui
+Chen, Xiaodi Wang, Shuming Han, Gang Zhang, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib7.2.1" class="ltx_text" style="font-size:90%;">Group detr v2: Strong object detector with encoder-decoder
+pretraining.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib7.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2211.03594</span><span id="bib.bib7.4.2" class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[8]</span>
+<span class="ltx_bibblock"><span id="bib.bib8.1.1" class="ltx_text" style="font-size:90%;">
+Cheng Cui, Ruoyu Guo, Yuning Du, Dongliang He, Fu Li, Zewu Wu, Qiwen Liu,
+Shilei Wen, Jizhou Huang, Xiaoguang Hu, Dianhai Yu, Errui Ding, and Yanjun
+Ma.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib8.2.1" class="ltx_text" style="font-size:90%;">Beyond self-supervision: A simple yet effective network
+distillation alternative to improve backbones.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib8.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">CoRR</span><span id="bib.bib8.4.2" class="ltx_text" style="font-size:90%;">, abs/2103.05959, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[9]</span>
+<span class="ltx_bibblock"><span id="bib.bib9.1.1" class="ltx_text" style="font-size:90%;">
+Peng Gao, Minghang Zheng, Xiaogang Wang, Jifeng Dai, and Hongsheng Li.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib9.2.1" class="ltx_text" style="font-size:90%;">Fast convergence of detr with spatially modulated co-attention.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib9.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib9.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE/CVF international conference on
+computer vision</span><span id="bib.bib9.5.3" class="ltx_text" style="font-size:90%;">, pages 3621–3630, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[10]</span>
+<span class="ltx_bibblock"><span id="bib.bib10.1.1" class="ltx_text" style="font-size:90%;">
+Zheng Ge, Songtao Liu, Feng Wang, Zeming Li, and Jian Sun.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib10.2.1" class="ltx_text" style="font-size:90%;">Yolox: Exceeding yolo series in 2021.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib10.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2107.08430</span><span id="bib.bib10.4.2" class="ltx_text" style="font-size:90%;">, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[11]</span>
+<span class="ltx_bibblock"><span id="bib.bib11.1.1" class="ltx_text" style="font-size:90%;">
+Golnaz Ghiasi, Tsung-Yi Lin, and Quoc V Le.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib11.2.1" class="ltx_text" style="font-size:90%;">Nas-fpn: Learning scalable feature pyramid architecture for object
+detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib11.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib11.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE/CVF conference on computer vision and
+pattern recognition</span><span id="bib.bib11.5.3" class="ltx_text" style="font-size:90%;">, pages 7036–7045, 2019.
+</span>
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[12]</span>
+<span class="ltx_bibblock"><span id="bib.bib12.1.1" class="ltx_text" style="font-size:90%;">
+Ross Girshick.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib12.2.1" class="ltx_text" style="font-size:90%;">Fast r-cnn.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib12.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib12.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE international conference on computer
+vision</span><span id="bib.bib12.5.3" class="ltx_text" style="font-size:90%;">, pages 1440–1448, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[13]</span>
+<span class="ltx_bibblock"><span id="bib.bib13.1.1" class="ltx_text" style="font-size:90%;">
+Jocher Glenn.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib13.2.1" class="ltx_text" style="font-size:90%;">Yolov5 release v7.0.
+</span>
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://github.com/ultralytics/yolov5/tree/v7.0" title="" class="ltx_ref ltx_url ltx_font_typewriter" style="font-size:90%;">https://github.com/ultralytics/yolov5/tree/v7.0</a><span id="bib.bib13.3.1" class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[14]</span>
+<span class="ltx_bibblock"><span id="bib.bib14.1.1" class="ltx_text" style="font-size:90%;">
+Jocher Glenn.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib14.2.1" class="ltx_text" style="font-size:90%;">Yolov8.
+</span>
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://github.com/ultralytics/ultralytics/tree/main" title="" class="ltx_ref ltx_url ltx_font_typewriter" style="font-size:90%;">https://github.com/ultralytics/ultralytics/tree/main</a><span id="bib.bib14.3.1" class="ltx_text" style="font-size:90%;">,
+2023.
+</span>
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[15]</span>
+<span class="ltx_bibblock"><span id="bib.bib15.1.1" class="ltx_text" style="font-size:90%;">
+Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib15.2.1" class="ltx_text" style="font-size:90%;">Deep residual learning for image recognition.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib15.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib15.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE conference on computer vision and
+pattern recognition</span><span id="bib.bib15.5.3" class="ltx_text" style="font-size:90%;">, pages 770–778, 2016.
+</span>
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[16]</span>
+<span class="ltx_bibblock"><span id="bib.bib16.1.1" class="ltx_text" style="font-size:90%;">
+Tong He, Zhi Zhang, Hang Zhang, Zhongyue Zhang, Junyuan Xie, and Mu Li.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib16.2.1" class="ltx_text" style="font-size:90%;">Bag of tricks for image classification with convolutional neural
+networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib16.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib16.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE/CVF conference on computer vision and
+pattern recognition</span><span id="bib.bib16.5.3" class="ltx_text" style="font-size:90%;">, pages 558–567, 2019.
+</span>
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[17]</span>
+<span class="ltx_bibblock"><span id="bib.bib17.1.1" class="ltx_text" style="font-size:90%;">
+Xin Huang, Xinxin Wang, Wenyu Lv, Xiaying Bai, Xiang Long, Kaipeng Deng,
+Qingqing Dang, Shumin Han, Qiwen Liu, Xiaoguang Hu, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib17.2.1" class="ltx_text" style="font-size:90%;">Pp-yolov2: A practical object detector.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib17.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2104.10419</span><span id="bib.bib17.4.2" class="ltx_text" style="font-size:90%;">, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[18]</span>
+<span class="ltx_bibblock"><span id="bib.bib18.1.1" class="ltx_text" style="font-size:90%;">
+Chuyi Li, Lulu Li, Yifei Geng, Hongliang Jiang, Meng Cheng, Bo Zhang, Zaidan
+Ke, Xiaoming Xu, and Xiangxiang Chu.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib18.2.1" class="ltx_text" style="font-size:90%;">Yolov6 v3. 0: A full-scale reloading.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib18.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2301.05586</span><span id="bib.bib18.4.2" class="ltx_text" style="font-size:90%;">, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[19]</span>
+<span class="ltx_bibblock"><span id="bib.bib19.1.1" class="ltx_text" style="font-size:90%;">
+Feng Li, Ailing Zeng, Shilong Liu, Hao Zhang, Hongyang Li, Lei Zhang, and
+Lionel M Ni.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib19.2.1" class="ltx_text" style="font-size:90%;">Lite detr: An interleaved multi-scale encoder for efficient detr.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib19.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2303.07335</span><span id="bib.bib19.4.2" class="ltx_text" style="font-size:90%;">, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[20]</span>
+<span class="ltx_bibblock"><span id="bib.bib20.1.1" class="ltx_text" style="font-size:90%;">
+Feng Li, Hao Zhang, Shilong Liu, Jian Guo, Lionel M Ni, and Lei Zhang.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib20.2.1" class="ltx_text" style="font-size:90%;">Dn-detr: Accelerate detr training by introducing query denoising.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib20.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib20.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE/CVF Conference on Computer Vision and
+Pattern Recognition</span><span id="bib.bib20.5.3" class="ltx_text" style="font-size:90%;">, pages 13619–13627, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[21]</span>
+<span class="ltx_bibblock"><span id="bib.bib21.1.1" class="ltx_text" style="font-size:90%;">
+Junyu Lin, Xiaofeng Mao, Yuefeng Chen, Lei Xu, Yuan He, and Hui Xue.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib21.2.1" class="ltx_text" style="font-size:90%;">D^ 2etr: Decoder-only detr with computationally efficient
+cross-scale attention.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib21.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2203.00860</span><span id="bib.bib21.4.2" class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[22]</span>
+<span class="ltx_bibblock"><span id="bib.bib22.1.1" class="ltx_text" style="font-size:90%;">
+Tsung-Yi Lin, Piotr Dollár, Ross Girshick, Kaiming He, Bharath Hariharan,
+and Serge Belongie.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib22.2.1" class="ltx_text" style="font-size:90%;">Feature pyramid networks for object detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib22.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib22.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE conference on computer vision and
+pattern recognition</span><span id="bib.bib22.5.3" class="ltx_text" style="font-size:90%;">, pages 2117–2125, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[23]</span>
+<span class="ltx_bibblock"><span id="bib.bib23.1.1" class="ltx_text" style="font-size:90%;">
+Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Dollár.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib23.2.1" class="ltx_text" style="font-size:90%;">Focal loss for dense object detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib23.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib23.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE international conference on computer
+vision</span><span id="bib.bib23.5.3" class="ltx_text" style="font-size:90%;">, pages 2980–2988, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[24]</span>
+<span class="ltx_bibblock"><span id="bib.bib24.1.1" class="ltx_text" style="font-size:90%;">
+Shilong Liu, Feng Li, Hao Zhang, Xiao Yang, Xianbiao Qi, Hang Su, Jun Zhu, and
+Lei Zhang.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib24.2.1" class="ltx_text" style="font-size:90%;">Dab-detr: Dynamic anchor boxes are better queries for detr.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib24.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2201.12329</span><span id="bib.bib24.4.2" class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[25]</span>
+<span class="ltx_bibblock"><span id="bib.bib25.1.1" class="ltx_text" style="font-size:90%;">
+Shu Liu, Lu Qi, Haifang Qin, Jianping Shi, and Jiaya Jia.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib25.2.1" class="ltx_text" style="font-size:90%;">Path aggregation network for instance segmentation.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib25.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib25.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE conference on computer vision and
+pattern recognition</span><span id="bib.bib25.5.3" class="ltx_text" style="font-size:90%;">, pages 8759–8768, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[26]</span>
+<span class="ltx_bibblock"><span id="bib.bib26.1.1" class="ltx_text" style="font-size:90%;">
+Xiang Long, Kaipeng Deng, Guanzhong Wang, Yang Zhang, Qingqing Dang, Yuan Gao,
+Hui Shen, Jianguo Ren, Shumin Han, Errui Ding, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib26.2.1" class="ltx_text" style="font-size:90%;">Pp-yolo: An effective and efficient implementation of object
+detector.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib26.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2007.12099</span><span id="bib.bib26.4.2" class="ltx_text" style="font-size:90%;">, 2020.
+</span>
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[27]</span>
+<span class="ltx_bibblock"><span id="bib.bib27.1.1" class="ltx_text" style="font-size:90%;">
+Depu Meng, Xiaokang Chen, Zejia Fan, Gang Zeng, Houqiang Li, Yuhui Yuan, Lei
+Sun, and Jingdong Wang.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib27.2.1" class="ltx_text" style="font-size:90%;">Conditional detr for fast training convergence.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib27.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib27.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE/CVF International Conference on
+Computer Vision</span><span id="bib.bib27.5.3" class="ltx_text" style="font-size:90%;">, pages 3651–3660, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[28]</span>
+<span class="ltx_bibblock"><span id="bib.bib28.1.1" class="ltx_text" style="font-size:90%;">
+Rashmika Nawaratne, Damminda Alahakoon, Daswin De Silva, and Xinghuo Yu.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib28.2.1" class="ltx_text" style="font-size:90%;">Spatiotemporal anomaly detection using deep learning for real-time
+video surveillance.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib28.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">IEEE Transactions on Industrial Informatics</span><span id="bib.bib28.4.2" class="ltx_text" style="font-size:90%;">, 16(1):393–402,
+2019.
+</span>
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[29]</span>
+<span class="ltx_bibblock"><span id="bib.bib29.1.1" class="ltx_text" style="font-size:90%;">
+Joseph Redmon and Ali Farhadi.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib29.2.1" class="ltx_text" style="font-size:90%;">Yolov3: An incremental improvement.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib29.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:1804.02767</span><span id="bib.bib29.4.2" class="ltx_text" style="font-size:90%;">, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[30]</span>
+<span class="ltx_bibblock"><span id="bib.bib30.1.1" class="ltx_text" style="font-size:90%;">
+Shaoqing Ren, Kaiming He, Ross Girshick, and Jian Sun.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib30.2.1" class="ltx_text" style="font-size:90%;">Faster r-cnn: Towards real-time object detection with region proposal
+networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib30.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">Advances in neural information processing systems</span><span id="bib.bib30.4.2" class="ltx_text" style="font-size:90%;">, 28, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[31]</span>
+<span class="ltx_bibblock"><span id="bib.bib31.1.1" class="ltx_text" style="font-size:90%;">
+Tianhe Ren, Jianwei Yang, Shilong Liu, Ailing Zeng, Feng Li, Hao Zhang,
+Hongyang Li, Zhaoyang Zeng, and Lei Zhang.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib31.2.1" class="ltx_text" style="font-size:90%;">A strong and reproducible object detector with only public datasets,
+2023.
+</span>
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[32]</span>
+<span class="ltx_bibblock"><span id="bib.bib32.1.1" class="ltx_text" style="font-size:90%;">
+Byungseok Roh, JaeWoong Shin, Wuhyun Shin, and Saehoon Kim.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib32.2.1" class="ltx_text" style="font-size:90%;">Sparse detr: Efficient end-to-end object detection with learnable
+sparsity.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib32.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2111.14330</span><span id="bib.bib32.4.2" class="ltx_text" style="font-size:90%;">, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib33" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[33]</span>
+<span class="ltx_bibblock"><span id="bib.bib33.1.1" class="ltx_text" style="font-size:90%;">
+Olga Russakovsky, Jia Deng, Hao Su, Jonathan Krause, Sanjeev Satheesh, Sean Ma,
+Zhiheng Huang, Andrej Karpathy, Aditya Khosla, Michael Bernstein, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib33.2.1" class="ltx_text" style="font-size:90%;">Imagenet large scale visual recognition challenge.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib33.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">International journal of computer vision</span><span id="bib.bib33.4.2" class="ltx_text" style="font-size:90%;">, 115:211–252, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib34" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[34]</span>
+<span class="ltx_bibblock"><span id="bib.bib34.1.1" class="ltx_text" style="font-size:90%;">
+Peize Sun, Rufeng Zhang, Yi Jiang, Tao Kong, Chenfeng Xu, Wei Zhan, Masayoshi
+Tomizuka, Lei Li, Zehuan Yuan, Changhu Wang, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib34.2.1" class="ltx_text" style="font-size:90%;">Sparse r-cnn: End-to-end object detection with learnable proposals.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib34.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib34.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE/CVF conference on computer vision and
+pattern recognition</span><span id="bib.bib34.5.3" class="ltx_text" style="font-size:90%;">, pages 14454–14463, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib35" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[35]</span>
+<span class="ltx_bibblock"><span id="bib.bib35.1.1" class="ltx_text" style="font-size:90%;">
+Mingxing Tan, Ruoming Pang, and Quoc V Le.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib35.2.1" class="ltx_text" style="font-size:90%;">Efficientdet: Scalable and efficient object detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib35.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib35.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE/CVF conference on computer vision and
+pattern recognition</span><span id="bib.bib35.5.3" class="ltx_text" style="font-size:90%;">, pages 10781–10790, 2020.
+</span>
+</span>
+</li>
+<li id="bib.bib36" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[36]</span>
+<span class="ltx_bibblock"><span id="bib.bib36.1.1" class="ltx_text" style="font-size:90%;">
+Zhi Tian, Chunhua Shen, Hao Chen, and Tong He.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib36.2.1" class="ltx_text" style="font-size:90%;">Fcos: Fully convolutional one-stage object detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib36.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib36.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE/CVF international conference on
+computer vision</span><span id="bib.bib36.5.3" class="ltx_text" style="font-size:90%;">, pages 9627–9636, 2019.
+</span>
+</span>
+</li>
+<li id="bib.bib37" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[37]</span>
+<span class="ltx_bibblock"><span id="bib.bib37.1.1" class="ltx_text" style="font-size:90%;">
+Chien-Yao Wang, Alexey Bochkovskiy, and Hong-Yuan Mark Liao.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib37.2.1" class="ltx_text" style="font-size:90%;">Scaled-yolov4: Scaling cross stage partial network.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib37.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib37.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE/cvf conference on computer vision and
+pattern recognition</span><span id="bib.bib37.5.3" class="ltx_text" style="font-size:90%;">, pages 13029–13038, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib38" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[38]</span>
+<span class="ltx_bibblock"><span id="bib.bib38.1.1" class="ltx_text" style="font-size:90%;">
+Chien-Yao Wang, Alexey Bochkovskiy, and Hong-Yuan Mark Liao.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib38.2.1" class="ltx_text" style="font-size:90%;">Yolov7: Trainable bag-of-freebies sets new state-of-the-art for
+real-time object detectors.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib38.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2207.02696</span><span id="bib.bib38.4.2" class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib39" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[39]</span>
+<span class="ltx_bibblock"><span id="bib.bib39.1.1" class="ltx_text" style="font-size:90%;">
+Jianfeng Wang, Lin Song, Zeming Li, Hongbin Sun, Jian Sun, and Nanning Zheng.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib39.2.1" class="ltx_text" style="font-size:90%;">End-to-end object detection with fully convolutional network.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib39.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib39.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE/CVF conference on computer vision and
+pattern recognition</span><span id="bib.bib39.5.3" class="ltx_text" style="font-size:90%;">, pages 15849–15858, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib40" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[40]</span>
+<span class="ltx_bibblock"><span id="bib.bib40.1.1" class="ltx_text" style="font-size:90%;">
+Yingming Wang, Xiangyu Zhang, Tong Yang, and Jian Sun.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib40.2.1" class="ltx_text" style="font-size:90%;">Anchor detr: Query design for transformer-based detector.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib40.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib40.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the AAAI conference on artificial
+intelligence</span><span id="bib.bib40.5.3" class="ltx_text" style="font-size:90%;">, volume 36, pages 2567–2575, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib41" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[41]</span>
+<span class="ltx_bibblock"><span id="bib.bib41.1.1" class="ltx_text" style="font-size:90%;">
+Shangliang Xu, Xinxin Wang, Wenyu Lv, Qinyao Chang, Cheng Cui, Kaipeng Deng,
+Guanzhong Wang, Qingqing Dang, Shengyu Wei, Yuning Du, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib41.2.1" class="ltx_text" style="font-size:90%;">Pp-yoloe: An evolved version of yolo.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib41.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2203.16250</span><span id="bib.bib41.4.2" class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib42" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[42]</span>
+<span class="ltx_bibblock"><span id="bib.bib42.1.1" class="ltx_text" style="font-size:90%;">
+Jianwei Yang, Chunyuan Li, Xiyang Dai, and Jianfeng Gao.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib42.2.1" class="ltx_text" style="font-size:90%;">Focal modulation networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib42.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">Advances in Neural Information Processing Systems</span><span id="bib.bib42.4.2" class="ltx_text" style="font-size:90%;">,
+35:4203–4217, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib43" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[43]</span>
+<span class="ltx_bibblock"><span id="bib.bib43.1.1" class="ltx_text" style="font-size:90%;">
+Zhuyu Yao, Jiangbo Ai, Boxun Li, and Chi Zhang.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib43.2.1" class="ltx_text" style="font-size:90%;">Efficient detr: improving end-to-end object detector with dense
+prior.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib43.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2104.01318</span><span id="bib.bib43.4.2" class="ltx_text" style="font-size:90%;">, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib44" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[44]</span>
+<span class="ltx_bibblock"><span id="bib.bib44.1.1" class="ltx_text" style="font-size:90%;">
+Ekim Yurtsever, Jacob Lambert, Alexander Carballo, and Kazuya Takeda.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib44.2.1" class="ltx_text" style="font-size:90%;">A survey of autonomous driving: Common practices and emerging
+technologies.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib44.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">IEEE access</span><span id="bib.bib44.4.2" class="ltx_text" style="font-size:90%;">, 8:58443–58469, 2020.
+</span>
+</span>
+</li>
+<li id="bib.bib45" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[45]</span>
+<span class="ltx_bibblock"><span id="bib.bib45.1.1" class="ltx_text" style="font-size:90%;">
+Fangao Zeng, Bin Dong, Yuang Zhang, Tiancai Wang, Xiangyu Zhang, and Yichen
+Wei.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib45.2.1" class="ltx_text" style="font-size:90%;">Motr: End-to-end multiple-object tracking with transformer.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib45.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib45.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Computer Vision–ECCV 2022: 17th European Conference, Tel
+Aviv, Israel, October 23–27, 2022, Proceedings, Part XXVII</span><span id="bib.bib45.5.3" class="ltx_text" style="font-size:90%;">, pages 659–675.
+Springer, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib46" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[46]</span>
+<span class="ltx_bibblock"><span id="bib.bib46.1.1" class="ltx_text" style="font-size:90%;">
+Hao Zhang, Feng Li, Shilong Liu, Lei Zhang, Hang Su, Jun Zhu, Lionel Ni, and
+Heung-Yeung Shum.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib46.2.1" class="ltx_text" style="font-size:90%;">Dino: Detr with improved denoising anchor boxes for end-to-end object
+detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib46.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib46.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">The Eleventh International Conference on Learning
+Representations</span><span id="bib.bib46.5.3" class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib47" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[47]</span>
+<span class="ltx_bibblock"><span id="bib.bib47.1.1" class="ltx_text" style="font-size:90%;">
+Haoyang Zhang, Ying Wang, Feras Dayoub, and Niko Sunderhauf.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib47.2.1" class="ltx_text" style="font-size:90%;">Varifocalnet: An iou-aware dense object detector.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib47.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib47.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Proceedings of the IEEE/CVF Conference on Computer Vision and
+Pattern Recognition</span><span id="bib.bib47.5.3" class="ltx_text" style="font-size:90%;">, pages 8514–8523, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib48" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[48]</span>
+<span class="ltx_bibblock"><span id="bib.bib48.1.1" class="ltx_text" style="font-size:90%;">
+Yifu Zhang, Peize Sun, Yi Jiang, Dongdong Yu, Fucheng Weng, Zehuan Yuan, Ping
+Luo, Wenyu Liu, and Xinggang Wang.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib48.2.1" class="ltx_text" style="font-size:90%;">Bytetrack: Multi-object tracking by associating every detection box.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib48.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib48.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">Computer Vision–ECCV 2022: 17th European Conference, Tel
+Aviv, Israel, October 23–27, 2022, Proceedings, Part XXII</span><span id="bib.bib48.5.3" class="ltx_text" style="font-size:90%;">, pages 1–21.
+Springer, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib49" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[49]</span>
+<span class="ltx_bibblock"><span id="bib.bib49.1.1" class="ltx_text" style="font-size:90%;">
+Xizhou Zhu, Weijie Su, Lewei Lu, Bin Li, Xiaogang Wang, and Jifeng Dai.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib49.2.1" class="ltx_text" style="font-size:90%;">Deformable detr: Deformable transformers for end-to-end object
+detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib49.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2010.04159</span><span id="bib.bib49.4.2" class="ltx_text" style="font-size:90%;">, 2020.
+</span>
+</span>
+</li>
+<li id="bib.bib50" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[50]</span>
+<span class="ltx_bibblock"><span id="bib.bib50.1.1" class="ltx_text" style="font-size:90%;">
+Zhuofan Zong, Guanglu Song, and Yu Liu.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib50.2.1" class="ltx_text" style="font-size:90%;">Detrs with collaborative hybrid assignments training.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib50.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv preprint arXiv:2211.12860</span><span id="bib.bib50.4.2" class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+</ul>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2304.08068" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2304.08069" class="ar5iv-text-button ar5iv-severity-error">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2304.08069">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2304.08069" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2304.08070" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Thu Feb 29 14:23:10 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

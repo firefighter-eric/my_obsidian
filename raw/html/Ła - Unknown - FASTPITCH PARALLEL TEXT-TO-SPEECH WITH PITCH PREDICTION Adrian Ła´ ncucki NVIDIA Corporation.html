@@ -1,0 +1,1008 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2006.06873] FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION</title><meta property="og:description" content="We present FastPitch, a fully-parallel text-to-speech model based on FastSpeech, conditioned on fundamental frequency contours.
+The model predicts pitch contours during inference.
+By altering these predictions, the gen…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2006.06873">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2006.06873">
+
+<!--Generated on Thu Mar 14 13:53:48 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_title_document">FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION</h1>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id1.1" class="ltx_p">We present FastPitch, a fully-parallel text-to-speech model based on FastSpeech, conditioned on fundamental frequency contours.
+The model predicts pitch contours during inference.
+By altering these predictions, the generated speech can be more expressive, better match the semantic of the utterance, and in the end more engaging to the listener.
+Uniformly increasing or decreasing pitch with FastPitch generates speech that resembles the voluntary modulation of voice.
+Conditioning on frequency contours improves the overall quality of synthesized speech, making it comparable to state-of-the-art.
+It does not introduce an overhead, and FastPitch retains the favorable, fully-parallel Transformer architecture, with over <math id="id1.1.m1.1" class="ltx_math_unparsed" alttext="900\times" display="inline"><semantics id="id1.1.m1.1a"><mrow id="id1.1.m1.1b"><mn id="id1.1.m1.1.1">900</mn><mo lspace="0.222em" id="id1.1.m1.1.2">×</mo></mrow><annotation encoding="application/x-tex" id="id1.1.m1.1c">900\times</annotation></semantics></math> real-time factor for mel-spectrogram synthesis of a typical utterance.</p>
+</div>
+<div id="p1" class="ltx_para">
+<p id="p1.1" class="ltx_p"><span id="p1.1.1" class="ltx_text ltx_font_bold ltx_font_italic">Index Terms<span id="p1.1.1.1" class="ltx_text ltx_font_upright">— </span></span>
+text-to-speech, speech synthesis, fundamental frequency</p>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>INTRODUCTION</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">Recent advances in neural text-to-speech (TTS) enabled real-time synthesis of naturally sounding, human-like speech.
+Parallel models are able to synthesize mel-spectrograms orders of magnitude faster than autoregressive ones,
+either by relying on external alignments <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref">1</a>]</cite>, or aligning themselves <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib2" title="" class="ltx_ref">2</a>]</cite>.
+TTS models can be conditioned on qualities of speech
+such as linguistic features and fundamental frequency <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib3" title="" class="ltx_ref">3</a>]</cite>. The latter has been repeatedly shown to improve the quality
+of neural, but also concatenative models <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib4" title="" class="ltx_ref">4</a>, <a href="#bib.bib5" title="" class="ltx_ref">5</a>]</cite>. Conditioning on <math id="S1.p1.1.m1.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="S1.p1.1.m1.1a"><msub id="S1.p1.1.m1.1.1" xref="S1.p1.1.m1.1.1.cmml"><mi id="S1.p1.1.m1.1.1.2" xref="S1.p1.1.m1.1.1.2.cmml">F</mi><mn id="S1.p1.1.m1.1.1.3" xref="S1.p1.1.m1.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S1.p1.1.m1.1b"><apply id="S1.p1.1.m1.1.1.cmml" xref="S1.p1.1.m1.1.1"><csymbol cd="ambiguous" id="S1.p1.1.m1.1.1.1.cmml" xref="S1.p1.1.m1.1.1">subscript</csymbol><ci id="S1.p1.1.m1.1.1.2.cmml" xref="S1.p1.1.m1.1.1.2">𝐹</ci><cn type="integer" id="S1.p1.1.m1.1.1.3.cmml" xref="S1.p1.1.m1.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S1.p1.1.m1.1c">F_{0}</annotation></semantics></math> is a common approach to adding singing capabilities <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib6" title="" class="ltx_ref">6</a>]</cite>. or adapting to other speakers <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib5" title="" class="ltx_ref">5</a>]</cite>.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">In this paper we propose FastPitch, a feed-forward model based on FastSpeech that improves the quality of synthesized speech.
+By conditioning on fundamental frequency estimated for every input symbol,
+which we refer to simply as a pitch contour,
+it matches the state-of-the-art autoregressive TTS models.
+We show that explicit modeling of such pitch contours addresses
+the quality shortcomings of the plain feed-forward Transformer architecture.
+These most likely arise from collapsing different pronunciations
+of the same phonetic units in the absence of enough linguistic information in the textual input alone.
+Conditioning on fundamental frequency also improves convergence,
+and eliminates the need for knowledge distillation of mel-spectrogram targets used in FastSpeech.
+We would like to note that a concurrently developed FastSpeech 2 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib7" title="" class="ltx_ref">7</a>]</cite>
+describes a similar approach.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.2" class="ltx_p">Combined with WaveGlow <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib8" title="" class="ltx_ref">8</a>]</cite>, FastPitch is able to synthesize mel-spectrograms
+over 60<math id="S1.p3.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S1.p3.1.m1.1a"><mo id="S1.p3.1.m1.1.1" xref="S1.p3.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S1.p3.1.m1.1b"><times id="S1.p3.1.m1.1.1.cmml" xref="S1.p3.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S1.p3.1.m1.1c">\times</annotation></semantics></math> faster than real-time,
+without resorting to kernel-level optimizations <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite>.
+Because the model learns to predict and use pitch in a low resolution of one value for every input symbol,
+it makes it easy to adjust pitch interactively, enabling practical applications
+in pitch editing.
+Constant offsetting of <math id="S1.p3.2.m2.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="S1.p3.2.m2.1a"><msub id="S1.p3.2.m2.1.1" xref="S1.p3.2.m2.1.1.cmml"><mi id="S1.p3.2.m2.1.1.2" xref="S1.p3.2.m2.1.1.2.cmml">F</mi><mn id="S1.p3.2.m2.1.1.3" xref="S1.p3.2.m2.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S1.p3.2.m2.1b"><apply id="S1.p3.2.m2.1.1.cmml" xref="S1.p3.2.m2.1.1"><csymbol cd="ambiguous" id="S1.p3.2.m2.1.1.1.cmml" xref="S1.p3.2.m2.1.1">subscript</csymbol><ci id="S1.p3.2.m2.1.1.2.cmml" xref="S1.p3.2.m2.1.1.2">𝐹</ci><cn type="integer" id="S1.p3.2.m2.1.1.3.cmml" xref="S1.p3.2.m2.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S1.p3.2.m2.1c">F_{0}</annotation></semantics></math> with FastPitch
+produces naturally sounding low- and high-pitched variations of voice
+that preserve the perceived speaker identity.
+We conclude that the model learns to mimic the action of vocal chords,
+which happens during the voluntary modulation of voice.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>MODEL DESCRIPTION</h2>
+
+<div id="S2.p1" class="ltx_para">
+<p id="S2.p1.4" class="ltx_p">The architecture of FastPitch is shown in Figure <a href="#S2.F1" title="Figure 1 ‣ 2 MODEL DESCRIPTION ‣ FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>. It is based on FastSpeech
+and composed mainly of two feed-forward Transformer (FFTr) stacks <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref">1</a>]</cite>.
+The first one operates in the resolution of input tokens, the second one in the resolution of the output frames.
+Let <math id="S2.p1.1.m1.3" class="ltx_Math" alttext="\bm{x}=(x_{1},\ldots,x_{n})" display="inline"><semantics id="S2.p1.1.m1.3a"><mrow id="S2.p1.1.m1.3.3" xref="S2.p1.1.m1.3.3.cmml"><mi id="S2.p1.1.m1.3.3.4" xref="S2.p1.1.m1.3.3.4.cmml">𝒙</mi><mo id="S2.p1.1.m1.3.3.3" xref="S2.p1.1.m1.3.3.3.cmml">=</mo><mrow id="S2.p1.1.m1.3.3.2.2" xref="S2.p1.1.m1.3.3.2.3.cmml"><mo stretchy="false" id="S2.p1.1.m1.3.3.2.2.3" xref="S2.p1.1.m1.3.3.2.3.cmml">(</mo><msub id="S2.p1.1.m1.2.2.1.1.1" xref="S2.p1.1.m1.2.2.1.1.1.cmml"><mi id="S2.p1.1.m1.2.2.1.1.1.2" xref="S2.p1.1.m1.2.2.1.1.1.2.cmml">x</mi><mn id="S2.p1.1.m1.2.2.1.1.1.3" xref="S2.p1.1.m1.2.2.1.1.1.3.cmml">1</mn></msub><mo id="S2.p1.1.m1.3.3.2.2.4" xref="S2.p1.1.m1.3.3.2.3.cmml">,</mo><mi mathvariant="normal" id="S2.p1.1.m1.1.1" xref="S2.p1.1.m1.1.1.cmml">…</mi><mo id="S2.p1.1.m1.3.3.2.2.5" xref="S2.p1.1.m1.3.3.2.3.cmml">,</mo><msub id="S2.p1.1.m1.3.3.2.2.2" xref="S2.p1.1.m1.3.3.2.2.2.cmml"><mi id="S2.p1.1.m1.3.3.2.2.2.2" xref="S2.p1.1.m1.3.3.2.2.2.2.cmml">x</mi><mi id="S2.p1.1.m1.3.3.2.2.2.3" xref="S2.p1.1.m1.3.3.2.2.2.3.cmml">n</mi></msub><mo stretchy="false" id="S2.p1.1.m1.3.3.2.2.6" xref="S2.p1.1.m1.3.3.2.3.cmml">)</mo></mrow></mrow><annotation-xml encoding="MathML-Content" id="S2.p1.1.m1.3b"><apply id="S2.p1.1.m1.3.3.cmml" xref="S2.p1.1.m1.3.3"><eq id="S2.p1.1.m1.3.3.3.cmml" xref="S2.p1.1.m1.3.3.3"></eq><ci id="S2.p1.1.m1.3.3.4.cmml" xref="S2.p1.1.m1.3.3.4">𝒙</ci><vector id="S2.p1.1.m1.3.3.2.3.cmml" xref="S2.p1.1.m1.3.3.2.2"><apply id="S2.p1.1.m1.2.2.1.1.1.cmml" xref="S2.p1.1.m1.2.2.1.1.1"><csymbol cd="ambiguous" id="S2.p1.1.m1.2.2.1.1.1.1.cmml" xref="S2.p1.1.m1.2.2.1.1.1">subscript</csymbol><ci id="S2.p1.1.m1.2.2.1.1.1.2.cmml" xref="S2.p1.1.m1.2.2.1.1.1.2">𝑥</ci><cn type="integer" id="S2.p1.1.m1.2.2.1.1.1.3.cmml" xref="S2.p1.1.m1.2.2.1.1.1.3">1</cn></apply><ci id="S2.p1.1.m1.1.1.cmml" xref="S2.p1.1.m1.1.1">…</ci><apply id="S2.p1.1.m1.3.3.2.2.2.cmml" xref="S2.p1.1.m1.3.3.2.2.2"><csymbol cd="ambiguous" id="S2.p1.1.m1.3.3.2.2.2.1.cmml" xref="S2.p1.1.m1.3.3.2.2.2">subscript</csymbol><ci id="S2.p1.1.m1.3.3.2.2.2.2.cmml" xref="S2.p1.1.m1.3.3.2.2.2.2">𝑥</ci><ci id="S2.p1.1.m1.3.3.2.2.2.3.cmml" xref="S2.p1.1.m1.3.3.2.2.2.3">𝑛</ci></apply></vector></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.p1.1.m1.3c">\bm{x}=(x_{1},\ldots,x_{n})</annotation></semantics></math> be the sequence of input lexical units, and <math id="S2.p1.2.m2.3" class="ltx_Math" alttext="\bm{y}=(y_{1},\ldots,y_{t})" display="inline"><semantics id="S2.p1.2.m2.3a"><mrow id="S2.p1.2.m2.3.3" xref="S2.p1.2.m2.3.3.cmml"><mi id="S2.p1.2.m2.3.3.4" xref="S2.p1.2.m2.3.3.4.cmml">𝒚</mi><mo id="S2.p1.2.m2.3.3.3" xref="S2.p1.2.m2.3.3.3.cmml">=</mo><mrow id="S2.p1.2.m2.3.3.2.2" xref="S2.p1.2.m2.3.3.2.3.cmml"><mo stretchy="false" id="S2.p1.2.m2.3.3.2.2.3" xref="S2.p1.2.m2.3.3.2.3.cmml">(</mo><msub id="S2.p1.2.m2.2.2.1.1.1" xref="S2.p1.2.m2.2.2.1.1.1.cmml"><mi id="S2.p1.2.m2.2.2.1.1.1.2" xref="S2.p1.2.m2.2.2.1.1.1.2.cmml">y</mi><mn id="S2.p1.2.m2.2.2.1.1.1.3" xref="S2.p1.2.m2.2.2.1.1.1.3.cmml">1</mn></msub><mo id="S2.p1.2.m2.3.3.2.2.4" xref="S2.p1.2.m2.3.3.2.3.cmml">,</mo><mi mathvariant="normal" id="S2.p1.2.m2.1.1" xref="S2.p1.2.m2.1.1.cmml">…</mi><mo id="S2.p1.2.m2.3.3.2.2.5" xref="S2.p1.2.m2.3.3.2.3.cmml">,</mo><msub id="S2.p1.2.m2.3.3.2.2.2" xref="S2.p1.2.m2.3.3.2.2.2.cmml"><mi id="S2.p1.2.m2.3.3.2.2.2.2" xref="S2.p1.2.m2.3.3.2.2.2.2.cmml">y</mi><mi id="S2.p1.2.m2.3.3.2.2.2.3" xref="S2.p1.2.m2.3.3.2.2.2.3.cmml">t</mi></msub><mo stretchy="false" id="S2.p1.2.m2.3.3.2.2.6" xref="S2.p1.2.m2.3.3.2.3.cmml">)</mo></mrow></mrow><annotation-xml encoding="MathML-Content" id="S2.p1.2.m2.3b"><apply id="S2.p1.2.m2.3.3.cmml" xref="S2.p1.2.m2.3.3"><eq id="S2.p1.2.m2.3.3.3.cmml" xref="S2.p1.2.m2.3.3.3"></eq><ci id="S2.p1.2.m2.3.3.4.cmml" xref="S2.p1.2.m2.3.3.4">𝒚</ci><vector id="S2.p1.2.m2.3.3.2.3.cmml" xref="S2.p1.2.m2.3.3.2.2"><apply id="S2.p1.2.m2.2.2.1.1.1.cmml" xref="S2.p1.2.m2.2.2.1.1.1"><csymbol cd="ambiguous" id="S2.p1.2.m2.2.2.1.1.1.1.cmml" xref="S2.p1.2.m2.2.2.1.1.1">subscript</csymbol><ci id="S2.p1.2.m2.2.2.1.1.1.2.cmml" xref="S2.p1.2.m2.2.2.1.1.1.2">𝑦</ci><cn type="integer" id="S2.p1.2.m2.2.2.1.1.1.3.cmml" xref="S2.p1.2.m2.2.2.1.1.1.3">1</cn></apply><ci id="S2.p1.2.m2.1.1.cmml" xref="S2.p1.2.m2.1.1">…</ci><apply id="S2.p1.2.m2.3.3.2.2.2.cmml" xref="S2.p1.2.m2.3.3.2.2.2"><csymbol cd="ambiguous" id="S2.p1.2.m2.3.3.2.2.2.1.cmml" xref="S2.p1.2.m2.3.3.2.2.2">subscript</csymbol><ci id="S2.p1.2.m2.3.3.2.2.2.2.cmml" xref="S2.p1.2.m2.3.3.2.2.2.2">𝑦</ci><ci id="S2.p1.2.m2.3.3.2.2.2.3.cmml" xref="S2.p1.2.m2.3.3.2.2.2.3">𝑡</ci></apply></vector></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.p1.2.m2.3c">\bm{y}=(y_{1},\ldots,y_{t})</annotation></semantics></math>
+be the sequence of target mel-scale spectrogram frames.
+The first FFTr stack produces the hidden representation
+<math id="S2.p1.3.m3.1" class="ltx_Math" alttext="\bm{h}=\text{FFTr}(\bm{x})" display="inline"><semantics id="S2.p1.3.m3.1a"><mrow id="S2.p1.3.m3.1.2" xref="S2.p1.3.m3.1.2.cmml"><mi id="S2.p1.3.m3.1.2.2" xref="S2.p1.3.m3.1.2.2.cmml">𝒉</mi><mo id="S2.p1.3.m3.1.2.1" xref="S2.p1.3.m3.1.2.1.cmml">=</mo><mrow id="S2.p1.3.m3.1.2.3" xref="S2.p1.3.m3.1.2.3.cmml"><mtext id="S2.p1.3.m3.1.2.3.2" xref="S2.p1.3.m3.1.2.3.2a.cmml">FFTr</mtext><mo lspace="0em" rspace="0em" id="S2.p1.3.m3.1.2.3.1" xref="S2.p1.3.m3.1.2.3.1.cmml">​</mo><mrow id="S2.p1.3.m3.1.2.3.3.2" xref="S2.p1.3.m3.1.2.3.cmml"><mo stretchy="false" id="S2.p1.3.m3.1.2.3.3.2.1" xref="S2.p1.3.m3.1.2.3.cmml">(</mo><mi id="S2.p1.3.m3.1.1" xref="S2.p1.3.m3.1.1.cmml">𝒙</mi><mo stretchy="false" id="S2.p1.3.m3.1.2.3.3.2.2" xref="S2.p1.3.m3.1.2.3.cmml">)</mo></mrow></mrow></mrow><annotation-xml encoding="MathML-Content" id="S2.p1.3.m3.1b"><apply id="S2.p1.3.m3.1.2.cmml" xref="S2.p1.3.m3.1.2"><eq id="S2.p1.3.m3.1.2.1.cmml" xref="S2.p1.3.m3.1.2.1"></eq><ci id="S2.p1.3.m3.1.2.2.cmml" xref="S2.p1.3.m3.1.2.2">𝒉</ci><apply id="S2.p1.3.m3.1.2.3.cmml" xref="S2.p1.3.m3.1.2.3"><times id="S2.p1.3.m3.1.2.3.1.cmml" xref="S2.p1.3.m3.1.2.3.1"></times><ci id="S2.p1.3.m3.1.2.3.2a.cmml" xref="S2.p1.3.m3.1.2.3.2"><mtext id="S2.p1.3.m3.1.2.3.2.cmml" xref="S2.p1.3.m3.1.2.3.2">FFTr</mtext></ci><ci id="S2.p1.3.m3.1.1.cmml" xref="S2.p1.3.m3.1.1">𝒙</ci></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.p1.3.m3.1c">\bm{h}=\text{FFTr}(\bm{x})</annotation></semantics></math>.
+The hidden representation <math id="S2.p1.4.m4.1" class="ltx_Math" alttext="\bm{h}" display="inline"><semantics id="S2.p1.4.m4.1a"><mi id="S2.p1.4.m4.1.1" xref="S2.p1.4.m4.1.1.cmml">𝒉</mi><annotation-xml encoding="MathML-Content" id="S2.p1.4.m4.1b"><ci id="S2.p1.4.m4.1.1.cmml" xref="S2.p1.4.m4.1.1">𝒉</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.p1.4.m4.1c">\bm{h}</annotation></semantics></math> is used to make predictions about the duration and average pitch of every character with a 1-D CNN</p>
+</div>
+<figure id="S2.F1" class="ltx_figure"><img src="/html/2006.06873/assets/x1.png" id="S2.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="368" height="256" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S2.F1.3.1.1" class="ltx_text ltx_font_bold">Fig. 1</span>: </span><span id="S2.F1.4.2" class="ltx_text ltx_font_bold">Architecture of FastPitch</span> follows FastSpeech <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref">1</a>]</cite>.
+A single pitch value is predicted for every temporal location.</figcaption>
+</figure>
+<div id="S2.p2" class="ltx_para">
+<table id="S2.E1" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S2.E1.m1.3" class="ltx_Math" alttext="\hat{\bm{d}}=\text{DurationPredictor}(\bm{h}),\quad\hat{\bm{p}}=\text{PitchPredictor}(\bm{h})," display="block"><semantics id="S2.E1.m1.3a"><mrow id="S2.E1.m1.3.3.1"><mrow id="S2.E1.m1.3.3.1.1.2" xref="S2.E1.m1.3.3.1.1.3.cmml"><mrow id="S2.E1.m1.3.3.1.1.1.1" xref="S2.E1.m1.3.3.1.1.1.1.cmml"><mover accent="true" id="S2.E1.m1.3.3.1.1.1.1.2" xref="S2.E1.m1.3.3.1.1.1.1.2.cmml"><mi id="S2.E1.m1.3.3.1.1.1.1.2.2" xref="S2.E1.m1.3.3.1.1.1.1.2.2.cmml">𝒅</mi><mo id="S2.E1.m1.3.3.1.1.1.1.2.1" xref="S2.E1.m1.3.3.1.1.1.1.2.1.cmml">^</mo></mover><mo id="S2.E1.m1.3.3.1.1.1.1.1" xref="S2.E1.m1.3.3.1.1.1.1.1.cmml">=</mo><mrow id="S2.E1.m1.3.3.1.1.1.1.3" xref="S2.E1.m1.3.3.1.1.1.1.3.cmml"><mtext id="S2.E1.m1.3.3.1.1.1.1.3.2" xref="S2.E1.m1.3.3.1.1.1.1.3.2a.cmml">DurationPredictor</mtext><mo lspace="0em" rspace="0em" id="S2.E1.m1.3.3.1.1.1.1.3.1" xref="S2.E1.m1.3.3.1.1.1.1.3.1.cmml">​</mo><mrow id="S2.E1.m1.3.3.1.1.1.1.3.3.2" xref="S2.E1.m1.3.3.1.1.1.1.3.cmml"><mo stretchy="false" id="S2.E1.m1.3.3.1.1.1.1.3.3.2.1" xref="S2.E1.m1.3.3.1.1.1.1.3.cmml">(</mo><mi id="S2.E1.m1.1.1" xref="S2.E1.m1.1.1.cmml">𝒉</mi><mo stretchy="false" id="S2.E1.m1.3.3.1.1.1.1.3.3.2.2" xref="S2.E1.m1.3.3.1.1.1.1.3.cmml">)</mo></mrow></mrow></mrow><mo rspace="1.167em" id="S2.E1.m1.3.3.1.1.2.3" xref="S2.E1.m1.3.3.1.1.3a.cmml">,</mo><mrow id="S2.E1.m1.3.3.1.1.2.2" xref="S2.E1.m1.3.3.1.1.2.2.cmml"><mover accent="true" id="S2.E1.m1.3.3.1.1.2.2.2" xref="S2.E1.m1.3.3.1.1.2.2.2.cmml"><mi id="S2.E1.m1.3.3.1.1.2.2.2.2" xref="S2.E1.m1.3.3.1.1.2.2.2.2.cmml">𝒑</mi><mo id="S2.E1.m1.3.3.1.1.2.2.2.1" xref="S2.E1.m1.3.3.1.1.2.2.2.1.cmml">^</mo></mover><mo id="S2.E1.m1.3.3.1.1.2.2.1" xref="S2.E1.m1.3.3.1.1.2.2.1.cmml">=</mo><mrow id="S2.E1.m1.3.3.1.1.2.2.3" xref="S2.E1.m1.3.3.1.1.2.2.3.cmml"><mtext id="S2.E1.m1.3.3.1.1.2.2.3.2" xref="S2.E1.m1.3.3.1.1.2.2.3.2a.cmml">PitchPredictor</mtext><mo lspace="0em" rspace="0em" id="S2.E1.m1.3.3.1.1.2.2.3.1" xref="S2.E1.m1.3.3.1.1.2.2.3.1.cmml">​</mo><mrow id="S2.E1.m1.3.3.1.1.2.2.3.3.2" xref="S2.E1.m1.3.3.1.1.2.2.3.cmml"><mo stretchy="false" id="S2.E1.m1.3.3.1.1.2.2.3.3.2.1" xref="S2.E1.m1.3.3.1.1.2.2.3.cmml">(</mo><mi id="S2.E1.m1.2.2" xref="S2.E1.m1.2.2.cmml">𝒉</mi><mo stretchy="false" id="S2.E1.m1.3.3.1.1.2.2.3.3.2.2" xref="S2.E1.m1.3.3.1.1.2.2.3.cmml">)</mo></mrow></mrow></mrow></mrow><mo id="S2.E1.m1.3.3.1.2">,</mo></mrow><annotation-xml encoding="MathML-Content" id="S2.E1.m1.3b"><apply id="S2.E1.m1.3.3.1.1.3.cmml" xref="S2.E1.m1.3.3.1.1.2"><csymbol cd="ambiguous" id="S2.E1.m1.3.3.1.1.3a.cmml" xref="S2.E1.m1.3.3.1.1.2.3">formulae-sequence</csymbol><apply id="S2.E1.m1.3.3.1.1.1.1.cmml" xref="S2.E1.m1.3.3.1.1.1.1"><eq id="S2.E1.m1.3.3.1.1.1.1.1.cmml" xref="S2.E1.m1.3.3.1.1.1.1.1"></eq><apply id="S2.E1.m1.3.3.1.1.1.1.2.cmml" xref="S2.E1.m1.3.3.1.1.1.1.2"><ci id="S2.E1.m1.3.3.1.1.1.1.2.1.cmml" xref="S2.E1.m1.3.3.1.1.1.1.2.1">^</ci><ci id="S2.E1.m1.3.3.1.1.1.1.2.2.cmml" xref="S2.E1.m1.3.3.1.1.1.1.2.2">𝒅</ci></apply><apply id="S2.E1.m1.3.3.1.1.1.1.3.cmml" xref="S2.E1.m1.3.3.1.1.1.1.3"><times id="S2.E1.m1.3.3.1.1.1.1.3.1.cmml" xref="S2.E1.m1.3.3.1.1.1.1.3.1"></times><ci id="S2.E1.m1.3.3.1.1.1.1.3.2a.cmml" xref="S2.E1.m1.3.3.1.1.1.1.3.2"><mtext id="S2.E1.m1.3.3.1.1.1.1.3.2.cmml" xref="S2.E1.m1.3.3.1.1.1.1.3.2">DurationPredictor</mtext></ci><ci id="S2.E1.m1.1.1.cmml" xref="S2.E1.m1.1.1">𝒉</ci></apply></apply><apply id="S2.E1.m1.3.3.1.1.2.2.cmml" xref="S2.E1.m1.3.3.1.1.2.2"><eq id="S2.E1.m1.3.3.1.1.2.2.1.cmml" xref="S2.E1.m1.3.3.1.1.2.2.1"></eq><apply id="S2.E1.m1.3.3.1.1.2.2.2.cmml" xref="S2.E1.m1.3.3.1.1.2.2.2"><ci id="S2.E1.m1.3.3.1.1.2.2.2.1.cmml" xref="S2.E1.m1.3.3.1.1.2.2.2.1">^</ci><ci id="S2.E1.m1.3.3.1.1.2.2.2.2.cmml" xref="S2.E1.m1.3.3.1.1.2.2.2.2">𝒑</ci></apply><apply id="S2.E1.m1.3.3.1.1.2.2.3.cmml" xref="S2.E1.m1.3.3.1.1.2.2.3"><times id="S2.E1.m1.3.3.1.1.2.2.3.1.cmml" xref="S2.E1.m1.3.3.1.1.2.2.3.1"></times><ci id="S2.E1.m1.3.3.1.1.2.2.3.2a.cmml" xref="S2.E1.m1.3.3.1.1.2.2.3.2"><mtext id="S2.E1.m1.3.3.1.1.2.2.3.2.cmml" xref="S2.E1.m1.3.3.1.1.2.2.3.2">PitchPredictor</mtext></ci><ci id="S2.E1.m1.2.2.cmml" xref="S2.E1.m1.2.2">𝒉</ci></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.E1.m1.3c">\hat{\bm{d}}=\text{DurationPredictor}(\bm{h}),\quad\hat{\bm{p}}=\text{PitchPredictor}(\bm{h}),</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(1)</span></td>
+</tr></tbody>
+</table>
+<p id="S2.p2.5" class="ltx_p">where <math id="S2.p2.1.m1.1" class="ltx_Math" alttext="\hat{\bm{d}}\in\mathbb{N}^{n}" display="inline"><semantics id="S2.p2.1.m1.1a"><mrow id="S2.p2.1.m1.1.1" xref="S2.p2.1.m1.1.1.cmml"><mover accent="true" id="S2.p2.1.m1.1.1.2" xref="S2.p2.1.m1.1.1.2.cmml"><mi id="S2.p2.1.m1.1.1.2.2" xref="S2.p2.1.m1.1.1.2.2.cmml">𝒅</mi><mo id="S2.p2.1.m1.1.1.2.1" xref="S2.p2.1.m1.1.1.2.1.cmml">^</mo></mover><mo id="S2.p2.1.m1.1.1.1" xref="S2.p2.1.m1.1.1.1.cmml">∈</mo><msup id="S2.p2.1.m1.1.1.3" xref="S2.p2.1.m1.1.1.3.cmml"><mi id="S2.p2.1.m1.1.1.3.2" xref="S2.p2.1.m1.1.1.3.2.cmml">ℕ</mi><mi id="S2.p2.1.m1.1.1.3.3" xref="S2.p2.1.m1.1.1.3.3.cmml">n</mi></msup></mrow><annotation-xml encoding="MathML-Content" id="S2.p2.1.m1.1b"><apply id="S2.p2.1.m1.1.1.cmml" xref="S2.p2.1.m1.1.1"><in id="S2.p2.1.m1.1.1.1.cmml" xref="S2.p2.1.m1.1.1.1"></in><apply id="S2.p2.1.m1.1.1.2.cmml" xref="S2.p2.1.m1.1.1.2"><ci id="S2.p2.1.m1.1.1.2.1.cmml" xref="S2.p2.1.m1.1.1.2.1">^</ci><ci id="S2.p2.1.m1.1.1.2.2.cmml" xref="S2.p2.1.m1.1.1.2.2">𝒅</ci></apply><apply id="S2.p2.1.m1.1.1.3.cmml" xref="S2.p2.1.m1.1.1.3"><csymbol cd="ambiguous" id="S2.p2.1.m1.1.1.3.1.cmml" xref="S2.p2.1.m1.1.1.3">superscript</csymbol><ci id="S2.p2.1.m1.1.1.3.2.cmml" xref="S2.p2.1.m1.1.1.3.2">ℕ</ci><ci id="S2.p2.1.m1.1.1.3.3.cmml" xref="S2.p2.1.m1.1.1.3.3">𝑛</ci></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.p2.1.m1.1c">\hat{\bm{d}}\in\mathbb{N}^{n}</annotation></semantics></math> and <math id="S2.p2.2.m2.1" class="ltx_Math" alttext="\hat{\bm{p}}\in\mathbb{R}^{n}" display="inline"><semantics id="S2.p2.2.m2.1a"><mrow id="S2.p2.2.m2.1.1" xref="S2.p2.2.m2.1.1.cmml"><mover accent="true" id="S2.p2.2.m2.1.1.2" xref="S2.p2.2.m2.1.1.2.cmml"><mi id="S2.p2.2.m2.1.1.2.2" xref="S2.p2.2.m2.1.1.2.2.cmml">𝒑</mi><mo id="S2.p2.2.m2.1.1.2.1" xref="S2.p2.2.m2.1.1.2.1.cmml">^</mo></mover><mo id="S2.p2.2.m2.1.1.1" xref="S2.p2.2.m2.1.1.1.cmml">∈</mo><msup id="S2.p2.2.m2.1.1.3" xref="S2.p2.2.m2.1.1.3.cmml"><mi id="S2.p2.2.m2.1.1.3.2" xref="S2.p2.2.m2.1.1.3.2.cmml">ℝ</mi><mi id="S2.p2.2.m2.1.1.3.3" xref="S2.p2.2.m2.1.1.3.3.cmml">n</mi></msup></mrow><annotation-xml encoding="MathML-Content" id="S2.p2.2.m2.1b"><apply id="S2.p2.2.m2.1.1.cmml" xref="S2.p2.2.m2.1.1"><in id="S2.p2.2.m2.1.1.1.cmml" xref="S2.p2.2.m2.1.1.1"></in><apply id="S2.p2.2.m2.1.1.2.cmml" xref="S2.p2.2.m2.1.1.2"><ci id="S2.p2.2.m2.1.1.2.1.cmml" xref="S2.p2.2.m2.1.1.2.1">^</ci><ci id="S2.p2.2.m2.1.1.2.2.cmml" xref="S2.p2.2.m2.1.1.2.2">𝒑</ci></apply><apply id="S2.p2.2.m2.1.1.3.cmml" xref="S2.p2.2.m2.1.1.3"><csymbol cd="ambiguous" id="S2.p2.2.m2.1.1.3.1.cmml" xref="S2.p2.2.m2.1.1.3">superscript</csymbol><ci id="S2.p2.2.m2.1.1.3.2.cmml" xref="S2.p2.2.m2.1.1.3.2">ℝ</ci><ci id="S2.p2.2.m2.1.1.3.3.cmml" xref="S2.p2.2.m2.1.1.3.3">𝑛</ci></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.p2.2.m2.1c">\hat{\bm{p}}\in\mathbb{R}^{n}</annotation></semantics></math>.
+Next, the pitch is projected to match the dimensionality of the hidden representation
+<math id="S2.p2.3.m3.1" class="ltx_Math" alttext="\bm{h}\in\mathbb{R}^{n\times d}" display="inline"><semantics id="S2.p2.3.m3.1a"><mrow id="S2.p2.3.m3.1.1" xref="S2.p2.3.m3.1.1.cmml"><mi id="S2.p2.3.m3.1.1.2" xref="S2.p2.3.m3.1.1.2.cmml">𝒉</mi><mo id="S2.p2.3.m3.1.1.1" xref="S2.p2.3.m3.1.1.1.cmml">∈</mo><msup id="S2.p2.3.m3.1.1.3" xref="S2.p2.3.m3.1.1.3.cmml"><mi id="S2.p2.3.m3.1.1.3.2" xref="S2.p2.3.m3.1.1.3.2.cmml">ℝ</mi><mrow id="S2.p2.3.m3.1.1.3.3" xref="S2.p2.3.m3.1.1.3.3.cmml"><mi id="S2.p2.3.m3.1.1.3.3.2" xref="S2.p2.3.m3.1.1.3.3.2.cmml">n</mi><mo lspace="0.222em" rspace="0.222em" id="S2.p2.3.m3.1.1.3.3.1" xref="S2.p2.3.m3.1.1.3.3.1.cmml">×</mo><mi id="S2.p2.3.m3.1.1.3.3.3" xref="S2.p2.3.m3.1.1.3.3.3.cmml">d</mi></mrow></msup></mrow><annotation-xml encoding="MathML-Content" id="S2.p2.3.m3.1b"><apply id="S2.p2.3.m3.1.1.cmml" xref="S2.p2.3.m3.1.1"><in id="S2.p2.3.m3.1.1.1.cmml" xref="S2.p2.3.m3.1.1.1"></in><ci id="S2.p2.3.m3.1.1.2.cmml" xref="S2.p2.3.m3.1.1.2">𝒉</ci><apply id="S2.p2.3.m3.1.1.3.cmml" xref="S2.p2.3.m3.1.1.3"><csymbol cd="ambiguous" id="S2.p2.3.m3.1.1.3.1.cmml" xref="S2.p2.3.m3.1.1.3">superscript</csymbol><ci id="S2.p2.3.m3.1.1.3.2.cmml" xref="S2.p2.3.m3.1.1.3.2">ℝ</ci><apply id="S2.p2.3.m3.1.1.3.3.cmml" xref="S2.p2.3.m3.1.1.3.3"><times id="S2.p2.3.m3.1.1.3.3.1.cmml" xref="S2.p2.3.m3.1.1.3.3.1"></times><ci id="S2.p2.3.m3.1.1.3.3.2.cmml" xref="S2.p2.3.m3.1.1.3.3.2">𝑛</ci><ci id="S2.p2.3.m3.1.1.3.3.3.cmml" xref="S2.p2.3.m3.1.1.3.3.3">𝑑</ci></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.p2.3.m3.1c">\bm{h}\in\mathbb{R}^{n\times d}</annotation></semantics></math>
+and added to <math id="S2.p2.4.m4.1" class="ltx_Math" alttext="\bm{h}" display="inline"><semantics id="S2.p2.4.m4.1a"><mi id="S2.p2.4.m4.1.1" xref="S2.p2.4.m4.1.1.cmml">𝒉</mi><annotation-xml encoding="MathML-Content" id="S2.p2.4.m4.1b"><ci id="S2.p2.4.m4.1.1.cmml" xref="S2.p2.4.m4.1.1">𝒉</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.p2.4.m4.1c">\bm{h}</annotation></semantics></math>.
+The resulting sum <math id="S2.p2.5.m5.1" class="ltx_Math" alttext="\bm{g}" display="inline"><semantics id="S2.p2.5.m5.1a"><mi id="S2.p2.5.m5.1.1" xref="S2.p2.5.m5.1.1.cmml">𝒈</mi><annotation-xml encoding="MathML-Content" id="S2.p2.5.m5.1b"><ci id="S2.p2.5.m5.1.1.cmml" xref="S2.p2.5.m5.1.1">𝒈</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.p2.5.m5.1c">\bm{g}</annotation></semantics></math> is discretely up-sampled and passed
+to the output FFTr, which produces the output mel-spectrogram sequence</p>
+<table id="S6.EGx1" class="ltx_equationgroup ltx_eqn_align ltx_eqn_table">
+
+<tbody id="S2.E2"><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td colspan="2" class="ltx_td ltx_align_center ltx_eqn_cell"><math id="S2.E2.m1.24" class="ltx_Math" alttext="\displaystyle\begin{split}\bm{g}&amp;=\bm{h}+\text{PitchEmbedding}(\bm{p})\\
+\hat{\bm{y}}&amp;=\text{FFTr}([\underbrace{g_{1},\ldots,g_{1}}_{d_{1}},\ldots\underbrace{g_{n},\ldots,g_{n}}_{d_{n}}]).\end{split}" display="inline"><semantics id="S2.E2.m1.24a"><mtable columnspacing="0pt" rowspacing="0pt" id="S2.E2.m1.24.24.2"><mtr id="S2.E2.m1.24.24.2a"><mtd class="ltx_align_right" columnalign="right" id="S2.E2.m1.24.24.2b"><mi id="S2.E2.m1.1.1.1.1.1.1" xref="S2.E2.m1.1.1.1.1.1.1.cmml">𝒈</mi></mtd><mtd class="ltx_align_left" columnalign="left" id="S2.E2.m1.24.24.2c"><mrow id="S2.E2.m1.8.8.8.8.7a"><mi id="S2.E2.m1.8.8.8.8.7a.8" xref="S2.E2.m1.23.23.1.1.1.cmml"></mi><mo id="S2.E2.m1.2.2.2.2.1.1" xref="S2.E2.m1.2.2.2.2.1.1.cmml">=</mo><mrow id="S2.E2.m1.8.8.8.8.7a.9"><mi id="S2.E2.m1.3.3.3.3.2.2" xref="S2.E2.m1.3.3.3.3.2.2.cmml">𝒉</mi><mo id="S2.E2.m1.4.4.4.4.3.3" xref="S2.E2.m1.4.4.4.4.3.3.cmml">+</mo><mrow id="S2.E2.m1.8.8.8.8.7a.9.1"><mtext id="S2.E2.m1.5.5.5.5.4.4" xref="S2.E2.m1.5.5.5.5.4.4a.cmml">PitchEmbedding</mtext><mo lspace="0em" rspace="0em" id="S2.E2.m1.8.8.8.8.7a.9.1.1" xref="S2.E2.m1.23.23.1.1.1.cmml">​</mo><mrow id="S2.E2.m1.8.8.8.8.7a.9.1.2"><mo stretchy="false" id="S2.E2.m1.6.6.6.6.5.5" xref="S2.E2.m1.23.23.1.1.1.cmml">(</mo><mi id="S2.E2.m1.7.7.7.7.6.6" xref="S2.E2.m1.7.7.7.7.6.6.cmml">𝒑</mi><mo stretchy="false" id="S2.E2.m1.8.8.8.8.7.7" xref="S2.E2.m1.23.23.1.1.1.cmml">)</mo></mrow></mrow></mrow></mrow></mtd></mtr><mtr id="S2.E2.m1.24.24.2d"><mtd class="ltx_align_right" columnalign="right" id="S2.E2.m1.24.24.2e"><mover accent="true" id="S2.E2.m1.9.9.9.1.1.1" xref="S2.E2.m1.9.9.9.1.1.1.cmml"><mi id="S2.E2.m1.9.9.9.1.1.1.3" xref="S2.E2.m1.9.9.9.1.1.1.3.cmml">𝒚</mi><mo id="S2.E2.m1.9.9.9.1.1.1.2" xref="S2.E2.m1.9.9.9.1.1.1.2.cmml">^</mo></mover></mtd><mtd class="ltx_align_left" columnalign="left" id="S2.E2.m1.24.24.2f"><mrow id="S2.E2.m1.24.24.2.23.15.14.14"><mrow id="S2.E2.m1.24.24.2.23.15.14.14.1"><mi id="S2.E2.m1.24.24.2.23.15.14.14.1.2" xref="S2.E2.m1.23.23.1.1.1.cmml"></mi><mo id="S2.E2.m1.10.10.10.2.1.1" xref="S2.E2.m1.10.10.10.2.1.1.cmml">=</mo><mrow id="S2.E2.m1.24.24.2.23.15.14.14.1.1"><mtext id="S2.E2.m1.11.11.11.3.2.2" xref="S2.E2.m1.11.11.11.3.2.2a.cmml">FFTr</mtext><mo lspace="0em" rspace="0em" id="S2.E2.m1.24.24.2.23.15.14.14.1.1.2" xref="S2.E2.m1.23.23.1.1.1.cmml">​</mo><mrow id="S2.E2.m1.24.24.2.23.15.14.14.1.1.1.1"><mo stretchy="false" id="S2.E2.m1.12.12.12.4.3.3" xref="S2.E2.m1.23.23.1.1.1.cmml">(</mo><mrow id="S2.E2.m1.24.24.2.23.15.14.14.1.1.1.1.1"><mo stretchy="false" id="S2.E2.m1.13.13.13.5.4.4" xref="S2.E2.m1.23.23.1.1.1.cmml">[</mo><munder id="S2.E2.m1.24.24.2.23.15.14.14.1.1.1.1.1.1.1"><munder accentunder="true" id="S2.E2.m1.14.14.14.6.5.5" xref="S2.E2.m1.14.14.14.6.5.5.cmml"><mrow id="S2.E2.m1.14.14.14.6.5.5.3.3" xref="S2.E2.m1.14.14.14.6.5.5.3.4.cmml"><msub id="S2.E2.m1.14.14.14.6.5.5.2.2.1" xref="S2.E2.m1.14.14.14.6.5.5.2.2.1.cmml"><mi id="S2.E2.m1.14.14.14.6.5.5.2.2.1.2" xref="S2.E2.m1.14.14.14.6.5.5.2.2.1.2.cmml">g</mi><mn id="S2.E2.m1.14.14.14.6.5.5.2.2.1.3" xref="S2.E2.m1.14.14.14.6.5.5.2.2.1.3.cmml">1</mn></msub><mo id="S2.E2.m1.14.14.14.6.5.5.3.3.3" xref="S2.E2.m1.14.14.14.6.5.5.3.4.cmml">,</mo><mi mathvariant="normal" id="S2.E2.m1.14.14.14.6.5.5.1.1" xref="S2.E2.m1.14.14.14.6.5.5.1.1.cmml">…</mi><mo id="S2.E2.m1.14.14.14.6.5.5.3.3.4" xref="S2.E2.m1.14.14.14.6.5.5.3.4.cmml">,</mo><msub id="S2.E2.m1.14.14.14.6.5.5.3.3.2" xref="S2.E2.m1.14.14.14.6.5.5.3.3.2.cmml"><mi id="S2.E2.m1.14.14.14.6.5.5.3.3.2.2" xref="S2.E2.m1.14.14.14.6.5.5.3.3.2.2.cmml">g</mi><mn id="S2.E2.m1.14.14.14.6.5.5.3.3.2.3" xref="S2.E2.m1.14.14.14.6.5.5.3.3.2.3.cmml">1</mn></msub></mrow><mo id="S2.E2.m1.14.14.14.6.5.5.4" xref="S2.E2.m1.14.14.14.6.5.5.4.cmml">⏟</mo></munder><msub id="S2.E2.m1.15.15.15.7.6.6.1" xref="S2.E2.m1.15.15.15.7.6.6.1.cmml"><mi id="S2.E2.m1.15.15.15.7.6.6.1.2" xref="S2.E2.m1.15.15.15.7.6.6.1.2.cmml">d</mi><mn id="S2.E2.m1.15.15.15.7.6.6.1.3" xref="S2.E2.m1.15.15.15.7.6.6.1.3.cmml">1</mn></msub></munder><mo id="S2.E2.m1.16.16.16.8.7.7" xref="S2.E2.m1.23.23.1.1.1.cmml">,</mo><mrow id="S2.E2.m1.24.24.2.23.15.14.14.1.1.1.1.1.2.2"><mi mathvariant="normal" id="S2.E2.m1.17.17.17.9.8.8" xref="S2.E2.m1.17.17.17.9.8.8.cmml">…</mi><mo lspace="0em" rspace="0em" id="S2.E2.m1.24.24.2.23.15.14.14.1.1.1.1.1.2.2.1" xref="S2.E2.m1.23.23.1.1.1.cmml">​</mo><munder id="S2.E2.m1.24.24.2.23.15.14.14.1.1.1.1.1.2.2.2"><munder accentunder="true" id="S2.E2.m1.18.18.18.10.9.9" xref="S2.E2.m1.18.18.18.10.9.9.cmml"><mrow id="S2.E2.m1.18.18.18.10.9.9.3.3" xref="S2.E2.m1.18.18.18.10.9.9.3.4.cmml"><msub id="S2.E2.m1.18.18.18.10.9.9.2.2.1" xref="S2.E2.m1.18.18.18.10.9.9.2.2.1.cmml"><mi id="S2.E2.m1.18.18.18.10.9.9.2.2.1.2" xref="S2.E2.m1.18.18.18.10.9.9.2.2.1.2.cmml">g</mi><mi id="S2.E2.m1.18.18.18.10.9.9.2.2.1.3" xref="S2.E2.m1.18.18.18.10.9.9.2.2.1.3.cmml">n</mi></msub><mo id="S2.E2.m1.18.18.18.10.9.9.3.3.3" xref="S2.E2.m1.18.18.18.10.9.9.3.4.cmml">,</mo><mi mathvariant="normal" id="S2.E2.m1.18.18.18.10.9.9.1.1" xref="S2.E2.m1.18.18.18.10.9.9.1.1.cmml">…</mi><mo id="S2.E2.m1.18.18.18.10.9.9.3.3.4" xref="S2.E2.m1.18.18.18.10.9.9.3.4.cmml">,</mo><msub id="S2.E2.m1.18.18.18.10.9.9.3.3.2" xref="S2.E2.m1.18.18.18.10.9.9.3.3.2.cmml"><mi id="S2.E2.m1.18.18.18.10.9.9.3.3.2.2" xref="S2.E2.m1.18.18.18.10.9.9.3.3.2.2.cmml">g</mi><mi id="S2.E2.m1.18.18.18.10.9.9.3.3.2.3" xref="S2.E2.m1.18.18.18.10.9.9.3.3.2.3.cmml">n</mi></msub></mrow><mo id="S2.E2.m1.18.18.18.10.9.9.4" xref="S2.E2.m1.18.18.18.10.9.9.4.cmml">⏟</mo></munder><msub id="S2.E2.m1.19.19.19.11.10.10.1" xref="S2.E2.m1.19.19.19.11.10.10.1.cmml"><mi id="S2.E2.m1.19.19.19.11.10.10.1.2" xref="S2.E2.m1.19.19.19.11.10.10.1.2.cmml">d</mi><mi id="S2.E2.m1.19.19.19.11.10.10.1.3" xref="S2.E2.m1.19.19.19.11.10.10.1.3.cmml">n</mi></msub></munder></mrow><mo stretchy="false" id="S2.E2.m1.20.20.20.12.11.11" xref="S2.E2.m1.23.23.1.1.1.cmml">]</mo></mrow><mo stretchy="false" id="S2.E2.m1.21.21.21.13.12.12" xref="S2.E2.m1.23.23.1.1.1.cmml">)</mo></mrow></mrow></mrow><mo lspace="0em" id="S2.E2.m1.22.22.22.14.13.13" xref="S2.E2.m1.23.23.1.1.1.cmml">.</mo></mrow></mtd></mtr></mtable><annotation-xml encoding="MathML-Content" id="S2.E2.m1.24b"><apply id="S2.E2.m1.23.23.1.1.1.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"><and id="S2.E2.m1.23.23.1.1.1a.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"></and><apply id="S2.E2.m1.23.23.1.1.1b.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"><eq id="S2.E2.m1.2.2.2.2.1.1.cmml" xref="S2.E2.m1.2.2.2.2.1.1"></eq><ci id="S2.E2.m1.1.1.1.1.1.1.cmml" xref="S2.E2.m1.1.1.1.1.1.1">𝒈</ci><apply id="S2.E2.m1.23.23.1.1.1.5.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"><plus id="S2.E2.m1.4.4.4.4.3.3.cmml" xref="S2.E2.m1.4.4.4.4.3.3"></plus><ci id="S2.E2.m1.3.3.3.3.2.2.cmml" xref="S2.E2.m1.3.3.3.3.2.2">𝒉</ci><apply id="S2.E2.m1.23.23.1.1.1.5.3.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"><times id="S2.E2.m1.23.23.1.1.1.5.3.1.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"></times><ci id="S2.E2.m1.5.5.5.5.4.4a.cmml" xref="S2.E2.m1.5.5.5.5.4.4"><mtext id="S2.E2.m1.5.5.5.5.4.4.cmml" xref="S2.E2.m1.5.5.5.5.4.4">PitchEmbedding</mtext></ci><ci id="S2.E2.m1.7.7.7.7.6.6.cmml" xref="S2.E2.m1.7.7.7.7.6.6">𝒑</ci><apply id="S2.E2.m1.9.9.9.1.1.1.cmml" xref="S2.E2.m1.9.9.9.1.1.1"><ci id="S2.E2.m1.9.9.9.1.1.1.2.cmml" xref="S2.E2.m1.9.9.9.1.1.1.2">^</ci><ci id="S2.E2.m1.9.9.9.1.1.1.3.cmml" xref="S2.E2.m1.9.9.9.1.1.1.3">𝒚</ci></apply></apply></apply></apply><apply id="S2.E2.m1.23.23.1.1.1c.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"><eq id="S2.E2.m1.10.10.10.2.1.1.cmml" xref="S2.E2.m1.10.10.10.2.1.1"></eq><share href="#S2.E2.m1.23.23.1.1.1.5.cmml" id="S2.E2.m1.23.23.1.1.1d.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"></share><apply id="S2.E2.m1.23.23.1.1.1.1.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"><times id="S2.E2.m1.23.23.1.1.1.1.2.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"></times><ci id="S2.E2.m1.11.11.11.3.2.2a.cmml" xref="S2.E2.m1.11.11.11.3.2.2"><mtext id="S2.E2.m1.11.11.11.3.2.2.cmml" xref="S2.E2.m1.11.11.11.3.2.2">FFTr</mtext></ci><interval closure="closed" id="S2.E2.m1.23.23.1.1.1.1.1.1.1.3.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"><apply id="S2.E2.m1.23.23.1.1.1.1.1.1.1.1.1.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"><csymbol cd="ambiguous" id="S2.E2.m1.23.23.1.1.1.1.1.1.1.1.1.1.cmml" xref="S2.E2.m1.8.8.8.8.7a.8">subscript</csymbol><apply id="S2.E2.m1.14.14.14.6.5.5.cmml" xref="S2.E2.m1.14.14.14.6.5.5"><ci id="S2.E2.m1.14.14.14.6.5.5.4.cmml" xref="S2.E2.m1.14.14.14.6.5.5.4">⏟</ci><list id="S2.E2.m1.14.14.14.6.5.5.3.4.cmml" xref="S2.E2.m1.14.14.14.6.5.5.3.3"><apply id="S2.E2.m1.14.14.14.6.5.5.2.2.1.cmml" xref="S2.E2.m1.14.14.14.6.5.5.2.2.1"><csymbol cd="ambiguous" id="S2.E2.m1.14.14.14.6.5.5.2.2.1.1.cmml" xref="S2.E2.m1.14.14.14.6.5.5.2.2.1">subscript</csymbol><ci id="S2.E2.m1.14.14.14.6.5.5.2.2.1.2.cmml" xref="S2.E2.m1.14.14.14.6.5.5.2.2.1.2">𝑔</ci><cn type="integer" id="S2.E2.m1.14.14.14.6.5.5.2.2.1.3.cmml" xref="S2.E2.m1.14.14.14.6.5.5.2.2.1.3">1</cn></apply><ci id="S2.E2.m1.14.14.14.6.5.5.1.1.cmml" xref="S2.E2.m1.14.14.14.6.5.5.1.1">…</ci><apply id="S2.E2.m1.14.14.14.6.5.5.3.3.2.cmml" xref="S2.E2.m1.14.14.14.6.5.5.3.3.2"><csymbol cd="ambiguous" id="S2.E2.m1.14.14.14.6.5.5.3.3.2.1.cmml" xref="S2.E2.m1.14.14.14.6.5.5.3.3.2">subscript</csymbol><ci id="S2.E2.m1.14.14.14.6.5.5.3.3.2.2.cmml" xref="S2.E2.m1.14.14.14.6.5.5.3.3.2.2">𝑔</ci><cn type="integer" id="S2.E2.m1.14.14.14.6.5.5.3.3.2.3.cmml" xref="S2.E2.m1.14.14.14.6.5.5.3.3.2.3">1</cn></apply></list></apply><apply id="S2.E2.m1.15.15.15.7.6.6.1.cmml" xref="S2.E2.m1.15.15.15.7.6.6.1"><csymbol cd="ambiguous" id="S2.E2.m1.15.15.15.7.6.6.1.1.cmml" xref="S2.E2.m1.15.15.15.7.6.6.1">subscript</csymbol><ci id="S2.E2.m1.15.15.15.7.6.6.1.2.cmml" xref="S2.E2.m1.15.15.15.7.6.6.1.2">𝑑</ci><cn type="integer" id="S2.E2.m1.15.15.15.7.6.6.1.3.cmml" xref="S2.E2.m1.15.15.15.7.6.6.1.3">1</cn></apply></apply><apply id="S2.E2.m1.23.23.1.1.1.1.1.1.1.2.2.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"><times id="S2.E2.m1.23.23.1.1.1.1.1.1.1.2.2.1.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"></times><ci id="S2.E2.m1.17.17.17.9.8.8.cmml" xref="S2.E2.m1.17.17.17.9.8.8">…</ci><apply id="S2.E2.m1.23.23.1.1.1.1.1.1.1.2.2.3.cmml" xref="S2.E2.m1.8.8.8.8.7a.8"><csymbol cd="ambiguous" id="S2.E2.m1.23.23.1.1.1.1.1.1.1.2.2.3.1.cmml" xref="S2.E2.m1.8.8.8.8.7a.8">subscript</csymbol><apply id="S2.E2.m1.18.18.18.10.9.9.cmml" xref="S2.E2.m1.18.18.18.10.9.9"><ci id="S2.E2.m1.18.18.18.10.9.9.4.cmml" xref="S2.E2.m1.18.18.18.10.9.9.4">⏟</ci><list id="S2.E2.m1.18.18.18.10.9.9.3.4.cmml" xref="S2.E2.m1.18.18.18.10.9.9.3.3"><apply id="S2.E2.m1.18.18.18.10.9.9.2.2.1.cmml" xref="S2.E2.m1.18.18.18.10.9.9.2.2.1"><csymbol cd="ambiguous" id="S2.E2.m1.18.18.18.10.9.9.2.2.1.1.cmml" xref="S2.E2.m1.18.18.18.10.9.9.2.2.1">subscript</csymbol><ci id="S2.E2.m1.18.18.18.10.9.9.2.2.1.2.cmml" xref="S2.E2.m1.18.18.18.10.9.9.2.2.1.2">𝑔</ci><ci id="S2.E2.m1.18.18.18.10.9.9.2.2.1.3.cmml" xref="S2.E2.m1.18.18.18.10.9.9.2.2.1.3">𝑛</ci></apply><ci id="S2.E2.m1.18.18.18.10.9.9.1.1.cmml" xref="S2.E2.m1.18.18.18.10.9.9.1.1">…</ci><apply id="S2.E2.m1.18.18.18.10.9.9.3.3.2.cmml" xref="S2.E2.m1.18.18.18.10.9.9.3.3.2"><csymbol cd="ambiguous" id="S2.E2.m1.18.18.18.10.9.9.3.3.2.1.cmml" xref="S2.E2.m1.18.18.18.10.9.9.3.3.2">subscript</csymbol><ci id="S2.E2.m1.18.18.18.10.9.9.3.3.2.2.cmml" xref="S2.E2.m1.18.18.18.10.9.9.3.3.2.2">𝑔</ci><ci id="S2.E2.m1.18.18.18.10.9.9.3.3.2.3.cmml" xref="S2.E2.m1.18.18.18.10.9.9.3.3.2.3">𝑛</ci></apply></list></apply><apply id="S2.E2.m1.19.19.19.11.10.10.1.cmml" xref="S2.E2.m1.19.19.19.11.10.10.1"><csymbol cd="ambiguous" id="S2.E2.m1.19.19.19.11.10.10.1.1.cmml" xref="S2.E2.m1.19.19.19.11.10.10.1">subscript</csymbol><ci id="S2.E2.m1.19.19.19.11.10.10.1.2.cmml" xref="S2.E2.m1.19.19.19.11.10.10.1.2">𝑑</ci><ci id="S2.E2.m1.19.19.19.11.10.10.1.3.cmml" xref="S2.E2.m1.19.19.19.11.10.10.1.3">𝑛</ci></apply></apply></apply></interval></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.E2.m1.24c">\displaystyle\begin{split}\bm{g}&amp;=\bm{h}+\text{PitchEmbedding}(\bm{p})\\
+\hat{\bm{y}}&amp;=\text{FFTr}([\underbrace{g_{1},\ldots,g_{1}}_{d_{1}},\ldots\underbrace{g_{n},\ldots,g_{n}}_{d_{n}}]).\end{split}</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(2)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S2.p3" class="ltx_para">
+<p id="S2.p3.4" class="ltx_p">Ground truth <math id="S2.p3.1.m1.1" class="ltx_Math" alttext="\bm{p}" display="inline"><semantics id="S2.p3.1.m1.1a"><mi id="S2.p3.1.m1.1.1" xref="S2.p3.1.m1.1.1.cmml">𝒑</mi><annotation-xml encoding="MathML-Content" id="S2.p3.1.m1.1b"><ci id="S2.p3.1.m1.1.1.cmml" xref="S2.p3.1.m1.1.1">𝒑</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.p3.1.m1.1c">\bm{p}</annotation></semantics></math> and <math id="S2.p3.2.m2.1" class="ltx_Math" alttext="\bm{d}" display="inline"><semantics id="S2.p3.2.m2.1a"><mi id="S2.p3.2.m2.1.1" xref="S2.p3.2.m2.1.1.cmml">𝒅</mi><annotation-xml encoding="MathML-Content" id="S2.p3.2.m2.1b"><ci id="S2.p3.2.m2.1.1.cmml" xref="S2.p3.2.m2.1.1">𝒅</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.p3.2.m2.1c">\bm{d}</annotation></semantics></math> are used during training,
+and predicted <math id="S2.p3.3.m3.1" class="ltx_Math" alttext="\hat{\bm{p}}" display="inline"><semantics id="S2.p3.3.m3.1a"><mover accent="true" id="S2.p3.3.m3.1.1" xref="S2.p3.3.m3.1.1.cmml"><mi id="S2.p3.3.m3.1.1.2" xref="S2.p3.3.m3.1.1.2.cmml">𝒑</mi><mo id="S2.p3.3.m3.1.1.1" xref="S2.p3.3.m3.1.1.1.cmml">^</mo></mover><annotation-xml encoding="MathML-Content" id="S2.p3.3.m3.1b"><apply id="S2.p3.3.m3.1.1.cmml" xref="S2.p3.3.m3.1.1"><ci id="S2.p3.3.m3.1.1.1.cmml" xref="S2.p3.3.m3.1.1.1">^</ci><ci id="S2.p3.3.m3.1.1.2.cmml" xref="S2.p3.3.m3.1.1.2">𝒑</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.p3.3.m3.1c">\hat{\bm{p}}</annotation></semantics></math> and <math id="S2.p3.4.m4.1" class="ltx_Math" alttext="\hat{\bm{d}}" display="inline"><semantics id="S2.p3.4.m4.1a"><mover accent="true" id="S2.p3.4.m4.1.1" xref="S2.p3.4.m4.1.1.cmml"><mi id="S2.p3.4.m4.1.1.2" xref="S2.p3.4.m4.1.1.2.cmml">𝒅</mi><mo id="S2.p3.4.m4.1.1.1" xref="S2.p3.4.m4.1.1.1.cmml">^</mo></mover><annotation-xml encoding="MathML-Content" id="S2.p3.4.m4.1b"><apply id="S2.p3.4.m4.1.1.cmml" xref="S2.p3.4.m4.1.1"><ci id="S2.p3.4.m4.1.1.1.cmml" xref="S2.p3.4.m4.1.1.1">^</ci><ci id="S2.p3.4.m4.1.1.2.cmml" xref="S2.p3.4.m4.1.1.2">𝒅</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.p3.4.m4.1c">\hat{\bm{d}}</annotation></semantics></math> are used during inference.
+The model optimizes mean-squared error (MSE) between the predicted and ground-truth modalities</p>
+<table id="S2.E3" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S2.E3.m1.1" class="ltx_Math" alttext="\mathcal{L}=\lVert\hat{\bm{y}}-\bm{y}\rVert^{2}_{2}+\alpha\lVert\hat{\bm{p}}-\bm{p}\rVert^{2}_{2}+\gamma\lVert\hat{\bm{d}}-\bm{d}\rVert^{2}_{2}." display="block"><semantics id="S2.E3.m1.1a"><mrow id="S2.E3.m1.1.1.1" xref="S2.E3.m1.1.1.1.1.cmml"><mrow id="S2.E3.m1.1.1.1.1" xref="S2.E3.m1.1.1.1.1.cmml"><mi class="ltx_font_mathcaligraphic" id="S2.E3.m1.1.1.1.1.5" xref="S2.E3.m1.1.1.1.1.5.cmml">ℒ</mi><mo rspace="0.1389em" id="S2.E3.m1.1.1.1.1.4" xref="S2.E3.m1.1.1.1.1.4.cmml">=</mo><mrow id="S2.E3.m1.1.1.1.1.3" xref="S2.E3.m1.1.1.1.1.3.cmml"><msubsup id="S2.E3.m1.1.1.1.1.1.1" xref="S2.E3.m1.1.1.1.1.1.1.cmml"><mrow id="S2.E3.m1.1.1.1.1.1.1.1.1.1" xref="S2.E3.m1.1.1.1.1.1.1.1.1.2.cmml"><mo fence="true" lspace="0.1389em" rspace="0em" id="S2.E3.m1.1.1.1.1.1.1.1.1.1.2" xref="S2.E3.m1.1.1.1.1.1.1.1.1.2.1.cmml">∥</mo><mrow id="S2.E3.m1.1.1.1.1.1.1.1.1.1.1" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.cmml"><mover accent="true" id="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.2" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.2.cmml"><mi id="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.2.2" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.2.2.cmml">𝒚</mi><mo id="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.2.1" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.2.1.cmml">^</mo></mover><mo id="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.1" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.1.cmml">−</mo><mi id="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.3" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.3.cmml">𝒚</mi></mrow><mo fence="true" lspace="0em" rspace="0em" id="S2.E3.m1.1.1.1.1.1.1.1.1.1.3" xref="S2.E3.m1.1.1.1.1.1.1.1.1.2.1.cmml">∥</mo></mrow><mn id="S2.E3.m1.1.1.1.1.1.1.3" xref="S2.E3.m1.1.1.1.1.1.1.3.cmml">2</mn><mn id="S2.E3.m1.1.1.1.1.1.1.1.3" xref="S2.E3.m1.1.1.1.1.1.1.1.3.cmml">2</mn></msubsup><mo id="S2.E3.m1.1.1.1.1.3.4" xref="S2.E3.m1.1.1.1.1.3.4.cmml">+</mo><mrow id="S2.E3.m1.1.1.1.1.2.2" xref="S2.E3.m1.1.1.1.1.2.2.cmml"><mi id="S2.E3.m1.1.1.1.1.2.2.3" xref="S2.E3.m1.1.1.1.1.2.2.3.cmml">α</mi><mo lspace="0em" rspace="0em" id="S2.E3.m1.1.1.1.1.2.2.2" xref="S2.E3.m1.1.1.1.1.2.2.2.cmml">​</mo><msubsup id="S2.E3.m1.1.1.1.1.2.2.1" xref="S2.E3.m1.1.1.1.1.2.2.1.cmml"><mrow id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.2.cmml"><mo fence="true" rspace="0em" id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.2" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.2.1.cmml">∥</mo><mrow id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.cmml"><mover accent="true" id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.2" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.2.cmml"><mi id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.2.2" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.2.2.cmml">𝒑</mi><mo id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.2.1" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.2.1.cmml">^</mo></mover><mo id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.1" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.1.cmml">−</mo><mi id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.3" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.3.cmml">𝒑</mi></mrow><mo fence="true" lspace="0em" rspace="0em" id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.3" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.2.1.cmml">∥</mo></mrow><mn id="S2.E3.m1.1.1.1.1.2.2.1.3" xref="S2.E3.m1.1.1.1.1.2.2.1.3.cmml">2</mn><mn id="S2.E3.m1.1.1.1.1.2.2.1.1.3" xref="S2.E3.m1.1.1.1.1.2.2.1.1.3.cmml">2</mn></msubsup></mrow><mo id="S2.E3.m1.1.1.1.1.3.4a" xref="S2.E3.m1.1.1.1.1.3.4.cmml">+</mo><mrow id="S2.E3.m1.1.1.1.1.3.3" xref="S2.E3.m1.1.1.1.1.3.3.cmml"><mi id="S2.E3.m1.1.1.1.1.3.3.3" xref="S2.E3.m1.1.1.1.1.3.3.3.cmml">γ</mi><mo lspace="0em" rspace="0em" id="S2.E3.m1.1.1.1.1.3.3.2" xref="S2.E3.m1.1.1.1.1.3.3.2.cmml">​</mo><msubsup id="S2.E3.m1.1.1.1.1.3.3.1" xref="S2.E3.m1.1.1.1.1.3.3.1.cmml"><mrow id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.2.cmml"><mo fence="true" rspace="0em" id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.2" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.2.1.cmml">∥</mo><mrow id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.cmml"><mover accent="true" id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.2" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.2.cmml"><mi id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.2.2" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.2.2.cmml">𝒅</mi><mo id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.2.1" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.2.1.cmml">^</mo></mover><mo id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.1" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.1.cmml">−</mo><mi id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.3" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.3.cmml">𝒅</mi></mrow><mo fence="true" lspace="0em" rspace="0em" id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.3" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.2.1.cmml">∥</mo></mrow><mn id="S2.E3.m1.1.1.1.1.3.3.1.3" xref="S2.E3.m1.1.1.1.1.3.3.1.3.cmml">2</mn><mn id="S2.E3.m1.1.1.1.1.3.3.1.1.3" xref="S2.E3.m1.1.1.1.1.3.3.1.1.3.cmml">2</mn></msubsup></mrow></mrow></mrow><mo lspace="0em" id="S2.E3.m1.1.1.1.2" xref="S2.E3.m1.1.1.1.1.cmml">.</mo></mrow><annotation-xml encoding="MathML-Content" id="S2.E3.m1.1b"><apply id="S2.E3.m1.1.1.1.1.cmml" xref="S2.E3.m1.1.1.1"><eq id="S2.E3.m1.1.1.1.1.4.cmml" xref="S2.E3.m1.1.1.1.1.4"></eq><ci id="S2.E3.m1.1.1.1.1.5.cmml" xref="S2.E3.m1.1.1.1.1.5">ℒ</ci><apply id="S2.E3.m1.1.1.1.1.3.cmml" xref="S2.E3.m1.1.1.1.1.3"><plus id="S2.E3.m1.1.1.1.1.3.4.cmml" xref="S2.E3.m1.1.1.1.1.3.4"></plus><apply id="S2.E3.m1.1.1.1.1.1.1.cmml" xref="S2.E3.m1.1.1.1.1.1.1"><csymbol cd="ambiguous" id="S2.E3.m1.1.1.1.1.1.1.2.cmml" xref="S2.E3.m1.1.1.1.1.1.1">subscript</csymbol><apply id="S2.E3.m1.1.1.1.1.1.1.1.cmml" xref="S2.E3.m1.1.1.1.1.1.1"><csymbol cd="ambiguous" id="S2.E3.m1.1.1.1.1.1.1.1.2.cmml" xref="S2.E3.m1.1.1.1.1.1.1">superscript</csymbol><apply id="S2.E3.m1.1.1.1.1.1.1.1.1.2.cmml" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1"><csymbol cd="latexml" id="S2.E3.m1.1.1.1.1.1.1.1.1.2.1.cmml" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.2">delimited-∥∥</csymbol><apply id="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.cmml" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.1"><minus id="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.1.cmml" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.1"></minus><apply id="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.2.cmml" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.2"><ci id="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.2.1.cmml" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.2.1">^</ci><ci id="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.2.2.cmml" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.2.2">𝒚</ci></apply><ci id="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.3.cmml" xref="S2.E3.m1.1.1.1.1.1.1.1.1.1.1.3">𝒚</ci></apply></apply><cn type="integer" id="S2.E3.m1.1.1.1.1.1.1.1.3.cmml" xref="S2.E3.m1.1.1.1.1.1.1.1.3">2</cn></apply><cn type="integer" id="S2.E3.m1.1.1.1.1.1.1.3.cmml" xref="S2.E3.m1.1.1.1.1.1.1.3">2</cn></apply><apply id="S2.E3.m1.1.1.1.1.2.2.cmml" xref="S2.E3.m1.1.1.1.1.2.2"><times id="S2.E3.m1.1.1.1.1.2.2.2.cmml" xref="S2.E3.m1.1.1.1.1.2.2.2"></times><ci id="S2.E3.m1.1.1.1.1.2.2.3.cmml" xref="S2.E3.m1.1.1.1.1.2.2.3">𝛼</ci><apply id="S2.E3.m1.1.1.1.1.2.2.1.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1"><csymbol cd="ambiguous" id="S2.E3.m1.1.1.1.1.2.2.1.2.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1">subscript</csymbol><apply id="S2.E3.m1.1.1.1.1.2.2.1.1.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1"><csymbol cd="ambiguous" id="S2.E3.m1.1.1.1.1.2.2.1.1.2.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1">superscript</csymbol><apply id="S2.E3.m1.1.1.1.1.2.2.1.1.1.2.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1"><csymbol cd="latexml" id="S2.E3.m1.1.1.1.1.2.2.1.1.1.2.1.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.2">delimited-∥∥</csymbol><apply id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1"><minus id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.1.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.1"></minus><apply id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.2.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.2"><ci id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.2.1.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.2.1">^</ci><ci id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.2.2.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.2.2">𝒑</ci></apply><ci id="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.3.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1.1.1.1.1.3">𝒑</ci></apply></apply><cn type="integer" id="S2.E3.m1.1.1.1.1.2.2.1.1.3.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1.1.3">2</cn></apply><cn type="integer" id="S2.E3.m1.1.1.1.1.2.2.1.3.cmml" xref="S2.E3.m1.1.1.1.1.2.2.1.3">2</cn></apply></apply><apply id="S2.E3.m1.1.1.1.1.3.3.cmml" xref="S2.E3.m1.1.1.1.1.3.3"><times id="S2.E3.m1.1.1.1.1.3.3.2.cmml" xref="S2.E3.m1.1.1.1.1.3.3.2"></times><ci id="S2.E3.m1.1.1.1.1.3.3.3.cmml" xref="S2.E3.m1.1.1.1.1.3.3.3">𝛾</ci><apply id="S2.E3.m1.1.1.1.1.3.3.1.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1"><csymbol cd="ambiguous" id="S2.E3.m1.1.1.1.1.3.3.1.2.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1">subscript</csymbol><apply id="S2.E3.m1.1.1.1.1.3.3.1.1.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1"><csymbol cd="ambiguous" id="S2.E3.m1.1.1.1.1.3.3.1.1.2.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1">superscript</csymbol><apply id="S2.E3.m1.1.1.1.1.3.3.1.1.1.2.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1"><csymbol cd="latexml" id="S2.E3.m1.1.1.1.1.3.3.1.1.1.2.1.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.2">delimited-∥∥</csymbol><apply id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1"><minus id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.1.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.1"></minus><apply id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.2.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.2"><ci id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.2.1.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.2.1">^</ci><ci id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.2.2.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.2.2">𝒅</ci></apply><ci id="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.3.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1.1.1.1.1.3">𝒅</ci></apply></apply><cn type="integer" id="S2.E3.m1.1.1.1.1.3.3.1.1.3.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1.1.3">2</cn></apply><cn type="integer" id="S2.E3.m1.1.1.1.1.3.3.1.3.cmml" xref="S2.E3.m1.1.1.1.1.3.3.1.3">2</cn></apply></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.E3.m1.1c">\mathcal{L}=\lVert\hat{\bm{y}}-\bm{y}\rVert^{2}_{2}+\alpha\lVert\hat{\bm{p}}-\bm{p}\rVert^{2}_{2}+\gamma\lVert\hat{\bm{d}}-\bm{d}\rVert^{2}_{2}.</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(3)</span></td>
+</tr></tbody>
+</table>
+</div>
+<section id="S2.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.1 </span>Duration of Input Symbols</h3>
+
+<div id="S2.SS1.p1" class="ltx_para">
+<p id="S2.SS1.p1.3" class="ltx_p">Durations of input symbols are estimated with a Tacotron 2 model trained on LJSpeech-1.1 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib10" title="" class="ltx_ref">10</a>]</cite>.
+Let <math id="S2.SS1.p1.1.m1.1" class="ltx_Math" alttext="\bm{A}\in\mathbb{R}^{n\times t}" display="inline"><semantics id="S2.SS1.p1.1.m1.1a"><mrow id="S2.SS1.p1.1.m1.1.1" xref="S2.SS1.p1.1.m1.1.1.cmml"><mi id="S2.SS1.p1.1.m1.1.1.2" xref="S2.SS1.p1.1.m1.1.1.2.cmml">𝑨</mi><mo id="S2.SS1.p1.1.m1.1.1.1" xref="S2.SS1.p1.1.m1.1.1.1.cmml">∈</mo><msup id="S2.SS1.p1.1.m1.1.1.3" xref="S2.SS1.p1.1.m1.1.1.3.cmml"><mi id="S2.SS1.p1.1.m1.1.1.3.2" xref="S2.SS1.p1.1.m1.1.1.3.2.cmml">ℝ</mi><mrow id="S2.SS1.p1.1.m1.1.1.3.3" xref="S2.SS1.p1.1.m1.1.1.3.3.cmml"><mi id="S2.SS1.p1.1.m1.1.1.3.3.2" xref="S2.SS1.p1.1.m1.1.1.3.3.2.cmml">n</mi><mo lspace="0.222em" rspace="0.222em" id="S2.SS1.p1.1.m1.1.1.3.3.1" xref="S2.SS1.p1.1.m1.1.1.3.3.1.cmml">×</mo><mi id="S2.SS1.p1.1.m1.1.1.3.3.3" xref="S2.SS1.p1.1.m1.1.1.3.3.3.cmml">t</mi></mrow></msup></mrow><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.1.m1.1b"><apply id="S2.SS1.p1.1.m1.1.1.cmml" xref="S2.SS1.p1.1.m1.1.1"><in id="S2.SS1.p1.1.m1.1.1.1.cmml" xref="S2.SS1.p1.1.m1.1.1.1"></in><ci id="S2.SS1.p1.1.m1.1.1.2.cmml" xref="S2.SS1.p1.1.m1.1.1.2">𝑨</ci><apply id="S2.SS1.p1.1.m1.1.1.3.cmml" xref="S2.SS1.p1.1.m1.1.1.3"><csymbol cd="ambiguous" id="S2.SS1.p1.1.m1.1.1.3.1.cmml" xref="S2.SS1.p1.1.m1.1.1.3">superscript</csymbol><ci id="S2.SS1.p1.1.m1.1.1.3.2.cmml" xref="S2.SS1.p1.1.m1.1.1.3.2">ℝ</ci><apply id="S2.SS1.p1.1.m1.1.1.3.3.cmml" xref="S2.SS1.p1.1.m1.1.1.3.3"><times id="S2.SS1.p1.1.m1.1.1.3.3.1.cmml" xref="S2.SS1.p1.1.m1.1.1.3.3.1"></times><ci id="S2.SS1.p1.1.m1.1.1.3.3.2.cmml" xref="S2.SS1.p1.1.m1.1.1.3.3.2">𝑛</ci><ci id="S2.SS1.p1.1.m1.1.1.3.3.3.cmml" xref="S2.SS1.p1.1.m1.1.1.3.3.3">𝑡</ci></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.1.m1.1c">\bm{A}\in\mathbb{R}^{n\times t}</annotation></semantics></math> be the final Tacotron 2 attention matrix.
+The duration of the <math id="S2.SS1.p1.2.m2.1" class="ltx_Math" alttext="i" display="inline"><semantics id="S2.SS1.p1.2.m2.1a"><mi id="S2.SS1.p1.2.m2.1.1" xref="S2.SS1.p1.2.m2.1.1.cmml">i</mi><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.2.m2.1b"><ci id="S2.SS1.p1.2.m2.1.1.cmml" xref="S2.SS1.p1.2.m2.1.1">𝑖</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.2.m2.1c">i</annotation></semantics></math>th input symbol is <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref">1</a>]</cite>
+<math id="S2.SS1.p1.3.m3.3" class="ltx_Math" alttext="d_{i}=\sum_{c=1}^{t}[\operatorname*{arg\,max}_{r}\bm{A}_{r,c}=i]" display="inline"><semantics id="S2.SS1.p1.3.m3.3a"><mrow id="S2.SS1.p1.3.m3.3.3" xref="S2.SS1.p1.3.m3.3.3.cmml"><msub id="S2.SS1.p1.3.m3.3.3.3" xref="S2.SS1.p1.3.m3.3.3.3.cmml"><mi id="S2.SS1.p1.3.m3.3.3.3.2" xref="S2.SS1.p1.3.m3.3.3.3.2.cmml">d</mi><mi id="S2.SS1.p1.3.m3.3.3.3.3" xref="S2.SS1.p1.3.m3.3.3.3.3.cmml">i</mi></msub><mo rspace="0.111em" id="S2.SS1.p1.3.m3.3.3.2" xref="S2.SS1.p1.3.m3.3.3.2.cmml">=</mo><mrow id="S2.SS1.p1.3.m3.3.3.1" xref="S2.SS1.p1.3.m3.3.3.1.cmml"><msubsup id="S2.SS1.p1.3.m3.3.3.1.2" xref="S2.SS1.p1.3.m3.3.3.1.2.cmml"><mo rspace="0em" id="S2.SS1.p1.3.m3.3.3.1.2.2.2" xref="S2.SS1.p1.3.m3.3.3.1.2.2.2.cmml">∑</mo><mrow id="S2.SS1.p1.3.m3.3.3.1.2.2.3" xref="S2.SS1.p1.3.m3.3.3.1.2.2.3.cmml"><mi id="S2.SS1.p1.3.m3.3.3.1.2.2.3.2" xref="S2.SS1.p1.3.m3.3.3.1.2.2.3.2.cmml">c</mi><mo id="S2.SS1.p1.3.m3.3.3.1.2.2.3.1" xref="S2.SS1.p1.3.m3.3.3.1.2.2.3.1.cmml">=</mo><mn id="S2.SS1.p1.3.m3.3.3.1.2.2.3.3" xref="S2.SS1.p1.3.m3.3.3.1.2.2.3.3.cmml">1</mn></mrow><mi id="S2.SS1.p1.3.m3.3.3.1.2.3" xref="S2.SS1.p1.3.m3.3.3.1.2.3.cmml">t</mi></msubsup><mrow id="S2.SS1.p1.3.m3.3.3.1.1.1" xref="S2.SS1.p1.3.m3.3.3.1.1.2.cmml"><mo stretchy="false" id="S2.SS1.p1.3.m3.3.3.1.1.1.2" xref="S2.SS1.p1.3.m3.3.3.1.1.2.1.cmml">[</mo><mrow id="S2.SS1.p1.3.m3.3.3.1.1.1.1" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.cmml"><mrow id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.cmml"><msub id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.cmml"><mrow id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.cmml"><mi id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.2" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.2.cmml">arg</mi><mo lspace="0.170em" rspace="0em" id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.1" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.1.cmml">​</mo><mi id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.3" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.3.cmml">max</mi></mrow><mi id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.3" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.3.cmml">r</mi></msub><mo id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2a" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.cmml">⁡</mo><msub id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.2" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.2.cmml"><mi id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.2.2" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.2.2.cmml">𝑨</mi><mrow id="S2.SS1.p1.3.m3.2.2.2.4" xref="S2.SS1.p1.3.m3.2.2.2.3.cmml"><mi id="S2.SS1.p1.3.m3.1.1.1.1" xref="S2.SS1.p1.3.m3.1.1.1.1.cmml">r</mi><mo id="S2.SS1.p1.3.m3.2.2.2.4.1" xref="S2.SS1.p1.3.m3.2.2.2.3.cmml">,</mo><mi id="S2.SS1.p1.3.m3.2.2.2.2" xref="S2.SS1.p1.3.m3.2.2.2.2.cmml">c</mi></mrow></msub></mrow><mo id="S2.SS1.p1.3.m3.3.3.1.1.1.1.1" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.1.cmml">=</mo><mi id="S2.SS1.p1.3.m3.3.3.1.1.1.1.3" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.3.cmml">i</mi></mrow><mo stretchy="false" id="S2.SS1.p1.3.m3.3.3.1.1.1.3" xref="S2.SS1.p1.3.m3.3.3.1.1.2.1.cmml">]</mo></mrow></mrow></mrow><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.3.m3.3b"><apply id="S2.SS1.p1.3.m3.3.3.cmml" xref="S2.SS1.p1.3.m3.3.3"><eq id="S2.SS1.p1.3.m3.3.3.2.cmml" xref="S2.SS1.p1.3.m3.3.3.2"></eq><apply id="S2.SS1.p1.3.m3.3.3.3.cmml" xref="S2.SS1.p1.3.m3.3.3.3"><csymbol cd="ambiguous" id="S2.SS1.p1.3.m3.3.3.3.1.cmml" xref="S2.SS1.p1.3.m3.3.3.3">subscript</csymbol><ci id="S2.SS1.p1.3.m3.3.3.3.2.cmml" xref="S2.SS1.p1.3.m3.3.3.3.2">𝑑</ci><ci id="S2.SS1.p1.3.m3.3.3.3.3.cmml" xref="S2.SS1.p1.3.m3.3.3.3.3">𝑖</ci></apply><apply id="S2.SS1.p1.3.m3.3.3.1.cmml" xref="S2.SS1.p1.3.m3.3.3.1"><apply id="S2.SS1.p1.3.m3.3.3.1.2.cmml" xref="S2.SS1.p1.3.m3.3.3.1.2"><csymbol cd="ambiguous" id="S2.SS1.p1.3.m3.3.3.1.2.1.cmml" xref="S2.SS1.p1.3.m3.3.3.1.2">superscript</csymbol><apply id="S2.SS1.p1.3.m3.3.3.1.2.2.cmml" xref="S2.SS1.p1.3.m3.3.3.1.2"><csymbol cd="ambiguous" id="S2.SS1.p1.3.m3.3.3.1.2.2.1.cmml" xref="S2.SS1.p1.3.m3.3.3.1.2">subscript</csymbol><sum id="S2.SS1.p1.3.m3.3.3.1.2.2.2.cmml" xref="S2.SS1.p1.3.m3.3.3.1.2.2.2"></sum><apply id="S2.SS1.p1.3.m3.3.3.1.2.2.3.cmml" xref="S2.SS1.p1.3.m3.3.3.1.2.2.3"><eq id="S2.SS1.p1.3.m3.3.3.1.2.2.3.1.cmml" xref="S2.SS1.p1.3.m3.3.3.1.2.2.3.1"></eq><ci id="S2.SS1.p1.3.m3.3.3.1.2.2.3.2.cmml" xref="S2.SS1.p1.3.m3.3.3.1.2.2.3.2">𝑐</ci><cn type="integer" id="S2.SS1.p1.3.m3.3.3.1.2.2.3.3.cmml" xref="S2.SS1.p1.3.m3.3.3.1.2.2.3.3">1</cn></apply></apply><ci id="S2.SS1.p1.3.m3.3.3.1.2.3.cmml" xref="S2.SS1.p1.3.m3.3.3.1.2.3">𝑡</ci></apply><apply id="S2.SS1.p1.3.m3.3.3.1.1.2.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1"><csymbol cd="latexml" id="S2.SS1.p1.3.m3.3.3.1.1.2.1.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.2">delimited-[]</csymbol><apply id="S2.SS1.p1.3.m3.3.3.1.1.1.1.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1"><eq id="S2.SS1.p1.3.m3.3.3.1.1.1.1.1.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.1"></eq><apply id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2"><apply id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1"><csymbol cd="ambiguous" id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.1.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1">subscript</csymbol><apply id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2"><times id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.1.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.1"></times><ci id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.2.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.2">arg</ci><ci id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.3.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.2.3">max</ci></apply><ci id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.3.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.1.3">𝑟</ci></apply><apply id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.2.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.2"><csymbol cd="ambiguous" id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.2.1.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.2">subscript</csymbol><ci id="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.2.2.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.2.2.2">𝑨</ci><list id="S2.SS1.p1.3.m3.2.2.2.3.cmml" xref="S2.SS1.p1.3.m3.2.2.2.4"><ci id="S2.SS1.p1.3.m3.1.1.1.1.cmml" xref="S2.SS1.p1.3.m3.1.1.1.1">𝑟</ci><ci id="S2.SS1.p1.3.m3.2.2.2.2.cmml" xref="S2.SS1.p1.3.m3.2.2.2.2">𝑐</ci></list></apply></apply><ci id="S2.SS1.p1.3.m3.3.3.1.1.1.1.3.cmml" xref="S2.SS1.p1.3.m3.3.3.1.1.1.1.3">𝑖</ci></apply></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.3.m3.3c">d_{i}=\sum_{c=1}^{t}[\operatorname*{arg\,max}_{r}\bm{A}_{r,c}=i]</annotation></semantics></math>.
+Because Tacotron 2 has a single attention matrix, we do not need to choose between attention heads,
+as it would be necessary with a multi-head Transformer model.</p>
+</div>
+<div id="S2.SS1.p2" class="ltx_para">
+<p id="S2.SS1.p2.1" class="ltx_p">FastPitch is robust to the quality of alignments. We observe that durations extracted with distinct
+Tacotron 2 models tend to differ (Figure <a href="#S2.F2" title="Figure 2 ‣ 2.1 Duration of Input Symbols ‣ 2 MODEL DESCRIPTION ‣ FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>),
+where the longest durations have approximately the same locations, but may be assigned to different characters.
+Surprisingly, those different alignment models produce FastPitch
+models, which synthesize speech of similar quality.</p>
+</div>
+<figure id="S2.F2" class="ltx_figure"><img src="/html/2006.06873/assets/x2.png" id="S2.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="461" height="137" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S2.F2.3.1.1" class="ltx_text ltx_font_bold">Fig. 2</span>: </span><span id="S2.F2.4.2" class="ltx_text ltx_font_bold">Varying character durations</span> extracted with different Tacotron 2 models
+allow to train FastPitch of similar quality (cf. FastPitch MOS scores in Table <a href="#S4.T1" title="Table 1 ‣ 4.1 Evaluation ‣ 4 EXPERIMENTS ‣ FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> and Table <a href="#S4.T2" title="Table 2 ‣ 4.1.2 Multiple Speakers ‣ 4.1 Evaluation ‣ 4 EXPERIMENTS ‣ FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>).</figcaption>
+</figure>
+</section>
+<section id="S2.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.2 </span>Pitch of Input Symbols</h3>
+
+<div id="S2.SS2.p1" class="ltx_para">
+<p id="S2.SS2.p1.1" class="ltx_p">We obtain ground truth pitch values through acoustic periodicity detection
+using the accurate autocorrelation method <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib11" title="" class="ltx_ref">11</a>]</cite>.
+The windowed signal is calculated using Hann windows.
+The algorithm finds an array of maxima of the normalized
+autocorrelation function,
+which become the candidate frequencies.
+The lowest-cost path through the array of candidates is calculated with the Viterbi algorithm.
+The path minimizes the transitions between the candidate frequencies.
+We set windows size to match the resolution of training mel-spectrograms, to get one <math id="S2.SS2.p1.1.m1.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="S2.SS2.p1.1.m1.1a"><msub id="S2.SS2.p1.1.m1.1.1" xref="S2.SS2.p1.1.m1.1.1.cmml"><mi id="S2.SS2.p1.1.m1.1.1.2" xref="S2.SS2.p1.1.m1.1.1.2.cmml">F</mi><mn id="S2.SS2.p1.1.m1.1.1.3" xref="S2.SS2.p1.1.m1.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S2.SS2.p1.1.m1.1b"><apply id="S2.SS2.p1.1.m1.1.1.cmml" xref="S2.SS2.p1.1.m1.1.1"><csymbol cd="ambiguous" id="S2.SS2.p1.1.m1.1.1.1.cmml" xref="S2.SS2.p1.1.m1.1.1">subscript</csymbol><ci id="S2.SS2.p1.1.m1.1.1.2.cmml" xref="S2.SS2.p1.1.m1.1.1.2">𝐹</ci><cn type="integer" id="S2.SS2.p1.1.m1.1.1.3.cmml" xref="S2.SS2.p1.1.m1.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS2.p1.1.m1.1c">F_{0}</annotation></semantics></math> value for every frame.</p>
+</div>
+<div id="S2.SS2.p2" class="ltx_para">
+<p id="S2.SS2.p2.4" class="ltx_p"><math id="S2.SS2.p2.1.m1.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="S2.SS2.p2.1.m1.1a"><msub id="S2.SS2.p2.1.m1.1.1" xref="S2.SS2.p2.1.m1.1.1.cmml"><mi id="S2.SS2.p2.1.m1.1.1.2" xref="S2.SS2.p2.1.m1.1.1.2.cmml">F</mi><mn id="S2.SS2.p2.1.m1.1.1.3" xref="S2.SS2.p2.1.m1.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S2.SS2.p2.1.m1.1b"><apply id="S2.SS2.p2.1.m1.1.1.cmml" xref="S2.SS2.p2.1.m1.1.1"><csymbol cd="ambiguous" id="S2.SS2.p2.1.m1.1.1.1.cmml" xref="S2.SS2.p2.1.m1.1.1">subscript</csymbol><ci id="S2.SS2.p2.1.m1.1.1.2.cmml" xref="S2.SS2.p2.1.m1.1.1.2">𝐹</ci><cn type="integer" id="S2.SS2.p2.1.m1.1.1.3.cmml" xref="S2.SS2.p2.1.m1.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS2.p2.1.m1.1c">F_{0}</annotation></semantics></math> values are averaged over every input symbol using the extracted durations <math id="S2.SS2.p2.2.m2.1" class="ltx_Math" alttext="\bm{d}" display="inline"><semantics id="S2.SS2.p2.2.m2.1a"><mi id="S2.SS2.p2.2.m2.1.1" xref="S2.SS2.p2.2.m2.1.1.cmml">𝒅</mi><annotation-xml encoding="MathML-Content" id="S2.SS2.p2.2.m2.1b"><ci id="S2.SS2.p2.2.m2.1.1.cmml" xref="S2.SS2.p2.2.m2.1.1">𝒅</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS2.p2.2.m2.1c">\bm{d}</annotation></semantics></math> (Figure <a href="#S2.F3" title="Figure 3 ‣ 2.2 Pitch of Input Symbols ‣ 2 MODEL DESCRIPTION ‣ FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>).
+Unvoiced values are excluded from the calculation.
+For training, the values are standardized to mean of 0 and standard deviation of 1.
+If there are no voiced <math id="S2.SS2.p2.3.m3.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="S2.SS2.p2.3.m3.1a"><msub id="S2.SS2.p2.3.m3.1.1" xref="S2.SS2.p2.3.m3.1.1.cmml"><mi id="S2.SS2.p2.3.m3.1.1.2" xref="S2.SS2.p2.3.m3.1.1.2.cmml">F</mi><mn id="S2.SS2.p2.3.m3.1.1.3" xref="S2.SS2.p2.3.m3.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S2.SS2.p2.3.m3.1b"><apply id="S2.SS2.p2.3.m3.1.1.cmml" xref="S2.SS2.p2.3.m3.1.1"><csymbol cd="ambiguous" id="S2.SS2.p2.3.m3.1.1.1.cmml" xref="S2.SS2.p2.3.m3.1.1">subscript</csymbol><ci id="S2.SS2.p2.3.m3.1.1.2.cmml" xref="S2.SS2.p2.3.m3.1.1.2">𝐹</ci><cn type="integer" id="S2.SS2.p2.3.m3.1.1.3.cmml" xref="S2.SS2.p2.3.m3.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS2.p2.3.m3.1c">F_{0}</annotation></semantics></math> estimates for a particular symbol, its pitch is being set to 0.
+We have not seen any improvements from modeling <math id="S2.SS2.p2.4.m4.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="S2.SS2.p2.4.m4.1a"><msub id="S2.SS2.p2.4.m4.1.1" xref="S2.SS2.p2.4.m4.1.1.cmml"><mi id="S2.SS2.p2.4.m4.1.1.2" xref="S2.SS2.p2.4.m4.1.1.2.cmml">F</mi><mn id="S2.SS2.p2.4.m4.1.1.3" xref="S2.SS2.p2.4.m4.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S2.SS2.p2.4.m4.1b"><apply id="S2.SS2.p2.4.m4.1.1.cmml" xref="S2.SS2.p2.4.m4.1.1"><csymbol cd="ambiguous" id="S2.SS2.p2.4.m4.1.1.1.cmml" xref="S2.SS2.p2.4.m4.1.1">subscript</csymbol><ci id="S2.SS2.p2.4.m4.1.1.2.cmml" xref="S2.SS2.p2.4.m4.1.1.2">𝐹</ci><cn type="integer" id="S2.SS2.p2.4.m4.1.1.3.cmml" xref="S2.SS2.p2.4.m4.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS2.p2.4.m4.1c">F_{0}</annotation></semantics></math> in log-domain.</p>
+</div>
+<figure id="S2.F3" class="ltx_figure"><img src="/html/2006.06873/assets/x3.png" id="S2.F3.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="187" height="55" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S2.F3.4.1.1" class="ltx_text ltx_font_bold">Fig. 3</span>: </span><span id="S2.F3.5.2" class="ltx_text ltx_font_bold">Fundamental frequency</span> estimated for the utterance <span id="S2.F3.6.3" class="ltx_text ltx_font_italic">In being comparatively</span>.
+Raw values are shown in blue, values averaged over input characters in green.
+</figcaption>
+</figure>
+<div id="S2.SS2.p3" class="ltx_para">
+<p id="S2.SS2.p3.1" class="ltx_p">Following <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib5" title="" class="ltx_ref">5</a>]</cite>, we tried averaging to three pitch values per every symbol,
+in the hope to capture the beginning, middle and ending pitch for every symbol.
+However, the model was judged inferior (Section <a href="#S4.SS1" title="4.1 Evaluation ‣ 4 EXPERIMENTS ‣ FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.1</span></a>).</p>
+</div>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>RELATED WORK</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.1" class="ltx_p">Developed concurrently to our model, FastSpeech 2 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib7" title="" class="ltx_ref">7</a>]</cite>
+has a different approach to conditioning on <math id="S3.p1.1.m1.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="S3.p1.1.m1.1a"><msub id="S3.p1.1.m1.1.1" xref="S3.p1.1.m1.1.1.cmml"><mi id="S3.p1.1.m1.1.1.2" xref="S3.p1.1.m1.1.1.2.cmml">F</mi><mn id="S3.p1.1.m1.1.1.3" xref="S3.p1.1.m1.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S3.p1.1.m1.1b"><apply id="S3.p1.1.m1.1.1.cmml" xref="S3.p1.1.m1.1.1"><csymbol cd="ambiguous" id="S3.p1.1.m1.1.1.1.cmml" xref="S3.p1.1.m1.1.1">subscript</csymbol><ci id="S3.p1.1.m1.1.1.2.cmml" xref="S3.p1.1.m1.1.1.2">𝐹</ci><cn type="integer" id="S3.p1.1.m1.1.1.3.cmml" xref="S3.p1.1.m1.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.p1.1.m1.1c">F_{0}</annotation></semantics></math> and uses phoneme inputs.
+The predicted contour has a resolution of one value for every mel-spectrogram frame, discretized to 256 frequency values.
+Additionally, the model is conditioned on energy.
+In FastPitch, the predicted contour has one value for every input symbol.
+In the experiments this lower resolution made it easier for the model to predict the contour,
+and for the user to later modify the pitch interactively.
+We found that this resolution is sufficient for the model to discern between different ways of pronouncing a grapheme during training.
+In addition, conditioning on higher formants might increase slightly
+the quality, capturable by pairwise comparisons (Section <a href="#S4.SS1.SSS1" title="4.1.1 Pairwise Comparisons ‣ 4.1 Evaluation ‣ 4 EXPERIMENTS ‣ FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.1.1</span></a>).</p>
+</div>
+<div id="S3.p2" class="ltx_para">
+<p id="S3.p2.1" class="ltx_p">The predominant paradigm in text-to-speech is two-stage synthesis:
+first producing mel-scale spectrograms from text,
+and then the actual sound waves with a vocoder model <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>, <a href="#bib.bib12" title="" class="ltx_ref">12</a>, <a href="#bib.bib13" title="" class="ltx_ref">13</a>]</cite>.
+In attempts to speed up the synthesis, parallel models have been
+explored. In addition to Transformer models investigated in this
+work <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref">1</a>]</cite>,
+convolutional GAN-TTS <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref">14</a>]</cite> is able to synthesize
+raw audio waveforms with state-of-the-art quality.
+It is conditioned on linguistic and pitch features.</p>
+</div>
+<div id="S3.p3" class="ltx_para">
+<p id="S3.p3.1" class="ltx_p">The efforts in parallelizing existing models include duration prediction
+similar to FastSpeech, applied to Tacotron <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib15" title="" class="ltx_ref">15</a>]</cite>,
+WaveRNN <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib16" title="" class="ltx_ref">16</a>]</cite>,
+or a flow-based model <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib2" title="" class="ltx_ref">2</a>]</cite>.
+Explicit modeling of duration
+typically use dynamic programming algorithms associated with
+inference and training of HMMs. Glow-TTS aligns with Viterbi paths,
+and FastSpeech has been improved with a variant of the forward-backward algorithm <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib17" title="" class="ltx_ref">17</a>]</cite>.</p>
+</div>
+<div id="S3.p4" class="ltx_para">
+<p id="S3.p4.1" class="ltx_p">Explicit neural modeling of pitch was
+introduced alongside a neural TTS voice conversion model <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib5" title="" class="ltx_ref">5</a>]</cite>,
+which shares similarities with other models from IBM Research <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib4" title="" class="ltx_ref">4</a>]</cite>. An LSTM-based Variational Autoencoder generation network modeled prosody,
+and pitch was calculated with a separate tool prior to the training.
+Prosody information was encoded in vectors of four values: log-duration, start
+log-pitch, end log-pitch, and log-energy.</p>
+</div>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>EXPERIMENTS</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p">The source code with pre-trained checkpoints<span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note">1</span><a target="_blank" href="https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/SpeechSynthesis/FastPitch" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/NVIDIA/DeepLearningExamples/tree/master/PyTorch/SpeechSynthesis/FastPitch</a></span></span></span>,
+and synthesized samples<span id="footnote2" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">2</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">2</sup><span class="ltx_tag ltx_tag_note">2</span><a target="_blank" href="https://fastpitch.github.io/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://fastpitch.github.io/</a></span></span></span>
+are available on-line.
+We synthesize waveforms for evaluation with pre-trained WaveGlow <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib8" title="" class="ltx_ref">8</a>]</cite>.</p>
+</div>
+<div id="S4.p2" class="ltx_para">
+<p id="S4.p2.1" class="ltx_p">The model is trained on the publicly available LJSpeech 1.1 dataset <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib10" title="" class="ltx_ref">10</a>]</cite> which contains
+approximately 24 hours of single-speaker speech recorded at <math id="S4.p2.1.m1.3" class="ltx_Math" alttext="22\,050\text{\,}\mathrm{Hz}" display="inline"><semantics id="S4.p2.1.m1.3a"><mrow id="S4.p2.1.m1.3.3" xref="S4.p2.1.m1.3.3.cmml"><mn id="S4.p2.1.m1.1.1.1.1.1.1" xref="S4.p2.1.m1.1.1.1.1.1.1.cmml">22 050</mn><mtext id="S4.p2.1.m1.2.2.2.2.2.2" xref="S4.p2.1.m1.2.2.2.2.2.2.cmml"> </mtext><mi class="ltx_unit" id="S4.p2.1.m1.3.3.3.3.3.3" xref="S4.p2.1.m1.3.3.3.3.3.3.cmml">Hz</mi></mrow><annotation-xml encoding="MathML-Content" id="S4.p2.1.m1.3b"><apply id="S4.p2.1.m1.3.3.cmml" xref="S4.p2.1.m1.3.3"><csymbol cd="latexml" id="S4.p2.1.m1.2.2.2.2.2.2.cmml" xref="S4.p2.1.m1.2.2.2.2.2.2">times</csymbol><cn type="integer" id="S4.p2.1.m1.1.1.1.1.1.1.cmml" xref="S4.p2.1.m1.1.1.1.1.1.1">22050</cn><csymbol cd="latexml" id="S4.p2.1.m1.3.3.3.3.3.3.cmml" xref="S4.p2.1.m1.3.3.3.3.3.3">hertz</csymbol></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.p2.1.m1.3c">22\,050\text{\,}\mathrm{Hz}</annotation></semantics></math>.
+We manually correct wrong transcriptions for samples LJ034-0138 and LJ031-0175
+discovered during a data inspection with a speech recognition model.
+We are cautious to use the same train/dev/test split as our WaveGlow model.
+This detail is easy to miss when using a pre-trained model,
+and can leak the training data during evaluation and inflate the results.</p>
+</div>
+<div id="S4.p3" class="ltx_para">
+<p id="S4.p3.1" class="ltx_p">Parameters of the model mostly follow FastSpeech <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref">1</a>]</cite>.
+Each FFTr layer is composed of a 1-D conv
+with kernel size 3 and 384/1536 input/output channels, ReLU activation,
+a 1-D conv with kernel size 3 and 1536/384 input/output filters,
+followed by Dropout and Layer Norm.
+Duration Predictor and Pitch Predictor have the same architecture:
+a 1-D conv with kernel size 3 and 384/256 channels,
+and a 1-D conv with 256/256 channels, each followed by ReLU, Layer Norm and Dropout layers.
+The last layer projects every 256-channel vector to a scalar.
+Dropout rate is 0.1, also on attention heads.</p>
+</div>
+<div id="S4.p4" class="ltx_para">
+<p id="S4.p4.1" class="ltx_p">All described models were trained on graphemes.
+Training on phonemes leads to a similar quality of a model, with either
+Tacotron 2 or Montreal Forced Aligner <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib18" title="" class="ltx_ref">18</a>]</cite> durations.
+However, the mixed approach of training on phonemes and graphemes <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib19" title="" class="ltx_ref">19</a>]</cite>
+introduced unpleasant artifacts.</p>
+</div>
+<div id="S4.p5" class="ltx_para">
+<p id="S4.p5.7" class="ltx_p">FastPitch has been trained on <math id="S4.p5.1.m1.1" class="ltx_math_unparsed" alttext="8\times" display="inline"><semantics id="S4.p5.1.m1.1a"><mrow id="S4.p5.1.m1.1b"><mn id="S4.p5.1.m1.1.1">8</mn><mo lspace="0.222em" id="S4.p5.1.m1.1.2">×</mo></mrow><annotation encoding="application/x-tex" id="S4.p5.1.m1.1c">8\times</annotation></semantics></math> NVIDIA V100 GPUs with 32 examples per GPU
+and automatic mixed precision <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref">20</a>]</cite>.
+The training converges after 2 hours, and full training takes 5.5 hours.
+We use the LAMB optimizer <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib21" title="" class="ltx_ref">21</a>]</cite> with learning rate <math id="S4.p5.2.m2.1" class="ltx_Math" alttext="0.1" display="inline"><semantics id="S4.p5.2.m2.1a"><mn id="S4.p5.2.m2.1.1" xref="S4.p5.2.m2.1.1.cmml">0.1</mn><annotation-xml encoding="MathML-Content" id="S4.p5.2.m2.1b"><cn type="float" id="S4.p5.2.m2.1.1.cmml" xref="S4.p5.2.m2.1.1">0.1</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.p5.2.m2.1c">0.1</annotation></semantics></math>, <math id="S4.p5.3.m3.1" class="ltx_Math" alttext="\beta_{1}=0.9" display="inline"><semantics id="S4.p5.3.m3.1a"><mrow id="S4.p5.3.m3.1.1" xref="S4.p5.3.m3.1.1.cmml"><msub id="S4.p5.3.m3.1.1.2" xref="S4.p5.3.m3.1.1.2.cmml"><mi id="S4.p5.3.m3.1.1.2.2" xref="S4.p5.3.m3.1.1.2.2.cmml">β</mi><mn id="S4.p5.3.m3.1.1.2.3" xref="S4.p5.3.m3.1.1.2.3.cmml">1</mn></msub><mo id="S4.p5.3.m3.1.1.1" xref="S4.p5.3.m3.1.1.1.cmml">=</mo><mn id="S4.p5.3.m3.1.1.3" xref="S4.p5.3.m3.1.1.3.cmml">0.9</mn></mrow><annotation-xml encoding="MathML-Content" id="S4.p5.3.m3.1b"><apply id="S4.p5.3.m3.1.1.cmml" xref="S4.p5.3.m3.1.1"><eq id="S4.p5.3.m3.1.1.1.cmml" xref="S4.p5.3.m3.1.1.1"></eq><apply id="S4.p5.3.m3.1.1.2.cmml" xref="S4.p5.3.m3.1.1.2"><csymbol cd="ambiguous" id="S4.p5.3.m3.1.1.2.1.cmml" xref="S4.p5.3.m3.1.1.2">subscript</csymbol><ci id="S4.p5.3.m3.1.1.2.2.cmml" xref="S4.p5.3.m3.1.1.2.2">𝛽</ci><cn type="integer" id="S4.p5.3.m3.1.1.2.3.cmml" xref="S4.p5.3.m3.1.1.2.3">1</cn></apply><cn type="float" id="S4.p5.3.m3.1.1.3.cmml" xref="S4.p5.3.m3.1.1.3">0.9</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.p5.3.m3.1c">\beta_{1}=0.9</annotation></semantics></math>, <math id="S4.p5.4.m4.1" class="ltx_Math" alttext="\beta_{2}=0.98" display="inline"><semantics id="S4.p5.4.m4.1a"><mrow id="S4.p5.4.m4.1.1" xref="S4.p5.4.m4.1.1.cmml"><msub id="S4.p5.4.m4.1.1.2" xref="S4.p5.4.m4.1.1.2.cmml"><mi id="S4.p5.4.m4.1.1.2.2" xref="S4.p5.4.m4.1.1.2.2.cmml">β</mi><mn id="S4.p5.4.m4.1.1.2.3" xref="S4.p5.4.m4.1.1.2.3.cmml">2</mn></msub><mo id="S4.p5.4.m4.1.1.1" xref="S4.p5.4.m4.1.1.1.cmml">=</mo><mn id="S4.p5.4.m4.1.1.3" xref="S4.p5.4.m4.1.1.3.cmml">0.98</mn></mrow><annotation-xml encoding="MathML-Content" id="S4.p5.4.m4.1b"><apply id="S4.p5.4.m4.1.1.cmml" xref="S4.p5.4.m4.1.1"><eq id="S4.p5.4.m4.1.1.1.cmml" xref="S4.p5.4.m4.1.1.1"></eq><apply id="S4.p5.4.m4.1.1.2.cmml" xref="S4.p5.4.m4.1.1.2"><csymbol cd="ambiguous" id="S4.p5.4.m4.1.1.2.1.cmml" xref="S4.p5.4.m4.1.1.2">subscript</csymbol><ci id="S4.p5.4.m4.1.1.2.2.cmml" xref="S4.p5.4.m4.1.1.2.2">𝛽</ci><cn type="integer" id="S4.p5.4.m4.1.1.2.3.cmml" xref="S4.p5.4.m4.1.1.2.3">2</cn></apply><cn type="float" id="S4.p5.4.m4.1.1.3.cmml" xref="S4.p5.4.m4.1.1.3">0.98</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.p5.4.m4.1c">\beta_{2}=0.98</annotation></semantics></math>, and <math id="S4.p5.5.m5.1" class="ltx_Math" alttext="\epsilon=$110-9$" display="inline"><semantics id="S4.p5.5.m5.1a"><mrow id="S4.p5.5.m5.1.2" xref="S4.p5.5.m5.1.2.cmml"><mi id="S4.p5.5.m5.1.2.2" xref="S4.p5.5.m5.1.2.2.cmml">ϵ</mi><mo id="S4.p5.5.m5.1.2.1" xref="S4.p5.5.m5.1.2.1.cmml">=</mo><mrow id="S4.p5.5.m5.1.1.m1.3.3.3" xref="S4.p5.5.m5.1.1.m1.3.3.3.cmml"><mn id="S4.p5.5.m5.1.1.m1.1.1.1.1.1.1.1" xref="S4.p5.5.m5.1.1.m1.3.3.3.cmml">1</mn><mo lspace="0em" rspace="0em" id="S4.p5.5.m5.1.1.m1.2.2.2.2.2.2.2" xref="S4.p5.5.m5.1.1.m1.3.3.3.cmml">​</mo><mrow id="S4.p5.5.m5.1.1.m1.3.3.3.3.3.3.3" xref="S4.p5.5.m5.1.1.m1.3.3.3.cmml"><mi mathvariant="normal" id="S4.p5.5.m5.1.1.m1.3.3.3.3.3.3.3.3" xref="S4.p5.5.m5.1.1.m1.3.3.3.cmml">e</mi><mo lspace="0em" rspace="0em" id="S4.p5.5.m5.1.1.m1.3.3.3.3.3.3.3.2" xref="S4.p5.5.m5.1.1.m1.3.3.3.cmml">​</mo><mrow id="S4.p5.5.m5.1.1.m1.3.3.3.3.3.3.3.1.1.1.1.1.2" xref="S4.p5.5.m5.1.1.m1.3.3.3.cmml"><mo id="S4.p5.5.m5.1.1.m1.3.3.3.3.3.3.3.1.1.1.1.1.2a" xref="S4.p5.5.m5.1.1.m1.3.3.3.cmml">−</mo><mn id="S4.p5.5.m5.1.1.m1.3.3.3.3.3.3.3.1.1.1.1.1.2.2" xref="S4.p5.5.m5.1.1.m1.3.3.3.cmml">9</mn></mrow></mrow></mrow></mrow><annotation-xml encoding="MathML-Content" id="S4.p5.5.m5.1b"><apply id="S4.p5.5.m5.1.2.cmml" xref="S4.p5.5.m5.1.2"><eq id="S4.p5.5.m5.1.2.1.cmml" xref="S4.p5.5.m5.1.2.1"></eq><ci id="S4.p5.5.m5.1.2.2.cmml" xref="S4.p5.5.m5.1.2.2">italic-ϵ</ci><csymbol cd="latexml" id="S4.p5.5.m5.1.1.m1.3.3.3.cmml" xref="S4.p5.5.m5.1.1.m1.3.3.3">1E-9</csymbol></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.p5.5.m5.1c">\epsilon=$110-9$</annotation></semantics></math>.
+Learning rate is increased during <math id="S4.p5.6.m6.1" class="ltx_Math" alttext="1000" display="inline"><semantics id="S4.p5.6.m6.1a"><mn id="S4.p5.6.m6.1.1" xref="S4.p5.6.m6.1.1.cmml">1000</mn><annotation-xml encoding="MathML-Content" id="S4.p5.6.m6.1b"><cn type="integer" id="S4.p5.6.m6.1.1.cmml" xref="S4.p5.6.m6.1.1">1000</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.p5.6.m6.1c">1000</annotation></semantics></math> warmup steps, and then decayed according to the Transformer schedule <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite>.
+We apply weight decay of <math id="S4.p5.7.m7.3" class="ltx_Math" alttext="110-6" display="inline"><semantics id="S4.p5.7.m7.3a"><mrow id="S4.p5.7.m7.3.3.3" xref="S4.p5.7.m7.3.3.3.cmml"><mn id="S4.p5.7.m7.1.1.1.1.1.1.1" xref="S4.p5.7.m7.3.3.3.cmml">1</mn><mo lspace="0em" rspace="0em" id="S4.p5.7.m7.2.2.2.2.2.2.2" xref="S4.p5.7.m7.3.3.3.cmml">​</mo><mrow id="S4.p5.7.m7.3.3.3.3.3.3.3" xref="S4.p5.7.m7.3.3.3.cmml"><mi mathvariant="normal" id="S4.p5.7.m7.3.3.3.3.3.3.3.3" xref="S4.p5.7.m7.3.3.3.cmml">e</mi><mo lspace="0em" rspace="0em" id="S4.p5.7.m7.3.3.3.3.3.3.3.2" xref="S4.p5.7.m7.3.3.3.cmml">​</mo><mrow id="S4.p5.7.m7.3.3.3.3.3.3.3.1.1.1.1.1.2" xref="S4.p5.7.m7.3.3.3.cmml"><mo id="S4.p5.7.m7.3.3.3.3.3.3.3.1.1.1.1.1.2a" xref="S4.p5.7.m7.3.3.3.cmml">−</mo><mn id="S4.p5.7.m7.3.3.3.3.3.3.3.1.1.1.1.1.2.2" xref="S4.p5.7.m7.3.3.3.cmml">6</mn></mrow></mrow></mrow><annotation-xml encoding="MathML-Content" id="S4.p5.7.m7.3b"><csymbol cd="latexml" id="S4.p5.7.m7.3.3.3.cmml" xref="S4.p5.7.m7.3.3.3">1E-6</csymbol></annotation-xml><annotation encoding="application/x-tex" id="S4.p5.7.m7.3c">110-6</annotation></semantics></math>.</p>
+</div>
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Evaluation</h3>
+
+<div id="S4.SS1.p1" class="ltx_para">
+<p id="S4.SS1.p1.1" class="ltx_p">We have compared our FastPitch model with Tacotron 2 (Table <a href="#S4.T1" title="Table 1 ‣ 4.1 Evaluation ‣ 4 EXPERIMENTS ‣ FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>).
+The samples have been scored on Amazon Turk with the Crowdsourced Audio Quality Evaluation Toolkit <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib23" title="" class="ltx_ref">23</a>]</cite>.
+We have generated speech from the first 30 samples
+from our development subset of the LJSpeech-1.1.
+At least 250 scores have been gathered per every model,
+with the total of 60 unique Turkers participating in the study.
+In order to qualify, the Turkers were asked to pass a hearing test.</p>
+</div>
+<figure id="S4.T1" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T1.5.1.1" class="ltx_text ltx_font_bold">Table 1</span>: </span><span id="S4.T1.6.2" class="ltx_text ltx_font_bold">Mean Opinion Scores</span> with 95% confidence intervals. Both models were trained on grapheme inputs.</figcaption>
+<table id="S4.T1.2" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S4.T1.2.3.1" class="ltx_tr">
+<th id="S4.T1.2.3.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt">Model</th>
+<th id="S4.T1.2.3.1.2" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt">MOS</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S4.T1.1.1" class="ltx_tr">
+<th id="S4.T1.1.1.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">Tacotron 2 (Mel + WaveGlow)</th>
+<td id="S4.T1.1.1.1" class="ltx_td ltx_align_left ltx_border_t"><math id="S4.T1.1.1.1.m1.1" class="ltx_Math" alttext="3.946\pm 0.134" display="inline"><semantics id="S4.T1.1.1.1.m1.1a"><mrow id="S4.T1.1.1.1.m1.1.1" xref="S4.T1.1.1.1.m1.1.1.cmml"><mn id="S4.T1.1.1.1.m1.1.1.2" xref="S4.T1.1.1.1.m1.1.1.2.cmml">3.946</mn><mo id="S4.T1.1.1.1.m1.1.1.1" xref="S4.T1.1.1.1.m1.1.1.1.cmml">±</mo><mn id="S4.T1.1.1.1.m1.1.1.3" xref="S4.T1.1.1.1.m1.1.1.3.cmml">0.134</mn></mrow><annotation-xml encoding="MathML-Content" id="S4.T1.1.1.1.m1.1b"><apply id="S4.T1.1.1.1.m1.1.1.cmml" xref="S4.T1.1.1.1.m1.1.1"><csymbol cd="latexml" id="S4.T1.1.1.1.m1.1.1.1.cmml" xref="S4.T1.1.1.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S4.T1.1.1.1.m1.1.1.2.cmml" xref="S4.T1.1.1.1.m1.1.1.2">3.946</cn><cn type="float" id="S4.T1.1.1.1.m1.1.1.3.cmml" xref="S4.T1.1.1.1.m1.1.1.3">0.134</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.T1.1.1.1.m1.1c">3.946\pm 0.134</annotation></semantics></math></td>
+</tr>
+<tr id="S4.T1.2.2" class="ltx_tr">
+<th id="S4.T1.2.2.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb">FastPitch (Mel + WaveGlow)</th>
+<td id="S4.T1.2.2.1" class="ltx_td ltx_align_left ltx_border_bb"><math id="S4.T1.2.2.1.m1.1" class="ltx_Math" alttext="4.080\pm 0.133" display="inline"><semantics id="S4.T1.2.2.1.m1.1a"><mrow id="S4.T1.2.2.1.m1.1.1" xref="S4.T1.2.2.1.m1.1.1.cmml"><mn id="S4.T1.2.2.1.m1.1.1.2" xref="S4.T1.2.2.1.m1.1.1.2.cmml">4.080</mn><mo id="S4.T1.2.2.1.m1.1.1.1" xref="S4.T1.2.2.1.m1.1.1.1.cmml">±</mo><mn id="S4.T1.2.2.1.m1.1.1.3" xref="S4.T1.2.2.1.m1.1.1.3.cmml">0.133</mn></mrow><annotation-xml encoding="MathML-Content" id="S4.T1.2.2.1.m1.1b"><apply id="S4.T1.2.2.1.m1.1.1.cmml" xref="S4.T1.2.2.1.m1.1.1"><csymbol cd="latexml" id="S4.T1.2.2.1.m1.1.1.1.cmml" xref="S4.T1.2.2.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S4.T1.2.2.1.m1.1.1.2.cmml" xref="S4.T1.2.2.1.m1.1.1.2">4.080</cn><cn type="float" id="S4.T1.2.2.1.m1.1.1.3.cmml" xref="S4.T1.2.2.1.m1.1.1.3">0.133</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.T1.2.2.1.m1.1c">4.080\pm 0.133</annotation></semantics></math></td>
+</tr>
+</tbody>
+</table>
+</figure>
+<section id="S4.SS1.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.1.1 </span>Pairwise Comparisons</h4>
+
+<div id="S4.SS1.SSS1.p1" class="ltx_para">
+<p id="S4.SS1.SSS1.p1.1" class="ltx_p">Generative models pose difficulties for hyperparameter tuning.
+The quality of generated samples is subjective, and running large-scale studies
+time-consuming and costly.
+In order to efficiently rank multiple models, and avoid score drift when the developer
+scores samples over a long period of time, we have investigated the approach of blindly comparing pairs of samples.
+Pairwise comparisons allow to build a global ranking, assuming that skill ratings are transitive <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib24" title="" class="ltx_ref">24</a>]</cite>.</p>
+</div>
+<div id="S4.SS1.SSS1.p2" class="ltx_para">
+<p id="S4.SS1.SSS1.p2.1" class="ltx_p">In an internal study over 50 participants scored randomly selected pairs of samples.
+Glicko-2 rating system <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib25" title="" class="ltx_ref">25</a>]</cite>,
+known from rating human players in chess, sports and on-line games,
+but also in the context of automatic scoring of generative models <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="" class="ltx_ref">26</a>]</cite>,
+was then used to build a ranking based on those scores (Figure <a href="#S4.F4" title="Figure 4 ‣ 4.1.1 Pairwise Comparisons ‣ 4.1 Evaluation ‣ 4 EXPERIMENTS ‣ FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>).
+FastPitch variations with 1, 2 and 4 attention heads, 6 and 10 transformer layers,
+and pitch predicted in the resolution of one and three values per input token were compared.
+In addition, this rating method has proven useful during development
+in tracking multiple hyperparameter settings,
+even with a handful of evaluators.</p>
+</div>
+<figure id="S4.F4" class="ltx_figure"><img src="/html/2006.06873/assets/x4.png" id="S4.F4.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="162" height="73" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S4.F4.3.1.1" class="ltx_text ltx_font_bold">Fig. 4</span>: </span><span id="S4.F4.4.2" class="ltx_text ltx_font_bold">Glicko-2 ranking</span>.
+The models have different numbers of attention heads (A), layers (L), and
+pitch averaged to three values per input symbol instead of one (3Pitch).</figcaption>
+</figure>
+</section>
+<section id="S4.SS1.SSS2" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.1.2 </span>Multiple Speakers</h4>
+
+<div id="S4.SS1.SSS2.p1" class="ltx_para">
+<p id="S4.SS1.SSS2.p1.4" class="ltx_p">FastPitch is easy to extend to multiple speakers. We have trained a model
+on the LJSpeech-1.1 dataset with additional internal training data coming from two female speakers:
+speaker 1 (8330 samples with the total of <math id="S4.SS1.SSS2.p1.1.m1.1.1.m1.3" class="ltx_markedasmath" alttext="13.6\text{\,}\mathrm{h}" display="inline"><semantics id="S4.SS1.SSS2.p1.1.m1.1.1.m1.3a"><mrow id="S4.SS1.SSS2.p1.1.m1.1.1.m1.3.3" xref="S4.SS1.SSS2.p1.1.m1.1.1.m1.3.3.cmml"><mn id="S4.SS1.SSS2.p1.1.m1.1.1.m1.1.1.1.1.1.1" xref="S4.SS1.SSS2.p1.1.m1.1.1.m1.1.1.1.1.1.1.cmml">13.6</mn><mtext id="S4.SS1.SSS2.p1.1.m1.1.1.m1.2.2.2.2.2.2" xref="S4.SS1.SSS2.p1.1.m1.1.1.m1.2.2.2.2.2.2.cmml"> </mtext><mi mathvariant="normal" id="S4.SS1.SSS2.p1.1.m1.1.1.m1.3.3.3.3.3.3" xref="S4.SS1.SSS2.p1.1.m1.1.1.m1.3.3.3.3.3.3.cmml">h</mi></mrow><annotation-xml encoding="MathML-Content" id="S4.SS1.SSS2.p1.1.m1.1.1.m1.3b"><apply id="S4.SS1.SSS2.p1.1.m1.1.1.m1.3.3.cmml" xref="S4.SS1.SSS2.p1.1.m1.1.1.m1.3.3"><csymbol cd="latexml" id="S4.SS1.SSS2.p1.1.m1.1.1.m1.2.2.2.2.2.2.cmml" xref="S4.SS1.SSS2.p1.1.m1.1.1.m1.2.2.2.2.2.2">times</csymbol><cn type="float" id="S4.SS1.SSS2.p1.1.m1.1.1.m1.1.1.1.1.1.1.cmml" xref="S4.SS1.SSS2.p1.1.m1.1.1.m1.1.1.1.1.1.1">13.6</cn><ci id="S4.SS1.SSS2.p1.1.m1.1.1.m1.3.3.3.3.3.3.cmml" xref="S4.SS1.SSS2.p1.1.m1.1.1.m1.3.3.3.3.3.3">h</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.SS1.SSS2.p1.1.m1.1.1.m1.3c">13.6\text{\,}\mathrm{h}</annotation></semantics></math>), and speaker 2 (<math id="S4.SS1.SSS2.p1.2.m2.1" class="ltx_Math" alttext="18995" display="inline"><semantics id="S4.SS1.SSS2.p1.2.m2.1a"><mn id="S4.SS1.SSS2.p1.2.m2.1.1" xref="S4.SS1.SSS2.p1.2.m2.1.1.cmml">18995</mn><annotation-xml encoding="MathML-Content" id="S4.SS1.SSS2.p1.2.m2.1b"><cn type="integer" id="S4.SS1.SSS2.p1.2.m2.1.1.cmml" xref="S4.SS1.SSS2.p1.2.m2.1.1">18995</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.SS1.SSS2.p1.2.m2.1c">18995</annotation></semantics></math> samples with the total of <math id="S4.SS1.SSS2.p1.3.m3.1.1.m1.3" class="ltx_markedasmath" alttext="17.3\text{\,}\mathrm{h}" display="inline"><semantics id="S4.SS1.SSS2.p1.3.m3.1.1.m1.3a"><mrow id="S4.SS1.SSS2.p1.3.m3.1.1.m1.3.3" xref="S4.SS1.SSS2.p1.3.m3.1.1.m1.3.3.cmml"><mn id="S4.SS1.SSS2.p1.3.m3.1.1.m1.1.1.1.1.1.1" xref="S4.SS1.SSS2.p1.3.m3.1.1.m1.1.1.1.1.1.1.cmml">17.3</mn><mtext id="S4.SS1.SSS2.p1.3.m3.1.1.m1.2.2.2.2.2.2" xref="S4.SS1.SSS2.p1.3.m3.1.1.m1.2.2.2.2.2.2.cmml"> </mtext><mi mathvariant="normal" id="S4.SS1.SSS2.p1.3.m3.1.1.m1.3.3.3.3.3.3" xref="S4.SS1.SSS2.p1.3.m3.1.1.m1.3.3.3.3.3.3.cmml">h</mi></mrow><annotation-xml encoding="MathML-Content" id="S4.SS1.SSS2.p1.3.m3.1.1.m1.3b"><apply id="S4.SS1.SSS2.p1.3.m3.1.1.m1.3.3.cmml" xref="S4.SS1.SSS2.p1.3.m3.1.1.m1.3.3"><csymbol cd="latexml" id="S4.SS1.SSS2.p1.3.m3.1.1.m1.2.2.2.2.2.2.cmml" xref="S4.SS1.SSS2.p1.3.m3.1.1.m1.2.2.2.2.2.2">times</csymbol><cn type="float" id="S4.SS1.SSS2.p1.3.m3.1.1.m1.1.1.1.1.1.1.cmml" xref="S4.SS1.SSS2.p1.3.m3.1.1.m1.1.1.1.1.1.1">17.3</cn><ci id="S4.SS1.SSS2.p1.3.m3.1.1.m1.3.3.3.3.3.3.cmml" xref="S4.SS1.SSS2.p1.3.m3.1.1.m1.3.3.3.3.3.3">h</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.SS1.SSS2.p1.3.m3.1.1.m1.3c">17.3\text{\,}\mathrm{h}</annotation></semantics></math>).
+We condition the model on the speaker by adding a global speaker embedding
+to the input tokens <math id="S4.SS1.SSS2.p1.4.m4.1" class="ltx_Math" alttext="\bm{x}" display="inline"><semantics id="S4.SS1.SSS2.p1.4.m4.1a"><mi id="S4.SS1.SSS2.p1.4.m4.1.1" xref="S4.SS1.SSS2.p1.4.m4.1.1.cmml">𝒙</mi><annotation-xml encoding="MathML-Content" id="S4.SS1.SSS2.p1.4.m4.1b"><ci id="S4.SS1.SSS2.p1.4.m4.1.1.cmml" xref="S4.SS1.SSS2.p1.4.m4.1.1">𝒙</ci></annotation-xml><annotation encoding="application/x-tex" id="S4.SS1.SSS2.p1.4.m4.1c">\bm{x}</annotation></semantics></math>.
+To compare, we have chosen multi-speaker Tacotron 2 and Flowtron <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib27" title="" class="ltx_ref">27</a>]</cite>.
+The latter is an autoregressive flow-based model. All models have been trained on the same data,
+and the multi-speaker Tacotron 2 has been used
+to extract training alignments for FastPitch. The results are summarized in Table <a href="#S4.T2" title="Table 2 ‣ 4.1.2 Multiple Speakers ‣ 4.1 Evaluation ‣ 4 EXPERIMENTS ‣ FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>.</p>
+</div>
+<figure id="S4.T2" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T2.6.1.1" class="ltx_text ltx_font_bold">Table 2</span>: </span><span id="S4.T2.7.2" class="ltx_text ltx_font_bold">Multi-speaker Mean Opinion Scores</span> with 95% confidence intervals,
+evaluated on the LJSpeech dev samples</figcaption>
+<table id="S4.T2.3" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S4.T2.3.4.1" class="ltx_tr">
+<th id="S4.T2.3.4.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_tt">Model</th>
+<th id="S4.T2.3.4.1.2" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt">MOS</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S4.T2.1.1" class="ltx_tr">
+<th id="S4.T2.1.1.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">Tacotron 2 (Mel + WaveGlow)</th>
+<td id="S4.T2.1.1.1" class="ltx_td ltx_align_left ltx_border_t"><math id="S4.T2.1.1.1.m1.1" class="ltx_Math" alttext="3.707\pm 0.218" display="inline"><semantics id="S4.T2.1.1.1.m1.1a"><mrow id="S4.T2.1.1.1.m1.1.1" xref="S4.T2.1.1.1.m1.1.1.cmml"><mn id="S4.T2.1.1.1.m1.1.1.2" xref="S4.T2.1.1.1.m1.1.1.2.cmml">3.707</mn><mo id="S4.T2.1.1.1.m1.1.1.1" xref="S4.T2.1.1.1.m1.1.1.1.cmml">±</mo><mn id="S4.T2.1.1.1.m1.1.1.3" xref="S4.T2.1.1.1.m1.1.1.3.cmml">0.218</mn></mrow><annotation-xml encoding="MathML-Content" id="S4.T2.1.1.1.m1.1b"><apply id="S4.T2.1.1.1.m1.1.1.cmml" xref="S4.T2.1.1.1.m1.1.1"><csymbol cd="latexml" id="S4.T2.1.1.1.m1.1.1.1.cmml" xref="S4.T2.1.1.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S4.T2.1.1.1.m1.1.1.2.cmml" xref="S4.T2.1.1.1.m1.1.1.2">3.707</cn><cn type="float" id="S4.T2.1.1.1.m1.1.1.3.cmml" xref="S4.T2.1.1.1.m1.1.1.3">0.218</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.T2.1.1.1.m1.1c">3.707\pm 0.218</annotation></semantics></math></td>
+</tr>
+<tr id="S4.T2.2.2" class="ltx_tr">
+<th id="S4.T2.2.2.2" class="ltx_td ltx_align_left ltx_th ltx_th_row">Flowtron (Mel + WaveGlow)</th>
+<td id="S4.T2.2.2.1" class="ltx_td ltx_align_left"><math id="S4.T2.2.2.1.m1.1" class="ltx_Math" alttext="3.882\pm 0.159" display="inline"><semantics id="S4.T2.2.2.1.m1.1a"><mrow id="S4.T2.2.2.1.m1.1.1" xref="S4.T2.2.2.1.m1.1.1.cmml"><mn id="S4.T2.2.2.1.m1.1.1.2" xref="S4.T2.2.2.1.m1.1.1.2.cmml">3.882</mn><mo id="S4.T2.2.2.1.m1.1.1.1" xref="S4.T2.2.2.1.m1.1.1.1.cmml">±</mo><mn id="S4.T2.2.2.1.m1.1.1.3" xref="S4.T2.2.2.1.m1.1.1.3.cmml">0.159</mn></mrow><annotation-xml encoding="MathML-Content" id="S4.T2.2.2.1.m1.1b"><apply id="S4.T2.2.2.1.m1.1.1.cmml" xref="S4.T2.2.2.1.m1.1.1"><csymbol cd="latexml" id="S4.T2.2.2.1.m1.1.1.1.cmml" xref="S4.T2.2.2.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S4.T2.2.2.1.m1.1.1.2.cmml" xref="S4.T2.2.2.1.m1.1.1.2">3.882</cn><cn type="float" id="S4.T2.2.2.1.m1.1.1.3.cmml" xref="S4.T2.2.2.1.m1.1.1.3">0.159</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.T2.2.2.1.m1.1c">3.882\pm 0.159</annotation></semantics></math></td>
+</tr>
+<tr id="S4.T2.3.3" class="ltx_tr">
+<th id="S4.T2.3.3.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb">FastPitch (Mel + WaveGlow)</th>
+<td id="S4.T2.3.3.1" class="ltx_td ltx_align_left ltx_border_bb"><math id="S4.T2.3.3.1.m1.1" class="ltx_Math" alttext="4.071\pm 0.164" display="inline"><semantics id="S4.T2.3.3.1.m1.1a"><mrow id="S4.T2.3.3.1.m1.1.1" xref="S4.T2.3.3.1.m1.1.1.cmml"><mn id="S4.T2.3.3.1.m1.1.1.2" xref="S4.T2.3.3.1.m1.1.1.2.cmml">4.071</mn><mo id="S4.T2.3.3.1.m1.1.1.1" xref="S4.T2.3.3.1.m1.1.1.1.cmml">±</mo><mn id="S4.T2.3.3.1.m1.1.1.3" xref="S4.T2.3.3.1.m1.1.1.3.cmml">0.164</mn></mrow><annotation-xml encoding="MathML-Content" id="S4.T2.3.3.1.m1.1b"><apply id="S4.T2.3.3.1.m1.1.1.cmml" xref="S4.T2.3.3.1.m1.1.1"><csymbol cd="latexml" id="S4.T2.3.3.1.m1.1.1.1.cmml" xref="S4.T2.3.3.1.m1.1.1.1">plus-or-minus</csymbol><cn type="float" id="S4.T2.3.3.1.m1.1.1.2.cmml" xref="S4.T2.3.3.1.m1.1.1.2">4.071</cn><cn type="float" id="S4.T2.3.3.1.m1.1.1.3.cmml" xref="S4.T2.3.3.1.m1.1.1.3">0.164</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.T2.3.3.1.m1.1c">4.071\pm 0.164</annotation></semantics></math></td>
+</tr>
+</tbody>
+</table>
+</figure>
+</section>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Pitch Conditioning and Inference Performance</h3>
+
+<div id="S4.SS2.p1" class="ltx_para">
+<p id="S4.SS2.p1.1" class="ltx_p">A predicted pitch contour can be modified during inference to control certain perceived qualities of the generated speech.
+It can be used to increase or decrease <math id="S4.SS2.p1.1.m1.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="S4.SS2.p1.1.m1.1a"><msub id="S4.SS2.p1.1.m1.1.1" xref="S4.SS2.p1.1.m1.1.1.cmml"><mi id="S4.SS2.p1.1.m1.1.1.2" xref="S4.SS2.p1.1.m1.1.1.2.cmml">F</mi><mn id="S4.SS2.p1.1.m1.1.1.3" xref="S4.SS2.p1.1.m1.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S4.SS2.p1.1.m1.1b"><apply id="S4.SS2.p1.1.m1.1.1.cmml" xref="S4.SS2.p1.1.m1.1.1"><csymbol cd="ambiguous" id="S4.SS2.p1.1.m1.1.1.1.cmml" xref="S4.SS2.p1.1.m1.1.1">subscript</csymbol><ci id="S4.SS2.p1.1.m1.1.1.2.cmml" xref="S4.SS2.p1.1.m1.1.1.2">𝐹</ci><cn type="integer" id="S4.SS2.p1.1.m1.1.1.3.cmml" xref="S4.SS2.p1.1.m1.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.p1.1.m1.1c">F_{0}</annotation></semantics></math>, raise expressiveness and variance of pitch.
+The audio samples accompanying this paper demonstrate
+the effects of increasing, decreasing or inverting the frequency
+around the mean value for a single utterance, and interpolating between speakers for the multi-speaker model.
+We encourage the reader to listen to them.</p>
+</div>
+<div id="S4.SS2.p2" class="ltx_para">
+<p id="S4.SS2.p2.1" class="ltx_p">Figure <a href="#S4.F5" title="Figure 5 ‣ 4.2 Pitch Conditioning and Inference Performance ‣ 4 EXPERIMENTS ‣ FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a> shows an example of shifting the frequency by <math id="S4.SS2.p2.1.m1.1.1.m1.3" class="ltx_markedasmath" alttext="50\text{\,}\mathrm{H}\mathrm{z}" display="inline"><semantics id="S4.SS2.p2.1.m1.1.1.m1.3a"><mrow id="S4.SS2.p2.1.m1.1.1.m1.3.3" xref="S4.SS2.p2.1.m1.1.1.m1.3.3.cmml"><mn id="S4.SS2.p2.1.m1.1.1.m1.1.1.1.1.1.1" xref="S4.SS2.p2.1.m1.1.1.m1.1.1.1.1.1.1.cmml">50</mn><mtext id="S4.SS2.p2.1.m1.1.1.m1.2.2.2.2.2.2" xref="S4.SS2.p2.1.m1.1.1.m1.2.2.2.2.2.2.cmml"> </mtext><mi id="S4.SS2.p2.1.m1.1.1.m1.3.3.3.3.3.3" xref="S4.SS2.p2.1.m1.1.1.m1.3.3.3.3.3.3.cmml">Hz</mi></mrow><annotation-xml encoding="MathML-Content" id="S4.SS2.p2.1.m1.1.1.m1.3b"><apply id="S4.SS2.p2.1.m1.1.1.m1.3.3.cmml" xref="S4.SS2.p2.1.m1.1.1.m1.3.3"><csymbol cd="latexml" id="S4.SS2.p2.1.m1.1.1.m1.2.2.2.2.2.2.cmml" xref="S4.SS2.p2.1.m1.1.1.m1.2.2.2.2.2.2">times</csymbol><cn type="integer" id="S4.SS2.p2.1.m1.1.1.m1.1.1.1.1.1.1.cmml" xref="S4.SS2.p2.1.m1.1.1.m1.1.1.1.1.1.1">50</cn><ci id="S4.SS2.p2.1.m1.1.1.m1.3.3.3.3.3.3.cmml" xref="S4.SS2.p2.1.m1.1.1.m1.3.3.3.3.3.3">Hz</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.p2.1.m1.1.1.m1.3c">50\text{\,}\mathrm{H}\mathrm{z}</annotation></semantics></math>.
+Compared to simple shifting in the frequency domain, FastPitch
+preserves the perceived identity of the speaker,
+and models the action of vocal chords that happens during voluntary
+modulation of voice.</p>
+</div>
+<figure id="S4.F5" class="ltx_figure">
+<div class="ltx_flex_figure">
+<div class="ltx_flex_cell ltx_flex_size_1">
+<div id="S4.F5.4" class="ltx_block ltx_figure_panel ltx_minipage ltx_align_center ltx_align_middle" style="width:250.7pt;">
+<img src="/html/2006.06873/assets/x5.png" id="S4.F5.1.g1" class="ltx_graphics ltx_img_landscape" width="74" height="51" alt="Refer to caption"><img src="/html/2006.06873/assets/x6.png" id="S4.F5.2.g2" class="ltx_graphics ltx_centering ltx_img_landscape" width="74" height="51" alt="Refer to caption">
+<p id="S4.F5.4.2" class="ltx_p ltx_align_center">(a) <math id="S4.F5.3.1.m1.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="S4.F5.3.1.m1.1a"><msub id="S4.F5.3.1.m1.1.1" xref="S4.F5.3.1.m1.1.1.cmml"><mi id="S4.F5.3.1.m1.1.1.2" xref="S4.F5.3.1.m1.1.1.2.cmml">F</mi><mn id="S4.F5.3.1.m1.1.1.3" xref="S4.F5.3.1.m1.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S4.F5.3.1.m1.1b"><apply id="S4.F5.3.1.m1.1.1.cmml" xref="S4.F5.3.1.m1.1.1"><csymbol cd="ambiguous" id="S4.F5.3.1.m1.1.1.1.cmml" xref="S4.F5.3.1.m1.1.1">subscript</csymbol><ci id="S4.F5.3.1.m1.1.1.2.cmml" xref="S4.F5.3.1.m1.1.1.2">𝐹</ci><cn type="integer" id="S4.F5.3.1.m1.1.1.3.cmml" xref="S4.F5.3.1.m1.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.F5.3.1.m1.1c">F_{0}</annotation></semantics></math> shifted uniformly by <math id="S4.F5.4.2.m2.1" class="ltx_Math" alttext="-$50\text{\,}\mathrm{Hz}$" display="inline"><semantics id="S4.F5.4.2.m2.1a"><mrow id="S4.F5.4.2.m2.1.2" xref="S4.F5.4.2.m2.1.2.cmml"><mo id="S4.F5.4.2.m2.1.2a" xref="S4.F5.4.2.m2.1.2.cmml">−</mo><mrow id="S4.F5.4.2.m2.1.1.m1.3.3" xref="S4.F5.4.2.m2.1.1.m1.3.3.cmml"><mn id="S4.F5.4.2.m2.1.1.m1.1.1.1.1.1.1" xref="S4.F5.4.2.m2.1.1.m1.1.1.1.1.1.1.cmml">50</mn><mtext id="S4.F5.4.2.m2.1.1.m1.2.2.2.2.2.2" xref="S4.F5.4.2.m2.1.1.m1.2.2.2.2.2.2.cmml"> </mtext><mi class="ltx_unit" id="S4.F5.4.2.m2.1.1.m1.3.3.3.3.3.3" xref="S4.F5.4.2.m2.1.1.m1.3.3.3.3.3.3.cmml">Hz</mi></mrow></mrow><annotation-xml encoding="MathML-Content" id="S4.F5.4.2.m2.1b"><apply id="S4.F5.4.2.m2.1.2.cmml" xref="S4.F5.4.2.m2.1.2"><minus id="S4.F5.4.2.m2.1.2.1.cmml" xref="S4.F5.4.2.m2.1.2"></minus><apply id="S4.F5.4.2.m2.1.1.m1.3.3.cmml" xref="S4.F5.4.2.m2.1.1.m1.3.3"><csymbol cd="latexml" id="S4.F5.4.2.m2.1.1.m1.2.2.2.2.2.2.cmml" xref="S4.F5.4.2.m2.1.1.m1.2.2.2.2.2.2">times</csymbol><cn type="integer" id="S4.F5.4.2.m2.1.1.m1.1.1.1.1.1.1.cmml" xref="S4.F5.4.2.m2.1.1.m1.1.1.1.1.1.1">50</cn><csymbol cd="latexml" id="S4.F5.4.2.m2.1.1.m1.3.3.3.3.3.3.cmml" xref="S4.F5.4.2.m2.1.1.m1.3.3.3.3.3.3">hertz</csymbol></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.F5.4.2.m2.1c">-$50\text{\,}\mathrm{Hz}$</annotation></semantics></math></p>
+</div>
+</div>
+<div class="ltx_flex_break"></div>
+<div class="ltx_flex_cell ltx_flex_size_1">
+<div id="S4.F5.8" class="ltx_block ltx_figure_panel ltx_minipage ltx_align_center ltx_align_middle" style="width:250.7pt;">
+<img src="/html/2006.06873/assets/x7.png" id="S4.F5.5.g1" class="ltx_graphics ltx_img_landscape" width="74" height="51" alt="Refer to caption"><img src="/html/2006.06873/assets/x8.png" id="S4.F5.6.g2" class="ltx_graphics ltx_centering ltx_img_landscape" width="74" height="51" alt="Refer to caption">
+<p id="S4.F5.8.2" class="ltx_p ltx_align_center">(b) <math id="S4.F5.7.1.m1.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="S4.F5.7.1.m1.1a"><msub id="S4.F5.7.1.m1.1.1" xref="S4.F5.7.1.m1.1.1.cmml"><mi id="S4.F5.7.1.m1.1.1.2" xref="S4.F5.7.1.m1.1.1.2.cmml">F</mi><mn id="S4.F5.7.1.m1.1.1.3" xref="S4.F5.7.1.m1.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S4.F5.7.1.m1.1b"><apply id="S4.F5.7.1.m1.1.1.cmml" xref="S4.F5.7.1.m1.1.1"><csymbol cd="ambiguous" id="S4.F5.7.1.m1.1.1.1.cmml" xref="S4.F5.7.1.m1.1.1">subscript</csymbol><ci id="S4.F5.7.1.m1.1.1.2.cmml" xref="S4.F5.7.1.m1.1.1.2">𝐹</ci><cn type="integer" id="S4.F5.7.1.m1.1.1.3.cmml" xref="S4.F5.7.1.m1.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.F5.7.1.m1.1c">F_{0}</annotation></semantics></math> shifted uniformly by <math id="S4.F5.8.2.m2.1" class="ltx_Math" alttext="+$50\text{\,}\mathrm{Hz}$" display="inline"><semantics id="S4.F5.8.2.m2.1a"><mrow id="S4.F5.8.2.m2.1.2" xref="S4.F5.8.2.m2.1.2.cmml"><mo id="S4.F5.8.2.m2.1.2a" xref="S4.F5.8.2.m2.1.2.cmml">+</mo><mrow id="S4.F5.8.2.m2.1.1.m1.3.3" xref="S4.F5.8.2.m2.1.1.m1.3.3.cmml"><mn id="S4.F5.8.2.m2.1.1.m1.1.1.1.1.1.1" xref="S4.F5.8.2.m2.1.1.m1.1.1.1.1.1.1.cmml">50</mn><mtext id="S4.F5.8.2.m2.1.1.m1.2.2.2.2.2.2" xref="S4.F5.8.2.m2.1.1.m1.2.2.2.2.2.2.cmml"> </mtext><mi class="ltx_unit" id="S4.F5.8.2.m2.1.1.m1.3.3.3.3.3.3" xref="S4.F5.8.2.m2.1.1.m1.3.3.3.3.3.3.cmml">Hz</mi></mrow></mrow><annotation-xml encoding="MathML-Content" id="S4.F5.8.2.m2.1b"><apply id="S4.F5.8.2.m2.1.2.cmml" xref="S4.F5.8.2.m2.1.2"><plus id="S4.F5.8.2.m2.1.2.1.cmml" xref="S4.F5.8.2.m2.1.2"></plus><apply id="S4.F5.8.2.m2.1.1.m1.3.3.cmml" xref="S4.F5.8.2.m2.1.1.m1.3.3"><csymbol cd="latexml" id="S4.F5.8.2.m2.1.1.m1.2.2.2.2.2.2.cmml" xref="S4.F5.8.2.m2.1.1.m1.2.2.2.2.2.2">times</csymbol><cn type="integer" id="S4.F5.8.2.m2.1.1.m1.1.1.1.1.1.1.cmml" xref="S4.F5.8.2.m2.1.1.m1.1.1.1.1.1.1">50</cn><csymbol cd="latexml" id="S4.F5.8.2.m2.1.1.m1.3.3.3.3.3.3.cmml" xref="S4.F5.8.2.m2.1.1.m1.3.3.3.3.3.3">hertz</csymbol></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.F5.8.2.m2.1c">+$50\text{\,}\mathrm{Hz}$</annotation></semantics></math></p>
+</div>
+</div>
+</div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S4.F5.14.2.1" class="ltx_text ltx_font_bold">Fig. 5</span>: </span><span id="S4.F5.11.1" class="ltx_text ltx_font_bold">Shifting <math id="S4.F5.11.1.m1.1" class="ltx_Math" alttext="F_{0}" display="inline"><semantics id="S4.F5.11.1.m1.1b"><msub id="S4.F5.11.1.m1.1.1" xref="S4.F5.11.1.m1.1.1.cmml"><mi id="S4.F5.11.1.m1.1.1.2" xref="S4.F5.11.1.m1.1.1.2.cmml">F</mi><mn id="S4.F5.11.1.m1.1.1.3" xref="S4.F5.11.1.m1.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S4.F5.11.1.m1.1c"><apply id="S4.F5.11.1.m1.1.1.cmml" xref="S4.F5.11.1.m1.1.1"><csymbol cd="ambiguous" id="S4.F5.11.1.m1.1.1.1.cmml" xref="S4.F5.11.1.m1.1.1">subscript</csymbol><ci id="S4.F5.11.1.m1.1.1.2.cmml" xref="S4.F5.11.1.m1.1.1.2">𝐹</ci><cn type="integer" id="S4.F5.11.1.m1.1.1.3.cmml" xref="S4.F5.11.1.m1.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.F5.11.1.m1.1d">F_{0}</annotation></semantics></math> with FastPitch</span> by adding a constant to the predicted pitch <math id="S4.F5.12.m1.1" class="ltx_Math" alttext="\hat{\bm{p}}" display="inline"><semantics id="S4.F5.12.m1.1b"><mover accent="true" id="S4.F5.12.m1.1.1" xref="S4.F5.12.m1.1.1.cmml"><mi id="S4.F5.12.m1.1.1.2" xref="S4.F5.12.m1.1.1.2.cmml">𝒑</mi><mo id="S4.F5.12.m1.1.1.1" xref="S4.F5.12.m1.1.1.1.cmml">^</mo></mover><annotation-xml encoding="MathML-Content" id="S4.F5.12.m1.1c"><apply id="S4.F5.12.m1.1.1.cmml" xref="S4.F5.12.m1.1.1"><ci id="S4.F5.12.m1.1.1.1.cmml" xref="S4.F5.12.m1.1.1.1">^</ci><ci id="S4.F5.12.m1.1.1.2.cmml" xref="S4.F5.12.m1.1.1.2">𝒑</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.F5.12.m1.1d">\hat{\bm{p}}</annotation></semantics></math> during inference. Pairs are displayed: a shifted spectrogram, and the absolute difference between shifted and unshifted spectrograms.</figcaption>
+</figure>
+<div id="S4.SS2.p3" class="ltx_para">
+<p id="S4.SS2.p3.3" class="ltx_p">Inference performance measurements were taken on NVIDIA A100 GPU
+in FP16 precision and TorchScript-serialized models.
+With batch size 1, the average real-time factor (RTF)
+for the first 2048 utterances from LJSpeech-1.1 training set is <math id="S4.SS2.p3.1.m1.1" class="ltx_math_unparsed" alttext="912\times" display="inline"><semantics id="S4.SS2.p3.1.m1.1a"><mrow id="S4.SS2.p3.1.m1.1b"><mn id="S4.SS2.p3.1.m1.1.1">912</mn><mo lspace="0.222em" id="S4.SS2.p3.1.m1.1.2">×</mo></mrow><annotation encoding="application/x-tex" id="S4.SS2.p3.1.m1.1c">912\times</annotation></semantics></math>
+(Table <a href="#S4.T3" title="Table 3 ‣ 4.2 Pitch Conditioning and Inference Performance ‣ 4 EXPERIMENTS ‣ FASTPITCH: PARALLEL TEXT-TO-SPEECH WITH PITCH PREDICTION" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>).
+With WaveGlow, RTF for complete audio synthesis drops down to <math id="S4.SS2.p3.2.m2.1" class="ltx_math_unparsed" alttext="63\times" display="inline"><semantics id="S4.SS2.p3.2.m2.1a"><mrow id="S4.SS2.p3.2.m2.1b"><mn id="S4.SS2.p3.2.m2.1.1">63</mn><mo lspace="0.222em" id="S4.SS2.p3.2.m2.1.2">×</mo></mrow><annotation encoding="application/x-tex" id="S4.SS2.p3.2.m2.1c">63\times</annotation></semantics></math>.
+RTF measured on Intel Xeon Gold 6240 CPU is <math id="S4.SS2.p3.3.m3.1" class="ltx_math_unparsed" alttext="108\times" display="inline"><semantics id="S4.SS2.p3.3.m3.1a"><mrow id="S4.SS2.p3.3.m3.1b"><mn id="S4.SS2.p3.3.m3.1.1">108</mn><mo lspace="0.222em" id="S4.SS2.p3.3.m3.1.2">×</mo></mrow><annotation encoding="application/x-tex" id="S4.SS2.p3.3.m3.1c">108\times</annotation></semantics></math>.
+FastPitch is suitable to real-time editing of synthesized samples,
+and a single pitch value per input symbol is easy to interpret by a human,
+which we demonstrate in a video clip on the aforementioned website with samples.</p>
+</div>
+<figure id="S4.T3" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T3.8.1.1" class="ltx_text ltx_font_bold">Table 3</span>: </span>Average latency and real-time factor of mel-spectrogram generation on the first 2048 utterances from LJSpeech training subset</figcaption>
+<table id="S4.T3.6" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S4.T3.6.7.1" class="ltx_tr">
+<th id="S4.T3.6.7.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt">Model</th>
+<th id="S4.T3.6.7.1.2" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_tt">Latency</th>
+<th id="S4.T3.6.7.1.3" class="ltx_td ltx_align_right ltx_th ltx_th_column ltx_border_tt">Mel RTF</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S4.T3.2.2" class="ltx_tr">
+<td id="S4.T3.2.2.3" class="ltx_td ltx_align_left ltx_border_t">Tacotron 2 (GPU)</td>
+<td id="S4.T3.1.1.1" class="ltx_td ltx_align_left ltx_border_t"><math id="S4.T3.1.1.1.m1.1" class="ltx_Math" alttext="0.4109\pm$0.2631\text{\,}\mathrm{s}$" display="inline"><semantics id="S4.T3.1.1.1.m1.1a"><mrow id="S4.T3.1.1.1.m1.1.2" xref="S4.T3.1.1.1.m1.1.2.cmml"><mn id="S4.T3.1.1.1.m1.1.2.2" xref="S4.T3.1.1.1.m1.1.2.2.cmml">0.4109</mn><mo id="S4.T3.1.1.1.m1.1.2.1" xref="S4.T3.1.1.1.m1.1.2.1.cmml">±</mo><mrow id="S4.T3.1.1.1.m1.1.1.m1.3.3" xref="S4.T3.1.1.1.m1.1.1.m1.3.3.cmml"><mn id="S4.T3.1.1.1.m1.1.1.m1.1.1.1.1.1.1" xref="S4.T3.1.1.1.m1.1.1.m1.1.1.1.1.1.1.cmml">0.2631</mn><mtext id="S4.T3.1.1.1.m1.1.1.m1.2.2.2.2.2.2" xref="S4.T3.1.1.1.m1.1.1.m1.2.2.2.2.2.2.cmml"> </mtext><mi class="ltx_unit" mathvariant="normal" id="S4.T3.1.1.1.m1.1.1.m1.3.3.3.3.3.3" xref="S4.T3.1.1.1.m1.1.1.m1.3.3.3.3.3.3.cmml">s</mi></mrow></mrow><annotation-xml encoding="MathML-Content" id="S4.T3.1.1.1.m1.1b"><apply id="S4.T3.1.1.1.m1.1.2.cmml" xref="S4.T3.1.1.1.m1.1.2"><csymbol cd="latexml" id="S4.T3.1.1.1.m1.1.2.1.cmml" xref="S4.T3.1.1.1.m1.1.2.1">plus-or-minus</csymbol><cn type="float" id="S4.T3.1.1.1.m1.1.2.2.cmml" xref="S4.T3.1.1.1.m1.1.2.2">0.4109</cn><apply id="S4.T3.1.1.1.m1.1.1.m1.3.3.cmml" xref="S4.T3.1.1.1.m1.1.1.m1.3.3"><csymbol cd="latexml" id="S4.T3.1.1.1.m1.1.1.m1.2.2.2.2.2.2.cmml" xref="S4.T3.1.1.1.m1.1.1.m1.2.2.2.2.2.2">times</csymbol><cn type="float" id="S4.T3.1.1.1.m1.1.1.m1.1.1.1.1.1.1.cmml" xref="S4.T3.1.1.1.m1.1.1.m1.1.1.1.1.1.1">0.2631</cn><csymbol cd="latexml" id="S4.T3.1.1.1.m1.1.1.m1.3.3.3.3.3.3.cmml" xref="S4.T3.1.1.1.m1.1.1.m1.3.3.3.3.3.3">second</csymbol></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.T3.1.1.1.m1.1c">0.4109\pm$0.2631\text{\,}\mathrm{s}$</annotation></semantics></math></td>
+<td id="S4.T3.2.2.2" class="ltx_td ltx_align_right ltx_border_t"><math id="S4.T3.2.2.2.m1.1" class="ltx_math_unparsed" alttext="15.42\times" display="inline"><semantics id="S4.T3.2.2.2.m1.1a"><mrow id="S4.T3.2.2.2.m1.1b"><mn id="S4.T3.2.2.2.m1.1.1">15.42</mn><mo lspace="0.222em" id="S4.T3.2.2.2.m1.1.2">×</mo></mrow><annotation encoding="application/x-tex" id="S4.T3.2.2.2.m1.1c">15.42\times</annotation></semantics></math></td>
+</tr>
+<tr id="S4.T3.4.4" class="ltx_tr">
+<td id="S4.T3.4.4.3" class="ltx_td ltx_align_left">FastPitch (CPU)</td>
+<td id="S4.T3.3.3.1" class="ltx_td ltx_align_left"><math id="S4.T3.3.3.1.m1.1" class="ltx_Math" alttext="0.0602\pm$0.0205\text{\,}\mathrm{s}$" display="inline"><semantics id="S4.T3.3.3.1.m1.1a"><mrow id="S4.T3.3.3.1.m1.1.2" xref="S4.T3.3.3.1.m1.1.2.cmml"><mn id="S4.T3.3.3.1.m1.1.2.2" xref="S4.T3.3.3.1.m1.1.2.2.cmml">0.0602</mn><mo id="S4.T3.3.3.1.m1.1.2.1" xref="S4.T3.3.3.1.m1.1.2.1.cmml">±</mo><mrow id="S4.T3.3.3.1.m1.1.1.m1.3.3" xref="S4.T3.3.3.1.m1.1.1.m1.3.3.cmml"><mn id="S4.T3.3.3.1.m1.1.1.m1.1.1.1.1.1.1" xref="S4.T3.3.3.1.m1.1.1.m1.1.1.1.1.1.1.cmml">0.0205</mn><mtext id="S4.T3.3.3.1.m1.1.1.m1.2.2.2.2.2.2" xref="S4.T3.3.3.1.m1.1.1.m1.2.2.2.2.2.2.cmml"> </mtext><mi class="ltx_unit" mathvariant="normal" id="S4.T3.3.3.1.m1.1.1.m1.3.3.3.3.3.3" xref="S4.T3.3.3.1.m1.1.1.m1.3.3.3.3.3.3.cmml">s</mi></mrow></mrow><annotation-xml encoding="MathML-Content" id="S4.T3.3.3.1.m1.1b"><apply id="S4.T3.3.3.1.m1.1.2.cmml" xref="S4.T3.3.3.1.m1.1.2"><csymbol cd="latexml" id="S4.T3.3.3.1.m1.1.2.1.cmml" xref="S4.T3.3.3.1.m1.1.2.1">plus-or-minus</csymbol><cn type="float" id="S4.T3.3.3.1.m1.1.2.2.cmml" xref="S4.T3.3.3.1.m1.1.2.2">0.0602</cn><apply id="S4.T3.3.3.1.m1.1.1.m1.3.3.cmml" xref="S4.T3.3.3.1.m1.1.1.m1.3.3"><csymbol cd="latexml" id="S4.T3.3.3.1.m1.1.1.m1.2.2.2.2.2.2.cmml" xref="S4.T3.3.3.1.m1.1.1.m1.2.2.2.2.2.2">times</csymbol><cn type="float" id="S4.T3.3.3.1.m1.1.1.m1.1.1.1.1.1.1.cmml" xref="S4.T3.3.3.1.m1.1.1.m1.1.1.1.1.1.1">0.0205</cn><csymbol cd="latexml" id="S4.T3.3.3.1.m1.1.1.m1.3.3.3.3.3.3.cmml" xref="S4.T3.3.3.1.m1.1.1.m1.3.3.3.3.3.3">second</csymbol></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.T3.3.3.1.m1.1c">0.0602\pm$0.0205\text{\,}\mathrm{s}$</annotation></semantics></math></td>
+<td id="S4.T3.4.4.2" class="ltx_td ltx_align_right"><math id="S4.T3.4.4.2.m1.1" class="ltx_math_unparsed" alttext="107.59\times" display="inline"><semantics id="S4.T3.4.4.2.m1.1a"><mrow id="S4.T3.4.4.2.m1.1b"><mn id="S4.T3.4.4.2.m1.1.1">107.59</mn><mo lspace="0.222em" id="S4.T3.4.4.2.m1.1.2">×</mo></mrow><annotation encoding="application/x-tex" id="S4.T3.4.4.2.m1.1c">107.59\times</annotation></semantics></math></td>
+</tr>
+<tr id="S4.T3.6.6" class="ltx_tr">
+<td id="S4.T3.6.6.3" class="ltx_td ltx_align_left ltx_border_bb">FastPitch (GPU)</td>
+<td id="S4.T3.5.5.1" class="ltx_td ltx_align_left ltx_border_bb"><math id="S4.T3.5.5.1.m1.1" class="ltx_Math" alttext="0.0071\pm$0.0010\text{\,}\mathrm{s}$" display="inline"><semantics id="S4.T3.5.5.1.m1.1a"><mrow id="S4.T3.5.5.1.m1.1.2" xref="S4.T3.5.5.1.m1.1.2.cmml"><mn id="S4.T3.5.5.1.m1.1.2.2" xref="S4.T3.5.5.1.m1.1.2.2.cmml">0.0071</mn><mo id="S4.T3.5.5.1.m1.1.2.1" xref="S4.T3.5.5.1.m1.1.2.1.cmml">±</mo><mrow id="S4.T3.5.5.1.m1.1.1.m1.3.3" xref="S4.T3.5.5.1.m1.1.1.m1.3.3.cmml"><mn id="S4.T3.5.5.1.m1.1.1.m1.1.1.1.1.1.1" xref="S4.T3.5.5.1.m1.1.1.m1.1.1.1.1.1.1.cmml">0.0010</mn><mtext id="S4.T3.5.5.1.m1.1.1.m1.2.2.2.2.2.2" xref="S4.T3.5.5.1.m1.1.1.m1.2.2.2.2.2.2.cmml"> </mtext><mi class="ltx_unit" mathvariant="normal" id="S4.T3.5.5.1.m1.1.1.m1.3.3.3.3.3.3" xref="S4.T3.5.5.1.m1.1.1.m1.3.3.3.3.3.3.cmml">s</mi></mrow></mrow><annotation-xml encoding="MathML-Content" id="S4.T3.5.5.1.m1.1b"><apply id="S4.T3.5.5.1.m1.1.2.cmml" xref="S4.T3.5.5.1.m1.1.2"><csymbol cd="latexml" id="S4.T3.5.5.1.m1.1.2.1.cmml" xref="S4.T3.5.5.1.m1.1.2.1">plus-or-minus</csymbol><cn type="float" id="S4.T3.5.5.1.m1.1.2.2.cmml" xref="S4.T3.5.5.1.m1.1.2.2">0.0071</cn><apply id="S4.T3.5.5.1.m1.1.1.m1.3.3.cmml" xref="S4.T3.5.5.1.m1.1.1.m1.3.3"><csymbol cd="latexml" id="S4.T3.5.5.1.m1.1.1.m1.2.2.2.2.2.2.cmml" xref="S4.T3.5.5.1.m1.1.1.m1.2.2.2.2.2.2">times</csymbol><cn type="float" id="S4.T3.5.5.1.m1.1.1.m1.1.1.1.1.1.1.cmml" xref="S4.T3.5.5.1.m1.1.1.m1.1.1.1.1.1.1">0.0010</cn><csymbol cd="latexml" id="S4.T3.5.5.1.m1.1.1.m1.3.3.3.3.3.3.cmml" xref="S4.T3.5.5.1.m1.1.1.m1.3.3.3.3.3.3">second</csymbol></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.T3.5.5.1.m1.1c">0.0071\pm$0.0010\text{\,}\mathrm{s}$</annotation></semantics></math></td>
+<td id="S4.T3.6.6.2" class="ltx_td ltx_align_right ltx_border_bb"><math id="S4.T3.6.6.2.m1.1" class="ltx_math_unparsed" alttext="911.86\times" display="inline"><semantics id="S4.T3.6.6.2.m1.1a"><mrow id="S4.T3.6.6.2.m1.1b"><mn id="S4.T3.6.6.2.m1.1.1">911.86</mn><mo lspace="0.222em" id="S4.T3.6.6.2.m1.1.2">×</mo></mrow><annotation encoding="application/x-tex" id="S4.T3.6.6.2.m1.1c">911.86\times</annotation></semantics></math></td>
+</tr>
+</tbody>
+</table>
+</figure>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>CONCLUSIONS</h2>
+
+<div id="S5.p1" class="ltx_para">
+<p id="S5.p1.1" class="ltx_p">We have presented FastPitch, a parallel text-to-speech model based on FastSpeech,
+able to rapidly synthesize high-fidelity mel-scale spectrograms with a high
+degree of control over the prosody.
+The model demonstrates how conditioning on prosodic
+information can significantly improve the convergence and quality of synthesized speech
+in a feed-forward model, enabling more coherent pronunciation
+across its independent outputs, and lead to state-of-the-art results.
+Our pitch conditioning method is simpler
+than many of the approaches known from the literature.
+It does not introduce an overhead,
+and opens up possibilities for practical applications in adjusting the prosody interactively,
+as the model is fast, highly expressive, and presents potential for multi-speaker scenarios.</p>
+</div>
+</section>
+<section id="S6" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6 </span>ACKNOWLEDGEMENTS</h2>
+
+<div id="S6.p1" class="ltx_para">
+<p id="S6.p1.1" class="ltx_p">The author would like to thank
+Dabi Ahn,
+Alvaro Garcia,
+and
+Grzegorz Karch
+for their help with the experiments and evaluation of the model,
+and
+Jan Chorowski,
+João Felipe Santos,
+Przemek Strzelczyk,
+and
+Rafael Valle
+for helpful discussions and support in
+preparation of this paper.</p>
+</div>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[1]</span>
+<span class="ltx_bibblock">
+Y. Ren, Y. Ruan, X. Tan, T. Qin, S. Zhao, Z. Zhao, and T.-Y. Liu,
+
+</span>
+<span class="ltx_bibblock">“Fastspeech: Fast, robust and controllable text to speech,”
+
+</span>
+<span class="ltx_bibblock">in <span id="bib.bib1.1.1" class="ltx_text ltx_font_italic">NeurIPS 2019</span>, 2019.
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[2]</span>
+<span class="ltx_bibblock">
+J. Kim, S. Kim, J. Kong, and S. Yoon,
+
+</span>
+<span class="ltx_bibblock">“Glow-TTS: A Generative Flow for Text-to-Speech via
+Monotonic Alignment Search,”
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib2.1.1" class="ltx_text ltx_font_italic">arXiv:2005.11129</span>, May 2020.
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[3]</span>
+<span class="ltx_bibblock">
+A. van den Oord, S. Dieleman, H. Zen, K. Simonyan, O. Vinyals, A. Graves,
+N. Kalchbrenner, A. Senior, and K. Kavukcuoglu,
+
+</span>
+<span class="ltx_bibblock">“Wavenet: A generative model for raw audio,”
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib3.1.1" class="ltx_text ltx_font_italic">arXiv:1609.03499</span>, 2016.
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[4]</span>
+<span class="ltx_bibblock">
+R. Fernandez, A. Rendel, B. Ramabhadran, and R. Hoory,
+
+</span>
+<span class="ltx_bibblock">“Using deep bidirectional recurrent neural networks for
+prosodic-target prediction in a unit-selection text-to-speech system.,”
+
+</span>
+<span class="ltx_bibblock">in <span id="bib.bib4.1.1" class="ltx_text ltx_font_italic">INTERSPEECH</span>, 2015, pp. 1606–1610.
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[5]</span>
+<span class="ltx_bibblock">
+Z. Kons, S. Shechtman, A. Sorin, R. Hoory, C. Rabinovitz, and E. Da
+Silva Morais,
+
+</span>
+<span class="ltx_bibblock">“Neural tts voice conversion,”
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib5.1.1" class="ltx_text ltx_font_italic">IEEE SLT Workshop</span>, pp. 290–296, 2018.
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[6]</span>
+<span class="ltx_bibblock">
+R. Valle, J. Li, R. Prenger, and B. Catanzaro,
+
+</span>
+<span class="ltx_bibblock">“Mellotron: Multispeaker expressive voice synthesis by conditioning
+on rhythm, pitch and global style tokens,”
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib6.1.1" class="ltx_text ltx_font_italic">arXiv:1910.11997</span>, 2019.
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[7]</span>
+<span class="ltx_bibblock">
+Y. Ren, C. Hu, X. Tan, T. Qin, S. Zhao, Z. Zhao, and T.-Y. Liu,
+
+</span>
+<span class="ltx_bibblock">“Fastspeech 2: Fast and high-quality end-to-end text to speech,”
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib7.1.1" class="ltx_text ltx_font_italic">arXiv:2006.0455</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[8]</span>
+<span class="ltx_bibblock">
+R. Prenger, R. Valle, and B. Catanzaro,
+
+</span>
+<span class="ltx_bibblock">“Waveglow: A flow-based generative network for speech synthesis,”
+
+</span>
+<span class="ltx_bibblock">in <span id="bib.bib8.1.1" class="ltx_text ltx_font_italic">ICASSP</span>, 2019, pp. 3617–3621.
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[9]</span>
+<span class="ltx_bibblock">
+W. Ping, K. Peng, A. Gibiansky, S. Ö. Arik, A. Kannan, S. Narang,
+J. Raiman, and J. Miller,
+
+</span>
+<span class="ltx_bibblock">“Deep voice 3: Scaling text-to-speech with convolutional sequence
+learning,”
+
+</span>
+<span class="ltx_bibblock">in <span id="bib.bib9.1.1" class="ltx_text ltx_font_italic">ICLR</span>, 2018.
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[10]</span>
+<span class="ltx_bibblock">
+K. Ito,
+
+</span>
+<span class="ltx_bibblock">“The LJ Speech Dataset,”
+<a target="_blank" href="https://keithito.com/LJ-Speech-Dataset" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://keithito.com/LJ-Speech-Dataset</a>, 2017.
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[11]</span>
+<span class="ltx_bibblock">
+P. Boersma,
+
+</span>
+<span class="ltx_bibblock">“Accurate short-term analysis of the fundamental frequency and the
+harmonics-to-noise ratio of a sampled sound,”
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib11.1.1" class="ltx_text ltx_font_italic">IFA Proceedings</span>, pp. 97–110, 1993.
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[12]</span>
+<span class="ltx_bibblock">
+J. Shen, R. Pang, R. J. Weiss, M. Schuster, N. Jaitly, Z. Yang, Z. Chen,
+Y. Zhang, Y. Wang, R. Skerrv-Ryan, and et al.,
+
+</span>
+<span class="ltx_bibblock">“Natural TTS synthesis by conditioning wavenet on mel spectrogram
+predictions,”
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib12.1.1" class="ltx_text ltx_font_italic">ICASSP</span>, 2018.
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[13]</span>
+<span class="ltx_bibblock">
+N. Li, S. Liu, Y. Liu, S. Zhao, and M. Liu,
+
+</span>
+<span class="ltx_bibblock">“Neural speech synthesis with transformer network,”
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib13.1.1" class="ltx_text ltx_font_italic">AAAI Conference on Artificial Intelligence</span>, vol. 33, 2019.
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[14]</span>
+<span class="ltx_bibblock">
+M. Bińkowski, J. Donahue, S. Dieleman, A. Clark, E. Elsen, N. Casagrande,
+L. C. Cobo, and K. Simonyan,
+
+</span>
+<span class="ltx_bibblock">“High fidelity speech synthesis with adversarial networks,”
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib14.1.1" class="ltx_text ltx_font_italic">arXiv:1909.11646</span>, 2019.
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[15]</span>
+<span class="ltx_bibblock">
+C. Schäfer,
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib15.1.1" class="ltx_text ltx_font_italic">ForwardTacotron</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[16]</span>
+<span class="ltx_bibblock">
+C. Yu, H. Lu, N. Hu, M. Yu, C. Weng, K. Xu, P. Liu, D. Tuo, S. Kang, G. Lei,
+D. Su, and D. Yu,
+
+</span>
+<span class="ltx_bibblock">“Durian: Duration informed attention network for multimodal
+synthesis,”
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib16.1.1" class="ltx_text ltx_font_italic">arXiv:1909.01700</span>, 2019.
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[17]</span>
+<span class="ltx_bibblock">
+Z. Zeng, J. Wang, N. Cheng, T. Xia, and J. Xiao,
+
+</span>
+<span class="ltx_bibblock">“AlignTTS: Efficient Feed-Forward Text-to-Speech
+System without Explicit Alignment,”
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib17.1.1" class="ltx_text ltx_font_italic">arXiv:2003.01950</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[18]</span>
+<span class="ltx_bibblock">
+M. McAuliffe, M. Socolof, S. Mihuc, M. Wagner, and M. Sonderegger,
+
+</span>
+<span class="ltx_bibblock">“Montreal forced aligner: Trainable text-speech alignment using
+kaldi,”
+
+</span>
+<span class="ltx_bibblock">in <span id="bib.bib18.1.1" class="ltx_text ltx_font_italic">Proc. Interspeech 2017</span>, 2017, pp. 498–502.
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[19]</span>
+<span class="ltx_bibblock">
+K. Kastner, J. F. Santos, Y. Bengio, and A. Courville,
+
+</span>
+<span class="ltx_bibblock">“Representation Mixing for TTS Synthesis,”
+
+</span>
+<span class="ltx_bibblock">in <span id="bib.bib19.1.1" class="ltx_text ltx_font_italic">ICASSP</span>, 2019, pp. 5906–5910.
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[20]</span>
+<span class="ltx_bibblock">
+P. Micikevicius, S. Narang, J. Alben, G. Diamos, E. Elsen, D. Garcia,
+B. Ginsburg, M. Houston, O. Kuchaiev, G. Venkatesh, and H. Wu,
+
+</span>
+<span class="ltx_bibblock">“Mixed precision training,”
+
+</span>
+<span class="ltx_bibblock">in <span id="bib.bib20.1.1" class="ltx_text ltx_font_italic">ICLR</span>, 2018.
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[21]</span>
+<span class="ltx_bibblock">
+Y. You, J. Li, S. Reddi, J. Hseu, S. Kumar, S. Bhojanapalli, X. Song,
+J. Demmel, K. Keutzer, and C.-J. Hsieh,
+
+</span>
+<span class="ltx_bibblock">“Large batch optimization for deep learning: Training bert in 76
+minutes,”
+
+</span>
+<span class="ltx_bibblock">in <span id="bib.bib21.1.1" class="ltx_text ltx_font_italic">ICLR</span>, 2020.
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[22]</span>
+<span class="ltx_bibblock">
+A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. u.
+Kaiser, and I. Polosukhin,
+
+</span>
+<span class="ltx_bibblock">“Attention is all you need,”
+
+</span>
+<span class="ltx_bibblock">in <span id="bib.bib22.1.1" class="ltx_text ltx_font_italic">Advances in Neural Information Processing Systems</span>, pp.
+5998–6008. 2017.
+
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[23]</span>
+<span class="ltx_bibblock">
+M. Cartwright, B. Pardo, G. J. Mysore, and M. Hoffman,
+
+</span>
+<span class="ltx_bibblock">“Fast and easy crowdsourced perceptual audio evaluation,”
+
+</span>
+<span class="ltx_bibblock">in <span id="bib.bib23.1.1" class="ltx_text ltx_font_italic">ICASSP 2016</span>, 2016, pp. 619–623.
+
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[24]</span>
+<span class="ltx_bibblock">
+T. Baumann,
+
+</span>
+<span class="ltx_bibblock">“Large-Scale Speaker Ranking from Crowdsourced Pairwise
+Listener Ratings,”
+
+</span>
+<span class="ltx_bibblock">in <span id="bib.bib24.1.1" class="ltx_text ltx_font_italic">INTERSPEECH</span>, 2017, pp. 2262–2266.
+
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[25]</span>
+<span class="ltx_bibblock">
+M. E. Glickman,
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib25.1.1" class="ltx_text ltx_font_italic">Example of the Glicko-2 system</span>, 2013.
+
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[26]</span>
+<span class="ltx_bibblock">
+C. Olsson, S. Bhupatiraju, T. Brown, A. Odena, and I. Goodfellow,
+
+</span>
+<span class="ltx_bibblock">“Skill rating for generative models,”
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib26.1.1" class="ltx_text ltx_font_italic">arXiv:1808.04888</span>, 2018.
+
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[27]</span>
+<span class="ltx_bibblock">
+R. Valle, K. J. Shih, R. Prenger, and B. Catanzaro,
+
+</span>
+<span class="ltx_bibblock">“Flowtron: an autoregressive flow-based generative network for
+text-to-speech synthesis,”
+
+</span>
+<span class="ltx_bibblock">in <span id="bib.bib27.1.1" class="ltx_text ltx_font_italic">ICLR</span>, 2021.
+
+</span>
+</li>
+</ul>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2006.06872" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2006.06873" class="ar5iv-text-button ar5iv-severity-warning">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2006.06873">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2006.06873" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2006.06874" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Thu Mar 14 13:53:48 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

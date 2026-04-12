@@ -1,0 +1,2051 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2203.02378] DiT: Self-supervised Pre-training for Document Image Transformer</title><meta property="og:description" content="Image Transformer has recently achieved significant progress for natural image understanding, either using supervised (ViT, DeiT, etc.) or self-supervised (BEiT, MAE, etc.) pre-training techniques. In this paper, we pr…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="DiT: Self-supervised Pre-training for Document Image Transformer">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="DiT: Self-supervised Pre-training for Document Image Transformer">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2203.02378">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2203.02378">
+
+<!--Generated on Mon Mar 11 08:34:33 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="keywords" lang="en" content="document image transformer,  self-supervised pre-training,  document image classification,  document layout analysis,  table detection,  text detection,  OCR">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line ltx_leqno">
+<h1 class="ltx_title ltx_title_document">DiT: Self-supervised Pre-training for 
+<br class="ltx_break">Document Image Transformer</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Junlong Li
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_email"><a href="mailto:lockonn@sjtu.edu.cn">lockonn@sjtu.edu.cn</a>
+</span>
+<span class="ltx_contact ltx_role_affiliation"><span id="id5.1.id1" class="ltx_text ltx_affiliation_institution">Shanghai Jiao Tong University</span><span id="id6.2.id2" class="ltx_text ltx_affiliation_city">Shanghai</span><span id="id7.3.id3" class="ltx_text ltx_affiliation_country">China</span>
+</span></span></span>
+<span class="ltx_author_before">, </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Yiheng Xu
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_email"><a href="mailto:t-yihengxu@microsoft.com">t-yihengxu@microsoft.com</a>
+</span>
+<span class="ltx_contact ltx_role_affiliation"><span id="id8.1.id1" class="ltx_text ltx_affiliation_institution">Microsoft Research Asia</span><span id="id9.2.id2" class="ltx_text ltx_affiliation_city">Beijing</span><span id="id10.3.id3" class="ltx_text ltx_affiliation_country">China</span>
+</span></span></span>
+<span class="ltx_author_before">, </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Tengchao Lv
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_email"><a href="mailto:tengchaolv@microsoft.com">tengchaolv@microsoft.com</a>
+</span>
+<span class="ltx_contact ltx_role_affiliation"><span id="id11.1.id1" class="ltx_text ltx_affiliation_institution">Microsoft Research Asia</span><span id="id12.2.id2" class="ltx_text ltx_affiliation_city">Beijing</span><span id="id13.3.id3" class="ltx_text ltx_affiliation_country">China</span>
+</span></span></span>
+<span class="ltx_author_before">, </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Lei Cui
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_email"><a href="mailto:lecu@microsoft.com">lecu@microsoft.com</a>
+</span>
+<span class="ltx_contact ltx_role_affiliation"><span id="id14.1.id1" class="ltx_text ltx_affiliation_institution">Microsoft Research Asia</span><span id="id15.2.id2" class="ltx_text ltx_affiliation_city">Beijing</span><span id="id16.3.id3" class="ltx_text ltx_affiliation_country">China</span>
+</span></span></span>
+<span class="ltx_author_before">, </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Cha Zhang
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_email"><a href="mailto:chazhang@microsoft.com">chazhang@microsoft.com</a>
+</span>
+<span class="ltx_contact ltx_role_affiliation"><span id="id17.1.id1" class="ltx_text ltx_affiliation_institution">Microsoft Azure AI</span><span id="id18.2.id2" class="ltx_text ltx_affiliation_city">Redmond</span><span id="id19.3.id3" class="ltx_text ltx_affiliation_country">United States</span>
+</span></span></span>
+<span class="ltx_author_before"> and </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Furu Wei
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_email"><a href="mailto:fuwei@microsoft.com">fuwei@microsoft.com</a>
+</span>
+<span class="ltx_contact ltx_role_affiliation"><span id="id20.1.id1" class="ltx_text ltx_affiliation_institution">Microsoft Research Asia</span><span id="id21.2.id2" class="ltx_text ltx_affiliation_city">Beijing</span><span id="id22.3.id3" class="ltx_text ltx_affiliation_country">China</span>
+</span></span></span>
+</div>
+<div class="ltx_dates">(2022)</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract.</h6>
+<p id="id4.4" class="ltx_p">Image Transformer has recently achieved significant progress for natural image understanding, either using supervised (ViT, DeiT, etc.) or self-supervised (BEiT, MAE, etc.) pre-training techniques. In this paper, we propose <span id="id4.4.1" class="ltx_text ltx_font_bold">DiT</span>, a self-supervised pre-trained <span id="id4.4.2" class="ltx_text ltx_font_bold">D</span>ocument <span id="id4.4.3" class="ltx_text ltx_font_bold">I</span>mage <span id="id4.4.4" class="ltx_text ltx_font_bold">T</span>ransformer model using large-scale unlabeled text images for Document AI tasks, which is essential since no supervised counterparts ever exist due to the lack of human-labeled document images. We leverage DiT as the backbone network in a variety of vision-based Document AI tasks, including document image classification, document layout analysis, table detection as well as text detection for OCR. Experiment results have illustrated that the self-supervised pre-trained DiT model achieves new state-of-the-art results on these downstream tasks, e.g. document image classification (91.11 <math id="id1.1.m1.1" class="ltx_Math" alttext="\rightarrow" display="inline"><semantics id="id1.1.m1.1a"><mo stretchy="false" id="id1.1.m1.1.1" xref="id1.1.m1.1.1.cmml">→</mo><annotation-xml encoding="MathML-Content" id="id1.1.m1.1b"><ci id="id1.1.m1.1.1.cmml" xref="id1.1.m1.1.1">→</ci></annotation-xml><annotation encoding="application/x-tex" id="id1.1.m1.1c">\rightarrow</annotation></semantics></math> 92.69), document layout analysis (91.0 <math id="id2.2.m2.1" class="ltx_Math" alttext="\rightarrow" display="inline"><semantics id="id2.2.m2.1a"><mo stretchy="false" id="id2.2.m2.1.1" xref="id2.2.m2.1.1.cmml">→</mo><annotation-xml encoding="MathML-Content" id="id2.2.m2.1b"><ci id="id2.2.m2.1.1.cmml" xref="id2.2.m2.1.1">→</ci></annotation-xml><annotation encoding="application/x-tex" id="id2.2.m2.1c">\rightarrow</annotation></semantics></math> 94.9), table detection (94.23 <math id="id3.3.m3.1" class="ltx_Math" alttext="\rightarrow" display="inline"><semantics id="id3.3.m3.1a"><mo stretchy="false" id="id3.3.m3.1.1" xref="id3.3.m3.1.1.cmml">→</mo><annotation-xml encoding="MathML-Content" id="id3.3.m3.1b"><ci id="id3.3.m3.1.1.cmml" xref="id3.3.m3.1.1">→</ci></annotation-xml><annotation encoding="application/x-tex" id="id3.3.m3.1c">\rightarrow</annotation></semantics></math> 96.55) and text detection for OCR (93.07 <math id="id4.4.m4.1" class="ltx_Math" alttext="\rightarrow" display="inline"><semantics id="id4.4.m4.1a"><mo stretchy="false" id="id4.4.m4.1.1" xref="id4.4.m4.1.1.cmml">→</mo><annotation-xml encoding="MathML-Content" id="id4.4.m4.1b"><ci id="id4.4.m4.1.1.cmml" xref="id4.4.m4.1.1">→</ci></annotation-xml><annotation encoding="application/x-tex" id="id4.4.m4.1c">\rightarrow</annotation></semantics></math> 94.29). The code and pre-trained models are publicly available at <a target="_blank" href="https://aka.ms/msdit" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://aka.ms/msdit</a>.</p>
+</div>
+<div class="ltx_keywords">document image transformer, self-supervised pre-training, document image classification, document layout analysis, table detection, text detection, OCR
+</div>
+<span id="id1" class="ltx_note ltx_note_frontmatter ltx_role_journalyear"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">journalyear: </span>2022</span></span></span><span id="id2" class="ltx_note ltx_note_frontmatter ltx_role_copyright"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">copyright: </span>acmcopyright</span></span></span><span id="id3" class="ltx_note ltx_note_frontmatter ltx_role_conference"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">conference: </span>Proceedings of the 30th ACM International Conference on Multimedia; October 10–14, 2022; Lisboa, Portugal</span></span></span><span id="id4" class="ltx_note ltx_note_frontmatter ltx_role_booktitle"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">booktitle: </span>Proceedings of the 30th ACM International Conference on Multimedia (MM ’22), October 10–14, 2022, Lisboa, Portugal</span></span></span><span id="id5" class="ltx_note ltx_note_frontmatter ltx_role_price"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">price: </span>15.00</span></span></span><span id="id6" class="ltx_note ltx_note_frontmatter ltx_role_doi"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">doi: </span>10.1145/3503161.3547911</span></span></span><span id="id7" class="ltx_note ltx_note_frontmatter ltx_role_isbn"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">isbn: </span>978-1-4503-9203-7/22/10</span></span></span><span id="id8" class="ltx_note ltx_note_frontmatter ltx_role_ccs"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">ccs: </span>Computing methodologies Computer vision</span></span></span>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1. </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">Self-supervised pre-training techniques have been the de facto common practice for Document AI <cite class="ltx_cite ltx_citemacro_citep">(Cui et al<span class="ltx_text">.</span>, <a href="#bib.bib11" title="" class="ltx_ref">2021</a>)</cite> in the past several years, where the image, text, and layout information is often jointly trained using a unified Transformer architecture <cite class="ltx_cite ltx_citemacro_citep">(Xu et al<span class="ltx_text">.</span>, <a href="#bib.bib42" title="" class="ltx_ref">2020</a>, <a href="#bib.bib45" title="" class="ltx_ref">2021b</a>; Huang et al<span class="ltx_text">.</span>, <a href="#bib.bib22" title="" class="ltx_ref">2022</a>; Xu et al<span class="ltx_text">.</span>, <a href="#bib.bib43" title="" class="ltx_ref">2021a</a>, <a href="#bib.bib44" title="" class="ltx_ref">2022</a>; Pramanik et al<span class="ltx_text">.</span>, <a href="#bib.bib34" title="" class="ltx_ref">2020</a>; Łukasz Garncarek et al<span class="ltx_text">.</span>, <a href="#bib.bib49" title="" class="ltx_ref">2021</a>; Hong et al<span class="ltx_text">.</span>, <a href="#bib.bib20" title="" class="ltx_ref">2021</a>; Powalski et al<span class="ltx_text">.</span>, <a href="#bib.bib33" title="" class="ltx_ref">2021</a>; Wu et al<span class="ltx_text">.</span>, <a href="#bib.bib39" title="" class="ltx_ref">2021</a>; Li et al<span class="ltx_text">.</span>, <a href="#bib.bib26" title="" class="ltx_ref">2021a</a>, <a href="#bib.bib29" title="" class="ltx_ref">b</a>; Appalaraju et al<span class="ltx_text">.</span>, <a href="#bib.bib3" title="" class="ltx_ref">2021</a>)</cite>. Among all these approaches, a typical pipeline for pre-training Document AI models usually start with the vision-based understanding such as Optical Character Recognition (OCR) or document layout analysis, which still heavily relies on the supervised computer vision backbone models with human-labeled training samples. Although good results have been achieved on benchmark datasets, these vision models are often confronted with the performance gap in real-world applications due to domain shift and template/format mismatch from the training data. Such accuracy regression <cite class="ltx_cite ltx_citemacro_citep">(Li et al<span class="ltx_text">.</span>, <a href="#bib.bib27" title="" class="ltx_ref">2020a</a>; Zhong et al<span class="ltx_text">.</span>, <a href="#bib.bib47" title="" class="ltx_ref">2019</a>)</cite> also has an essential influence on the pre-trained models as well as downstream tasks. Therefore, it is inevitable to investigate how to leverage the self-supervised pre-training for the backbone of document image understanding, which can better facilitate general Document AI models for different domains.</p>
+</div>
+<figure id="S1.F1" class="ltx_figure">
+<div class="ltx_flex_figure">
+<div class="ltx_flex_cell ltx_flex_size_4">
+<figure id="S1.F1.sf1" class="ltx_figure ltx_figure_panel ltx_align_center">
+<p id="S1.F1.sf1.1" class="ltx_p ltx_align_center"><span id="S1.F1.sf1.1.1" class="ltx_text ltx_framed ltx_framed_rectangle" style="border-color: #000000;"><img src="/html/2203.02378/assets/examples/000000000000.jpg" id="S1.F1.sf1.1.1.g1" class="ltx_graphics ltx_img_portrait" width="479" height="658" alt="Refer to caption"></span></p>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S1.F1.sf1.3.1.1" class="ltx_text" style="font-size:90%;">(a)</span> </span></figcaption>
+</figure>
+</div>
+<div class="ltx_flex_cell ltx_flex_size_4">
+<figure id="S1.F1.sf2" class="ltx_figure ltx_figure_panel ltx_align_center">
+<p id="S1.F1.sf2.1" class="ltx_p ltx_align_center"><span id="S1.F1.sf2.1.1" class="ltx_text ltx_framed ltx_framed_rectangle" style="border-color: #000000;"><img src="/html/2203.02378/assets/examples/000000000001.jpg" id="S1.F1.sf2.1.1.g1" class="ltx_graphics ltx_img_portrait" width="479" height="658" alt="Refer to caption"></span></p>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S1.F1.sf2.3.1.1" class="ltx_text" style="font-size:90%;">(b)</span> </span></figcaption>
+</figure>
+</div>
+<div class="ltx_flex_cell ltx_flex_size_4">
+<figure id="S1.F1.sf3" class="ltx_figure ltx_figure_panel ltx_align_center">
+<p id="S1.F1.sf3.1" class="ltx_p ltx_align_center"><span id="S1.F1.sf3.1.1" class="ltx_text ltx_framed ltx_framed_rectangle" style="border-color: #000000;"><img src="/html/2203.02378/assets/examples/000000000002.jpg" id="S1.F1.sf3.1.1.g1" class="ltx_graphics ltx_img_portrait" width="479" height="658" alt="Refer to caption"></span></p>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S1.F1.sf3.3.1.1" class="ltx_text" style="font-size:90%;">(c)</span> </span></figcaption>
+</figure>
+</div>
+<div class="ltx_flex_cell ltx_flex_size_4">
+<figure id="S1.F1.sf4" class="ltx_figure ltx_figure_panel ltx_align_center">
+<p id="S1.F1.sf4.1" class="ltx_p ltx_align_center"><span id="S1.F1.sf4.1.1" class="ltx_text ltx_framed ltx_framed_rectangle" style="border-color: #000000;"><img src="/html/2203.02378/assets/examples/000000000008.jpg" id="S1.F1.sf4.1.1.g1" class="ltx_graphics ltx_img_portrait" width="479" height="658" alt="Refer to caption"></span></p>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S1.F1.sf4.3.1.1" class="ltx_text" style="font-size:90%;">(d)</span> </span></figcaption>
+</figure>
+</div>
+<div class="ltx_flex_break"></div>
+<div class="ltx_flex_cell ltx_flex_size_4">
+<figure id="S1.F1.sf5" class="ltx_figure ltx_figure_panel ltx_align_center">
+<p id="S1.F1.sf5.1" class="ltx_p ltx_align_center"><span id="S1.F1.sf5.1.1" class="ltx_text ltx_framed ltx_framed_rectangle" style="border-color: #000000;"><img src="/html/2203.02378/assets/examples/000000000009.jpg" id="S1.F1.sf5.1.1.g1" class="ltx_graphics ltx_img_portrait" width="479" height="658" alt="Refer to caption"></span></p>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S1.F1.sf5.3.1.1" class="ltx_text" style="font-size:90%;">(e)</span> </span></figcaption>
+</figure>
+</div>
+<div class="ltx_flex_cell ltx_flex_size_4">
+<figure id="S1.F1.sf6" class="ltx_figure ltx_figure_panel ltx_align_center">
+<p id="S1.F1.sf6.1" class="ltx_p ltx_align_center"><span id="S1.F1.sf6.1.1" class="ltx_text ltx_framed ltx_framed_rectangle" style="border-color: #000000;"><img src="/html/2203.02378/assets/examples/000000000010.jpg" id="S1.F1.sf6.1.1.g1" class="ltx_graphics ltx_img_portrait" width="479" height="658" alt="Refer to caption"></span></p>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S1.F1.sf6.3.1.1" class="ltx_text" style="font-size:90%;">(f)</span> </span></figcaption>
+</figure>
+</div>
+<div class="ltx_flex_cell ltx_flex_size_4">
+<figure id="S1.F1.sf7" class="ltx_figure ltx_figure_panel ltx_align_center">
+<p id="S1.F1.sf7.1" class="ltx_p ltx_align_center"><span id="S1.F1.sf7.1.1" class="ltx_text ltx_framed ltx_framed_rectangle" style="border-color: #000000;"><img src="/html/2203.02378/assets/examples/000000000024.jpg" id="S1.F1.sf7.1.1.g1" class="ltx_graphics ltx_img_portrait" width="479" height="658" alt="Refer to caption"></span></p>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S1.F1.sf7.3.1.1" class="ltx_text" style="font-size:90%;">(g)</span> </span></figcaption>
+</figure>
+</div>
+<div class="ltx_flex_cell ltx_flex_size_4">
+<figure id="S1.F1.sf8" class="ltx_figure ltx_figure_panel ltx_align_center">
+<p id="S1.F1.sf8.1" class="ltx_p ltx_align_center"><span id="S1.F1.sf8.1.1" class="ltx_text ltx_framed ltx_framed_rectangle" style="border-color: #000000;"><img src="/html/2203.02378/assets/examples/000000000030.jpg" id="S1.F1.sf8.1.1.g1" class="ltx_graphics ltx_img_portrait" width="479" height="658" alt="Refer to caption"></span></p>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S1.F1.sf8.3.1.1" class="ltx_text" style="font-size:90%;">(h)</span> </span></figcaption>
+</figure>
+</div>
+</div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S1.F1.2.1.1" class="ltx_text" style="font-size:90%;">Figure 1</span>. </span><span id="S1.F1.3.2" class="ltx_text" style="font-size:90%;">Visually-rich business documents with different layouts and formats for pre-training DiT.</span></figcaption>
+</figure>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">Image Transformer <cite class="ltx_cite ltx_citemacro_citep">(Dosovitskiy et al<span class="ltx_text">.</span>, <a href="#bib.bib13" title="" class="ltx_ref">2021</a>; Touvron et al<span class="ltx_text">.</span>, <a href="#bib.bib37" title="" class="ltx_ref">2021</a>; Liu et al<span class="ltx_text">.</span>, <a href="#bib.bib32" title="" class="ltx_ref">2021</a>; Chen et al<span class="ltx_text">.</span>, <a href="#bib.bib10" title="" class="ltx_ref">2021</a>; Bao et al<span class="ltx_text">.</span>, <a href="#bib.bib4" title="" class="ltx_ref">2021</a>; El-Nouby et al<span class="ltx_text">.</span>, <a href="#bib.bib14" title="" class="ltx_ref">2021a</a>; He et al<span class="ltx_text">.</span>, <a href="#bib.bib18" title="" class="ltx_ref">2021</a>; Zhou et al<span class="ltx_text">.</span>, <a href="#bib.bib48" title="" class="ltx_ref">2021</a>)</cite> has recently achieved great success for natural image understanding including classification, detection and segmentation tasks, either with supervised pre-training on the ImageNet or self-supervised pre-training. The pre-trained image Transformer models can achieve comparable and even better performance compared with CNN-based pre-trained models under a similar parameter size. However, for document image understanding, there is no commonly-used large-scale human-labeled benchmark like ImageNet, which makes large-scale supervised pre-training impractical. Even though weakly supervised methods have been used to create Document AI benchmarks <cite class="ltx_cite ltx_citemacro_citep">(Zhong et al<span class="ltx_text">.</span>, <a href="#bib.bib47" title="" class="ltx_ref">2019</a>, <a href="#bib.bib46" title="" class="ltx_ref">2020</a>; Li et al<span class="ltx_text">.</span>, <a href="#bib.bib27" title="" class="ltx_ref">2020a</a>, <a href="#bib.bib28" title="" class="ltx_ref">b</a>)</cite>, the domain of these datasets is often from the academic papers that share similar templates and formats, which are different from real-world documents such as forms, invoice/receipts, reports, and many others as shown in Figure <a href="#S1.F1" title="Figure 1 ‣ 1. Introduction ‣ DiT: Self-supervised Pre-training for Document Image Transformer" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>. This may lead to unsatisfactory results for general Document AI problems. Therefore, it is vital to pre-train the document image backbone models with large-scale unlabeled data from general domains, which can support a variety of Document AI tasks.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.2" class="ltx_p">To this end, we propose <span id="S1.p3.2.1" class="ltx_text ltx_font_bold">DiT</span>, a self-supervised pre-trained Document Image Transformer model for general Document AI tasks, which does not rely on any human-labeled document images. Inspired by the recently proposed BEiT model <cite class="ltx_cite ltx_citemacro_citep">(Bao et al<span class="ltx_text">.</span>, <a href="#bib.bib4" title="" class="ltx_ref">2021</a>)</cite>, we adopt a similar pre-training strategy using document images. An input text image is first resized into <math id="S1.p3.1.m1.1" class="ltx_Math" alttext="224\times 224" display="inline"><semantics id="S1.p3.1.m1.1a"><mrow id="S1.p3.1.m1.1.1" xref="S1.p3.1.m1.1.1.cmml"><mn id="S1.p3.1.m1.1.1.2" xref="S1.p3.1.m1.1.1.2.cmml">224</mn><mo lspace="0.222em" rspace="0.222em" id="S1.p3.1.m1.1.1.1" xref="S1.p3.1.m1.1.1.1.cmml">×</mo><mn id="S1.p3.1.m1.1.1.3" xref="S1.p3.1.m1.1.1.3.cmml">224</mn></mrow><annotation-xml encoding="MathML-Content" id="S1.p3.1.m1.1b"><apply id="S1.p3.1.m1.1.1.cmml" xref="S1.p3.1.m1.1.1"><times id="S1.p3.1.m1.1.1.1.cmml" xref="S1.p3.1.m1.1.1.1"></times><cn type="integer" id="S1.p3.1.m1.1.1.2.cmml" xref="S1.p3.1.m1.1.1.2">224</cn><cn type="integer" id="S1.p3.1.m1.1.1.3.cmml" xref="S1.p3.1.m1.1.1.3">224</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S1.p3.1.m1.1c">224\times 224</annotation></semantics></math> and then the image is split into a sequence of <math id="S1.p3.2.m2.1" class="ltx_Math" alttext="16\times 16" display="inline"><semantics id="S1.p3.2.m2.1a"><mrow id="S1.p3.2.m2.1.1" xref="S1.p3.2.m2.1.1.cmml"><mn id="S1.p3.2.m2.1.1.2" xref="S1.p3.2.m2.1.1.2.cmml">16</mn><mo lspace="0.222em" rspace="0.222em" id="S1.p3.2.m2.1.1.1" xref="S1.p3.2.m2.1.1.1.cmml">×</mo><mn id="S1.p3.2.m2.1.1.3" xref="S1.p3.2.m2.1.1.3.cmml">16</mn></mrow><annotation-xml encoding="MathML-Content" id="S1.p3.2.m2.1b"><apply id="S1.p3.2.m2.1.1.cmml" xref="S1.p3.2.m2.1.1"><times id="S1.p3.2.m2.1.1.1.cmml" xref="S1.p3.2.m2.1.1.1"></times><cn type="integer" id="S1.p3.2.m2.1.1.2.cmml" xref="S1.p3.2.m2.1.1.2">16</cn><cn type="integer" id="S1.p3.2.m2.1.1.3.cmml" xref="S1.p3.2.m2.1.1.3">16</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S1.p3.2.m2.1c">16\times 16</annotation></semantics></math> patches which are used as the input to the image Transformer. Distinct from the BEiT model where visual tokens are from the discrete VAE in DALL-E <cite class="ltx_cite ltx_citemacro_citep">(Ramesh et al<span class="ltx_text">.</span>, <a href="#bib.bib35" title="" class="ltx_ref">2021</a>)</cite>, we re-train the discrete VAE (dVAE) model with large-scale document images, so that the generated visual tokens are more domain relevant to the Document AI tasks. The pre-training objective is to recover visual tokens from dVAE based on the corrupted input document images using the Masked Image Modeling (MIM) in BEiT. In this way, the DiT model does not rely on any human-labeled document images, but only leverages large-scale unlabeled data to learn the global patch relationship within each document image. We evaluate the pre-trained DiT models on four publicly available Document AI benchmarks, including the RVL-CDIP dataset <cite class="ltx_cite ltx_citemacro_citep">(Harley et al<span class="ltx_text">.</span>, <a href="#bib.bib17" title="" class="ltx_ref">2015</a>)</cite> for document image classification, the PubLayNet dataset <cite class="ltx_cite ltx_citemacro_citep">(Zhong et al<span class="ltx_text">.</span>, <a href="#bib.bib47" title="" class="ltx_ref">2019</a>)</cite> for document layout analysis, the ICDAR 2019 cTDaR dataset <cite class="ltx_cite ltx_citemacro_citep">(Gao et al<span class="ltx_text">.</span>, <a href="#bib.bib16" title="" class="ltx_ref">2019</a>)</cite> for table detection, as well as the FUNSD dataset <cite class="ltx_cite ltx_citemacro_citep">(Jaume et al<span class="ltx_text">.</span>, <a href="#bib.bib23" title="" class="ltx_ref">2019</a>)</cite> for OCR text detection. Experiment results have illustrated that the pre-trained DiT model has outperformed the existing supervised and self-supervised pre-trained models and achieved new state-of-the-art on these tasks.</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p id="S1.p4.1" class="ltx_p">The contributions of this paper are summarized as follows:</p>
+</div>
+<div id="S1.p5" class="ltx_para">
+<ol id="S1.I1" class="ltx_enumerate">
+<li id="S1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(1)</span> 
+<div id="S1.I1.i1.p1" class="ltx_para">
+<p id="S1.I1.i1.p1.1" class="ltx_p">We propose DiT, a self-supervised pre-trained document image Transformer model, which can leverage large-scale unlabeled document images for pre-training.</p>
+</div>
+</li>
+<li id="S1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(2)</span> 
+<div id="S1.I1.i2.p1" class="ltx_para">
+<p id="S1.I1.i2.p1.1" class="ltx_p">We leverage the pre-trained DiT models as the backbone for a variety of Document AI tasks, including document image classification, document layout analysis, table detection, as well as text detection for OCR, and achieve new state-of-the-art results.</p>
+</div>
+</li>
+<li id="S1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(3)</span> 
+<div id="S1.I1.i3.p1" class="ltx_para">
+<p id="S1.I1.i3.p1.1" class="ltx_p">The code and pre-trained models are publicly available at <a target="_blank" href="https://aka.ms/msdit" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://aka.ms/msdit</a>.</p>
+</div>
+</li>
+</ol>
+</div>
+<figure id="S1.F2" class="ltx_figure"><img src="/html/2203.02378/assets/x1.png" id="S1.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="397" height="244" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S1.F2.2.1.1" class="ltx_text" style="font-size:90%;">Figure 2</span>. </span><span id="S1.F2.3.2" class="ltx_text" style="font-size:90%;">The model architecture of DiT with MIM pre-training.</span></figcaption>
+</figure>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2. </span>Related Work</h2>
+
+<div id="S2.p1" class="ltx_para">
+<p id="S2.p1.1" class="ltx_p">Image Transformer has recently achieved significant progress in computer vision problems, including classification, object detection, and segmentation. <cite class="ltx_cite ltx_citemacro_citep">(Dosovitskiy et al<span class="ltx_text">.</span>, <a href="#bib.bib13" title="" class="ltx_ref">2021</a>)</cite> first applied a standard Transformer directly to images with the fewest modifications. They split an image into <math id="S2.p1.1.m1.1" class="ltx_Math" alttext="16\times 16" display="inline"><semantics id="S2.p1.1.m1.1a"><mrow id="S2.p1.1.m1.1.1" xref="S2.p1.1.m1.1.1.cmml"><mn id="S2.p1.1.m1.1.1.2" xref="S2.p1.1.m1.1.1.2.cmml">16</mn><mo lspace="0.222em" rspace="0.222em" id="S2.p1.1.m1.1.1.1" xref="S2.p1.1.m1.1.1.1.cmml">×</mo><mn id="S2.p1.1.m1.1.1.3" xref="S2.p1.1.m1.1.1.3.cmml">16</mn></mrow><annotation-xml encoding="MathML-Content" id="S2.p1.1.m1.1b"><apply id="S2.p1.1.m1.1.1.cmml" xref="S2.p1.1.m1.1.1"><times id="S2.p1.1.m1.1.1.1.cmml" xref="S2.p1.1.m1.1.1.1"></times><cn type="integer" id="S2.p1.1.m1.1.1.2.cmml" xref="S2.p1.1.m1.1.1.2">16</cn><cn type="integer" id="S2.p1.1.m1.1.1.3.cmml" xref="S2.p1.1.m1.1.1.3">16</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.p1.1.m1.1c">16\times 16</annotation></semantics></math> patches and provide the sequence of linear embeddings of these patches as an input to a Transformer named ViT. The ViT model is trained on image classification in a supervised fashion and outperforms the ResNet baselines.  <cite class="ltx_cite ltx_citemacro_citep">(Touvron et al<span class="ltx_text">.</span>, <a href="#bib.bib37" title="" class="ltx_ref">2021</a>)</cite> proposed data-efficient image transformers &amp; distillation through attention, namely DeiT, which solely relies on the ImageNet dataset for supervised pre-training and achieves SOTA results compared with ViT.  <cite class="ltx_cite ltx_citemacro_citep">(Liu et al<span class="ltx_text">.</span>, <a href="#bib.bib32" title="" class="ltx_ref">2021</a>)</cite> proposed a hierarchical Transformer whose
+representation is computed with shifted windows. The shifted windowing scheme brings efficiency by limiting self-attention computation to non-overlapping local windows while also allowing for cross-window connection. In addition to supervised pre-trained models,  <cite class="ltx_cite ltx_citemacro_citep">(Chen et al<span class="ltx_text">.</span>, <a href="#bib.bib9" title="" class="ltx_ref">2020</a>)</cite> trained a sequence Transformer called iGPT to auto-regressively predict pixels without incorporating knowledge of the 2D input structure, which is the first attempt at self-supervised image transformer pre-training. After that, self-supervised pre-training for image Transformer became a hot topic in computer vision. <cite class="ltx_cite ltx_citemacro_citep">(Caron et al<span class="ltx_text">.</span>, <a href="#bib.bib8" title="" class="ltx_ref">2021</a>)</cite> proposed DINO, which pre-trains the image Transformer using self-distillation with no labels. <cite class="ltx_cite ltx_citemacro_citep">(Chen et al<span class="ltx_text">.</span>, <a href="#bib.bib10" title="" class="ltx_ref">2021</a>)</cite> proposed MoCov3 that is based on Siamese networks for self-supervised learning. More recently, <cite class="ltx_cite ltx_citemacro_citep">(Bao et al<span class="ltx_text">.</span>, <a href="#bib.bib4" title="" class="ltx_ref">2021</a>)</cite> adopted a BERT-style pre-training strategy, which first tokenizes the original image into visual tokens, then randomly masks some image patches and feeds them into the backbone Transformer. Similar to the masked language modeling, they proposed a masked image modeling task as the pre-training objective that achieves SOTA performance. <cite class="ltx_cite ltx_citemacro_citep">(Zhou et al<span class="ltx_text">.</span>, <a href="#bib.bib48" title="" class="ltx_ref">2021</a>)</cite> presented a self-supervised framework iBOT that can perform masked prediction with an online tokenizer. The online tokenizer is jointly learnable with the MIM objective and dispenses with a multi-stage pipeline where the tokenizer is pre-trained beforehand.</p>
+</div>
+<div id="S2.p2" class="ltx_para">
+<p id="S2.p2.1" class="ltx_p">The vision-based Document AI usually denote document analysis tasks that leverage the computer vision models, such as OCR, document layout analysis, and document image classification. Due to the lack of large-scale human-labeled datasets in this domain, existing approaches are usually based on the ConvNets models that are pre-trained with ImageNet/COCO datasets. Then, the models are continuously trained with task-specific labeled samples. To the best of our knowledge, the pre-trained DiT model is the first large-scale self-supervised pre-trained model for vision-based Document AI tasks. Meanwhile, it can be further leveraged for the multimodal pre-training for Document AI.</p>
+</div>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3. </span>Document Image Transformer</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.1" class="ltx_p">In this section, we first present the architecture of DiT and the pre-training procedure. Then, we describe the application of DiT models in different downstream tasks.</p>
+</div>
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1. </span>Model Architecture</h3>
+
+<div id="S3.SS1.p1" class="ltx_para">
+<p id="S3.SS1.p1.1" class="ltx_p">Following ViT <cite class="ltx_cite ltx_citemacro_citep">(Dosovitskiy et al<span class="ltx_text">.</span>, <a href="#bib.bib13" title="" class="ltx_ref">2021</a>)</cite>, we use the vanilla Transformer architecture <cite class="ltx_cite ltx_citemacro_citep">(Vaswani et al<span class="ltx_text">.</span>, <a href="#bib.bib38" title="" class="ltx_ref">2017</a>)</cite> as the backbone of DiT. We divide a document image into non-overlapping patches and obtain a sequence of patch embeddings. After adding the 1d position embedding, these image patches are passed into a stack of Transformer blocks with multi-head attention. Finally, we take the output of the Transformer encoder as the representation of image patches, which is shown in Figure <a href="#S1.F2" title="Figure 2 ‣ 1. Introduction ‣ DiT: Self-supervised Pre-training for Document Image Transformer" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>.</p>
+</div>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.2. </span>Pre-training</h3>
+
+<div id="S3.SS2.p1" class="ltx_para">
+<p id="S3.SS2.p1.1" class="ltx_p">Inspired by BEiT <cite class="ltx_cite ltx_citemacro_citep">(Bao et al<span class="ltx_text">.</span>, <a href="#bib.bib4" title="" class="ltx_ref">2021</a>)</cite>, we use Masked Image Modeling (MIM) as our pre-training objective. In this procedure, the images are represented as image patches and visual tokens in two views respectively. During pre-training, DiT accepts the image patches as input and predicts the visual tokens with the output representation.</p>
+</div>
+<div id="S3.SS2.p2" class="ltx_para">
+<p id="S3.SS2.p2.1" class="ltx_p">Like text tokens in natural language, an image can be represented as a sequence of discrete tokens obtained by an image tokenizer. BEiT uses the discrete variational auto-encoder (dVAE) from DALL-E <cite class="ltx_cite ltx_citemacro_citep">(Ramesh et al<span class="ltx_text">.</span>, <a href="#bib.bib35" title="" class="ltx_ref">2021</a>)</cite> as the image tokenizer, which is trained on a large data collection including 400 million images. However, there exists a domain mismatch between natural images and document images, which makes the DALL-E tokenizer not appropriate for the document images. Therefore, to get better discrete visual tokens for the document image domain, we train a dVAE on the IIT-CDIP <cite class="ltx_cite ltx_citemacro_citep">(Lewis et al<span class="ltx_text">.</span>, <a href="#bib.bib25" title="" class="ltx_ref">2006</a>)</cite> dataset that includes 42 million document images.</p>
+</div>
+<div id="S3.SS2.p3" class="ltx_para">
+<p id="S3.SS2.p3.1" class="ltx_p">To effectively pre-train the DiT model, we randomly mask a subset of inputs with a special token <span id="S3.SS2.p3.1.1" class="ltx_text ltx_font_typewriter">[MASK]</span> given a sequence of image patches. The DiT encoder embeds the masked patch sequence by a linear projection with added positional embeddings, and then contextualizes it with a stack of Transformer blocks. The model is required to predict the index of visual tokens with the output from masked positions. Instead of predicting the raw pixels, the masked image modeling task requires the model to predict the discrete visual tokens obtained by the image tokenizer.</p>
+</div>
+<figure id="S3.F3" class="ltx_figure"><img src="/html/2203.02378/assets/x2.png" id="S3.F3.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="216" height="346" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S3.F3.2.1.1" class="ltx_text" style="font-size:90%;">Figure 3</span>. </span><span id="S3.F3.3.2" class="ltx_text" style="font-size:90%;">Illustration of applying DiT as the backbone network in different detection frameworks.</span></figcaption>
+</figure>
+<figure id="S3.F4" class="ltx_figure">
+<div class="ltx_flex_figure">
+<div class="ltx_flex_cell ltx_flex_size_1">
+<figure id="S3.F4.sf1" class="ltx_figure ltx_figure_panel ltx_align_center"><img src="/html/2203.02378/assets/tokenizer/publaynet.jpg" id="S3.F4.sf1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="527" height="177" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S3.F4.sf1.2.1.1" class="ltx_text" style="font-size:90%;">(a)</span> </span><span id="S3.F4.sf1.3.2" class="ltx_text" style="font-size:90%;">A sample from the PubLayNet dataset</span></figcaption>
+</figure>
+</div>
+<div class="ltx_flex_break"></div>
+<div class="ltx_flex_cell ltx_flex_size_1">
+<figure id="S3.F4.sf2" class="ltx_figure ltx_figure_panel ltx_align_center"><img src="/html/2203.02378/assets/tokenizer/icdar_modern.jpg" id="S3.F4.sf2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="527" height="177" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S3.F4.sf2.2.1.1" class="ltx_text" style="font-size:90%;">(b)</span> </span><span id="S3.F4.sf2.3.2" class="ltx_text" style="font-size:90%;">A sample from the ICDAR 2019 cTDaR dataset</span></figcaption>
+</figure>
+</div>
+</div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S3.F4.2.1.1" class="ltx_text" style="font-size:90%;">Figure 4</span>. </span><span id="S3.F4.3.2" class="ltx_text" style="font-size:90%;">Document image reconstruction with different tokenizers. From left to right: the original document image, image reconstruction using the self-trained dVAE tokenizer, image reconstruction using the DALL-E tokenizer.</span></figcaption>
+</figure>
+</section>
+<section id="S3.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.3. </span>Fine-tuning</h3>
+
+<div id="S3.SS3.p1" class="ltx_para">
+<p id="S3.SS3.p1.1" class="ltx_p">We fine-tune our model on four Document AI benchmarks, including the RVL-CDIP dataset for document image classification, the PubLayNet dataset for document layout analysis, the ICDAR 2019 cTDaR dataset for table detection, and the FUNSD dataset for text detection. These benchmark datasets can be formalized as two common tasks: image classification and object detection.</p>
+</div>
+<section id="S3.SS3.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Image Classification</h4>
+
+<div id="S3.SS3.SSS0.Px1.p1" class="ltx_para">
+<p id="S3.SS3.SSS0.Px1.p1.1" class="ltx_p">For image classification, we use average pooling to aggregate the representation of image patches. Next, we pass the global representation into a simple linear classifier.</p>
+</div>
+</section>
+<section id="S3.SS3.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Object Detection</h4>
+
+<div id="S3.SS3.SSS0.Px2.p1" class="ltx_para">
+<p id="S3.SS3.SSS0.Px2.p1.11" class="ltx_p">For object detection, as in Figure <a href="#S3.F3" title="Figure 3 ‣ 3.2. Pre-training ‣ 3. Document Image Transformer ‣ DiT: Self-supervised Pre-training for Document Image Transformer" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, we leverage Mask R-CNN <cite class="ltx_cite ltx_citemacro_citep">(He et al<span class="ltx_text">.</span>, <a href="#bib.bib19" title="" class="ltx_ref">2017</a>)</cite> and Cascade R-CNN <cite class="ltx_cite ltx_citemacro_citep">(Cai and Vasconcelos, <a href="#bib.bib6" title="" class="ltx_ref">2018</a>)</cite> as detection frameworks and use ViT-based models as the backbone. Our code is implemented based on Detectron2 <cite class="ltx_cite ltx_citemacro_citep">(Wu et al<span class="ltx_text">.</span>, <a href="#bib.bib40" title="" class="ltx_ref">2019</a>)</cite>. Following <cite class="ltx_cite ltx_citemacro_citep">(El-Nouby et al<span class="ltx_text">.</span>, <a href="#bib.bib15" title="" class="ltx_ref">2021b</a>; Li et al<span class="ltx_text">.</span>, <a href="#bib.bib30" title="" class="ltx_ref">2021c</a>)</cite>, we use resolution-modifying modules at four different transformer blocks to adapt the single-scale ViT to the multi-scale FPN. Let <math id="S3.SS3.SSS0.Px2.p1.1.m1.1" class="ltx_Math" alttext="d" display="inline"><semantics id="S3.SS3.SSS0.Px2.p1.1.m1.1a"><mi id="S3.SS3.SSS0.Px2.p1.1.m1.1.1" xref="S3.SS3.SSS0.Px2.p1.1.m1.1.1.cmml">d</mi><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px2.p1.1.m1.1b"><ci id="S3.SS3.SSS0.Px2.p1.1.m1.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.1.m1.1.1">𝑑</ci></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px2.p1.1.m1.1c">d</annotation></semantics></math> be the total number of blocks, the <math id="S3.SS3.SSS0.Px2.p1.2.m2.1" class="ltx_Math" alttext="1d/3" display="inline"><semantics id="S3.SS3.SSS0.Px2.p1.2.m2.1a"><mrow id="S3.SS3.SSS0.Px2.p1.2.m2.1.1" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.cmml"><mrow id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.cmml"><mn id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.2" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.2.cmml">1</mn><mo lspace="0em" rspace="0em" id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.1" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.1.cmml">​</mo><mi id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.3" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.3.cmml">d</mi></mrow><mo id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.1" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.1.cmml">/</mo><mn id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.3" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.3.cmml">3</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px2.p1.2.m2.1b"><apply id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1"><divide id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.1"></divide><apply id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.cmml" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2"><times id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.1.cmml" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.1"></times><cn type="integer" id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.2.cmml" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.2">1</cn><ci id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.3.cmml" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.2.3">𝑑</ci></apply><cn type="integer" id="S3.SS3.SSS0.Px2.p1.2.m2.1.1.3.cmml" xref="S3.SS3.SSS0.Px2.p1.2.m2.1.1.3">3</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px2.p1.2.m2.1c">1d/3</annotation></semantics></math>th block is upsampled by 4<math id="S3.SS3.SSS0.Px2.p1.3.m3.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.SS3.SSS0.Px2.p1.3.m3.1a"><mo id="S3.SS3.SSS0.Px2.p1.3.m3.1.1" xref="S3.SS3.SSS0.Px2.p1.3.m3.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px2.p1.3.m3.1b"><times id="S3.SS3.SSS0.Px2.p1.3.m3.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.3.m3.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px2.p1.3.m3.1c">\times</annotation></semantics></math> using a module with 2 stride-two 2<math id="S3.SS3.SSS0.Px2.p1.4.m4.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.SS3.SSS0.Px2.p1.4.m4.1a"><mo id="S3.SS3.SSS0.Px2.p1.4.m4.1.1" xref="S3.SS3.SSS0.Px2.p1.4.m4.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px2.p1.4.m4.1b"><times id="S3.SS3.SSS0.Px2.p1.4.m4.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.4.m4.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px2.p1.4.m4.1c">\times</annotation></semantics></math>2 transposed convolution.
+For the output of the <math id="S3.SS3.SSS0.Px2.p1.5.m5.1" class="ltx_Math" alttext="1d/2" display="inline"><semantics id="S3.SS3.SSS0.Px2.p1.5.m5.1a"><mrow id="S3.SS3.SSS0.Px2.p1.5.m5.1.1" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.cmml"><mrow id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.cmml"><mn id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.2" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.2.cmml">1</mn><mo lspace="0em" rspace="0em" id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.1" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.1.cmml">​</mo><mi id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.3" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.3.cmml">d</mi></mrow><mo id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.1" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.1.cmml">/</mo><mn id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.3" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.3.cmml">2</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px2.p1.5.m5.1b"><apply id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1"><divide id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.1"></divide><apply id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.cmml" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2"><times id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.1.cmml" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.1"></times><cn type="integer" id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.2.cmml" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.2">1</cn><ci id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.3.cmml" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.2.3">𝑑</ci></apply><cn type="integer" id="S3.SS3.SSS0.Px2.p1.5.m5.1.1.3.cmml" xref="S3.SS3.SSS0.Px2.p1.5.m5.1.1.3">2</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px2.p1.5.m5.1c">1d/2</annotation></semantics></math>th block, we use a single stride-two 2<math id="S3.SS3.SSS0.Px2.p1.6.m6.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.SS3.SSS0.Px2.p1.6.m6.1a"><mo id="S3.SS3.SSS0.Px2.p1.6.m6.1.1" xref="S3.SS3.SSS0.Px2.p1.6.m6.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px2.p1.6.m6.1b"><times id="S3.SS3.SSS0.Px2.p1.6.m6.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.6.m6.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px2.p1.6.m6.1c">\times</annotation></semantics></math>2 transposed convolution to upsample 2<math id="S3.SS3.SSS0.Px2.p1.7.m7.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.SS3.SSS0.Px2.p1.7.m7.1a"><mo id="S3.SS3.SSS0.Px2.p1.7.m7.1.1" xref="S3.SS3.SSS0.Px2.p1.7.m7.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px2.p1.7.m7.1b"><times id="S3.SS3.SSS0.Px2.p1.7.m7.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.7.m7.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px2.p1.7.m7.1c">\times</annotation></semantics></math>.
+The output of the <math id="S3.SS3.SSS0.Px2.p1.8.m8.1" class="ltx_Math" alttext="2d/3" display="inline"><semantics id="S3.SS3.SSS0.Px2.p1.8.m8.1a"><mrow id="S3.SS3.SSS0.Px2.p1.8.m8.1.1" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.cmml"><mrow id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.cmml"><mn id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.2" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.2.cmml">2</mn><mo lspace="0em" rspace="0em" id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.1" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.1.cmml">​</mo><mi id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.3" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.3.cmml">d</mi></mrow><mo id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.1" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.1.cmml">/</mo><mn id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.3" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.3.cmml">3</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px2.p1.8.m8.1b"><apply id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1"><divide id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.1"></divide><apply id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.cmml" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2"><times id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.1.cmml" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.1"></times><cn type="integer" id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.2.cmml" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.2">2</cn><ci id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.3.cmml" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.2.3">𝑑</ci></apply><cn type="integer" id="S3.SS3.SSS0.Px2.p1.8.m8.1.1.3.cmml" xref="S3.SS3.SSS0.Px2.p1.8.m8.1.1.3">3</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px2.p1.8.m8.1c">2d/3</annotation></semantics></math>th block is utilized without additional operations.
+Finally, the output of <math id="S3.SS3.SSS0.Px2.p1.9.m9.1" class="ltx_Math" alttext="3d/3" display="inline"><semantics id="S3.SS3.SSS0.Px2.p1.9.m9.1a"><mrow id="S3.SS3.SSS0.Px2.p1.9.m9.1.1" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.cmml"><mrow id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.cmml"><mn id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.2" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.2.cmml">3</mn><mo lspace="0em" rspace="0em" id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.1" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.1.cmml">​</mo><mi id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.3" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.3.cmml">d</mi></mrow><mo id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.1" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.1.cmml">/</mo><mn id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.3" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.3.cmml">3</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px2.p1.9.m9.1b"><apply id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1"><divide id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.1"></divide><apply id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.cmml" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2"><times id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.1.cmml" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.1"></times><cn type="integer" id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.2.cmml" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.2">3</cn><ci id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.3.cmml" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.2.3">𝑑</ci></apply><cn type="integer" id="S3.SS3.SSS0.Px2.p1.9.m9.1.1.3.cmml" xref="S3.SS3.SSS0.Px2.p1.9.m9.1.1.3">3</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px2.p1.9.m9.1c">3d/3</annotation></semantics></math>th block is downsampled by 2<math id="S3.SS3.SSS0.Px2.p1.10.m10.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.SS3.SSS0.Px2.p1.10.m10.1a"><mo id="S3.SS3.SSS0.Px2.p1.10.m10.1.1" xref="S3.SS3.SSS0.Px2.p1.10.m10.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px2.p1.10.m10.1b"><times id="S3.SS3.SSS0.Px2.p1.10.m10.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.10.m10.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px2.p1.10.m10.1c">\times</annotation></semantics></math> with stride-two 2<math id="S3.SS3.SSS0.Px2.p1.11.m11.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.SS3.SSS0.Px2.p1.11.m11.1a"><mo id="S3.SS3.SSS0.Px2.p1.11.m11.1.1" xref="S3.SS3.SSS0.Px2.p1.11.m11.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px2.p1.11.m11.1b"><times id="S3.SS3.SSS0.Px2.p1.11.m11.1.1.cmml" xref="S3.SS3.SSS0.Px2.p1.11.m11.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px2.p1.11.m11.1c">\times</annotation></semantics></math>2 max pooling.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4. </span>Experiments</h2>
+
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1. </span>Tasks</h3>
+
+<div id="S4.SS1.p1" class="ltx_para">
+<p id="S4.SS1.p1.1" class="ltx_p">We briefly introduce the datasets mentioned in section 3.3 here.</p>
+</div>
+<section id="S4.SS1.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">RVL-CDIP</h4>
+
+<div id="S4.SS1.SSS0.Px1.p1" class="ltx_para">
+<p id="S4.SS1.SSS0.Px1.p1.1" class="ltx_p">The RVL-CDIP <cite class="ltx_cite ltx_citemacro_citep">(Harley et al<span class="ltx_text">.</span>, <a href="#bib.bib17" title="" class="ltx_ref">2015</a>)</cite> dataset consists of 400,000 grayscale images in 16 classes, with 25,000 per class. There are 320,000 training images, 40,000 validation images, and 40,000 test images.
+The 16 classes include {letter, form, email, handwritten, advertisement, scientific report, scientific publication, specification, file folder, news article, budget, invoice, presentation, questionnaire, resume, memo}. The evaluation metric is the overall classification accuracy.</p>
+</div>
+</section>
+<section id="S4.SS1.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">PubLayNet</h4>
+
+<div id="S4.SS1.SSS0.Px2.p1" class="ltx_para">
+<p id="S4.SS1.SSS0.Px2.p1.1" class="ltx_p">PubLayNet <cite class="ltx_cite ltx_citemacro_citep">(Zhong et al<span class="ltx_text">.</span>, <a href="#bib.bib47" title="" class="ltx_ref">2019</a>)</cite> is a large-scale document layout analysis dataset. More than 360,000 document images are constructed by automatically parsing PubMed XML files. The resulting annotations cover typical document layout elements such as text, title, list, figure, and table. The model needs to detect the regions of the assigned elements. We use the category-wise and overall mean average precision (MAP) @ intersection over union (IOU) [0.50:0.95] of bounding boxes as the evaluation metrics.</p>
+</div>
+</section>
+<section id="S4.SS1.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">ICDAR 2019 cTDaR</h4>
+
+<div id="S4.SS1.SSS0.Px3.p1" class="ltx_para">
+<p id="S4.SS1.SSS0.Px3.p1.1" class="ltx_p">The cTDaR datasets <cite class="ltx_cite ltx_citemacro_citep">(Gao et al<span class="ltx_text">.</span>, <a href="#bib.bib16" title="" class="ltx_ref">2019</a>)</cite> consist of two tracks, including table detection and table structure recognition. In this paper, we focus on Track A where document images with one or several table annotations are provided. This dataset has two subsets, one for archival documents and the other for modern documents. The archival subset includes 600 training images and 199 testing images, which shows a wide variety of tables containing hand-drawn accounting books, stock exchange lists, train timetables, production census, etc. The modern subset consists of 600 training images and 240 testing images, which contain different kinds of PDF files, such as scientific journals, forms, financial statements, etc. The dataset contains Chinese and English documents in various formats, including scanned document images and born-digital formats. Metrics for evaluating this task are the precision, recall, and F1 scores computed from the model’s ranked output w.r.t. different Intersection over Union (IoU) threshold. We calculate the values with IoU thresholds of 0.6, 0.7, 0.8, and 0.9 respectively, and merge them into a final weighted F1 score:</p>
+</div>
+<div id="S4.SS1.SSS0.Px3.p2" class="ltx_para">
+<table id="S4.Ex1" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S4.Ex1.m1.1" class="ltx_Math" alttext="wF1=\frac{0.6F1_{0.6}+0.7F1_{0.7}+0.8F1_{0.8}+0.9F1_{0.9}}{0.6+0.7+0.8+0.9}" display="block"><semantics id="S4.Ex1.m1.1a"><mrow id="S4.Ex1.m1.1.1" xref="S4.Ex1.m1.1.1.cmml"><mrow id="S4.Ex1.m1.1.1.2" xref="S4.Ex1.m1.1.1.2.cmml"><mi id="S4.Ex1.m1.1.1.2.2" xref="S4.Ex1.m1.1.1.2.2.cmml">w</mi><mo lspace="0em" rspace="0em" id="S4.Ex1.m1.1.1.2.1" xref="S4.Ex1.m1.1.1.2.1.cmml">​</mo><mi id="S4.Ex1.m1.1.1.2.3" xref="S4.Ex1.m1.1.1.2.3.cmml">F</mi><mo lspace="0em" rspace="0em" id="S4.Ex1.m1.1.1.2.1a" xref="S4.Ex1.m1.1.1.2.1.cmml">​</mo><mn id="S4.Ex1.m1.1.1.2.4" xref="S4.Ex1.m1.1.1.2.4.cmml">1</mn></mrow><mo id="S4.Ex1.m1.1.1.1" xref="S4.Ex1.m1.1.1.1.cmml">=</mo><mfrac id="S4.Ex1.m1.1.1.3" xref="S4.Ex1.m1.1.1.3.cmml"><mrow id="S4.Ex1.m1.1.1.3.2" xref="S4.Ex1.m1.1.1.3.2.cmml"><mrow id="S4.Ex1.m1.1.1.3.2.2" xref="S4.Ex1.m1.1.1.3.2.2.cmml"><mn id="S4.Ex1.m1.1.1.3.2.2.2" xref="S4.Ex1.m1.1.1.3.2.2.2.cmml">0.6</mn><mo lspace="0em" rspace="0em" id="S4.Ex1.m1.1.1.3.2.2.1" xref="S4.Ex1.m1.1.1.3.2.2.1.cmml">​</mo><mi id="S4.Ex1.m1.1.1.3.2.2.3" xref="S4.Ex1.m1.1.1.3.2.2.3.cmml">F</mi><mo lspace="0em" rspace="0em" id="S4.Ex1.m1.1.1.3.2.2.1a" xref="S4.Ex1.m1.1.1.3.2.2.1.cmml">​</mo><msub id="S4.Ex1.m1.1.1.3.2.2.4" xref="S4.Ex1.m1.1.1.3.2.2.4.cmml"><mn id="S4.Ex1.m1.1.1.3.2.2.4.2" xref="S4.Ex1.m1.1.1.3.2.2.4.2.cmml">1</mn><mn id="S4.Ex1.m1.1.1.3.2.2.4.3" xref="S4.Ex1.m1.1.1.3.2.2.4.3.cmml">0.6</mn></msub></mrow><mo id="S4.Ex1.m1.1.1.3.2.1" xref="S4.Ex1.m1.1.1.3.2.1.cmml">+</mo><mrow id="S4.Ex1.m1.1.1.3.2.3" xref="S4.Ex1.m1.1.1.3.2.3.cmml"><mn id="S4.Ex1.m1.1.1.3.2.3.2" xref="S4.Ex1.m1.1.1.3.2.3.2.cmml">0.7</mn><mo lspace="0em" rspace="0em" id="S4.Ex1.m1.1.1.3.2.3.1" xref="S4.Ex1.m1.1.1.3.2.3.1.cmml">​</mo><mi id="S4.Ex1.m1.1.1.3.2.3.3" xref="S4.Ex1.m1.1.1.3.2.3.3.cmml">F</mi><mo lspace="0em" rspace="0em" id="S4.Ex1.m1.1.1.3.2.3.1a" xref="S4.Ex1.m1.1.1.3.2.3.1.cmml">​</mo><msub id="S4.Ex1.m1.1.1.3.2.3.4" xref="S4.Ex1.m1.1.1.3.2.3.4.cmml"><mn id="S4.Ex1.m1.1.1.3.2.3.4.2" xref="S4.Ex1.m1.1.1.3.2.3.4.2.cmml">1</mn><mn id="S4.Ex1.m1.1.1.3.2.3.4.3" xref="S4.Ex1.m1.1.1.3.2.3.4.3.cmml">0.7</mn></msub></mrow><mo id="S4.Ex1.m1.1.1.3.2.1a" xref="S4.Ex1.m1.1.1.3.2.1.cmml">+</mo><mrow id="S4.Ex1.m1.1.1.3.2.4" xref="S4.Ex1.m1.1.1.3.2.4.cmml"><mn id="S4.Ex1.m1.1.1.3.2.4.2" xref="S4.Ex1.m1.1.1.3.2.4.2.cmml">0.8</mn><mo lspace="0em" rspace="0em" id="S4.Ex1.m1.1.1.3.2.4.1" xref="S4.Ex1.m1.1.1.3.2.4.1.cmml">​</mo><mi id="S4.Ex1.m1.1.1.3.2.4.3" xref="S4.Ex1.m1.1.1.3.2.4.3.cmml">F</mi><mo lspace="0em" rspace="0em" id="S4.Ex1.m1.1.1.3.2.4.1a" xref="S4.Ex1.m1.1.1.3.2.4.1.cmml">​</mo><msub id="S4.Ex1.m1.1.1.3.2.4.4" xref="S4.Ex1.m1.1.1.3.2.4.4.cmml"><mn id="S4.Ex1.m1.1.1.3.2.4.4.2" xref="S4.Ex1.m1.1.1.3.2.4.4.2.cmml">1</mn><mn id="S4.Ex1.m1.1.1.3.2.4.4.3" xref="S4.Ex1.m1.1.1.3.2.4.4.3.cmml">0.8</mn></msub></mrow><mo id="S4.Ex1.m1.1.1.3.2.1b" xref="S4.Ex1.m1.1.1.3.2.1.cmml">+</mo><mrow id="S4.Ex1.m1.1.1.3.2.5" xref="S4.Ex1.m1.1.1.3.2.5.cmml"><mn id="S4.Ex1.m1.1.1.3.2.5.2" xref="S4.Ex1.m1.1.1.3.2.5.2.cmml">0.9</mn><mo lspace="0em" rspace="0em" id="S4.Ex1.m1.1.1.3.2.5.1" xref="S4.Ex1.m1.1.1.3.2.5.1.cmml">​</mo><mi id="S4.Ex1.m1.1.1.3.2.5.3" xref="S4.Ex1.m1.1.1.3.2.5.3.cmml">F</mi><mo lspace="0em" rspace="0em" id="S4.Ex1.m1.1.1.3.2.5.1a" xref="S4.Ex1.m1.1.1.3.2.5.1.cmml">​</mo><msub id="S4.Ex1.m1.1.1.3.2.5.4" xref="S4.Ex1.m1.1.1.3.2.5.4.cmml"><mn id="S4.Ex1.m1.1.1.3.2.5.4.2" xref="S4.Ex1.m1.1.1.3.2.5.4.2.cmml">1</mn><mn id="S4.Ex1.m1.1.1.3.2.5.4.3" xref="S4.Ex1.m1.1.1.3.2.5.4.3.cmml">0.9</mn></msub></mrow></mrow><mrow id="S4.Ex1.m1.1.1.3.3" xref="S4.Ex1.m1.1.1.3.3.cmml"><mn id="S4.Ex1.m1.1.1.3.3.2" xref="S4.Ex1.m1.1.1.3.3.2.cmml">0.6</mn><mo id="S4.Ex1.m1.1.1.3.3.1" xref="S4.Ex1.m1.1.1.3.3.1.cmml">+</mo><mn id="S4.Ex1.m1.1.1.3.3.3" xref="S4.Ex1.m1.1.1.3.3.3.cmml">0.7</mn><mo id="S4.Ex1.m1.1.1.3.3.1a" xref="S4.Ex1.m1.1.1.3.3.1.cmml">+</mo><mn id="S4.Ex1.m1.1.1.3.3.4" xref="S4.Ex1.m1.1.1.3.3.4.cmml">0.8</mn><mo id="S4.Ex1.m1.1.1.3.3.1b" xref="S4.Ex1.m1.1.1.3.3.1.cmml">+</mo><mn id="S4.Ex1.m1.1.1.3.3.5" xref="S4.Ex1.m1.1.1.3.3.5.cmml">0.9</mn></mrow></mfrac></mrow><annotation-xml encoding="MathML-Content" id="S4.Ex1.m1.1b"><apply id="S4.Ex1.m1.1.1.cmml" xref="S4.Ex1.m1.1.1"><eq id="S4.Ex1.m1.1.1.1.cmml" xref="S4.Ex1.m1.1.1.1"></eq><apply id="S4.Ex1.m1.1.1.2.cmml" xref="S4.Ex1.m1.1.1.2"><times id="S4.Ex1.m1.1.1.2.1.cmml" xref="S4.Ex1.m1.1.1.2.1"></times><ci id="S4.Ex1.m1.1.1.2.2.cmml" xref="S4.Ex1.m1.1.1.2.2">𝑤</ci><ci id="S4.Ex1.m1.1.1.2.3.cmml" xref="S4.Ex1.m1.1.1.2.3">𝐹</ci><cn type="integer" id="S4.Ex1.m1.1.1.2.4.cmml" xref="S4.Ex1.m1.1.1.2.4">1</cn></apply><apply id="S4.Ex1.m1.1.1.3.cmml" xref="S4.Ex1.m1.1.1.3"><divide id="S4.Ex1.m1.1.1.3.1.cmml" xref="S4.Ex1.m1.1.1.3"></divide><apply id="S4.Ex1.m1.1.1.3.2.cmml" xref="S4.Ex1.m1.1.1.3.2"><plus id="S4.Ex1.m1.1.1.3.2.1.cmml" xref="S4.Ex1.m1.1.1.3.2.1"></plus><apply id="S4.Ex1.m1.1.1.3.2.2.cmml" xref="S4.Ex1.m1.1.1.3.2.2"><times id="S4.Ex1.m1.1.1.3.2.2.1.cmml" xref="S4.Ex1.m1.1.1.3.2.2.1"></times><cn type="float" id="S4.Ex1.m1.1.1.3.2.2.2.cmml" xref="S4.Ex1.m1.1.1.3.2.2.2">0.6</cn><ci id="S4.Ex1.m1.1.1.3.2.2.3.cmml" xref="S4.Ex1.m1.1.1.3.2.2.3">𝐹</ci><apply id="S4.Ex1.m1.1.1.3.2.2.4.cmml" xref="S4.Ex1.m1.1.1.3.2.2.4"><csymbol cd="ambiguous" id="S4.Ex1.m1.1.1.3.2.2.4.1.cmml" xref="S4.Ex1.m1.1.1.3.2.2.4">subscript</csymbol><cn type="integer" id="S4.Ex1.m1.1.1.3.2.2.4.2.cmml" xref="S4.Ex1.m1.1.1.3.2.2.4.2">1</cn><cn type="float" id="S4.Ex1.m1.1.1.3.2.2.4.3.cmml" xref="S4.Ex1.m1.1.1.3.2.2.4.3">0.6</cn></apply></apply><apply id="S4.Ex1.m1.1.1.3.2.3.cmml" xref="S4.Ex1.m1.1.1.3.2.3"><times id="S4.Ex1.m1.1.1.3.2.3.1.cmml" xref="S4.Ex1.m1.1.1.3.2.3.1"></times><cn type="float" id="S4.Ex1.m1.1.1.3.2.3.2.cmml" xref="S4.Ex1.m1.1.1.3.2.3.2">0.7</cn><ci id="S4.Ex1.m1.1.1.3.2.3.3.cmml" xref="S4.Ex1.m1.1.1.3.2.3.3">𝐹</ci><apply id="S4.Ex1.m1.1.1.3.2.3.4.cmml" xref="S4.Ex1.m1.1.1.3.2.3.4"><csymbol cd="ambiguous" id="S4.Ex1.m1.1.1.3.2.3.4.1.cmml" xref="S4.Ex1.m1.1.1.3.2.3.4">subscript</csymbol><cn type="integer" id="S4.Ex1.m1.1.1.3.2.3.4.2.cmml" xref="S4.Ex1.m1.1.1.3.2.3.4.2">1</cn><cn type="float" id="S4.Ex1.m1.1.1.3.2.3.4.3.cmml" xref="S4.Ex1.m1.1.1.3.2.3.4.3">0.7</cn></apply></apply><apply id="S4.Ex1.m1.1.1.3.2.4.cmml" xref="S4.Ex1.m1.1.1.3.2.4"><times id="S4.Ex1.m1.1.1.3.2.4.1.cmml" xref="S4.Ex1.m1.1.1.3.2.4.1"></times><cn type="float" id="S4.Ex1.m1.1.1.3.2.4.2.cmml" xref="S4.Ex1.m1.1.1.3.2.4.2">0.8</cn><ci id="S4.Ex1.m1.1.1.3.2.4.3.cmml" xref="S4.Ex1.m1.1.1.3.2.4.3">𝐹</ci><apply id="S4.Ex1.m1.1.1.3.2.4.4.cmml" xref="S4.Ex1.m1.1.1.3.2.4.4"><csymbol cd="ambiguous" id="S4.Ex1.m1.1.1.3.2.4.4.1.cmml" xref="S4.Ex1.m1.1.1.3.2.4.4">subscript</csymbol><cn type="integer" id="S4.Ex1.m1.1.1.3.2.4.4.2.cmml" xref="S4.Ex1.m1.1.1.3.2.4.4.2">1</cn><cn type="float" id="S4.Ex1.m1.1.1.3.2.4.4.3.cmml" xref="S4.Ex1.m1.1.1.3.2.4.4.3">0.8</cn></apply></apply><apply id="S4.Ex1.m1.1.1.3.2.5.cmml" xref="S4.Ex1.m1.1.1.3.2.5"><times id="S4.Ex1.m1.1.1.3.2.5.1.cmml" xref="S4.Ex1.m1.1.1.3.2.5.1"></times><cn type="float" id="S4.Ex1.m1.1.1.3.2.5.2.cmml" xref="S4.Ex1.m1.1.1.3.2.5.2">0.9</cn><ci id="S4.Ex1.m1.1.1.3.2.5.3.cmml" xref="S4.Ex1.m1.1.1.3.2.5.3">𝐹</ci><apply id="S4.Ex1.m1.1.1.3.2.5.4.cmml" xref="S4.Ex1.m1.1.1.3.2.5.4"><csymbol cd="ambiguous" id="S4.Ex1.m1.1.1.3.2.5.4.1.cmml" xref="S4.Ex1.m1.1.1.3.2.5.4">subscript</csymbol><cn type="integer" id="S4.Ex1.m1.1.1.3.2.5.4.2.cmml" xref="S4.Ex1.m1.1.1.3.2.5.4.2">1</cn><cn type="float" id="S4.Ex1.m1.1.1.3.2.5.4.3.cmml" xref="S4.Ex1.m1.1.1.3.2.5.4.3">0.9</cn></apply></apply></apply><apply id="S4.Ex1.m1.1.1.3.3.cmml" xref="S4.Ex1.m1.1.1.3.3"><plus id="S4.Ex1.m1.1.1.3.3.1.cmml" xref="S4.Ex1.m1.1.1.3.3.1"></plus><cn type="float" id="S4.Ex1.m1.1.1.3.3.2.cmml" xref="S4.Ex1.m1.1.1.3.3.2">0.6</cn><cn type="float" id="S4.Ex1.m1.1.1.3.3.3.cmml" xref="S4.Ex1.m1.1.1.3.3.3">0.7</cn><cn type="float" id="S4.Ex1.m1.1.1.3.3.4.cmml" xref="S4.Ex1.m1.1.1.3.3.4">0.8</cn><cn type="float" id="S4.Ex1.m1.1.1.3.3.5.cmml" xref="S4.Ex1.m1.1.1.3.3.5">0.9</cn></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.Ex1.m1.1c">wF1=\frac{0.6F1_{0.6}+0.7F1_{0.7}+0.8F1_{0.8}+0.9F1_{0.9}}{0.6+0.7+0.8+0.9}</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+</tr></tbody>
+</table>
+<p id="S4.SS1.SSS0.Px3.p2.1" class="ltx_p">This task further requires models to combine the modern and archival set as a whole to get a final evaluation result.</p>
+</div>
+</section>
+<section id="S4.SS1.SSS0.Px4" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">FUNSD</h4>
+
+<div id="S4.SS1.SSS0.Px4.p1" class="ltx_para">
+<p id="S4.SS1.SSS0.Px4.p1.1" class="ltx_p">FUNSD <cite class="ltx_cite ltx_citemacro_citep">(Jaume et al<span class="ltx_text">.</span>, <a href="#bib.bib23" title="" class="ltx_ref">2019</a>)</cite> is a noisy scanned document dataset labeled for three tasks: Text detection, Text recognition with Optical Character Recognition (OCR), and Form understanding. In this paper, we focus on Task #1 in FUNSD, which aims to detect the text bounding boxes for scanned form documents. FUNSD includes 199 fully annotated forms with 31,485 words, whereas the training set contains 150 forms and the testing set includes 49 forms. The evaluation metrics are the precision, recall, and F1 score at IoU@0.5.</p>
+</div>
+</section>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2. </span>Settings</h3>
+
+<section id="S4.SS2.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Pre-training Setup</h4>
+
+<div id="S4.SS2.SSS0.Px1.p1" class="ltx_para">
+<p id="S4.SS2.SSS0.Px1.p1.1" class="ltx_p">We pre-train DiT on the IIT-CDIP Test Collection 1.0 <cite class="ltx_cite ltx_citemacro_citep">(Lewis et al<span class="ltx_text">.</span>, <a href="#bib.bib25" title="" class="ltx_ref">2006</a>)</cite>. We pre-process the dataset by splitting multi-page documents into single pages, and obtain 42 million document images. We also introduce random resized cropping to augment training data during training. We train our DiT-B model with the same architecture as the ViT base: a 12-layer Transformer with 768 hidden sizes, and 12 attention heads. The intermediate size of feed-forward networks is 3,072. A larger version, DiT-L, is also trained with 24 layers, 1,024 hidden sizes, and 16 attention heads. The intermediate size of feed-forward networks is 4,096.</p>
+</div>
+</section>
+<section id="S4.SS2.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">The dVAE Tokenizer</h4>
+
+<div id="S4.SS2.SSS0.Px2.p1" class="ltx_para">
+<p id="S4.SS2.SSS0.Px2.p1.3" class="ltx_p">BEiT borrows the image tokenizer trained by DALL-E, which is not aligned with the document image data. In this case, we fully utilize the 42 million document images in the IIT-CDIP dataset and train a document dVAE image tokenizer to obtain the visual tokens. Like the DALL-E image tokenizer, the document image tokenizer has the codebook dimensionality of 8,192 and the image encoder with three layers. Each layer consists of a 2D convolution with a stride of 2 and a ResNet block. Therefore, the tokenizer eventually has a downsampling factor of 8. In this case, given a 112<math id="S4.SS2.SSS0.Px2.p1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS2.SSS0.Px2.p1.1.m1.1a"><mo id="S4.SS2.SSS0.Px2.p1.1.m1.1.1" xref="S4.SS2.SSS0.Px2.p1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px2.p1.1.m1.1b"><times id="S4.SS2.SSS0.Px2.p1.1.m1.1.1.cmml" xref="S4.SS2.SSS0.Px2.p1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px2.p1.1.m1.1c">\times</annotation></semantics></math>112 image, it ends up with a 14<math id="S4.SS2.SSS0.Px2.p1.2.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS2.SSS0.Px2.p1.2.m2.1a"><mo id="S4.SS2.SSS0.Px2.p1.2.m2.1.1" xref="S4.SS2.SSS0.Px2.p1.2.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px2.p1.2.m2.1b"><times id="S4.SS2.SSS0.Px2.p1.2.m2.1.1.cmml" xref="S4.SS2.SSS0.Px2.p1.2.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px2.p1.2.m2.1c">\times</annotation></semantics></math>14 discrete token map aligning with the 14<math id="S4.SS2.SSS0.Px2.p1.3.m3.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS2.SSS0.Px2.p1.3.m3.1a"><mo id="S4.SS2.SSS0.Px2.p1.3.m3.1.1" xref="S4.SS2.SSS0.Px2.p1.3.m3.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px2.p1.3.m3.1b"><times id="S4.SS2.SSS0.Px2.p1.3.m3.1.1.cmml" xref="S4.SS2.SSS0.Px2.p1.3.m3.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px2.p1.3.m3.1c">\times</annotation></semantics></math>14 input patches.</p>
+</div>
+<div id="S4.SS2.SSS0.Px2.p2" class="ltx_para">
+<p id="S4.SS2.SSS0.Px2.p2.1" class="ltx_p">We implement our dVAE codebase from open-sourced DALL-E implementation<span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note">1</span><a target="_blank" href="https://github.com/lucidrains/DALLE-pytorch" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/lucidrains/DALLE-pytorch</a></span></span></span> and train the dVAE model with the entire IIT-CDIP dataset containing 42 million document images. The new dVAE tokenizer is trained with a combination of a MSE loss to reconstructe the input image, and a perplexity loss to increase the use of the quantized codebook representations. The input image size is 224<math id="S4.SS2.SSS0.Px2.p2.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS2.SSS0.Px2.p2.1.m1.1a"><mo id="S4.SS2.SSS0.Px2.p2.1.m1.1.1" xref="S4.SS2.SSS0.Px2.p2.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px2.p2.1.m1.1b"><times id="S4.SS2.SSS0.Px2.p2.1.m1.1.1.cmml" xref="S4.SS2.SSS0.Px2.p2.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px2.p2.1.m1.1c">\times</annotation></semantics></math>224, and we train the tokenizer with a learning rate of 5e-4 and a minimum temperature of 1e-10 for 3 epochs.
+We compare our dVAE tokenizer with the original DALL-E tokenizer by reconstructing the document image samples from downstream tasks, which is shown in Figure <a href="#S3.F4" title="Figure 4 ‣ 3.2. Pre-training ‣ 3. Document Image Transformer ‣ DiT: Self-supervised Pre-training for Document Image Transformer" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>. We sample images from the document layout analysis dataset PubLayNet and table detection dataset ICDAR 2019 cTDaR. After being reconstructed by the DALL-E and our tokenizer, the image tokenizer by DALL-E is hard to distinguish the border of lines and tokens, but the image tokenizer by our dVAE is closer to the original image and the border is sharper and clearer. We confirm that a better tokenizer can produce more accurate tokens that better describe the original images.</p>
+</div>
+<div id="S4.SS2.SSS0.Px2.p3" class="ltx_para">
+<p id="S4.SS2.SSS0.Px2.p3.2" class="ltx_p">Equipped with the pre-training data and image tokenizer, we pre-train DiT for 500K steps with a batch size of 2,048, a learning rate of 1e-3, warmup steps of 10K, and weight decay of 0.05. The <math id="S4.SS2.SSS0.Px2.p3.1.m1.1" class="ltx_Math" alttext="{\beta}_{1}" display="inline"><semantics id="S4.SS2.SSS0.Px2.p3.1.m1.1a"><msub id="S4.SS2.SSS0.Px2.p3.1.m1.1.1" xref="S4.SS2.SSS0.Px2.p3.1.m1.1.1.cmml"><mi id="S4.SS2.SSS0.Px2.p3.1.m1.1.1.2" xref="S4.SS2.SSS0.Px2.p3.1.m1.1.1.2.cmml">β</mi><mn id="S4.SS2.SSS0.Px2.p3.1.m1.1.1.3" xref="S4.SS2.SSS0.Px2.p3.1.m1.1.1.3.cmml">1</mn></msub><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px2.p3.1.m1.1b"><apply id="S4.SS2.SSS0.Px2.p3.1.m1.1.1.cmml" xref="S4.SS2.SSS0.Px2.p3.1.m1.1.1"><csymbol cd="ambiguous" id="S4.SS2.SSS0.Px2.p3.1.m1.1.1.1.cmml" xref="S4.SS2.SSS0.Px2.p3.1.m1.1.1">subscript</csymbol><ci id="S4.SS2.SSS0.Px2.p3.1.m1.1.1.2.cmml" xref="S4.SS2.SSS0.Px2.p3.1.m1.1.1.2">𝛽</ci><cn type="integer" id="S4.SS2.SSS0.Px2.p3.1.m1.1.1.3.cmml" xref="S4.SS2.SSS0.Px2.p3.1.m1.1.1.3">1</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px2.p3.1.m1.1c">{\beta}_{1}</annotation></semantics></math> and <math id="S4.SS2.SSS0.Px2.p3.2.m2.1" class="ltx_Math" alttext="{\beta}_{2}" display="inline"><semantics id="S4.SS2.SSS0.Px2.p3.2.m2.1a"><msub id="S4.SS2.SSS0.Px2.p3.2.m2.1.1" xref="S4.SS2.SSS0.Px2.p3.2.m2.1.1.cmml"><mi id="S4.SS2.SSS0.Px2.p3.2.m2.1.1.2" xref="S4.SS2.SSS0.Px2.p3.2.m2.1.1.2.cmml">β</mi><mn id="S4.SS2.SSS0.Px2.p3.2.m2.1.1.3" xref="S4.SS2.SSS0.Px2.p3.2.m2.1.1.3.cmml">2</mn></msub><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px2.p3.2.m2.1b"><apply id="S4.SS2.SSS0.Px2.p3.2.m2.1.1.cmml" xref="S4.SS2.SSS0.Px2.p3.2.m2.1.1"><csymbol cd="ambiguous" id="S4.SS2.SSS0.Px2.p3.2.m2.1.1.1.cmml" xref="S4.SS2.SSS0.Px2.p3.2.m2.1.1">subscript</csymbol><ci id="S4.SS2.SSS0.Px2.p3.2.m2.1.1.2.cmml" xref="S4.SS2.SSS0.Px2.p3.2.m2.1.1.2">𝛽</ci><cn type="integer" id="S4.SS2.SSS0.Px2.p3.2.m2.1.1.3.cmml" xref="S4.SS2.SSS0.Px2.p3.2.m2.1.1.3">2</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px2.p3.2.m2.1c">{\beta}_{2}</annotation></semantics></math> of Adam <cite class="ltx_cite ltx_citemacro_citep">(Kingma and Ba, <a href="#bib.bib24" title="" class="ltx_ref">2015</a>)</cite> optimizer are 0.9 and 0.999 respectively. We employ stochastic depth <cite class="ltx_cite ltx_citemacro_citep">(Huang et al<span class="ltx_text">.</span>, <a href="#bib.bib21" title="" class="ltx_ref">2016</a>)</cite> with a 0.1 rate and disable dropout as in BEiT pre-training. We also apply blockwise masking in the pre-training of DiT with 40% patches masked as BEiT.</p>
+</div>
+</section>
+<section id="S4.SS2.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Fine-tuning on RVL-CDIP</h4>
+
+<div id="S4.SS2.SSS0.Px3.p1" class="ltx_para">
+<p id="S4.SS2.SSS0.Px3.p1.1" class="ltx_p">We evaluate the pre-trained DiT models and other image backbones on RVL-CDIP for document image classification. We fine-tune the image transformers for 90 epochs with a batch size of 128 and a learning rate of 1e-3. For all settings, we resize the original images to 224 <math id="S4.SS2.SSS0.Px3.p1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS2.SSS0.Px3.p1.1.m1.1a"><mo id="S4.SS2.SSS0.Px3.p1.1.m1.1.1" xref="S4.SS2.SSS0.Px3.p1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px3.p1.1.m1.1b"><times id="S4.SS2.SSS0.Px3.p1.1.m1.1.1.cmml" xref="S4.SS2.SSS0.Px3.p1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px3.p1.1.m1.1c">\times</annotation></semantics></math> 224 with the RandomResizedCrop operation.</p>
+</div>
+<figure id="S4.F5" class="ltx_figure"><img src="/html/2203.02378/assets/x3.png" id="S4.F5.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="198" height="138" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S4.F5.2.1.1" class="ltx_text" style="font-size:90%;">Figure 5</span>. </span><span id="S4.F5.3.2" class="ltx_text" style="font-size:90%;">An example of pre-processing with adaptive image binarization on the ICDAR 2019 cTDaR archival subset.</span></figcaption>
+</figure>
+<figure id="S4.T1" class="ltx_table">
+<table id="S4.T1.1" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S4.T1.1.2.1" class="ltx_tr">
+<th id="S4.T1.1.2.1.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_tt"><span id="S4.T1.1.2.1.1.1" class="ltx_text ltx_font_bold">Model</span></th>
+<td id="S4.T1.1.2.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T1.1.2.1.2.1" class="ltx_text ltx_font_bold">Type</span></td>
+<td id="S4.T1.1.2.1.3" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T1.1.2.1.3.1" class="ltx_text ltx_font_bold">Accuracy</span></td>
+<td id="S4.T1.1.2.1.4" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T1.1.2.1.4.1" class="ltx_text ltx_font_bold">#Param</span></td>
+</tr>
+<tr id="S4.T1.1.3.2" class="ltx_tr">
+<th id="S4.T1.1.3.2.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_t"><cite class="ltx_cite ltx_citemacro_citep">(Afzal et al<span class="ltx_text">.</span>, <a href="#bib.bib2" title="" class="ltx_ref">2017</a>)</cite></th>
+<td id="S4.T1.1.3.2.2" class="ltx_td ltx_align_center ltx_border_t">Single</td>
+<td id="S4.T1.1.3.2.3" class="ltx_td ltx_align_center ltx_border_t">90.97</td>
+<td id="S4.T1.1.3.2.4" class="ltx_td ltx_align_center ltx_border_t">-</td>
+</tr>
+<tr id="S4.T1.1.4.3" class="ltx_tr">
+<th id="S4.T1.1.4.3.1" class="ltx_td ltx_align_center ltx_th ltx_th_row"><cite class="ltx_cite ltx_citemacro_citep">(Das et al<span class="ltx_text">.</span>, <a href="#bib.bib12" title="" class="ltx_ref">2018</a>)</cite></th>
+<td id="S4.T1.1.4.3.2" class="ltx_td ltx_align_center">Single</td>
+<td id="S4.T1.1.4.3.3" class="ltx_td ltx_align_center">91.11</td>
+<td id="S4.T1.1.4.3.4" class="ltx_td ltx_align_center">-</td>
+</tr>
+<tr id="S4.T1.1.5.4" class="ltx_tr">
+<th id="S4.T1.1.5.4.1" class="ltx_td ltx_align_center ltx_th ltx_th_row"><cite class="ltx_cite ltx_citemacro_citep">(Das et al<span class="ltx_text">.</span>, <a href="#bib.bib12" title="" class="ltx_ref">2018</a>)</cite></th>
+<td id="S4.T1.1.5.4.2" class="ltx_td ltx_align_center">Ensemble</td>
+<td id="S4.T1.1.5.4.3" class="ltx_td ltx_align_center">92.21</td>
+<td id="S4.T1.1.5.4.4" class="ltx_td ltx_align_center">-</td>
+</tr>
+<tr id="S4.T1.1.6.5" class="ltx_tr">
+<th id="S4.T1.1.6.5.1" class="ltx_td ltx_align_center ltx_th ltx_th_row"><cite class="ltx_cite ltx_citemacro_citep">(Sarkhel and Nandi, <a href="#bib.bib36" title="" class="ltx_ref">2019</a>)</cite></th>
+<td id="S4.T1.1.6.5.2" class="ltx_td ltx_align_center">Ensemble</td>
+<td id="S4.T1.1.6.5.3" class="ltx_td ltx_align_center">92.77</td>
+<td id="S4.T1.1.6.5.4" class="ltx_td ltx_align_center">-</td>
+</tr>
+<tr id="S4.T1.1.1" class="ltx_tr">
+<th id="S4.T1.1.1.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_t">ResNext-101-32<math id="S4.T1.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.T1.1.1.1.m1.1a"><mo id="S4.T1.1.1.1.m1.1.1" xref="S4.T1.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.T1.1.1.1.m1.1b"><times id="S4.T1.1.1.1.m1.1.1.cmml" xref="S4.T1.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.T1.1.1.1.m1.1c">\times</annotation></semantics></math>8d</th>
+<td id="S4.T1.1.1.2" class="ltx_td ltx_align_center ltx_border_t">Single</td>
+<td id="S4.T1.1.1.3" class="ltx_td ltx_align_center ltx_border_t">90.65</td>
+<td id="S4.T1.1.1.4" class="ltx_td ltx_align_center ltx_border_t">88M</td>
+</tr>
+<tr id="S4.T1.1.7.6" class="ltx_tr">
+<th id="S4.T1.1.7.6.1" class="ltx_td ltx_align_center ltx_th ltx_th_row">DeiT-B <cite class="ltx_cite ltx_citemacro_citep">(Touvron et al<span class="ltx_text">.</span>, <a href="#bib.bib37" title="" class="ltx_ref">2021</a>)</cite>
+</th>
+<td id="S4.T1.1.7.6.2" class="ltx_td ltx_align_center">Single</td>
+<td id="S4.T1.1.7.6.3" class="ltx_td ltx_align_center">90.32</td>
+<td id="S4.T1.1.7.6.4" class="ltx_td ltx_align_center">87M</td>
+</tr>
+<tr id="S4.T1.1.8.7" class="ltx_tr">
+<th id="S4.T1.1.8.7.1" class="ltx_td ltx_align_center ltx_th ltx_th_row">BEiT-B <cite class="ltx_cite ltx_citemacro_citep">(Bao et al<span class="ltx_text">.</span>, <a href="#bib.bib4" title="" class="ltx_ref">2021</a>)</cite>
+</th>
+<td id="S4.T1.1.8.7.2" class="ltx_td ltx_align_center">Single</td>
+<td id="S4.T1.1.8.7.3" class="ltx_td ltx_align_center">91.09</td>
+<td id="S4.T1.1.8.7.4" class="ltx_td ltx_align_center">87M</td>
+</tr>
+<tr id="S4.T1.1.9.8" class="ltx_tr">
+<th id="S4.T1.1.9.8.1" class="ltx_td ltx_align_center ltx_th ltx_th_row">MAE-B <cite class="ltx_cite ltx_citemacro_citep">(He et al<span class="ltx_text">.</span>, <a href="#bib.bib18" title="" class="ltx_ref">2021</a>)</cite>
+</th>
+<td id="S4.T1.1.9.8.2" class="ltx_td ltx_align_center">Single</td>
+<td id="S4.T1.1.9.8.3" class="ltx_td ltx_align_center">91.42</td>
+<td id="S4.T1.1.9.8.4" class="ltx_td ltx_align_center">87M</td>
+</tr>
+<tr id="S4.T1.1.10.9" class="ltx_tr">
+<th id="S4.T1.1.10.9.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_t">DiT-B</th>
+<td id="S4.T1.1.10.9.2" class="ltx_td ltx_align_center ltx_border_t">Single</td>
+<td id="S4.T1.1.10.9.3" class="ltx_td ltx_align_center ltx_border_t">92.11</td>
+<td id="S4.T1.1.10.9.4" class="ltx_td ltx_align_center ltx_border_t">87M</td>
+</tr>
+<tr id="S4.T1.1.11.10" class="ltx_tr">
+<th id="S4.T1.1.11.10.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_bb">DiT-L</th>
+<td id="S4.T1.1.11.10.2" class="ltx_td ltx_align_center ltx_border_bb">Single</td>
+<td id="S4.T1.1.11.10.3" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T1.1.11.10.3.1" class="ltx_text ltx_font_bold">92.69</span></td>
+<td id="S4.T1.1.11.10.4" class="ltx_td ltx_align_center ltx_border_bb">304M</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T1.5.2.1" class="ltx_text" style="font-size:90%;">Table 1</span>. </span><span id="S4.T1.3.1" class="ltx_text" style="font-size:90%;">Document Image Classification accuracy (%) on RVL-CDIP, where all the models use the pure image information (w/o text information) with the 224<math id="S4.T1.3.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.T1.3.1.m1.1b"><mo id="S4.T1.3.1.m1.1.1" xref="S4.T1.3.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.T1.3.1.m1.1c"><times id="S4.T1.3.1.m1.1.1.cmml" xref="S4.T1.3.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.T1.3.1.m1.1d">\times</annotation></semantics></math>224 resolution.</span></figcaption>
+</figure>
+<figure id="S4.T2" class="ltx_table">
+<table id="S4.T2.4" class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S4.T2.4.1.1" class="ltx_tr">
+<td id="S4.T2.4.1.1.1" class="ltx_td ltx_align_center ltx_border_tt" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.1.1.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S4.T2.4.1.1.2" class="ltx_td ltx_align_center ltx_border_tt" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.1.1.2.1" class="ltx_text ltx_font_bold">Text</span></td>
+<td id="S4.T2.4.1.1.3" class="ltx_td ltx_align_center ltx_border_tt" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.1.1.3.1" class="ltx_text ltx_font_bold">Title</span></td>
+<td id="S4.T2.4.1.1.4" class="ltx_td ltx_align_center ltx_border_tt" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.1.1.4.1" class="ltx_text ltx_font_bold">List</span></td>
+<td id="S4.T2.4.1.1.5" class="ltx_td ltx_align_center ltx_border_tt" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.1.1.5.1" class="ltx_text ltx_font_bold">Table</span></td>
+<td id="S4.T2.4.1.1.6" class="ltx_td ltx_align_center ltx_border_tt" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.1.1.6.1" class="ltx_text ltx_font_bold">Figure</span></td>
+<td id="S4.T2.4.1.1.7" class="ltx_td ltx_align_center ltx_border_tt" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.1.1.7.1" class="ltx_text ltx_font_bold">Overall</span></td>
+</tr>
+<tr id="S4.T2.4.2.2" class="ltx_tr">
+<td id="S4.T2.4.2.2.1" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;"><cite class="ltx_cite ltx_citemacro_citep">(Zhong et al<span class="ltx_text">.</span>, <a href="#bib.bib47" title="" class="ltx_ref">2019</a>)</cite></td>
+<td id="S4.T2.4.2.2.2" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.916</td>
+<td id="S4.T2.4.2.2.3" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.840</td>
+<td id="S4.T2.4.2.2.4" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.886</td>
+<td id="S4.T2.4.2.2.5" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.960</td>
+<td id="S4.T2.4.2.2.6" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.949</td>
+<td id="S4.T2.4.2.2.7" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.910</td>
+</tr>
+<tr id="S4.T2.4.3.3" class="ltx_tr">
+<td id="S4.T2.4.3.3.1" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">ResNext</td>
+<td id="S4.T2.4.3.3.2" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.916</td>
+<td id="S4.T2.4.3.3.3" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.845</td>
+<td id="S4.T2.4.3.3.4" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.918</td>
+<td id="S4.T2.4.3.3.5" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.971</td>
+<td id="S4.T2.4.3.3.6" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.952</td>
+<td id="S4.T2.4.3.3.7" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.920</td>
+</tr>
+<tr id="S4.T2.4.4.4" class="ltx_tr">
+<td id="S4.T2.4.4.4.1" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">DeiT-B</td>
+<td id="S4.T2.4.4.4.2" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.934</td>
+<td id="S4.T2.4.4.4.3" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.874</td>
+<td id="S4.T2.4.4.4.4" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.921</td>
+<td id="S4.T2.4.4.4.5" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.972</td>
+<td id="S4.T2.4.4.4.6" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.957</td>
+<td id="S4.T2.4.4.4.7" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.932</td>
+</tr>
+<tr id="S4.T2.4.5.5" class="ltx_tr">
+<td id="S4.T2.4.5.5.1" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">BEiT-B</td>
+<td id="S4.T2.4.5.5.2" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.934</td>
+<td id="S4.T2.4.5.5.3" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.866</td>
+<td id="S4.T2.4.5.5.4" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.924</td>
+<td id="S4.T2.4.5.5.5" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.973</td>
+<td id="S4.T2.4.5.5.6" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.957</td>
+<td id="S4.T2.4.5.5.7" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.931</td>
+</tr>
+<tr id="S4.T2.4.6.6" class="ltx_tr">
+<td id="S4.T2.4.6.6.1" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">MAE-B</td>
+<td id="S4.T2.4.6.6.2" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.933</td>
+<td id="S4.T2.4.6.6.3" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.865</td>
+<td id="S4.T2.4.6.6.4" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.918</td>
+<td id="S4.T2.4.6.6.5" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.973</td>
+<td id="S4.T2.4.6.6.6" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.959</td>
+<td id="S4.T2.4.6.6.7" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.930</td>
+</tr>
+<tr id="S4.T2.4.7.7" class="ltx_tr">
+<td id="S4.T2.4.7.7.1" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">DiT-B</td>
+<td id="S4.T2.4.7.7.2" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.934</td>
+<td id="S4.T2.4.7.7.3" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.871</td>
+<td id="S4.T2.4.7.7.4" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.929</td>
+<td id="S4.T2.4.7.7.5" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.973</td>
+<td id="S4.T2.4.7.7.6" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.967</td>
+<td id="S4.T2.4.7.7.7" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.935</td>
+</tr>
+<tr id="S4.T2.4.8.8" class="ltx_tr">
+<td id="S4.T2.4.8.8.1" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">DiT-L</td>
+<td id="S4.T2.4.8.8.2" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.937</td>
+<td id="S4.T2.4.8.8.3" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.879</td>
+<td id="S4.T2.4.8.8.4" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.945</td>
+<td id="S4.T2.4.8.8.5" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.974</td>
+<td id="S4.T2.4.8.8.6" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.968</td>
+<td id="S4.T2.4.8.8.7" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.941</td>
+</tr>
+<tr id="S4.T2.4.9.9" class="ltx_tr">
+<td id="S4.T2.4.9.9.1" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">ResNext (C)</td>
+<td id="S4.T2.4.9.9.2" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.930</td>
+<td id="S4.T2.4.9.9.3" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.862</td>
+<td id="S4.T2.4.9.9.4" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.940</td>
+<td id="S4.T2.4.9.9.5" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.976</td>
+<td id="S4.T2.4.9.9.6" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.968</td>
+<td id="S4.T2.4.9.9.7" class="ltx_td ltx_align_center ltx_border_t" style="padding-left:3.0pt;padding-right:3.0pt;">0.935</td>
+</tr>
+<tr id="S4.T2.4.10.10" class="ltx_tr">
+<td id="S4.T2.4.10.10.1" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">DiT-B (C)</td>
+<td id="S4.T2.4.10.10.2" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.944</td>
+<td id="S4.T2.4.10.10.3" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.889</td>
+<td id="S4.T2.4.10.10.4" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.948</td>
+<td id="S4.T2.4.10.10.5" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.976</td>
+<td id="S4.T2.4.10.10.6" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.969</td>
+<td id="S4.T2.4.10.10.7" class="ltx_td ltx_align_center" style="padding-left:3.0pt;padding-right:3.0pt;">0.945</td>
+</tr>
+<tr id="S4.T2.4.11.11" class="ltx_tr">
+<td id="S4.T2.4.11.11.1" class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;">DiT-L (C)</td>
+<td id="S4.T2.4.11.11.2" class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.11.11.2.1" class="ltx_text ltx_font_bold">0.944</span></td>
+<td id="S4.T2.4.11.11.3" class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.11.11.3.1" class="ltx_text ltx_font_bold">0.893</span></td>
+<td id="S4.T2.4.11.11.4" class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.11.11.4.1" class="ltx_text ltx_font_bold">0.960</span></td>
+<td id="S4.T2.4.11.11.5" class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.11.11.5.1" class="ltx_text ltx_font_bold">0.978</span></td>
+<td id="S4.T2.4.11.11.6" class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.11.11.6.1" class="ltx_text ltx_font_bold">0.972</span></td>
+<td id="S4.T2.4.11.11.7" class="ltx_td ltx_align_center ltx_border_bb" style="padding-left:3.0pt;padding-right:3.0pt;"><span id="S4.T2.4.11.11.7.1" class="ltx_text ltx_font_bold">0.949</span></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T2.5.2.1" class="ltx_text" style="font-size:90%;">Table 2</span>. </span><span id="S4.T2.2.1" class="ltx_text" style="font-size:90%;">Document Layout Analysis mAP @ IOU [0.50:0.95] on PubLayNet validation set. ResNext-101-32<math id="S4.T2.2.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.T2.2.1.m1.1b"><mo id="S4.T2.2.1.m1.1.1" xref="S4.T2.2.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.T2.2.1.m1.1c"><times id="S4.T2.2.1.m1.1.1.cmml" xref="S4.T2.2.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.T2.2.1.m1.1d">\times</annotation></semantics></math>8d is shortened as ResNext and Cascade as C.</span></figcaption>
+</figure>
+<figure id="S4.T3" class="ltx_table">
+<div class="ltx_flex_figure ltx_flex_table">
+<div class="ltx_flex_cell ltx_flex_size_1">
+<figure id="S4.T3.st1" class="ltx_table ltx_figure_panel">
+<table id="S4.T3.st1.2" class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S4.T3.st1.2.3.1" class="ltx_tr">
+<td id="S4.T3.st1.2.3.1.1" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st1.2.3.1.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S4.T3.st1.2.3.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st1.2.3.1.2.1" class="ltx_text ltx_font_bold">IoU@0.6</span></td>
+<td id="S4.T3.st1.2.3.1.3" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st1.2.3.1.3.1" class="ltx_text ltx_font_bold">IoU@0.7</span></td>
+<td id="S4.T3.st1.2.3.1.4" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st1.2.3.1.4.1" class="ltx_text ltx_font_bold">IoU@0.8</span></td>
+<td id="S4.T3.st1.2.3.1.5" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st1.2.3.1.5.1" class="ltx_text ltx_font_bold">IoU@0.9</span></td>
+<td id="S4.T3.st1.2.3.1.6" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st1.2.3.1.6.1" class="ltx_text ltx_font_bold">WAvg. F1</span></td>
+</tr>
+<tr id="S4.T3.st1.2.4.2" class="ltx_tr">
+<td id="S4.T3.st1.2.4.2.1" class="ltx_td ltx_align_center ltx_border_t">1st place in cTDaR</td>
+<td id="S4.T3.st1.2.4.2.2" class="ltx_td ltx_align_center ltx_border_t">96.97</td>
+<td id="S4.T3.st1.2.4.2.3" class="ltx_td ltx_align_center ltx_border_t">95.99</td>
+<td id="S4.T3.st1.2.4.2.4" class="ltx_td ltx_align_center ltx_border_t">95.14</td>
+<td id="S4.T3.st1.2.4.2.5" class="ltx_td ltx_align_center ltx_border_t">90.22</td>
+<td id="S4.T3.st1.2.4.2.6" class="ltx_td ltx_align_center ltx_border_t">94.23</td>
+</tr>
+<tr id="S4.T3.st1.1.1" class="ltx_tr">
+<td id="S4.T3.st1.1.1.1" class="ltx_td ltx_align_center ltx_border_t">ResNeXt-101-32<math id="S4.T3.st1.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.T3.st1.1.1.1.m1.1a"><mo id="S4.T3.st1.1.1.1.m1.1.1" xref="S4.T3.st1.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.T3.st1.1.1.1.m1.1b"><times id="S4.T3.st1.1.1.1.m1.1.1.cmml" xref="S4.T3.st1.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.T3.st1.1.1.1.m1.1c">\times</annotation></semantics></math>8d</td>
+<td id="S4.T3.st1.1.1.2" class="ltx_td ltx_align_center ltx_border_t">96.42</td>
+<td id="S4.T3.st1.1.1.3" class="ltx_td ltx_align_center ltx_border_t">95.99</td>
+<td id="S4.T3.st1.1.1.4" class="ltx_td ltx_align_center ltx_border_t">95.15</td>
+<td id="S4.T3.st1.1.1.5" class="ltx_td ltx_align_center ltx_border_t">91.36</td>
+<td id="S4.T3.st1.1.1.6" class="ltx_td ltx_align_center ltx_border_t">94.46</td>
+</tr>
+<tr id="S4.T3.st1.2.5.3" class="ltx_tr">
+<td id="S4.T3.st1.2.5.3.1" class="ltx_td ltx_align_center">DeiT-B</td>
+<td id="S4.T3.st1.2.5.3.2" class="ltx_td ltx_align_center">96.26</td>
+<td id="S4.T3.st1.2.5.3.3" class="ltx_td ltx_align_center">95.56</td>
+<td id="S4.T3.st1.2.5.3.4" class="ltx_td ltx_align_center">94.57</td>
+<td id="S4.T3.st1.2.5.3.5" class="ltx_td ltx_align_center">90.91</td>
+<td id="S4.T3.st1.2.5.3.6" class="ltx_td ltx_align_center">94.04</td>
+</tr>
+<tr id="S4.T3.st1.2.6.4" class="ltx_tr">
+<td id="S4.T3.st1.2.6.4.1" class="ltx_td ltx_align_center">BEiT-B</td>
+<td id="S4.T3.st1.2.6.4.2" class="ltx_td ltx_align_center">96.82</td>
+<td id="S4.T3.st1.2.6.4.3" class="ltx_td ltx_align_center">96.40</td>
+<td id="S4.T3.st1.2.6.4.4" class="ltx_td ltx_align_center">95.41</td>
+<td id="S4.T3.st1.2.6.4.5" class="ltx_td ltx_align_center">92.44</td>
+<td id="S4.T3.st1.2.6.4.6" class="ltx_td ltx_align_center">95.03</td>
+</tr>
+<tr id="S4.T3.st1.2.7.5" class="ltx_tr">
+<td id="S4.T3.st1.2.7.5.1" class="ltx_td ltx_align_center">MAE-B</td>
+<td id="S4.T3.st1.2.7.5.2" class="ltx_td ltx_align_center">96.86</td>
+<td id="S4.T3.st1.2.7.5.3" class="ltx_td ltx_align_center">96.31</td>
+<td id="S4.T3.st1.2.7.5.4" class="ltx_td ltx_align_center">95.05</td>
+<td id="S4.T3.st1.2.7.5.5" class="ltx_td ltx_align_center">91.57</td>
+<td id="S4.T3.st1.2.7.5.6" class="ltx_td ltx_align_center">94.66</td>
+</tr>
+<tr id="S4.T3.st1.2.8.6" class="ltx_tr">
+<td id="S4.T3.st1.2.8.6.1" class="ltx_td ltx_align_center ltx_border_t">DiT-B</td>
+<td id="S4.T3.st1.2.8.6.2" class="ltx_td ltx_align_center ltx_border_t">96.75</td>
+<td id="S4.T3.st1.2.8.6.3" class="ltx_td ltx_align_center ltx_border_t">96.19</td>
+<td id="S4.T3.st1.2.8.6.4" class="ltx_td ltx_align_center ltx_border_t">95.62</td>
+<td id="S4.T3.st1.2.8.6.5" class="ltx_td ltx_align_center ltx_border_t">93.36</td>
+<td id="S4.T3.st1.2.8.6.6" class="ltx_td ltx_align_center ltx_border_t">95.30</td>
+</tr>
+<tr id="S4.T3.st1.2.9.7" class="ltx_tr">
+<td id="S4.T3.st1.2.9.7.1" class="ltx_td ltx_align_center">DiT-L</td>
+<td id="S4.T3.st1.2.9.7.2" class="ltx_td ltx_align_center"><span id="S4.T3.st1.2.9.7.2.1" class="ltx_text ltx_font_bold">97.83</span></td>
+<td id="S4.T3.st1.2.9.7.3" class="ltx_td ltx_align_center"><span id="S4.T3.st1.2.9.7.3.1" class="ltx_text ltx_font_bold">97.41</span></td>
+<td id="S4.T3.st1.2.9.7.4" class="ltx_td ltx_align_center">96.29</td>
+<td id="S4.T3.st1.2.9.7.5" class="ltx_td ltx_align_center">92.93</td>
+<td id="S4.T3.st1.2.9.7.6" class="ltx_td ltx_align_center">95.85</td>
+</tr>
+<tr id="S4.T3.st1.2.2" class="ltx_tr">
+<td id="S4.T3.st1.2.2.1" class="ltx_td ltx_align_center ltx_border_t">ResNeXt-101-32<math id="S4.T3.st1.2.2.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.T3.st1.2.2.1.m1.1a"><mo id="S4.T3.st1.2.2.1.m1.1.1" xref="S4.T3.st1.2.2.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.T3.st1.2.2.1.m1.1b"><times id="S4.T3.st1.2.2.1.m1.1.1.cmml" xref="S4.T3.st1.2.2.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.T3.st1.2.2.1.m1.1c">\times</annotation></semantics></math>8d (Cascade)</td>
+<td id="S4.T3.st1.2.2.2" class="ltx_td ltx_align_center ltx_border_t">96.54</td>
+<td id="S4.T3.st1.2.2.3" class="ltx_td ltx_align_center ltx_border_t">95.84</td>
+<td id="S4.T3.st1.2.2.4" class="ltx_td ltx_align_center ltx_border_t">95.13</td>
+<td id="S4.T3.st1.2.2.5" class="ltx_td ltx_align_center ltx_border_t">92.87</td>
+<td id="S4.T3.st1.2.2.6" class="ltx_td ltx_align_center ltx_border_t">94.90</td>
+</tr>
+<tr id="S4.T3.st1.2.10.8" class="ltx_tr">
+<td id="S4.T3.st1.2.10.8.1" class="ltx_td ltx_align_center">DiT-B (Cascade)</td>
+<td id="S4.T3.st1.2.10.8.2" class="ltx_td ltx_align_center">97.20</td>
+<td id="S4.T3.st1.2.10.8.3" class="ltx_td ltx_align_center">96.92</td>
+<td id="S4.T3.st1.2.10.8.4" class="ltx_td ltx_align_center">96.78</td>
+<td id="S4.T3.st1.2.10.8.5" class="ltx_td ltx_align_center">94.26</td>
+<td id="S4.T3.st1.2.10.8.6" class="ltx_td ltx_align_center">96.14</td>
+</tr>
+<tr id="S4.T3.st1.2.11.9" class="ltx_tr">
+<td id="S4.T3.st1.2.11.9.1" class="ltx_td ltx_align_center ltx_border_bb">DiT-L (Cascade)</td>
+<td id="S4.T3.st1.2.11.9.2" class="ltx_td ltx_align_center ltx_border_bb">97.68</td>
+<td id="S4.T3.st1.2.11.9.3" class="ltx_td ltx_align_center ltx_border_bb">97.26</td>
+<td id="S4.T3.st1.2.11.9.4" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T3.st1.2.11.9.4.1" class="ltx_text ltx_font_bold">97.12</span></td>
+<td id="S4.T3.st1.2.11.9.5" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T3.st1.2.11.9.5.1" class="ltx_text ltx_font_bold">94.74</span></td>
+<td id="S4.T3.st1.2.11.9.6" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T3.st1.2.11.9.6.1" class="ltx_text ltx_font_bold">96.55</span></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T3.st1.4.1.1" class="ltx_text" style="font-size:90%;">(a)</span> </span><span id="S4.T3.st1.5.2" class="ltx_text" style="font-size:90%;">Table detection accuracy on ICDAR 2019 cTDaR (combined: archival+modern)</span></figcaption>
+</figure>
+</div>
+<div class="ltx_flex_break"></div>
+<div class="ltx_flex_cell ltx_flex_size_1">
+<figure id="S4.T3.st2" class="ltx_table ltx_figure_panel">
+<table id="S4.T3.st2.2" class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S4.T3.st2.2.3.1" class="ltx_tr">
+<td id="S4.T3.st2.2.3.1.1" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st2.2.3.1.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S4.T3.st2.2.3.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st2.2.3.1.2.1" class="ltx_text ltx_font_bold">IoU@0.6</span></td>
+<td id="S4.T3.st2.2.3.1.3" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st2.2.3.1.3.1" class="ltx_text ltx_font_bold">IoU@0.7</span></td>
+<td id="S4.T3.st2.2.3.1.4" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st2.2.3.1.4.1" class="ltx_text ltx_font_bold">IoU@0.8</span></td>
+<td id="S4.T3.st2.2.3.1.5" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st2.2.3.1.5.1" class="ltx_text ltx_font_bold">IoU@0.9</span></td>
+<td id="S4.T3.st2.2.3.1.6" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st2.2.3.1.6.1" class="ltx_text ltx_font_bold">WAvg. F1</span></td>
+</tr>
+<tr id="S4.T3.st2.2.4.2" class="ltx_tr">
+<td id="S4.T3.st2.2.4.2.1" class="ltx_td ltx_align_center ltx_border_t">1st place in cTDaR</td>
+<td id="S4.T3.st2.2.4.2.2" class="ltx_td ltx_align_center ltx_border_t">97.16</td>
+<td id="S4.T3.st2.2.4.2.3" class="ltx_td ltx_align_center ltx_border_t">96.41</td>
+<td id="S4.T3.st2.2.4.2.4" class="ltx_td ltx_align_center ltx_border_t">95.27</td>
+<td id="S4.T3.st2.2.4.2.5" class="ltx_td ltx_align_center ltx_border_t">91.12</td>
+<td id="S4.T3.st2.2.4.2.6" class="ltx_td ltx_align_center ltx_border_t">94.67</td>
+</tr>
+<tr id="S4.T3.st2.1.1" class="ltx_tr">
+<td id="S4.T3.st2.1.1.1" class="ltx_td ltx_align_center ltx_border_t">ResNeXt-101-32<math id="S4.T3.st2.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.T3.st2.1.1.1.m1.1a"><mo id="S4.T3.st2.1.1.1.m1.1.1" xref="S4.T3.st2.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.T3.st2.1.1.1.m1.1b"><times id="S4.T3.st2.1.1.1.m1.1.1.cmml" xref="S4.T3.st2.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.T3.st2.1.1.1.m1.1c">\times</annotation></semantics></math>8d</td>
+<td id="S4.T3.st2.1.1.2" class="ltx_td ltx_align_center ltx_border_t">96.60</td>
+<td id="S4.T3.st2.1.1.3" class="ltx_td ltx_align_center ltx_border_t">96.60</td>
+<td id="S4.T3.st2.1.1.4" class="ltx_td ltx_align_center ltx_border_t">95.09</td>
+<td id="S4.T3.st2.1.1.5" class="ltx_td ltx_align_center ltx_border_t">91.70</td>
+<td id="S4.T3.st2.1.1.6" class="ltx_td ltx_align_center ltx_border_t">94.73</td>
+</tr>
+<tr id="S4.T3.st2.2.5.3" class="ltx_tr">
+<td id="S4.T3.st2.2.5.3.1" class="ltx_td ltx_align_center">DeiT-B</td>
+<td id="S4.T3.st2.2.5.3.2" class="ltx_td ltx_align_center">97.54</td>
+<td id="S4.T3.st2.2.5.3.3" class="ltx_td ltx_align_center">97.16</td>
+<td id="S4.T3.st2.2.5.3.4" class="ltx_td ltx_align_center">96.41</td>
+<td id="S4.T3.st2.2.5.3.5" class="ltx_td ltx_align_center">92.63</td>
+<td id="S4.T3.st2.2.5.3.6" class="ltx_td ltx_align_center">95.68</td>
+</tr>
+<tr id="S4.T3.st2.2.6.4" class="ltx_tr">
+<td id="S4.T3.st2.2.6.4.1" class="ltx_td ltx_align_center">BEiT-B</td>
+<td id="S4.T3.st2.2.6.4.2" class="ltx_td ltx_align_center"><span id="S4.T3.st2.2.6.4.2.1" class="ltx_text ltx_font_bold">98.10</span></td>
+<td id="S4.T3.st2.2.6.4.3" class="ltx_td ltx_align_center"><span id="S4.T3.st2.2.6.4.3.1" class="ltx_text ltx_font_bold">98.10</span></td>
+<td id="S4.T3.st2.2.6.4.4" class="ltx_td ltx_align_center">95.82</td>
+<td id="S4.T3.st2.2.6.4.5" class="ltx_td ltx_align_center">94.30</td>
+<td id="S4.T3.st2.2.6.4.6" class="ltx_td ltx_align_center">96.35</td>
+</tr>
+<tr id="S4.T3.st2.2.7.5" class="ltx_tr">
+<td id="S4.T3.st2.2.7.5.1" class="ltx_td ltx_align_center">MAE-B</td>
+<td id="S4.T3.st2.2.7.5.2" class="ltx_td ltx_align_center">97.54</td>
+<td id="S4.T3.st2.2.7.5.3" class="ltx_td ltx_align_center">97.54</td>
+<td id="S4.T3.st2.2.7.5.4" class="ltx_td ltx_align_center">96.03</td>
+<td id="S4.T3.st2.2.7.5.5" class="ltx_td ltx_align_center">94.14</td>
+<td id="S4.T3.st2.2.7.5.6" class="ltx_td ltx_align_center">96.12</td>
+</tr>
+<tr id="S4.T3.st2.2.8.6" class="ltx_tr">
+<td id="S4.T3.st2.2.8.6.1" class="ltx_td ltx_align_center ltx_border_t">DiT-B</td>
+<td id="S4.T3.st2.2.8.6.2" class="ltx_td ltx_align_center ltx_border_t">97.53</td>
+<td id="S4.T3.st2.2.8.6.3" class="ltx_td ltx_align_center ltx_border_t">97.15</td>
+<td id="S4.T3.st2.2.8.6.4" class="ltx_td ltx_align_center ltx_border_t">96.02</td>
+<td id="S4.T3.st2.2.8.6.5" class="ltx_td ltx_align_center ltx_border_t">94.88</td>
+<td id="S4.T3.st2.2.8.6.6" class="ltx_td ltx_align_center ltx_border_t">96.24</td>
+</tr>
+<tr id="S4.T3.st2.2.9.7" class="ltx_tr">
+<td id="S4.T3.st2.2.9.7.1" class="ltx_td ltx_align_center">DiT-L</td>
+<td id="S4.T3.st2.2.9.7.2" class="ltx_td ltx_align_center">97.53</td>
+<td id="S4.T3.st2.2.9.7.3" class="ltx_td ltx_align_center">97.15</td>
+<td id="S4.T3.st2.2.9.7.4" class="ltx_td ltx_align_center">96.39</td>
+<td id="S4.T3.st2.2.9.7.5" class="ltx_td ltx_align_center">95.26</td>
+<td id="S4.T3.st2.2.9.7.6" class="ltx_td ltx_align_center">96.46</td>
+</tr>
+<tr id="S4.T3.st2.2.2" class="ltx_tr">
+<td id="S4.T3.st2.2.2.1" class="ltx_td ltx_align_center ltx_border_t">ResNeXt-101-32<math id="S4.T3.st2.2.2.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.T3.st2.2.2.1.m1.1a"><mo id="S4.T3.st2.2.2.1.m1.1.1" xref="S4.T3.st2.2.2.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.T3.st2.2.2.1.m1.1b"><times id="S4.T3.st2.2.2.1.m1.1.1.cmml" xref="S4.T3.st2.2.2.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.T3.st2.2.2.1.m1.1c">\times</annotation></semantics></math>8d (Cascade)</td>
+<td id="S4.T3.st2.2.2.2" class="ltx_td ltx_align_center ltx_border_t">96.76</td>
+<td id="S4.T3.st2.2.2.3" class="ltx_td ltx_align_center ltx_border_t">96.38</td>
+<td id="S4.T3.st2.2.2.4" class="ltx_td ltx_align_center ltx_border_t">95.24</td>
+<td id="S4.T3.st2.2.2.5" class="ltx_td ltx_align_center ltx_border_t">93.71</td>
+<td id="S4.T3.st2.2.2.6" class="ltx_td ltx_align_center ltx_border_t">95.35</td>
+</tr>
+<tr id="S4.T3.st2.2.10.8" class="ltx_tr">
+<td id="S4.T3.st2.2.10.8.1" class="ltx_td ltx_align_center">DiT-B (Cascade)</td>
+<td id="S4.T3.st2.2.10.8.2" class="ltx_td ltx_align_center">96.97</td>
+<td id="S4.T3.st2.2.10.8.3" class="ltx_td ltx_align_center">96.97</td>
+<td id="S4.T3.st2.2.10.8.4" class="ltx_td ltx_align_center">96.97</td>
+<td id="S4.T3.st2.2.10.8.5" class="ltx_td ltx_align_center">95.83</td>
+<td id="S4.T3.st2.2.10.8.6" class="ltx_td ltx_align_center">96.63</td>
+</tr>
+<tr id="S4.T3.st2.2.11.9" class="ltx_tr">
+<td id="S4.T3.st2.2.11.9.1" class="ltx_td ltx_align_center ltx_border_bb">DiT-L (Cascade)</td>
+<td id="S4.T3.st2.2.11.9.2" class="ltx_td ltx_align_center ltx_border_bb">97.34</td>
+<td id="S4.T3.st2.2.11.9.3" class="ltx_td ltx_align_center ltx_border_bb">97.34</td>
+<td id="S4.T3.st2.2.11.9.4" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T3.st2.2.11.9.4.1" class="ltx_text ltx_font_bold">97.34</span></td>
+<td id="S4.T3.st2.2.11.9.5" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T3.st2.2.11.9.5.1" class="ltx_text ltx_font_bold">96.20</span></td>
+<td id="S4.T3.st2.2.11.9.6" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T3.st2.2.11.9.6.1" class="ltx_text ltx_font_bold">97.00</span></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T3.st2.4.1.1" class="ltx_text" style="font-size:90%;">(b)</span> </span><span id="S4.T3.st2.5.2" class="ltx_text" style="font-size:90%;">Table detection accuracy on ICDAR 2019 cTDaR (archival)</span></figcaption>
+</figure>
+</div>
+<div class="ltx_flex_break"></div>
+<div class="ltx_flex_cell ltx_flex_size_1">
+<figure id="S4.T3.st3" class="ltx_table ltx_figure_panel">
+<table id="S4.T3.st3.2" class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S4.T3.st3.2.3.1" class="ltx_tr">
+<td id="S4.T3.st3.2.3.1.1" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st3.2.3.1.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S4.T3.st3.2.3.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st3.2.3.1.2.1" class="ltx_text ltx_font_bold">IoU@0.6</span></td>
+<td id="S4.T3.st3.2.3.1.3" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st3.2.3.1.3.1" class="ltx_text ltx_font_bold">IoU@0.7</span></td>
+<td id="S4.T3.st3.2.3.1.4" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st3.2.3.1.4.1" class="ltx_text ltx_font_bold">IoU@0.8</span></td>
+<td id="S4.T3.st3.2.3.1.5" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st3.2.3.1.5.1" class="ltx_text ltx_font_bold">IoU@0.9</span></td>
+<td id="S4.T3.st3.2.3.1.6" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.st3.2.3.1.6.1" class="ltx_text ltx_font_bold">WAvg. F1</span></td>
+</tr>
+<tr id="S4.T3.st3.2.4.2" class="ltx_tr">
+<td id="S4.T3.st3.2.4.2.1" class="ltx_td ltx_align_center ltx_border_t">1st place in cTDaR</td>
+<td id="S4.T3.st3.2.4.2.2" class="ltx_td ltx_align_center ltx_border_t">96.86</td>
+<td id="S4.T3.st3.2.4.2.3" class="ltx_td ltx_align_center ltx_border_t">95.74</td>
+<td id="S4.T3.st3.2.4.2.4" class="ltx_td ltx_align_center ltx_border_t">95.07</td>
+<td id="S4.T3.st3.2.4.2.5" class="ltx_td ltx_align_center ltx_border_t">89.69</td>
+<td id="S4.T3.st3.2.4.2.6" class="ltx_td ltx_align_center ltx_border_t">93.97</td>
+</tr>
+<tr id="S4.T3.st3.1.1" class="ltx_tr">
+<td id="S4.T3.st3.1.1.1" class="ltx_td ltx_align_center ltx_border_t">ResNeXt-101-32<math id="S4.T3.st3.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.T3.st3.1.1.1.m1.1a"><mo id="S4.T3.st3.1.1.1.m1.1.1" xref="S4.T3.st3.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.T3.st3.1.1.1.m1.1b"><times id="S4.T3.st3.1.1.1.m1.1.1.cmml" xref="S4.T3.st3.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.T3.st3.1.1.1.m1.1c">\times</annotation></semantics></math>8d</td>
+<td id="S4.T3.st3.1.1.2" class="ltx_td ltx_align_center ltx_border_t">96.30</td>
+<td id="S4.T3.st3.1.1.3" class="ltx_td ltx_align_center ltx_border_t">95.63</td>
+<td id="S4.T3.st3.1.1.4" class="ltx_td ltx_align_center ltx_border_t">95.18</td>
+<td id="S4.T3.st3.1.1.5" class="ltx_td ltx_align_center ltx_border_t">91.15</td>
+<td id="S4.T3.st3.1.1.6" class="ltx_td ltx_align_center ltx_border_t">94.30</td>
+</tr>
+<tr id="S4.T3.st3.2.5.3" class="ltx_tr">
+<td id="S4.T3.st3.2.5.3.1" class="ltx_td ltx_align_center">DeiT-B</td>
+<td id="S4.T3.st3.2.5.3.2" class="ltx_td ltx_align_center">95.51</td>
+<td id="S4.T3.st3.2.5.3.3" class="ltx_td ltx_align_center">94.61</td>
+<td id="S4.T3.st3.2.5.3.4" class="ltx_td ltx_align_center">93.48</td>
+<td id="S4.T3.st3.2.5.3.5" class="ltx_td ltx_align_center">89.89</td>
+<td id="S4.T3.st3.2.5.3.6" class="ltx_td ltx_align_center">93.07</td>
+</tr>
+<tr id="S4.T3.st3.2.6.4" class="ltx_tr">
+<td id="S4.T3.st3.2.6.4.1" class="ltx_td ltx_align_center">BEiT-B</td>
+<td id="S4.T3.st3.2.6.4.2" class="ltx_td ltx_align_center">96.06</td>
+<td id="S4.T3.st3.2.6.4.3" class="ltx_td ltx_align_center">95.39</td>
+<td id="S4.T3.st3.2.6.4.4" class="ltx_td ltx_align_center">95.16</td>
+<td id="S4.T3.st3.2.6.4.5" class="ltx_td ltx_align_center">91.34</td>
+<td id="S4.T3.st3.2.6.4.6" class="ltx_td ltx_align_center">94.25</td>
+</tr>
+<tr id="S4.T3.st3.2.7.5" class="ltx_tr">
+<td id="S4.T3.st3.2.7.5.1" class="ltx_td ltx_align_center">MAE-B</td>
+<td id="S4.T3.st3.2.7.5.2" class="ltx_td ltx_align_center">96.47</td>
+<td id="S4.T3.st3.2.7.5.3" class="ltx_td ltx_align_center">95.58</td>
+<td id="S4.T3.st3.2.7.5.4" class="ltx_td ltx_align_center">94.48</td>
+<td id="S4.T3.st3.2.7.5.5" class="ltx_td ltx_align_center">90.07</td>
+<td id="S4.T3.st3.2.7.5.6" class="ltx_td ltx_align_center">93.81</td>
+</tr>
+<tr id="S4.T3.st3.2.8.6" class="ltx_tr">
+<td id="S4.T3.st3.2.8.6.1" class="ltx_td ltx_align_center ltx_border_t">DiT-B</td>
+<td id="S4.T3.st3.2.8.6.2" class="ltx_td ltx_align_center ltx_border_t">96.29</td>
+<td id="S4.T3.st3.2.8.6.3" class="ltx_td ltx_align_center ltx_border_t">95.61</td>
+<td id="S4.T3.st3.2.8.6.4" class="ltx_td ltx_align_center ltx_border_t">95.39</td>
+<td id="S4.T3.st3.2.8.6.5" class="ltx_td ltx_align_center ltx_border_t">92.46</td>
+<td id="S4.T3.st3.2.8.6.6" class="ltx_td ltx_align_center ltx_border_t">94.74</td>
+</tr>
+<tr id="S4.T3.st3.2.9.7" class="ltx_tr">
+<td id="S4.T3.st3.2.9.7.1" class="ltx_td ltx_align_center">DiT-L</td>
+<td id="S4.T3.st3.2.9.7.2" class="ltx_td ltx_align_center"><span id="S4.T3.st3.2.9.7.2.1" class="ltx_text ltx_font_bold">98.00</span></td>
+<td id="S4.T3.st3.2.9.7.3" class="ltx_td ltx_align_center"><span id="S4.T3.st3.2.9.7.3.1" class="ltx_text ltx_font_bold">97.56</span></td>
+<td id="S4.T3.st3.2.9.7.4" class="ltx_td ltx_align_center">96.23</td>
+<td id="S4.T3.st3.2.9.7.5" class="ltx_td ltx_align_center">91.57</td>
+<td id="S4.T3.st3.2.9.7.6" class="ltx_td ltx_align_center">95.50</td>
+</tr>
+<tr id="S4.T3.st3.2.2" class="ltx_tr">
+<td id="S4.T3.st3.2.2.1" class="ltx_td ltx_align_center ltx_border_t">ResNeXt-101-32<math id="S4.T3.st3.2.2.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.T3.st3.2.2.1.m1.1a"><mo id="S4.T3.st3.2.2.1.m1.1.1" xref="S4.T3.st3.2.2.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.T3.st3.2.2.1.m1.1b"><times id="S4.T3.st3.2.2.1.m1.1.1.cmml" xref="S4.T3.st3.2.2.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.T3.st3.2.2.1.m1.1c">\times</annotation></semantics></math>8d (Cascade)</td>
+<td id="S4.T3.st3.2.2.2" class="ltx_td ltx_align_center ltx_border_t">96.41</td>
+<td id="S4.T3.st3.2.2.3" class="ltx_td ltx_align_center ltx_border_t">95.52</td>
+<td id="S4.T3.st3.2.2.4" class="ltx_td ltx_align_center ltx_border_t">95.07</td>
+<td id="S4.T3.st3.2.2.5" class="ltx_td ltx_align_center ltx_border_t">92.38</td>
+<td id="S4.T3.st3.2.2.6" class="ltx_td ltx_align_center ltx_border_t">94.63</td>
+</tr>
+<tr id="S4.T3.st3.2.10.8" class="ltx_tr">
+<td id="S4.T3.st3.2.10.8.1" class="ltx_td ltx_align_center">DiT-B (Cascade)</td>
+<td id="S4.T3.st3.2.10.8.2" class="ltx_td ltx_align_center">97.33</td>
+<td id="S4.T3.st3.2.10.8.3" class="ltx_td ltx_align_center">96.89</td>
+<td id="S4.T3.st3.2.10.8.4" class="ltx_td ltx_align_center">96.67</td>
+<td id="S4.T3.st3.2.10.8.5" class="ltx_td ltx_align_center">93.33</td>
+<td id="S4.T3.st3.2.10.8.6" class="ltx_td ltx_align_center">95.85</td>
+</tr>
+<tr id="S4.T3.st3.2.11.9" class="ltx_tr">
+<td id="S4.T3.st3.2.11.9.1" class="ltx_td ltx_align_center ltx_border_bb">DiT-L (Cascade)</td>
+<td id="S4.T3.st3.2.11.9.2" class="ltx_td ltx_align_center ltx_border_bb">97.89</td>
+<td id="S4.T3.st3.2.11.9.3" class="ltx_td ltx_align_center ltx_border_bb">97.22</td>
+<td id="S4.T3.st3.2.11.9.4" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T3.st3.2.11.9.4.1" class="ltx_text ltx_font_bold">97.00</span></td>
+<td id="S4.T3.st3.2.11.9.5" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T3.st3.2.11.9.5.1" class="ltx_text ltx_font_bold">93.88</span></td>
+<td id="S4.T3.st3.2.11.9.6" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T3.st3.2.11.9.6.1" class="ltx_text ltx_font_bold">96.29</span></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T3.st3.4.1.1" class="ltx_text" style="font-size:90%;">(c)</span> </span><span id="S4.T3.st3.5.2" class="ltx_text" style="font-size:90%;">Table detection accuracy on ICDAR 2019 cTDaR (modern)</span></figcaption>
+</figure>
+</div>
+</div>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table"><span id="S4.T3.2.1.1" class="ltx_text" style="font-size:90%;">Table 3</span>. </span><span id="S4.T3.3.2" class="ltx_text" style="font-size:90%;">Table detection accuracy (F1) on ICDAR 2019 cTDaR.</span></figcaption>
+</figure>
+</section>
+<section id="S4.SS2.SSS0.Px4" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Fine-tuning on ICDAR 2019 cTDaR</h4>
+
+<div id="S4.SS2.SSS0.Px4.p1" class="ltx_para">
+<p id="S4.SS2.SSS0.Px4.p1.1" class="ltx_p">We evaluate the pre-trained DiT models and other image backbones on the ICDAR 2019 dataset for table detection. Since the image resolution for object detection tasks is much larger than classification, we limit the batch size to 16. The learning rate is 1e-4 and 5e-5 for archival and modern subsets respectively. In the preliminary experiments, we found that directly using the raw images in the archival subset leads to suboptimal performance when fine-tuning DiT, so we apply an adaptive image binarization algorithm implemented by OpenCV <cite class="ltx_cite ltx_citemacro_citep">(Bradski, <a href="#bib.bib5" title="" class="ltx_ref">2000</a>)</cite> to binarize the images. An example of the pre-procession is shown in Figure <a href="#S4.F5" title="Figure 5 ‣ Fine-tuning on RVL-CDIP ‣ 4.2. Settings ‣ 4. Experiments ‣ DiT: Self-supervised Pre-training for Document Image Transformer" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>. During training, we apply the data augmentation method used in DETR <cite class="ltx_cite ltx_citemacro_citep">(Carion et al<span class="ltx_text">.</span>, <a href="#bib.bib7" title="" class="ltx_ref">2020</a>)</cite> as a multi-scale training strategy. Specifically, the input image is cropped with probability 0.5 to a random rectangular patch which is then resized again such that the shortest side is at least 480 and at most 800 pixels while the longest at most 1,333.</p>
+</div>
+</section>
+<section id="S4.SS2.SSS0.Px5" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Fine-tuning on PubLayNet</h4>
+
+<div id="S4.SS2.SSS0.Px5.p1" class="ltx_para">
+<p id="S4.SS2.SSS0.Px5.p1.1" class="ltx_p">We evaluate the pre-trained DiT models and other image backbones on the PubLayNet dataset for document layout analysis. Similar to the ICDAR 2019 cTDaR dataset, the batch size is 16, and the learning rate is 4e-4 for the base version. and 1e-4 for the large version. The data augmentation method for DETR <cite class="ltx_cite ltx_citemacro_citep">(Carion et al<span class="ltx_text">.</span>, <a href="#bib.bib7" title="" class="ltx_ref">2020</a>)</cite> is also used.</p>
+</div>
+</section>
+<section id="S4.SS2.SSS0.Px6" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Fine-tuning on FUNSD</h4>
+
+<div id="S4.SS2.SSS0.Px6.p1" class="ltx_para">
+<p id="S4.SS2.SSS0.Px6.p1.1" class="ltx_p">We use the same object detection framework for fine-tuning the pre-trained DiT models and other backbones on the text detection task in FUNSD. In document layout analysis and table detection, we use anchor box sizes [32, 64, 128, 256, 512] in the detection process since the detected areas are usually paragraph-level. Different from document layout analysis, text detection aims to locate smaller objects at the word level in document images. Therefore, we use anchor box sizes [4, 8, 16, 32, 64] in the detection process. The batch size is set to 16 and the learning rate is 1e-4 for the base model and 5e-5 for the large model.</p>
+</div>
+<div id="S4.SS2.SSS0.Px6.p2" class="ltx_para">
+<p id="S4.SS2.SSS0.Px6.p2.2" class="ltx_p">The image backbone models selected as baselines have a comparable number of parameters compared with our DiT-B. They include the following two kinds: CNN and image Transformer. For CNN-based models, we choose ResNext101-32<math id="S4.SS2.SSS0.Px6.p2.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS2.SSS0.Px6.p2.1.m1.1a"><mo id="S4.SS2.SSS0.Px6.p2.1.m1.1.1" xref="S4.SS2.SSS0.Px6.p2.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px6.p2.1.m1.1b"><times id="S4.SS2.SSS0.Px6.p2.1.m1.1.1.cmml" xref="S4.SS2.SSS0.Px6.p2.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px6.p2.1.m1.1c">\times</annotation></semantics></math>8d <cite class="ltx_cite ltx_citemacro_citep">(Xie et al<span class="ltx_text">.</span>, <a href="#bib.bib41" title="" class="ltx_ref">2017</a>)</cite>. For image Transformers, we choose the base version of DeiT <cite class="ltx_cite ltx_citemacro_citep">(Touvron et al<span class="ltx_text">.</span>, <a href="#bib.bib37" title="" class="ltx_ref">2021</a>)</cite>, BEiT <cite class="ltx_cite ltx_citemacro_citep">(Bao et al<span class="ltx_text">.</span>, <a href="#bib.bib4" title="" class="ltx_ref">2021</a>)</cite> and MAE <cite class="ltx_cite ltx_citemacro_citep">(He et al<span class="ltx_text">.</span>, <a href="#bib.bib18" title="" class="ltx_ref">2021</a>)</cite> which are pre-trained on ImageNet-1K dataset with a 224<math id="S4.SS2.SSS0.Px6.p2.2.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS2.SSS0.Px6.p2.2.m2.1a"><mo id="S4.SS2.SSS0.Px6.p2.2.m2.1.1" xref="S4.SS2.SSS0.Px6.p2.2.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px6.p2.2.m2.1b"><times id="S4.SS2.SSS0.Px6.p2.2.m2.1.1.cmml" xref="S4.SS2.SSS0.Px6.p2.2.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px6.p2.2.m2.1c">\times</annotation></semantics></math>224 input size. We rerun the fine-tuning of all baselines.</p>
+</div>
+</section>
+</section>
+<section id="S4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.3. </span>Results</h3>
+
+<section id="S4.SS3.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">RVL-CDIP</h4>
+
+<div id="S4.SS3.SSS0.Px1.p1" class="ltx_para">
+<p id="S4.SS3.SSS0.Px1.p1.1" class="ltx_p">The results of document image classification on RVL-CDIP are shown in Table <a href="#S4.T1" title="Table 1 ‣ Fine-tuning on RVL-CDIP ‣ 4.2. Settings ‣ 4. Experiments ‣ DiT: Self-supervised Pre-training for Document Image Transformer" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>. To make a fair comparison, the approaches in the table use only image information from the dataset. DiT-B performs significantly better than all selected single-model baselines. Since DiT shares the same model structure with other image Transformer baselines, the higher score indicates the effectiveness of our document-specific pre-training strategy. The larger version, DiT-L, gets a comparable score with the previous SOTA ensemble model under the single-model setting, which further highlights its modeling capability on document images.</p>
+</div>
+</section>
+<section id="S4.SS3.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">PubLayNet</h4>
+
+<div id="S4.SS3.SSS0.Px2.p1" class="ltx_para">
+<p id="S4.SS3.SSS0.Px2.p1.1" class="ltx_p">The results of document layout analysis on PubLayNet are shown in Table <a href="#S4.T2" title="Table 2 ‣ Fine-tuning on RVL-CDIP ‣ 4.2. Settings ‣ 4. Experiments ‣ DiT: Self-supervised Pre-training for Document Image Transformer" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>. Since this task has a large number of training and testing samples and requires a comprehensive analysis of the common document elements, it clearly demonstrates the learning ability of different image Transformer models. It is observed that the DeiT-B, BEiT-B, and MAE-B are obviously better than ResNeXt-101, and DiT-B is even stronger than these powerful image Transformer baselines. According to the results, the improvement mainly comes from the List and Figure category, and on the basis of DiT-B, DiT-L gives out a much higher mAP score. We also investigate the impact of different object detection algorithms, and the results show that a more advanced detection algorithm (Cascade R-CNN in our case) can push the model performance to a higher level. We also apply Cascade R-CNN on the ResNeXt-101-32<math id="S4.SS3.SSS0.Px2.p1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS3.SSS0.Px2.p1.1.m1.1a"><mo id="S4.SS3.SSS0.Px2.p1.1.m1.1.1" xref="S4.SS3.SSS0.Px2.p1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS3.SSS0.Px2.p1.1.m1.1b"><times id="S4.SS3.SSS0.Px2.p1.1.m1.1.1.cmml" xref="S4.SS3.SSS0.Px2.p1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS3.SSS0.Px2.p1.1.m1.1c">\times</annotation></semantics></math>8d baseline, and DiT surpasses it by 1% and 1.4% absolute score for the base and large settings respectively, indicating the superiority of DiT on a different detection framework.</p>
+</div>
+</section>
+<section id="S4.SS3.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">ICDAR 2019 cTDaR</h4>
+
+<div id="S4.SS3.SSS0.Px3.p1" class="ltx_para">
+<p id="S4.SS3.SSS0.Px3.p1.1" class="ltx_p">The results of table detection on ICDAR 2019 cTDaR dataset are shown in Table <a href="#S4.T3" title="Table 3 ‣ Fine-tuning on RVL-CDIP ‣ 4.2. Settings ‣ 4. Experiments ‣ DiT: Self-supervised Pre-training for Document Image Transformer" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>. The size of this dataset is relatively small, so it aims at evaluating the few-shot learning capability of models under a low-resource scenario. We first analyze the model performance on the archival and modern subsets separately. In Table <a href="#S4.T3.st2" title="In Table 3 ‣ Fine-tuning on RVL-CDIP ‣ 4.2. Settings ‣ 4. Experiments ‣ DiT: Self-supervised Pre-training for Document Image Transformer" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3(b)</span></a>, DiT surpasses all the baselines except BEiT for the archival subset.
+This is because in the pre-training of BEiT, it directly uses the DALL-E dVAE which is trained on an extremely large dataset with 400M images with different colors. While for DiT, the image tokenizer is trained with grayscale images, which may not be sufficient for historical document images with colors. The improvement when switching from Mask R-CNN to Cascade R-CNN is also observed which is similar to PubLayNet settings, and DiT still outperforms other baselines significantly. The conclusion is similar to the results on the modern subset in Table <a href="#S4.T3.st3" title="In Table 3 ‣ Fine-tuning on RVL-CDIP ‣ 4.2. Settings ‣ 4. Experiments ‣ DiT: Self-supervised Pre-training for Document Image Transformer" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3(c)</span></a>. We further combine the predictions of the two subsets into a single set. The results in <a href="#S4.T3.st1" title="In Table 3 ‣ Fine-tuning on RVL-CDIP ‣ 4.2. Settings ‣ 4. Experiments ‣ DiT: Self-supervised Pre-training for Document Image Transformer" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3(a)</span></a> show DiT-L achieves the highest wF1 score among all Mask R-CNN methods, demonstrating the versatility of DiT under different categories of documents. It is worth noting that the metrics of IoU@0.9 are significantly better, which means DiT has a better fine-grained object detection capability. Under all the three settings, we have pushed the SOTA results to a new level by more than 2% (94.23<math id="S4.SS3.SSS0.Px3.p1.1.m1.1" class="ltx_Math" alttext="\rightarrow" display="inline"><semantics id="S4.SS3.SSS0.Px3.p1.1.m1.1a"><mo stretchy="false" id="S4.SS3.SSS0.Px3.p1.1.m1.1.1" xref="S4.SS3.SSS0.Px3.p1.1.m1.1.1.cmml">→</mo><annotation-xml encoding="MathML-Content" id="S4.SS3.SSS0.Px3.p1.1.m1.1b"><ci id="S4.SS3.SSS0.Px3.p1.1.m1.1.1.cmml" xref="S4.SS3.SSS0.Px3.p1.1.m1.1.1">→</ci></annotation-xml><annotation encoding="application/x-tex" id="S4.SS3.SSS0.Px3.p1.1.m1.1c">\rightarrow</annotation></semantics></math>96.55) absolute wF1 score with our best model and the Cascade R-CNN detection algorithm.</p>
+</div>
+<figure id="S4.T4" class="ltx_table">
+<table id="S4.T4.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S4.T4.1.2.1" class="ltx_tr">
+<td id="S4.T4.1.2.1.1" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T4.1.2.1.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S4.T4.1.2.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T4.1.2.1.2.1" class="ltx_text ltx_font_bold">Precision</span></td>
+<td id="S4.T4.1.2.1.3" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T4.1.2.1.3.1" class="ltx_text ltx_font_bold">Recall</span></td>
+<td id="S4.T4.1.2.1.4" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T4.1.2.1.4.1" class="ltx_text ltx_font_bold">F1</span></td>
+</tr>
+<tr id="S4.T4.1.3.2" class="ltx_tr">
+<td id="S4.T4.1.3.2.1" class="ltx_td ltx_align_center ltx_border_t">Faster R-CNN <cite class="ltx_cite ltx_citemacro_citep">(Jaume et al<span class="ltx_text">.</span>, <a href="#bib.bib23" title="" class="ltx_ref">2019</a>)</cite>
+</td>
+<td id="S4.T4.1.3.2.2" class="ltx_td ltx_align_center ltx_border_t">0.704</td>
+<td id="S4.T4.1.3.2.3" class="ltx_td ltx_align_center ltx_border_t">0.848</td>
+<td id="S4.T4.1.3.2.4" class="ltx_td ltx_align_center ltx_border_t">0.76</td>
+</tr>
+<tr id="S4.T4.1.4.3" class="ltx_tr">
+<td id="S4.T4.1.4.3.1" class="ltx_td ltx_align_center">DBNet <cite class="ltx_cite ltx_citemacro_citep">(Liao et al<span class="ltx_text">.</span>, <a href="#bib.bib31" title="" class="ltx_ref">2022</a>)</cite>
+</td>
+<td id="S4.T4.1.4.3.2" class="ltx_td ltx_align_center">0.8764</td>
+<td id="S4.T4.1.4.3.3" class="ltx_td ltx_align_center">0.8400</td>
+<td id="S4.T4.1.4.3.4" class="ltx_td ltx_align_center">0.8578</td>
+</tr>
+<tr id="S4.T4.1.5.4" class="ltx_tr">
+<td id="S4.T4.1.5.4.1" class="ltx_td ltx_align_center">A Commercial OCR Engine</td>
+<td id="S4.T4.1.5.4.2" class="ltx_td ltx_align_center">0.8762</td>
+<td id="S4.T4.1.5.4.3" class="ltx_td ltx_align_center">0.8260</td>
+<td id="S4.T4.1.5.4.4" class="ltx_td ltx_align_center">0.8504</td>
+</tr>
+<tr id="S4.T4.1.1" class="ltx_tr">
+<td id="S4.T4.1.1.1" class="ltx_td ltx_align_center ltx_border_t">ResNeXt-101-32<math id="S4.T4.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.T4.1.1.1.m1.1a"><mo id="S4.T4.1.1.1.m1.1.1" xref="S4.T4.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.T4.1.1.1.m1.1b"><times id="S4.T4.1.1.1.m1.1.1.cmml" xref="S4.T4.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.T4.1.1.1.m1.1c">\times</annotation></semantics></math>8d</td>
+<td id="S4.T4.1.1.2" class="ltx_td ltx_align_center ltx_border_t">0.9387</td>
+<td id="S4.T4.1.1.3" class="ltx_td ltx_align_center ltx_border_t">0.9229</td>
+<td id="S4.T4.1.1.4" class="ltx_td ltx_align_center ltx_border_t">0.9307</td>
+</tr>
+<tr id="S4.T4.1.6.5" class="ltx_tr">
+<td id="S4.T4.1.6.5.1" class="ltx_td ltx_align_center">DeiT-B</td>
+<td id="S4.T4.1.6.5.2" class="ltx_td ltx_align_center">0.9429</td>
+<td id="S4.T4.1.6.5.3" class="ltx_td ltx_align_center">0.9237</td>
+<td id="S4.T4.1.6.5.4" class="ltx_td ltx_align_center">0.9332</td>
+</tr>
+<tr id="S4.T4.1.7.6" class="ltx_tr">
+<td id="S4.T4.1.7.6.1" class="ltx_td ltx_align_center">BEiT-B</td>
+<td id="S4.T4.1.7.6.2" class="ltx_td ltx_align_center">0.9412</td>
+<td id="S4.T4.1.7.6.3" class="ltx_td ltx_align_center">0.9263</td>
+<td id="S4.T4.1.7.6.4" class="ltx_td ltx_align_center">0.9337</td>
+</tr>
+<tr id="S4.T4.1.8.7" class="ltx_tr">
+<td id="S4.T4.1.8.7.1" class="ltx_td ltx_align_center">MAE-B</td>
+<td id="S4.T4.1.8.7.2" class="ltx_td ltx_align_center">0.9441</td>
+<td id="S4.T4.1.8.7.3" class="ltx_td ltx_align_center">0.9321</td>
+<td id="S4.T4.1.8.7.4" class="ltx_td ltx_align_center">0.9381</td>
+</tr>
+<tr id="S4.T4.1.9.8" class="ltx_tr">
+<td id="S4.T4.1.9.8.1" class="ltx_td ltx_align_center ltx_border_t">DiT-B</td>
+<td id="S4.T4.1.9.8.2" class="ltx_td ltx_align_center ltx_border_t">0.9470</td>
+<td id="S4.T4.1.9.8.3" class="ltx_td ltx_align_center ltx_border_t">0.9307</td>
+<td id="S4.T4.1.9.8.4" class="ltx_td ltx_align_center ltx_border_t">0.9388</td>
+</tr>
+<tr id="S4.T4.1.10.9" class="ltx_tr">
+<td id="S4.T4.1.10.9.1" class="ltx_td ltx_align_center">DiT-L</td>
+<td id="S4.T4.1.10.9.2" class="ltx_td ltx_align_center">0.9452</td>
+<td id="S4.T4.1.10.9.3" class="ltx_td ltx_align_center"><span id="S4.T4.1.10.9.3.1" class="ltx_text ltx_font_bold">0.9336</span></td>
+<td id="S4.T4.1.10.9.4" class="ltx_td ltx_align_center">0.9393</td>
+</tr>
+<tr id="S4.T4.1.11.10" class="ltx_tr">
+<td id="S4.T4.1.11.10.1" class="ltx_td ltx_align_center ltx_border_t">DiT-B (+syn)</td>
+<td id="S4.T4.1.11.10.2" class="ltx_td ltx_align_center ltx_border_t">0.9539</td>
+<td id="S4.T4.1.11.10.3" class="ltx_td ltx_align_center ltx_border_t">0.9315</td>
+<td id="S4.T4.1.11.10.4" class="ltx_td ltx_align_center ltx_border_t">0.9425</td>
+</tr>
+<tr id="S4.T4.1.12.11" class="ltx_tr">
+<td id="S4.T4.1.12.11.1" class="ltx_td ltx_align_center ltx_border_bb">DiT-L (+syn)</td>
+<td id="S4.T4.1.12.11.2" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T4.1.12.11.2.1" class="ltx_text ltx_font_bold">0.9543</span></td>
+<td id="S4.T4.1.12.11.3" class="ltx_td ltx_align_center ltx_border_bb">0.9317</td>
+<td id="S4.T4.1.12.11.4" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T4.1.12.11.4.1" class="ltx_text ltx_font_bold">0.9429</span></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T4.3.1.1" class="ltx_text" style="font-size:90%;">Table 4</span>. </span><span id="S4.T4.4.2" class="ltx_text" style="font-size:90%;">Text detection accuracy (IoU@0.5) on FUNSD Task #1, where Mask R-CNN is used with different backbones (ResNeXt, DeiT, BEiT, MAE and DiT). “+syn” denotes that DiT is trained with a synthetic dataset including 1M document images, then fine-tuned with the FUNSD training data.</span></figcaption>
+</figure>
+</section>
+<section id="S4.SS3.SSS0.Px4" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">FUNSD (Text Detection)</h4>
+
+<div id="S4.SS3.SSS0.Px4.p1" class="ltx_para">
+<p id="S4.SS3.SSS0.Px4.p1.1" class="ltx_p">The results of text detection on the FUNSD dataset are shown in Table <a href="#S4.T4" title="Table 4 ‣ ICDAR 2019 cTDaR ‣ 4.3. Results ‣ 4. Experiments ‣ DiT: Self-supervised Pre-training for Document Image Transformer" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>. Since text detection for OCR has been a long-standing real-world problem, we obtain the word-level text detection results from a popular commercial OCR engine to set a high-level baseline. In addition, DBNet <cite class="ltx_cite ltx_citemacro_citep">(Liao et al<span class="ltx_text">.</span>, <a href="#bib.bib31" title="" class="ltx_ref">2022</a>)</cite> is a widely used text detection model for online OCR engines, we also fine-tune a pre-trained DBNet model with FUNSD training data and evaluate its accuracy. Both of them achieve around 0.85 F1 scores for IoU@0.5. Next, we use the Mask R-CNN framework to compare different backbone networks (CNN and ViT) including ResNeXt-101, DeiT, BEiT, MAE, and DiT. It is shown that CNN-based and ViT-based text detection models outperform the baselines significantly due to advanced model design and more parameters. We also observe that the DiT models achieve new SOTA results compared with other models. Finally, we further train the DiT models with a synthetic dataset that contains 1 million document images, leading to an F1 of 0.9429 being achieved by the DiT-L model.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5. </span>Conclusion and Future Work</h2>
+
+<div id="S5.p1" class="ltx_para">
+<p id="S5.p1.1" class="ltx_p">In this paper, we present DiT, a self-supervised foundation model for general Document AI tasks. The DiT model is pre-trained with large-scale unlabeled document images that cover a variety of templates and formats, which is ideal for downstream Document AI tasks in different domains. We evaluate the pre-trained DiT on several vision-based Document AI benchmarks, including table detection, document layout analysis, document image classification, and text detection. Experimental results have shown that DiT outperforms several strong baselines across the board and achieves new SOTA performance. We will make the pre-trained DiT models publicly available to facilitate the Document AI research.</p>
+</div>
+<div id="S5.p2" class="ltx_para">
+<p id="S5.p2.1" class="ltx_p">For future research, we will pre-train DiT with a much larger dataset to further push the SOTA results in Document AI. Meanwhile, we will also integrate DiT as the foundation model in multi-modal pre-training for visually-rich document understanding such as the next-gen layout-based models like LayoutLM, where a unified Transformer-based architecture may be sufficient for both CV and NLP applications in Document AI.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">(1)</span>
+<span class="ltx_bibblock">        
+
+
+
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Afzal et al<span id="bib.bib2.2.2.1" class="ltx_text">.</span> (2017)</span>
+<span class="ltx_bibblock">
+Muhammad Zeshan Afzal,
+Andreas Kölsch, Sheraz Ahmed, and
+Marcus Liwicki. 2017.
+
+</span>
+<span class="ltx_bibblock">Cutting the Error by Half: Investigation of Very
+Deep CNN and Advanced Training Strategies for Document Image Classification.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib2.3.1" class="ltx_emph ltx_font_italic">2017 14th IAPR International Conference on
+Document Analysis and Recognition (ICDAR)</em> 01
+(2017), 883–888.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Appalaraju et al<span id="bib.bib3.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Srikar Appalaraju, Bhavan
+Jasani, Bhargava Urala Kota, Yusheng
+Xie, and R. Manmatha. 2021.
+
+</span>
+<span class="ltx_bibblock">DocFormer: End-to-End Transformer for Document
+Understanding.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2106.11539 [cs.CV]
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Bao et al<span id="bib.bib4.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Hangbo Bao, Li Dong,
+and Furu Wei. 2021.
+
+</span>
+<span class="ltx_bibblock">BEiT: BERT Pre-Training of Image Transformers.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2106.08254 [cs.CV]
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Bradski (2000)</span>
+<span class="ltx_bibblock">
+G. Bradski.
+2000.
+
+</span>
+<span class="ltx_bibblock">The OpenCV Library.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib5.1.1" class="ltx_emph ltx_font_italic">Dr. Dobb’s Journal of Software Tools</em>
+(2000).
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Cai and Vasconcelos (2018)</span>
+<span class="ltx_bibblock">
+Zhaowei Cai and Nuno
+Vasconcelos. 2018.
+
+</span>
+<span class="ltx_bibblock">Cascade R-CNN: Delving Into High Quality Object
+Detection. In <em id="bib.bib6.1.1" class="ltx_emph ltx_font_italic">2018 IEEE Conference on Computer
+Vision and Pattern Recognition, CVPR 2018, Salt Lake City, UT, USA, June
+18-22, 2018</em>. IEEE Computer Society,
+6154–6162.
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="https://doi.org/10.1109/CVPR.2018.00644" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://doi.org/10.1109/CVPR.2018.00644</a>
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Carion et al<span id="bib.bib7.2.2.1" class="ltx_text">.</span> (2020)</span>
+<span class="ltx_bibblock">
+Nicolas Carion, Francisco
+Massa, Gabriel Synnaeve, Nicolas
+Usunier, Alexander Kirillov, and Sergey
+Zagoruyko. 2020.
+
+</span>
+<span class="ltx_bibblock">End-to-end object detection with transformers. In
+<em id="bib.bib7.3.1" class="ltx_emph ltx_font_italic">European conference on computer vision</em>. Springer,
+213–229.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Caron et al<span id="bib.bib8.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Mathilde Caron, Hugo
+Touvron, Ishan Misra, Hervé Jégou,
+Julien Mairal, Piotr Bojanowski, and
+Armand Joulin. 2021.
+
+</span>
+<span class="ltx_bibblock">Emerging Properties in Self-Supervised Vision
+Transformers.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2104.14294 [cs.CV]
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen et al<span id="bib.bib9.2.2.1" class="ltx_text">.</span> (2020)</span>
+<span class="ltx_bibblock">
+Mark Chen, Alec Radford,
+Rewon Child, Jeffrey Wu,
+Heewoo Jun, David Luan, and
+Ilya Sutskever. 2020.
+
+</span>
+<span class="ltx_bibblock">Generative Pretraining From Pixels. In
+<em id="bib.bib9.3.1" class="ltx_emph ltx_font_italic">Proceedings of the 37th International Conference on
+Machine Learning, ICML 2020, 13-18 July 2020, Virtual Event</em>
+<em id="bib.bib9.4.2" class="ltx_emph ltx_font_italic">(Proceedings of Machine Learning Research,
+Vol. 119)</em>. PMLR,
+1691–1703.
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="http://proceedings.mlr.press/v119/chen20s.html" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://proceedings.mlr.press/v119/chen20s.html</a>
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen et al<span id="bib.bib10.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Xinlei Chen, Saining Xie,
+and Kaiming He. 2021.
+
+</span>
+<span class="ltx_bibblock">An Empirical Study of Training Self-Supervised Vision
+Transformers.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2104.02057 [cs.CV]
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Cui et al<span id="bib.bib11.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Lei Cui, Yiheng Xu,
+Tengchao Lv, and Furu Wei.
+2021.
+
+</span>
+<span class="ltx_bibblock">Document AI: Benchmarks, Models and Applications.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2111.08609 [cs.CL]
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Das et al<span id="bib.bib12.2.2.1" class="ltx_text">.</span> (2018)</span>
+<span class="ltx_bibblock">
+Arindam Das, Saikat Roy,
+and Ujjwal Bhattacharya.
+2018.
+
+</span>
+<span class="ltx_bibblock">Document Image Classification with Intra-Domain
+Transfer Learning and Stacked Generalization of Deep Convolutional Neural
+Networks.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib12.3.1" class="ltx_emph ltx_font_italic">2018 24th International Conference on Pattern
+Recognition (ICPR)</em> (2018), 3180–3185.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Dosovitskiy et al<span id="bib.bib13.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Alexey Dosovitskiy, Lucas
+Beyer, Alexander Kolesnikov, Dirk
+Weissenborn, Xiaohua Zhai, Thomas
+Unterthiner, Mostafa Dehghani, Matthias
+Minderer, Georg Heigold, Sylvain Gelly,
+Jakob Uszkoreit, and Neil Houlsby.
+2021.
+
+</span>
+<span class="ltx_bibblock">An Image is Worth 16x16 Words: Transformers for
+Image Recognition at Scale.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib13.3.1" class="ltx_emph ltx_font_italic">ICLR</em> (2021).
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">El-Nouby et al<span id="bib.bib14.2.2.1" class="ltx_text">.</span> (2021a)</span>
+<span class="ltx_bibblock">
+Alaaeldin El-Nouby, Hugo
+Touvron, Mathilde Caron, Piotr
+Bojanowski, Matthijs Douze, Armand
+Joulin, Ivan Laptev, Natalia Neverova,
+Gabriel Synnaeve, Jakob Verbeek, and
+Hervé Jegou. 2021a.
+
+</span>
+<span class="ltx_bibblock">XCiT: Cross-Covariance Image Transformers.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2106.09681 [cs.CV]
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">El-Nouby et al<span id="bib.bib15.2.2.1" class="ltx_text">.</span> (2021b)</span>
+<span class="ltx_bibblock">
+Alaaeldin El-Nouby, Hugo
+Touvron, Mathilde Caron, Piotr
+Bojanowski, Matthijs Douze, Armand
+Joulin, Ivan Laptev, Natalia Neverova,
+Gabriel Synnaeve, Jakob Verbeek, and
+Hervé Jégou. 2021b.
+
+</span>
+<span class="ltx_bibblock">XCiT: Cross-Covariance Image Transformers.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib15.3.1" class="ltx_emph ltx_font_italic">ArXiv</em> abs/2106.09681
+(2021).
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Gao et al<span id="bib.bib16.2.2.1" class="ltx_text">.</span> (2019)</span>
+<span class="ltx_bibblock">
+Liangcai Gao, Yilun
+Huang, Hervé Déjean, Jean-Luc Meunier,
+Qinqin Yan, Yu Fang,
+Florian Kleber, and Eva Lang.
+2019.
+
+</span>
+<span class="ltx_bibblock">ICDAR 2019 Competition on Table Detection and
+Recognition (cTDaR). In <em id="bib.bib16.3.1" class="ltx_emph ltx_font_italic">2019 International
+Conference on Document Analysis and Recognition (ICDAR)</em>.
+1510–1515.
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="https://doi.org/10.1109/ICDAR.2019.00243" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://doi.org/10.1109/ICDAR.2019.00243</a>
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Harley et al<span id="bib.bib17.2.2.1" class="ltx_text">.</span> (2015)</span>
+<span class="ltx_bibblock">
+Adam W Harley, Alex
+Ufkes, and Konstantinos G Derpanis.
+2015.
+
+</span>
+<span class="ltx_bibblock">Evaluation of Deep Convolutional Nets for Document
+Image Classification and Retrieval. In
+<em id="bib.bib17.3.1" class="ltx_emph ltx_font_italic">International Conference on Document Analysis and
+Recognition (ICDAR)</em>.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">He et al<span id="bib.bib18.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Kaiming He, Xinlei Chen,
+Saining Xie, Yanghao Li,
+Piotr Dollár, and Ross Girshick.
+2021.
+
+</span>
+<span class="ltx_bibblock">Masked Autoencoders Are Scalable Vision Learners.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2111.06377 [cs.CV]
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">He et al<span id="bib.bib19.2.2.1" class="ltx_text">.</span> (2017)</span>
+<span class="ltx_bibblock">
+Kaiming He, Georgia
+Gkioxari, Piotr Dollár, and
+Ross B. Girshick. 2017.
+
+</span>
+<span class="ltx_bibblock">Mask R-CNN. In <em id="bib.bib19.3.1" class="ltx_emph ltx_font_italic">IEEE
+International Conference on Computer Vision, ICCV 2017, Venice, Italy,
+October 22-29, 2017</em>. IEEE Computer Society,
+2980–2988.
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="https://doi.org/10.1109/ICCV.2017.322" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://doi.org/10.1109/ICCV.2017.322</a>
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Hong et al<span id="bib.bib20.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Teakgyu Hong, DongHyun
+Kim, Mingi Ji, Wonseok Hwang,
+Daehyun Nam, and Sungrae Park.
+2021.
+
+</span>
+<span class="ltx_bibblock">BROS: A Pre-trained Language Model for Understanding
+Texts in Document.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="https://openreview.net/forum?id=punMXQEsPr0" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://openreview.net/forum?id=punMXQEsPr0</a>
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Huang et al<span id="bib.bib21.2.2.1" class="ltx_text">.</span> (2016)</span>
+<span class="ltx_bibblock">
+Gao Huang, Yu Sun,
+Zhuang Liu, Daniel Sedra, and
+Kilian Q. Weinberger. 2016.
+
+</span>
+<span class="ltx_bibblock">Deep Networks with Stochastic Depth. In
+<em id="bib.bib21.3.1" class="ltx_emph ltx_font_italic">ECCV</em>.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Huang et al<span id="bib.bib22.2.2.1" class="ltx_text">.</span> (2022)</span>
+<span class="ltx_bibblock">
+Yupan Huang, Tengchao Lv,
+Lei Cui, Yutong Lu, and
+Furu Wei. 2022.
+
+</span>
+<span class="ltx_bibblock">LayoutLMv3: Pre-training for Document AI with
+Unified Text and Image Masking. In <em id="bib.bib22.3.1" class="ltx_emph ltx_font_italic">MM ’22: The
+30th ACM International Conference on Multimedia, Lisbon,Portugal, October
+10-14, 2022</em>.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Jaume et al<span id="bib.bib23.2.2.1" class="ltx_text">.</span> (2019)</span>
+<span class="ltx_bibblock">
+Guillaume Jaume,
+Hazim Kemal Ekenel, and Jean-Philippe
+Thiran. 2019.
+
+</span>
+<span class="ltx_bibblock">FUNSD: A Dataset for Form Understanding in Noisy
+Scanned Documents.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib23.3.1" class="ltx_emph ltx_font_italic">2019 International Conference on Document
+Analysis and Recognition Workshops (ICDARW)</em> 2
+(2019), 1–6.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kingma and Ba (2015)</span>
+<span class="ltx_bibblock">
+Diederik P. Kingma and
+Jimmy Ba. 2015.
+
+</span>
+<span class="ltx_bibblock">Adam: A Method for Stochastic Optimization. In
+<em id="bib.bib24.1.1" class="ltx_emph ltx_font_italic">3rd International Conference on Learning
+Representations, ICLR 2015, San Diego, CA, USA, May 7-9, 2015, Conference
+Track Proceedings</em>, Yoshua Bengio and
+Yann LeCun (Eds.).
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="http://arxiv.org/abs/1412.6980" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1412.6980</a>
+
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lewis et al<span id="bib.bib25.2.2.1" class="ltx_text">.</span> (2006)</span>
+<span class="ltx_bibblock">
+D. Lewis, G. Agam,
+S. Argamon, O. Frieder,
+D. Grossman, and J. Heard.
+2006.
+
+</span>
+<span class="ltx_bibblock">Building a Test Collection for Complex Document
+Information Processing. In <em id="bib.bib25.3.1" class="ltx_emph ltx_font_italic">Proceedings of the 29th
+Annual International ACM SIGIR Conference on Research and Development in
+Information Retrieval</em> (Seattle, Washington, USA)
+<em id="bib.bib25.4.2" class="ltx_emph ltx_font_italic">(SIGIR ’06)</em>. ACM,
+New York, NY, USA, 665–666.
+
+</span>
+<span class="ltx_bibblock">
+
+<a target="_blank" href="https://doi.org/10.1145/1148170.1148307" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://doi.org/10.1145/1148170.1148307</a>
+
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Li et al<span id="bib.bib26.2.2.1" class="ltx_text">.</span> (2021a)</span>
+<span class="ltx_bibblock">
+Chenliang Li, Bin Bi,
+Ming Yan, Wei Wang,
+Songfang Huang, Fei Huang, and
+Luo Si. 2021a.
+
+</span>
+<span class="ltx_bibblock">StructuralLM: Structural Pre-training for Form
+Understanding. In <em id="bib.bib26.3.1" class="ltx_emph ltx_font_italic">Proceedings of the 59th Annual
+Meeting of the Association for Computational Linguistics and the 11th
+International Joint Conference on Natural Language Processing (Volume 1: Long
+Papers)</em>. Association for Computational Linguistics,
+Online, 6309–6318.
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="https://doi.org/10.18653/v1/2021.acl-long.493" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://doi.org/10.18653/v1/2021.acl-long.493</a>
+
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Li et al<span id="bib.bib27.2.2.1" class="ltx_text">.</span> (2020a)</span>
+<span class="ltx_bibblock">
+Minghao Li, Lei Cui,
+Shaohan Huang, Furu Wei,
+Ming Zhou, and Zhoujun Li.
+2020a.
+
+</span>
+<span class="ltx_bibblock">TableBank: Table Benchmark for Image-based
+Table Detection and Recognition. In <em id="bib.bib27.3.1" class="ltx_emph ltx_font_italic">Proceedings of
+the 12th Language Resources and Evaluation Conference</em>.
+European Language Resources Association,
+Marseille, France, 1918–1925.
+
+</span>
+<span class="ltx_bibblock">
+
+<a target="_blank" href="https://aclanthology.org/2020.lrec-1.236" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://aclanthology.org/2020.lrec-1.236</a>
+
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Li et al<span id="bib.bib28.2.2.1" class="ltx_text">.</span> (2020b)</span>
+<span class="ltx_bibblock">
+Minghao Li, Yiheng Xu,
+Lei Cui, Shaohan Huang,
+Furu Wei, Zhoujun Li, and
+Ming Zhou. 2020b.
+
+</span>
+<span class="ltx_bibblock">DocBank: A Benchmark Dataset for Document
+Layout Analysis. In <em id="bib.bib28.3.1" class="ltx_emph ltx_font_italic">Proceedings of the 28th
+International Conference on Computational Linguistics</em>.
+International Committee on Computational Linguistics,
+Barcelona, Spain (Online), 949–960.
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="https://doi.org/10.18653/v1/2020.coling-main.82" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://doi.org/10.18653/v1/2020.coling-main.82</a>
+
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Li et al<span id="bib.bib29.2.2.1" class="ltx_text">.</span> (2021b)</span>
+<span class="ltx_bibblock">
+Peizhao Li, Jiuxiang Gu,
+Jason Kuen, Vlad I. Morariu,
+Handong Zhao, Rajiv Jain,
+Varun Manjunatha, and Hongfu Liu.
+2021b.
+
+</span>
+<span class="ltx_bibblock">SelfDoc: Self-Supervised Document Representation
+Learning.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2106.03331 [cs.CV]
+
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Li et al<span id="bib.bib30.2.2.1" class="ltx_text">.</span> (2021c)</span>
+<span class="ltx_bibblock">
+Yanghao Li, Saining Xie,
+Xinlei Chen, Piotr Dollár,
+Kaiming He, and Ross B. Girshick.
+2021c.
+
+</span>
+<span class="ltx_bibblock">Benchmarking Detection Transfer Learning with
+Vision Transformers.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib30.3.1" class="ltx_emph ltx_font_italic">ArXiv</em> abs/2111.11429
+(2021).
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Liao et al<span id="bib.bib31.2.2.1" class="ltx_text">.</span> (2022)</span>
+<span class="ltx_bibblock">
+Minghui Liao, Zhisheng
+Zou, Zhaoyi Wan, Cong Yao, and
+Xiang Bai. 2022.
+
+</span>
+<span class="ltx_bibblock">Real-Time Scene Text Detection with Differentiable
+Binarization and Adaptive Scale Fusion.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2202.10304 [cs.CV]
+
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Liu et al<span id="bib.bib32.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Ze Liu, Yutong Lin,
+Yue Cao, Han Hu, Yixuan
+Wei, Zheng Zhang, Stephen Lin, and
+Baining Guo. 2021.
+
+</span>
+<span class="ltx_bibblock">Swin Transformer: Hierarchical Vision Transformer
+using Shifted Windows.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2103.14030 [cs.CV]
+
+</span>
+</li>
+<li id="bib.bib33" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Powalski et al<span id="bib.bib33.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Rafał Powalski, Łukasz
+Borchmann, Dawid Jurkiewicz, Tomasz
+Dwojak, Michał Pietruszka, and
+Gabriela Pałka. 2021.
+
+</span>
+<span class="ltx_bibblock">Going Full-TILT Boogie on Document Understanding with
+Text-Image-Layout Transformer.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2102.09550 [cs.CL]
+
+</span>
+</li>
+<li id="bib.bib34" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Pramanik et al<span id="bib.bib34.2.2.1" class="ltx_text">.</span> (2020)</span>
+<span class="ltx_bibblock">
+Subhojeet Pramanik,
+Shashank Mujumdar, and Hima Patel.
+2020.
+
+</span>
+<span class="ltx_bibblock">Towards a Multi-modal, Multi-task Learning based
+Pre-training Framework for Document Representation Learning.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2009.14457 [cs.CL]
+
+</span>
+</li>
+<li id="bib.bib35" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Ramesh et al<span id="bib.bib35.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Aditya Ramesh, Mikhail
+Pavlov, Gabriel Goh, Scott Gray,
+Chelsea Voss, Alec Radford,
+Mark Chen, and Ilya Sutskever.
+2021.
+
+</span>
+<span class="ltx_bibblock">Zero-Shot Text-to-Image Generation.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2102.12092 [cs.CV]
+
+</span>
+</li>
+<li id="bib.bib36" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sarkhel and Nandi (2019)</span>
+<span class="ltx_bibblock">
+Ritesh Sarkhel and Arnab
+Nandi. 2019.
+
+</span>
+<span class="ltx_bibblock">Deterministic Routing between Layout Abstractions
+for Multi-Scale Classification of Visually Rich Documents. In
+<em id="bib.bib36.1.1" class="ltx_emph ltx_font_italic">Proceedings of the Twenty-Eighth International
+Joint Conference on Artificial Intelligence, IJCAI 2019, Macao, China,
+August 10-16, 2019</em>, Sarit Kraus (Ed.).
+ijcai.org, 3360–3366.
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="https://doi.org/10.24963/ijcai.2019/466" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://doi.org/10.24963/ijcai.2019/466</a>
+
+</span>
+</li>
+<li id="bib.bib37" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Touvron et al<span id="bib.bib37.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Hugo Touvron, Matthieu
+Cord, Matthijs Douze, Francisco Massa,
+Alexandre Sablayrolles, and Hervé
+Jégou. 2021.
+
+</span>
+<span class="ltx_bibblock">Training data-efficient image transformers &amp;
+distillation through attention. In <em id="bib.bib37.3.1" class="ltx_emph ltx_font_italic">International
+Conference on Machine Learning</em>. PMLR, 10347–10357.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib38" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Vaswani et al<span id="bib.bib38.2.2.1" class="ltx_text">.</span> (2017)</span>
+<span class="ltx_bibblock">
+Ashish Vaswani, Noam
+Shazeer, Niki Parmar, Jakob Uszkoreit,
+Llion Jones, Aidan N. Gomez,
+Lukasz Kaiser, and Illia Polosukhin.
+2017.
+
+</span>
+<span class="ltx_bibblock">Attention is All you Need. In
+<em id="bib.bib38.3.1" class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems
+30: Annual Conference on Neural Information Processing Systems 2017, December
+4-9, 2017, Long Beach, CA, USA</em>,
+Isabelle Guyon, Ulrike
+von Luxburg, Samy Bengio, Hanna M.
+Wallach, Rob Fergus, S. V. N.
+Vishwanathan, and Roman Garnett (Eds.).
+5998–6008.
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="https://proceedings.neurips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://proceedings.neurips.cc/paper/2017/hash/3f5ee243547dee91fbd053c1c4a845aa-Abstract.html</a>
+
+</span>
+</li>
+<li id="bib.bib39" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wu et al<span id="bib.bib39.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Te-Lin Wu, Cheng Li,
+Mingyang Zhang, Tao Chen,
+Spurthi Amba Hombaiah, and Michael
+Bendersky. 2021.
+
+</span>
+<span class="ltx_bibblock">LAMPRET: Layout-Aware Multimodal PreTraining for
+Document Understanding.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2104.08405 [cs.CL]
+
+</span>
+</li>
+<li id="bib.bib40" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wu et al<span id="bib.bib40.2.2.1" class="ltx_text">.</span> (2019)</span>
+<span class="ltx_bibblock">
+Yuxin Wu, Alexander
+Kirillov, Francisco Massa, Wan-Yen Lo,
+and Ross Girshick. 2019.
+
+</span>
+<span class="ltx_bibblock">Detectron2.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://github.com/facebookresearch/detectron2" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/facebookresearch/detectron2</a>.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib41" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Xie et al<span id="bib.bib41.2.2.1" class="ltx_text">.</span> (2017)</span>
+<span class="ltx_bibblock">
+Saining Xie, Ross B.
+Girshick, Piotr Dollár, Zhuowen
+Tu, and Kaiming He. 2017.
+
+</span>
+<span class="ltx_bibblock">Aggregated Residual Transformations for Deep Neural
+Networks. In <em id="bib.bib41.3.1" class="ltx_emph ltx_font_italic">2017 IEEE Conference on Computer
+Vision and Pattern Recognition, CVPR 2017, Honolulu, HI, USA, July 21-26,
+2017</em>. IEEE Computer Society,
+5987–5995.
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="https://doi.org/10.1109/CVPR.2017.634" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://doi.org/10.1109/CVPR.2017.634</a>
+
+</span>
+</li>
+<li id="bib.bib42" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Xu et al<span id="bib.bib42.2.2.1" class="ltx_text">.</span> (2020)</span>
+<span class="ltx_bibblock">
+Yiheng Xu, Minghao Li,
+Lei Cui, Shaohan Huang,
+Furu Wei, and Ming Zhou.
+2020.
+
+</span>
+<span class="ltx_bibblock">LayoutLM: Pre-training of Text and Layout for
+Document Image Understanding. In <em id="bib.bib42.3.1" class="ltx_emph ltx_font_italic">KDD ’20: The
+26th ACM SIGKDD Conference on Knowledge Discovery and Data Mining,
+Virtual Event, CA, USA, August 23-27, 2020</em>,
+Rajesh Gupta, Yan Liu,
+Jiliang Tang, and B. Aditya Prakash
+(Eds.). ACM, 1192–1200.
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="https://dl.acm.org/doi/10.1145/3394486.3403172" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://dl.acm.org/doi/10.1145/3394486.3403172</a>
+
+</span>
+</li>
+<li id="bib.bib43" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Xu et al<span id="bib.bib43.2.2.1" class="ltx_text">.</span> (2021a)</span>
+<span class="ltx_bibblock">
+Yiheng Xu, Tengchao Lv,
+Lei Cui, Guoxin Wang,
+Yijuan Lu, Dinei Florencio,
+Cha Zhang, and Furu Wei.
+2021a.
+
+</span>
+<span class="ltx_bibblock">LayoutXLM: Multimodal Pre-training for Multilingual
+Visually-rich Document Understanding.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2104.08836 [cs.CL]
+
+</span>
+</li>
+<li id="bib.bib44" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Xu et al<span id="bib.bib44.2.2.1" class="ltx_text">.</span> (2022)</span>
+<span class="ltx_bibblock">
+Yiheng Xu, Tengchao Lv,
+Lei Cui, Guoxin Wang,
+Yijuan Lu, Dinei Florencio,
+Cha Zhang, and Furu Wei.
+2022.
+
+</span>
+<span class="ltx_bibblock">XFUND: A Benchmark Dataset for Multilingual
+Visually Rich Form Understanding. In <em id="bib.bib44.3.1" class="ltx_emph ltx_font_italic">Findings of
+the Association for Computational Linguistics: ACL 2022</em>.
+Association for Computational Linguistics,
+Dublin, Ireland, 3214–3224.
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="https://doi.org/10.18653/v1/2022.findings-acl.253" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://doi.org/10.18653/v1/2022.findings-acl.253</a>
+
+</span>
+</li>
+<li id="bib.bib45" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Xu et al<span id="bib.bib45.2.2.1" class="ltx_text">.</span> (2021b)</span>
+<span class="ltx_bibblock">
+Yang Xu, Yiheng Xu,
+Tengchao Lv, Lei Cui,
+Furu Wei, Guoxin Wang,
+Yijuan Lu, Dinei Florencio,
+Cha Zhang, Wanxiang Che,
+Min Zhang, and Lidong Zhou.
+2021b.
+
+</span>
+<span class="ltx_bibblock">LayoutLMv2: Multi-modal Pre-training for
+Visually-rich Document Understanding. In
+<em id="bib.bib45.3.1" class="ltx_emph ltx_font_italic">Proceedings of the 59th Annual Meeting of the
+Association for Computational Linguistics and the 11th International Joint
+Conference on Natural Language Processing (Volume 1: Long Papers)</em>.
+Association for Computational Linguistics,
+Online, 2579–2591.
+
+</span>
+<span class="ltx_bibblock">
+<a target="_blank" href="https://doi.org/10.18653/v1/2021.acl-long.201" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://doi.org/10.18653/v1/2021.acl-long.201</a>
+
+</span>
+</li>
+<li id="bib.bib46" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhong et al<span id="bib.bib46.2.2.1" class="ltx_text">.</span> (2020)</span>
+<span class="ltx_bibblock">
+Xu Zhong, Elaheh
+ShafieiBavani, and Antonio Jimeno Yepes.
+2020.
+
+</span>
+<span class="ltx_bibblock">Image-based table recognition: data, model, and
+evaluation.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:1911.10683 [cs.CV]
+
+</span>
+</li>
+<li id="bib.bib47" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhong et al<span id="bib.bib47.2.2.1" class="ltx_text">.</span> (2019)</span>
+<span class="ltx_bibblock">
+Xu Zhong, Jianbin Tang,
+and Antonio Jimeno Yepes.
+2019.
+
+</span>
+<span class="ltx_bibblock">PubLayNet: largest dataset ever for document layout
+analysis. In <em id="bib.bib47.3.1" class="ltx_emph ltx_font_italic">2019 International Conference on
+Document Analysis and Recognition (ICDAR)</em>. IEEE,
+1015–1022.
+
+</span>
+<span class="ltx_bibblock">
+
+<a target="_blank" href="https://doi.org/10.1109/ICDAR.2019.00166" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://doi.org/10.1109/ICDAR.2019.00166</a>
+
+</span>
+</li>
+<li id="bib.bib48" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhou et al<span id="bib.bib48.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Jinghao Zhou, Chen Wei,
+Huiyu Wang, Wei Shen,
+Cihang Xie, Alan Yuille, and
+Tao Kong. 2021.
+
+</span>
+<span class="ltx_bibblock">iBOT: Image BERT Pre-Training with Online Tokenizer.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2111.07832 [cs.CV]
+
+</span>
+</li>
+<li id="bib.bib49" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Łukasz Garncarek et al<span id="bib.bib49.2.2.1" class="ltx_text">.</span> (2021)</span>
+<span class="ltx_bibblock">
+Łukasz Garncarek, Rafał
+Powalski, Tomasz Stanisławek, Bartosz
+Topolski, Piotr Halama, Michał Turski,
+and Filip Graliński. 2021.
+
+</span>
+<span class="ltx_bibblock">LAMBERT: Layout-Aware (Language) Modeling for
+information extraction.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+<span class="ltx_bibblock">arXiv:2002.08087 [cs.CL]
+
+</span>
+</li>
+</ul>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2203.02377" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2203.02378" class="ar5iv-text-button ar5iv-severity-ok">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2203.02378">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2203.02378" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2203.02379" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Mon Mar 11 08:34:33 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

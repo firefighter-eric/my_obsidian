@@ -1,0 +1,1530 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2503.16418] InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity</title><meta property="og:description" content="Achieving flexible and high-fidelity identity-preserved image generation remains formidable, particularly with advanced Diffusion Transformers (DiTs) like FLUX. We introduce InfiniteYou (InfU), one of the earliest robu…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2503.16418">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2503.16418">
+
+<!--Generated on Sat Apr  5 17:04:46 2025 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line ltx_pruned_first">
+<h1 class="ltx_title ltx_title_document">InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Liming Jiang    Qing Yan    Yumin Jia    Zichuan Liu    Hao Kang    Xin Lu
+<br class="ltx_break">
+ByteDance Intelligent Creation
+<br class="ltx_break">
+Project Page: <a target="_blank" href="https://bytedance.github.io/InfiniteYou" title="" class="ltx_ref ltx_href ltx_font_bold" style="color:#FF00FF;">https://bytedance.github.io/InfiniteYou</a>
+</span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p class="ltx_p">Achieving flexible and high-fidelity identity-preserved image generation remains formidable, particularly with advanced Diffusion Transformers (DiTs) like FLUX. We introduce <span class="ltx_text ltx_font_bold">InfiniteYou (InfU)</span>, one of the earliest robust frameworks leveraging DiTs for this task. InfU addresses significant issues of existing methods, such as insufficient identity similarity, poor text-image alignment, and low generation quality and aesthetics. Central to InfU is InfuseNet, a component that injects identity features into the DiT base model via residual connections, enhancing identity similarity while maintaining generation capabilities. A multi-stage training strategy, including pretraining and supervised fine-tuning (SFT) with synthetic single-person-multiple-sample (SPMS) data, further improves text-image alignment, ameliorates image quality, and alleviates face copy-pasting. Extensive experiments demonstrate that InfU achieves state-of-the-art performance, surpassing existing baselines. In addition, the plug-and-play design of InfU ensures compatibility with various existing methods, offering a valuable contribution to the broader community. Code and model: <a target="_blank" href="https://github.com/bytedance/InfiniteYou" title="" class="ltx_ref ltx_href" style="color:#FF00FF;">https://github.com/bytedance/InfiniteYou</a>.</p>
+</div>
+<div class="ltx_logical-block">
+<div id="p2" class="ltx_para">
+<img src="/html/2503.16418/assets/x1.png" id="g1" class="ltx_graphics ltx_centering ltx_img_square" width="813" height="700" alt="[Uncaptioned image]">
+</div>
+<figure id="S0.F1" class="ltx_figure ltx_align_center">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text" style="font-size:90%;">Figure 1</span>: </span><span class="ltx_text" style="font-size:90%;">InfiniteYou generates identity-preserved images with exceptional identity similarity, text-image alignment, quality, and aesthetics.</span></figcaption>
+</figure>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p class="ltx_p">Identity-preserved image generation aims to recraft a photograph of a specific person using free-form text descriptions while preserving facial identity. This task is challenging but highly beneficial.
+Previous methods <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib54" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">54</span></a>, <a href="#bib.bib51" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">51</span></a>, <a href="#bib.bib14" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">14</span></a>]</cite> have been mainly developed on U-Net <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib42" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">42</span></a>]</cite>-based text-to-image diffusion models <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib46" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">46</span></a>, <a href="#bib.bib17" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">17</span></a>, <a href="#bib.bib41" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">41</span></a>]</cite>, such as Stable Diffusion XL (SDXL) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib38" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">38</span></a>]</cite>. However, due to the limited generation capacity of the base model, the quality of generated images remains inadequate.
+Recent strides in Diffusion Transformers (DiTs) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib37" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">37</span></a>, <a href="#bib.bib12" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">12</span></a>]</cite> have made remarkable progress in content creation.
+In particular, the latest releases of state-of-the-art rectified flow DiTs, such as FLUX <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">26</span></a>]</cite> and Stable Diffusion 3.5 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">12</span></a>]</cite>, showcase incredible image generation quality.
+Consequently, it is crucial to explore solutions that can leverage the immense potential of DiTs for downstream applications like identity-preserved image generation.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p class="ltx_p">DiT-based identity-preserved image generation remains formidable due to several factors: the absence of customized module designs, difficulties in model scaling, and a lack of high-quality data. Thus, effective solutions for this task using state-of-the-art rectified flow <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib33" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">33</span></a>, <a href="#bib.bib4" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">4</span></a>]</cite> DiTs, such as FLUX <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">26</span></a>]</cite>, are currently scarce in both academia and industry.
+PuLID-FLUX, derived from PuLID <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">14</span></a>]</cite>, presented an initial attempt to develop an identity-preserved image generation model based on FLUX.
+Other open-source efforts, including FLUX.1-dev IP-Adapters from InstantX <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">20</span></a>]</cite> and XLabs-AI <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib3" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">3</span></a>]</cite>, are not tailored for human facial identities.
+Nevertheless, existing methods fall short in three key aspects: <span class="ltx_text ltx_font_bold">1)</span> The identity similarity is not sufficient; <span class="ltx_text ltx_font_bold">2)</span> The text-image alignment and editability are poor, and the face copy-paste issue is evident; <span class="ltx_text ltx_font_bold">3)</span> The generation capability of FLUX is largely compromised, resulting in lower image quality and aesthetic appeal.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p class="ltx_p">To address the aforementioned challenges, we propose a simple yet effective framework for identity-preserved image generation, namely InfiniteYou (InfU). This framework is designed to be systematic and robust, enabling flexible text-based photo re-creation for diverse identities, races, and age groups across various scenarios.
+We introduce InfuseNet, a generalization of ControlNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib56" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">56</span></a>]</cite>, which ingests identity information along with the controlling conditions.
+The projected identity features are injected by InfuseNet into the DiT base model through residual connections, thereby disentangling text and identity injections.
+InfuseNet is both scalable and compatible, harnessing the powerful generation capabilities of DiTs.
+The scale-up injection network and the delicate architecture design, equipped with large-scale model training, effectively enhance identity similarity.
+To improve text-image alignment, image quality, and aesthetic appeal, we employ a multi-stage training strategy, including pretraining and supervised fine-tuning (SFT) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib21" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">21</span></a>, <a href="#bib.bib49" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">49</span></a>]</cite>. The SFT stage utilizes carefully designed synthetic single-person-multiple-sample (SPMS) data generation, leveraging our pretrained model itself and various off-the-shelf modules.
+This strategy enhances the quantity, quality, aesthetics, and text-image alignment of the training data, thus improving overall model performance and alleviating the face copy-paste issue.
+Thanks to the InfuseNet design, identity information is injected purely via residual connections between DiT blocks, unlike conventional practices <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib54" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">54</span></a>, <a href="#bib.bib51" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">51</span></a>, <a href="#bib.bib14" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">14</span></a>]</cite> that directly modify attention <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib50" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">50</span></a>]</cite> layers via IP-Adapter (IPA).
+Consequently, the generation capability of the base model remains largely intact, allowing for the generation of high-quality and aesthetically pleasing images.
+Moreover, InfU is plug-and-play and readily compatible with many other methods or plugins, thus offering significant value to the broader community.</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p class="ltx_p">Comprehensive experiments show that the proposed InfU framework achieves state-of-the-art performance
+(see Figure <a href="#S0.F1" title="Figure 1 ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>), significantly surpassing existing baselines in identity similarity, text-image alignment, and overall image quality. Our main contributions are summarized as follows:</p>
+<ul id="S1.I1" class="ltx_itemize">
+<li id="S1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i1.p1" class="ltx_para">
+<p class="ltx_p">We propose InfiniteYou (InfU), a versatile and robust DiT-based framework for flexible identity-preserved image generation under various scenarios.</p>
+</div>
+</li>
+<li id="S1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i2.p1" class="ltx_para">
+<p class="ltx_p">We introduce InfuseNet, a generalization of ControlNet, which effectively injects identity features into the DiT base model via residual connections, enhancing identity similarity with minimal impact on generation capabilities.</p>
+</div>
+</li>
+<li id="S1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i3.p1" class="ltx_para">
+<p class="ltx_p">We employ a multi-stage training strategy, including pretraining and supervised fine-tuning (SFT), using synthetic single-person-multiple-sample (SPMS) data generation. This approach significantly improves text-image alignment, image quality, and aesthetic appeal.</p>
+</div>
+</li>
+<li id="S1.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i4.p1" class="ltx_para">
+<p class="ltx_p">The InfU module features a desirable plug-and-play design, compatible with many existing methods, thus providing a valuable contribution to the broader community.</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Related Work</h2>
+
+<div id="S2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Text-to-image Diffusion Transformers (DiTs).</span>
+Diffusion models <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib46" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">46</span></a>, <a href="#bib.bib17" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">17</span></a>, <a href="#bib.bib47" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">47</span></a>, <a href="#bib.bib41" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">41</span></a>]</cite> have become a standard paradigm given their incredible capability to produce high-fidelity images. Text-to-image generation aims to synthesize images through the denoising diffusion process <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib17" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">17</span></a>, <a href="#bib.bib41" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">41</span></a>]</cite> from a Gaussian distribution given textual descriptions.
+Conventional methods <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib41" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">41</span></a>, <a href="#bib.bib38" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">38</span></a>, <a href="#bib.bib45" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">45</span></a>, <a href="#bib.bib30" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">30</span></a>]</cite> are based on U-Net <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib42" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">42</span></a>]</cite>, where the text representation is extracted by CLIP <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib39" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">39</span></a>]</cite>.
+Recent DiTs <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib37" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">37</span></a>]</cite>, based on Vision Transformers (ViTs) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib11" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">11</span></a>, <a href="#bib.bib9" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">9</span></a>]</cite> and typically using text embeddings encoded by T5 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib40" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">40</span></a>]</cite> in addition to CLIP, have exhibited even higher generation capacity compared to U-Net architectures.
+The latest releases of DiTs with rectified flows (RFs) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib33" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">33</span></a>, <a href="#bib.bib4" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">4</span></a>]</cite>, such as Stable Diffusion 3.5 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">12</span></a>]</cite>, Playground V3 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib32" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">32</span></a>]</cite>, Recraft V3 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib2" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">2</span></a>]</cite>, and FLUX.1 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">26</span></a>]</cite>, have further shown their unprecedented generation quality.
+The progress made by these DiTs naturally stimulates the development of customized approaches in their downstream applications. This highlights the significance of our work, reforming the architecture from U-Nets to DiTs for identity-preserved image generation.</p>
+</div>
+<div id="S2.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Identity-preserved image generation.</span>
+Tuning-based methods for dentity-preserved image generation include <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib13" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">13</span></a>, <a href="#bib.bib43" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">43</span></a>, <a href="#bib.bib18" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">18</span></a>, <a href="#bib.bib44" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">44</span></a>, <a href="#bib.bib24" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">24</span></a>]</cite>. However, their practical significance is hindered by low efficiency and high tuning cost due to their specificity to individual identities.
+Therefore, tuning-free methods have become the mainstream practice for this task. A series of efforts, such as IP-Adapter <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib54" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">54</span></a>]</cite>, FastComposer <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib52" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">52</span></a>]</cite>, Photomaker <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib29" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">29</span></a>]</cite>, InstantID <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib51" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">51</span></a>]</cite>, FlashFace <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib57" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">57</span></a>]</cite>, Arc2Face <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib36" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">36</span></a>]</cite>, Imagine Yourself <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib15" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">15</span></a>]</cite>, and PuLID <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">14</span></a>]</cite>, typically employ additional trainable modules as adapters to inject identity information.
+After training, these approaches can generate customized images without additional tuning, even when ingesting new subject samples. However, these methods are mainly developed for U-Net-based Stable Diffusion <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib41" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">41</span></a>]</cite> and SDXL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib38" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">38</span></a>]</cite>, where the limited generative capability of the base model inevitably constrains the quality of the generated images.
+The remarkable achievements of DiTs highlight the importance of base model replacement, which remains underexplored.
+PuLID-FLUX <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">14</span></a>]</cite> made an initial attempt based on IP-Adapter trained with alignment and identity losses <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">14</span></a>]</cite>. Other open-source efforts, including FLUX.1-dev IP-Adapters from InstantX <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">20</span></a>]</cite> and XLabs-AI <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib3" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">3</span></a>]</cite>, were devised but not tailored for human faces.
+Nevertheless, existing methods still face limitations: insufficient identity similarity, poor text-image alignment, face copy-paste issues, and compromised generation quality.
+The proposed InfU effectively addresses these shortcomings.</p>
+</div>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Methodology</h2>
+
+<figure id="S3.F2" class="ltx_figure"><img src="/html/2503.16418/assets/x2.png" id="S3.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="356" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text" style="font-size:90%;">Figure 2</span>: </span><span class="ltx_text" style="font-size:90%;">The superiority of the DiT-based method over the U-Net-based one and the side effects of IP-Adapter (IPA) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib54" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">54</span></a>]</cite>.</span></figcaption>
+</figure>
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1 </span>Preliminary</h3>
+
+<div id="S3.SS1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Simulation-free training of flows.</span>
+Following <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">12</span></a>]</cite>, generative models are defined to establish a transformation between samples <math id="S3.SS1.p1.m1" class="ltx_Math" alttext="x_{1}" display="inline"><semantics><msub><mi>x</mi><mn>1</mn></msub><annotation encoding="application/x-tex">x_{1}</annotation></semantics></math> drawn from a noise distribution <math id="S3.SS1.p1.m2" class="ltx_Math" alttext="p_{1}" display="inline"><semantics><msub><mi>p</mi><mn>1</mn></msub><annotation encoding="application/x-tex">p_{1}</annotation></semantics></math> to samples <math id="S3.SS1.p1.m3" class="ltx_Math" alttext="x_{0}" display="inline"><semantics><msub><mi>x</mi><mn>0</mn></msub><annotation encoding="application/x-tex">x_{0}</annotation></semantics></math> drawn from a data distribution <math id="S3.SS1.p1.m4" class="ltx_Math" alttext="p_{0}" display="inline"><semantics><msub><mi>p</mi><mn>0</mn></msub><annotation encoding="application/x-tex">p_{0}</annotation></semantics></math>, formulated through an ordinary differential equation (ODE),</p>
+<table id="S3.E1" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E1.m1" class="ltx_Math" alttext="dy_{t}=v_{\Theta}\left(y_{t},t\right)\,dt," display="block"><semantics><mrow><mrow><mrow><mi>d</mi><mo lspace="0em" rspace="0em">​</mo><msub><mi>y</mi><mi>t</mi></msub></mrow><mo>=</mo><mrow><msub><mi>v</mi><mi mathvariant="normal">Θ</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><msub><mi>y</mi><mi>t</mi></msub><mo>,</mo><mi>t</mi><mo>)</mo></mrow><mo lspace="0.170em" rspace="0em">​</mo><mi>d</mi><mo lspace="0em" rspace="0em">​</mo><mi>t</mi></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">dy_{t}=v_{\Theta}\left(y_{t},t\right)\,dt,</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(1)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">where the velocity <math id="S3.SS1.p1.m5" class="ltx_Math" alttext="v" display="inline"><semantics><mi>v</mi><annotation encoding="application/x-tex">v</annotation></semantics></math> is parameterized by the neural network weights <math id="S3.SS1.p1.m6" class="ltx_Math" alttext="\Theta" display="inline"><semantics><mi mathvariant="normal">Θ</mi><annotation encoding="application/x-tex">\Theta</annotation></semantics></math>. The previous work <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib7" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">7</span></a>]</cite> proposed solving <a href="#S3.E1" title="In 3.1 Preliminary ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Eq.</span> <span class="ltx_text ltx_ref_tag">1</span></a> directly using differentiable ODE solvers.
+However, this method is computationally intensive, particularly for large neural network structures that parameterize <math id="S3.SS1.p1.m7" class="ltx_Math" alttext="v_{\Theta}\left(y_{t},t\right)" display="inline"><semantics><mrow><msub><mi>v</mi><mi mathvariant="normal">Θ</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><msub><mi>y</mi><mi>t</mi></msub><mo>,</mo><mi>t</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">v_{\Theta}\left(y_{t},t\right)</annotation></semantics></math>.
+A more efficient approach is to directly regress a vector field <math id="S3.SS1.p1.m8" class="ltx_Math" alttext="u_{t}" display="inline"><semantics><msub><mi>u</mi><mi>t</mi></msub><annotation encoding="application/x-tex">u_{t}</annotation></semantics></math> that defines a probability path <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib31" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">31</span></a>]</cite> between <math id="S3.SS1.p1.m9" class="ltx_Math" alttext="p_{0}" display="inline"><semantics><msub><mi>p</mi><mn>0</mn></msub><annotation encoding="application/x-tex">p_{0}</annotation></semantics></math> and <math id="S3.SS1.p1.m10" class="ltx_Math" alttext="p_{1}" display="inline"><semantics><msub><mi>p</mi><mn>1</mn></msub><annotation encoding="application/x-tex">p_{1}</annotation></semantics></math>.
+To formulate such a vector field <math id="S3.SS1.p1.m11" class="ltx_Math" alttext="u_{t}" display="inline"><semantics><msub><mi>u</mi><mi>t</mi></msub><annotation encoding="application/x-tex">u_{t}</annotation></semantics></math>, a forward process is defined that corresponds to a probability path <math id="S3.SS1.p1.m12" class="ltx_Math" alttext="p_{t}" display="inline"><semantics><msub><mi>p</mi><mi>t</mi></msub><annotation encoding="application/x-tex">p_{t}</annotation></semantics></math> between <math id="S3.SS1.p1.m13" class="ltx_Math" alttext="p_{0}" display="inline"><semantics><msub><mi>p</mi><mn>0</mn></msub><annotation encoding="application/x-tex">p_{0}</annotation></semantics></math> and <math id="S3.SS1.p1.m14" class="ltx_Math" alttext="p_{1}=\mathcal{N}\left(0,1\right)" display="inline"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><mrow><mi class="ltx_font_mathcaligraphic">𝒩</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">p_{1}=\mathcal{N}\left(0,1\right)</annotation></semantics></math>, expressed as</p>
+<table id="S3.E2" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E2.m1" class="ltx_Math" alttext="z_{t}=a_{t}x_{0}+b_{t}\epsilon,\quad\text{where}\;\epsilon\sim\mathcal{N}(0,I)." display="block"><semantics><mrow><mrow><mrow><msub><mi>z</mi><mi>t</mi></msub><mo>=</mo><mrow><mrow><msub><mi>a</mi><mi>t</mi></msub><mo lspace="0em" rspace="0em">​</mo><msub><mi>x</mi><mn>0</mn></msub></mrow><mo>+</mo><mrow><msub><mi>b</mi><mi>t</mi></msub><mo lspace="0em" rspace="0em">​</mo><mi>ϵ</mi></mrow></mrow></mrow><mo rspace="1.167em">,</mo><mrow><mrow><mtext>where</mtext><mo lspace="0.280em" rspace="0em">​</mo><mi>ϵ</mi></mrow><mo>∼</mo><mrow><mi class="ltx_font_mathcaligraphic">𝒩</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mn>0</mn><mo>,</mo><mi>I</mi><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow><annotation encoding="application/x-tex">z_{t}=a_{t}x_{0}+b_{t}\epsilon,\quad\text{where}\;\epsilon\sim\mathcal{N}(0,I).</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(2)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">For <math id="S3.SS1.p1.m15" class="ltx_Math" alttext="a_{0}=1,b_{0}=0,a_{1}=0" display="inline"><semantics><mrow><mrow><msub><mi>a</mi><mn>0</mn></msub><mo>=</mo><mn>1</mn></mrow><mo>,</mo><mrow><mrow><msub><mi>b</mi><mn>0</mn></msub><mo>=</mo><mn>0</mn></mrow><mo>,</mo><mrow><msub><mi>a</mi><mn>1</mn></msub><mo>=</mo><mn>0</mn></mrow></mrow></mrow><annotation encoding="application/x-tex">a_{0}=1,b_{0}=0,a_{1}=0</annotation></semantics></math>, and <math id="S3.SS1.p1.m16" class="ltx_Math" alttext="b_{1}=1" display="inline"><semantics><mrow><msub><mi>b</mi><mn>1</mn></msub><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">b_{1}=1</annotation></semantics></math>, the marginals</p>
+<table id="S5.EGx1" class="ltx_equationgroup ltx_eqn_align ltx_eqn_table">
+
+<tbody id="S3.E3"><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right ltx_eqn_cell"><math id="S3.E3.m1" class="ltx_Math" alttext="\displaystyle p_{t}\left(z_{t}\right)" display="inline"><semantics><mrow><msub><mi>p</mi><mi>t</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><msub><mi>z</mi><mi>t</mi></msub><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">\displaystyle p_{t}\left(z_{t}\right)</annotation></semantics></math></td>
+<td class="ltx_td ltx_align_left ltx_eqn_cell"><math id="S3.E3.m2" class="ltx_Math" alttext="\displaystyle=\mathbb{E}_{\epsilon\sim\mathcal{N}\left(0,I\right)}p_{t}\left(z_{t}|\epsilon\right)," display="inline"><semantics><mrow><mrow><mi></mi><mo>=</mo><mrow><msub><mi>𝔼</mi><mrow><mi>ϵ</mi><mo>∼</mo><mrow><mi class="ltx_font_mathcaligraphic">𝒩</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><mn>0</mn><mo>,</mo><mi>I</mi><mo>)</mo></mrow></mrow></mrow></msub><mo lspace="0em" rspace="0em">​</mo><msub><mi>p</mi><mi>t</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><mrow><msub><mi>z</mi><mi>t</mi></msub><mo fence="false">|</mo><mi>ϵ</mi></mrow><mo>)</mo></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\displaystyle=\mathbb{E}_{\epsilon\sim\mathcal{N}\left(0,I\right)}p_{t}\left(z_{t}|\epsilon\right),</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(3)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">align with the data and noise distributions. A marginal vector field <math id="S3.SS1.p1.m17" class="ltx_Math" alttext="u_{t}" display="inline"><semantics><msub><mi>u</mi><mi>t</mi></msub><annotation encoding="application/x-tex">u_{t}</annotation></semantics></math> can generate the marginal probability paths <math id="S3.SS1.p1.m18" class="ltx_Math" alttext="p_{t}" display="inline"><semantics><msub><mi>p</mi><mi>t</mi></msub><annotation encoding="application/x-tex">p_{t}</annotation></semantics></math> using conditional vector fields <math id="S3.SS1.p1.m19" class="ltx_math_unparsed" alttext="u_{t}\left(\cdot|\epsilon\right)" display="inline"><semantics><mrow><msub><mi>u</mi><mi>t</mi></msub><mrow><mo>(</mo><mo lspace="0em" rspace="0em">⋅</mo><mo fence="false" rspace="0.167em" stretchy="false">|</mo><mi>ϵ</mi><mo>)</mo></mrow></mrow><annotation encoding="application/x-tex">u_{t}\left(\cdot|\epsilon\right)</annotation></semantics></math>:</p>
+<table id="S5.EGx2" class="ltx_equationgroup ltx_eqn_align ltx_eqn_table">
+
+<tbody id="S3.E4"><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right ltx_eqn_cell"><math id="S3.E4.m1" class="ltx_Math" alttext="\displaystyle u_{t}\left(z\right)=\mathbb{E}_{\epsilon\sim\mathcal{N}\left(0,I\right)}u_{t}\left(z|\epsilon\right)\frac{p_{t}\left(z|\epsilon\right)}{p_{t}\left(z\right)}." display="inline"><semantics><mrow><mrow><mrow><msub><mi>u</mi><mi>t</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><mi>z</mi><mo>)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>𝔼</mi><mrow><mi>ϵ</mi><mo>∼</mo><mrow><mi class="ltx_font_mathcaligraphic">𝒩</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><mn>0</mn><mo>,</mo><mi>I</mi><mo>)</mo></mrow></mrow></mrow></msub><mo lspace="0em" rspace="0em">​</mo><msub><mi>u</mi><mi>t</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><mrow><mi>z</mi><mo fence="false">|</mo><mi>ϵ</mi></mrow><mo>)</mo></mrow><mo lspace="0em" rspace="0em">​</mo><mstyle displaystyle="true"><mfrac><mrow><msub><mi>p</mi><mi>t</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><mrow><mi>z</mi><mo fence="false">|</mo><mi>ϵ</mi></mrow><mo>)</mo></mrow></mrow><mrow><msub><mi>p</mi><mi>t</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><mi>z</mi><mo>)</mo></mrow></mrow></mfrac></mstyle></mrow></mrow><mo lspace="0em">.</mo></mrow><annotation encoding="application/x-tex">\displaystyle u_{t}\left(z\right)=\mathbb{E}_{\epsilon\sim\mathcal{N}\left(0,I\right)}u_{t}\left(z|\epsilon\right)\frac{p_{t}\left(z|\epsilon\right)}{p_{t}\left(z\right)}.</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(4)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">It is intractable to regress <math id="S3.SS1.p1.m20" class="ltx_Math" alttext="u_{t}" display="inline"><semantics><msub><mi>u</mi><mi>t</mi></msub><annotation encoding="application/x-tex">u_{t}</annotation></semantics></math> directly due to the marginalization in <a href="#S3.E4" title="In 3.1 Preliminary ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Eq.</span> <span class="ltx_text ltx_ref_tag">4</span></a>. Thus, we switch to a simple and tractable objective, <em class="ltx_emph ltx_font_italic">i.e</em>., Conditional Flow Matching <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib31" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">31</span></a>, <a href="#bib.bib12" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">12</span></a>]</cite>:</p>
+<table id="S5.EGx3" class="ltx_equationgroup ltx_eqn_align ltx_eqn_table">
+
+<tbody id="S3.E5"><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_td ltx_align_right ltx_eqn_cell"><math id="S3.E5.m1" class="ltx_math_unparsed" alttext="\displaystyle\mathcal{L}_{CFM}=\mathbb{E}_{t,p_{t}\left(z|\epsilon\right),p\left(\epsilon\right)}\left\|v_{\Theta}\left(z,t\right)-u_{t}\left(z|\epsilon\right)\right\|_{2}^{2}." display="inline"><semantics><mrow><msub><mi class="ltx_font_mathcaligraphic">ℒ</mi><mrow><mi>C</mi><mo lspace="0em" rspace="0em">​</mo><mi>F</mi><mo lspace="0em" rspace="0em">​</mo><mi>M</mi></mrow></msub><mo>=</mo><msub><mi>𝔼</mi><mrow><mi>t</mi><mo>,</mo><mrow><msub><mi>p</mi><mi>t</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><mrow><mi>z</mi><mo fence="false">|</mo><mi>ϵ</mi></mrow><mo>)</mo></mrow></mrow><mo>,</mo><mrow><mi>p</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><mi>ϵ</mi><mo>)</mo></mrow></mrow></mrow></msub><mo lspace="0em" rspace="0.167em" stretchy="true">∥</mo><msub><mi>v</mi><mi mathvariant="normal">Θ</mi></msub><mrow><mo>(</mo><mi>z</mi><mo>,</mo><mi>t</mi><mo>)</mo></mrow><mo>−</mo><msub><mi>u</mi><mi>t</mi></msub><mrow><mo>(</mo><mi>z</mi><mo fence="false" rspace="0.167em" stretchy="false">|</mo><mi>ϵ</mi><mo>)</mo></mrow><msubsup><mo lspace="0em" rspace="0.0835em" stretchy="true">∥</mo><mn>2</mn><mn>2</mn></msubsup><mo lspace="0.0835em">.</mo></mrow><annotation encoding="application/x-tex">\displaystyle\mathcal{L}_{CFM}=\mathbb{E}_{t,p_{t}\left(z|\epsilon\right),p\left(\epsilon\right)}\left\|v_{\Theta}\left(z,t\right)-u_{t}\left(z|\epsilon\right)\right\|_{2}^{2}.</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(5)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S3.SS1.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Rectified Flow.</span>
+Rectified flows (RFs) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib33" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">33</span></a>, <a href="#bib.bib4" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">4</span></a>]</cite> define the forward process as straight paths between the data distribution and a standard Gaussian distribution, <em class="ltx_emph ltx_font_italic">i.e</em>.,</p>
+<table id="S3.E6" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E6.m1" class="ltx_Math" alttext="z_{t}=\left(1-t\right)x_{0}+t\epsilon," display="block"><semantics><mrow><mrow><msub><mi>z</mi><mi>t</mi></msub><mo>=</mo><mrow><mrow><mrow><mo>(</mo><mrow><mn>1</mn><mo>−</mo><mi>t</mi></mrow><mo>)</mo></mrow><mo lspace="0em" rspace="0em">​</mo><msub><mi>x</mi><mn>0</mn></msub></mrow><mo>+</mo><mrow><mi>t</mi><mo lspace="0em" rspace="0em">​</mo><mi>ϵ</mi></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">z_{t}=\left(1-t\right)x_{0}+t\epsilon,</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(6)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">where <math id="S3.SS1.p2.m1" class="ltx_Math" alttext="\epsilon\sim\mathcal{N}\left(0,I\right)" display="inline"><semantics><mrow><mi>ϵ</mi><mo>∼</mo><mrow><mi class="ltx_font_mathcaligraphic">𝒩</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><mn>0</mn><mo>,</mo><mi>I</mi><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">\epsilon\sim\mathcal{N}\left(0,I\right)</annotation></semantics></math>. The network output directly parameterizes the velocity <math id="S3.SS1.p2.m2" class="ltx_Math" alttext="v_{\Theta}" display="inline"><semantics><msub><mi>v</mi><mi mathvariant="normal">Θ</mi></msub><annotation encoding="application/x-tex">v_{\Theta}</annotation></semantics></math>.
+We use <math id="S3.SS1.p2.m3" class="ltx_Math" alttext="\mathcal{L}_{CFM}" display="inline"><semantics><msub><mi class="ltx_font_mathcaligraphic">ℒ</mi><mrow><mi>C</mi><mo lspace="0em" rspace="0em">​</mo><mi>F</mi><mo lspace="0em" rspace="0em">​</mo><mi>M</mi></mrow></msub><annotation encoding="application/x-tex">\mathcal{L}_{CFM}</annotation></semantics></math> (<a href="#S3.E5" title="In 3.1 Preliminary ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Eq.</span> <span class="ltx_text ltx_ref_tag">5</span></a>) as the loss objective.
+Different flow trajectories and samplers are defined in <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">12</span></a>]</cite>, including logit-normal sampling, which we also employ in our model training.</p>
+</div>
+<figure id="S3.F3" class="ltx_figure"><img src="/html/2503.16418/assets/x3.png" id="S3.F3.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="747" height="485" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text" style="font-size:90%;">Figure 3</span>: </span><span class="ltx_text" style="font-size:90%;">The main framework of InfiniteYou (InfU) and the detailed architecture of InfuseNet. The projected identity features and an optional control image are injected by InfuseNet into text-to-image DiTs via residual connections. Specifically, each DiT block in InfuseNet predicts the output residuals of the corresponding <math id="S3.F3.m2" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> DiT blocks in the base model. Only InfuseNet and the projection network are trainable.</span></figcaption>
+</figure>
+<div id="S3.SS1.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Text-to-image DiTs.</span>
+Our general setup follows Stable Diffusion 3.5 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">12</span></a>]</cite> and FLUX <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">26</span></a>]</cite>, derived from Latent Diffusion Models (LDM) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib41" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">41</span></a>]</cite> for training text-to-image models in the latent space of a pretrained autoencoder.
+Apart from encoding images into latent representations, we also encode the text conditioning <math id="S3.SS1.p3.m1" class="ltx_Math" alttext="c_{\mathrm{text}}" display="inline"><semantics><msub><mi>c</mi><mi>text</mi></msub><annotation encoding="application/x-tex">c_{\mathrm{text}}</annotation></semantics></math> using pretrained, frozen text models.
+We use FLUX <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">26</span></a>]</cite> as our DiT base model, which uses T5-XXL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib40" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">40</span></a>]</cite> and CLIP <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib39" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">39</span></a>]</cite> for text encoding.
+FLUX uses a multimodal diffusion backbone, <em class="ltx_emph ltx_font_italic">i.e</em>., MMDiT <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">12</span></a>]</cite>. Unlike traditional DiTs <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib37" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">37</span></a>]</cite>, MMDiT uses two separate sets of weights for the two modalities, given that text and image embeddings are conceptually different.
+This setup is equivalent to having two independent Transformers for each modality, but combines the sequences via joint attention to ensure that both representations work in their own space while considering each other.
+FLUX also applies several single DiT blocks <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">9</span></a>]</cite> after MMDiT blocks.</p>
+</div>
+<div id="S3.SS1.p4" class="ltx_para">
+<p class="ltx_p">In addition to text-conditional image generation, the proposed InfU method also injects human facial identity information <math id="S3.SS1.p4.m1" class="ltx_Math" alttext="c_{\mathrm{id}}" display="inline"><semantics><msub><mi>c</mi><mi>id</mi></msub><annotation encoding="application/x-tex">c_{\mathrm{id}}</annotation></semantics></math> to accommodate additional modalities.</p>
+</div>
+<figure id="S3.F4" class="ltx_figure"><img src="/html/2503.16418/assets/x4.png" id="S3.F4.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="822" height="2185" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text" style="font-size:90%;">Figure 4</span>: </span><span class="ltx_text" style="font-size:90%;">The introduced multi-stage training strategy with synthetic single-person-multiple-sample (SPMS) data and supervised fine-tuning (SFT).</span></figcaption>
+</figure>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.2 </span>Network Architecture</h3>
+
+<div id="S3.SS2.p1" class="ltx_para">
+<p class="ltx_p">Conventional approaches <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib54" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">54</span></a>, <a href="#bib.bib51" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">51</span></a>]</cite> for this task were primarily developed for U-Net-based diffusion models like SDXL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib38" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">38</span></a>]</cite>. However, the image quality generated by these methods remains inadequate (see Figure <a href="#S3.F2" title="Figure 2 ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> (a)).
+The significantly better performance of FLUX than SDXL in background clarity, human topology, small face quality, and overall appeal pinpoints the importance of DiT-based solutions. The proposed InfU is inspired by these efforts while presenting a novel solution built on DiTs. We focus on the development and comparison of DiT-based approaches due to their evident superiority over SDXL, as demonstrated.</p>
+</div>
+<div id="S3.SS2.p2" class="ltx_para">
+<p class="ltx_p">Unlike common practices <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib54" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">54</span></a>, <a href="#bib.bib51" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">51</span></a>, <a href="#bib.bib14" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">14</span></a>]</cite> that modify attention <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib50" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">50</span></a>]</cite> layers via IP-Adapter (IPA) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib54" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">54</span></a>]</cite> to inject identity information, we observe the non-optimality of IPA and avoid using it. As shown in Figure <a href="#S3.F2" title="Figure 2 ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> (b), IPA typically introduces side effects, such as degradation in text-image alignment, image quality and aesthetics.
+We deduce that directly modifying the attention layers significantly compromises the generative capability of the base model. In addition, injecting text and identity information at the same positions (<em class="ltx_emph ltx_font_italic">i.e</em>., attention layers) may bring potential entanglement and conflict, thus harming overall performance. Therefore, we propose a novel alternative solution without IPA, mitigating these issues while maintaining high identity similarity.</p>
+</div>
+<div id="S3.SS2.p3" class="ltx_para">
+<p class="ltx_p">The proposed InfU framework is illustrated in Figure <a href="#S3.F3" title="Figure 3 ‣ 3.1 Preliminary ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>. The DiT base model (<em class="ltx_emph ltx_font_italic">e.g</em>., FLUX) remains frozen during training and serves as the main branch for image generation. It ingests a noise map sampled from a standard Gaussian distribution, along with features from both the identity image and text prompt inputs, to generate an image that adheres to the text description while preserving the human facial identity through multiple denoising steps.
+The text prompt is embedded by a frozen text encoder and then fed into the base model through attention layers <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">12</span></a>]</cite>. Below, we detail our mechanism for injecting identity information.</p>
+</div>
+<div id="S3.SS2.p4" class="ltx_para">
+<p class="ltx_p">We introduce InfuseNet, an important branch that injects identity and control signals (see Figure <a href="#S3.F3" title="Figure 3 ‣ 3.1 Preliminary ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>).
+InfuseNet shares a similar structure with the DiT base model but contains fewer Transformer blocks.
+We denote <math id="S3.SS2.p4.m1" class="ltx_Math" alttext="M" display="inline"><semantics><mi>M</mi><annotation encoding="application/x-tex">M</annotation></semantics></math> as the number of DiT blocks in the base model and <math id="S3.SS2.p4.m2" class="ltx_Math" alttext="N" display="inline"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math> as the number of DiT blocks in InfuseNet. We have <math id="S3.SS2.p4.m3" class="ltx_Math" alttext="M=N\cdot i" display="inline"><semantics><mrow><mi>M</mi><mo>=</mo><mrow><mi>N</mi><mo lspace="0.222em" rspace="0.222em">⋅</mo><mi>i</mi></mrow></mrow><annotation encoding="application/x-tex">M=N\cdot i</annotation></semantics></math>, where <math id="S3.SS2.p4.m4" class="ltx_Math" alttext="i" display="inline"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math> is the multiplication factor.
+An optional control image, such as a five-facial-keypoint image, can be input into InfuseNet to control the generation position of the subject. If no control is needed, a pure black image can be used instead.
+The identity image is encoded by a frozen face identity encoder into identity embeddings, which are fed into a projection network. This network projects the identity features and sends them to InfuseNet through attention layers, similar to how text features are handled in the DiT base model. InfuseNet then predicts the output residual connections of the DiT base model, contributing to the final image synthesis. Specifically, DiT block <math id="S3.SS2.p4.m5" class="ltx_Math" alttext="j" display="inline"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math> in InfuseNet predicts the residuals of the following DiT blocks in the base model:</p>
+<table id="S3.E7" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E7.m1" class="ltx_Math" alttext="\left(j-1\right)\cdot i+1,\;\;\left(j-1\right)\cdot i+2,\;\;\ldots,\;\;j\cdot i." display="block"><semantics><mrow><mrow><mrow><mrow><mrow><mo>(</mo><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow><mo rspace="0.055em">)</mo></mrow><mo rspace="0.222em">⋅</mo><mi>i</mi></mrow><mo>+</mo><mn>1</mn></mrow><mo rspace="0.727em">,</mo><mrow><mrow><mrow><mo>(</mo><mrow><mi>j</mi><mo>−</mo><mn>1</mn></mrow><mo rspace="0.055em">)</mo></mrow><mo rspace="0.222em">⋅</mo><mi>i</mi></mrow><mo>+</mo><mn>2</mn></mrow><mo rspace="0.727em">,</mo><mi mathvariant="normal">…</mi><mo rspace="0.727em">,</mo><mrow><mi>j</mi><mo lspace="0.222em" rspace="0.222em">⋅</mo><mi>i</mi></mrow></mrow><mo lspace="0em">.</mo></mrow><annotation encoding="application/x-tex">\left(j-1\right)\cdot i+1,\;\;\left(j-1\right)\cdot i+2,\;\;\ldots,\;\;j\cdot i.</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(7)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S3.SS2.p5" class="ltx_para">
+<p class="ltx_p">During training, the projection network and InfuseNet are trainable (using <math id="S3.SS2.p5.m1" class="ltx_Math" alttext="\mathcal{L}_{CFM}" display="inline"><semantics><msub><mi class="ltx_font_mathcaligraphic">ℒ</mi><mrow><mi>C</mi><mo lspace="0em" rspace="0em">​</mo><mi>F</mi><mo lspace="0em" rspace="0em">​</mo><mi>M</mi></mrow></msub><annotation encoding="application/x-tex">\mathcal{L}_{CFM}</annotation></semantics></math> in <a href="#S3.E5" title="In 3.1 Preliminary ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Eq.</span> <span class="ltx_text ltx_ref_tag">5</span></a>), while other modules remain frozen. The proposed InfuseNet can be seen as a generalization of ControlNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib56" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">56</span></a>]</cite>, capable of ingesting more modalities to influence the generation process via residual connections. This residual injection of identity features is distinct from the text injection through attention layers, which effectively separates text and identity inputs, thereby reducing potential entanglement and conflict.
+Thanks to this pure residual injection design that does not rely on IPA, the generative capability of the base model is less compromised, resulting in higher quality and improved text-image alignment.
+InfuseNet is also based on DiT, and its similar architecture with the base model ensures scalability and compatibility.
+The scalable network design and large-scale training enhance identity similarity.</p>
+</div>
+</section>
+<section id="S3.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.3 </span>Multi-Stage Training Strategy</h3>
+
+<div id="S3.SS3.p1" class="ltx_para">
+<p class="ltx_p">Despite the robust network design of InfU, challenges in text-image alignment, generation aesthetics, and image quality degradation remain, especially in certain hard cases. This issue is critical for state-of-the-art approaches, necessitating a general solution to facilitate future research.</p>
+</div>
+<div id="S3.SS3.p2" class="ltx_para">
+<p class="ltx_p">We devise a multi-stage training strategy, including pretraining and supervised fine-tuning (SFT) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib21" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">21</span></a>, <a href="#bib.bib49" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">49</span></a>]</cite>.
+This strategy improves the quantity, quality, aesthetics, and text-image alignment of training data, thereby enhancing overall model performance w.r.t. the above problems. The training strategy is formulated in the following steps (see Figure <a href="#S3.F4" title="Figure 4 ‣ 3.1 Preliminary ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>).</p>
+</div>
+<div id="S3.SS3.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Step 1:</span> We collect and filter real single-person-single-sample (SPSS) data from several human portrait datasets. The data, though not highly aesthetic or high-quality, can be used for stage-1 pretraining of our InfU model, following standard training practices <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib54" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">54</span></a>, <a href="#bib.bib51" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">51</span></a>]</cite>. Using real SPSS data, we employ a single authentic portrait image as both the source identity image and the generation target image to learn reconstruction during training.</p>
+</div>
+<div id="S3.SS3.p4" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Step 2:</span> After stage-1 pretraining of the InfU model, we conduct stage-1 model inference to evaluate image generation performance without any plugins, such as LoRA <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib18" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">18</span></a>]</cite>. While the facial identity similarity of the generated results is satisfactory, there remains room for improvement in text-image alignment, generation aesthetics, and image quality.</p>
+</div>
+<div id="S3.SS3.p5" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Step 3:</span> We then equip the stage-1 trained InfU model with a series of useful off-the-shelf modules, such as aesthetic modules/LoRAs, enhancement LoRAs, face swap modules <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib6" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">6</span></a>]</cite>, and other pre-/post-processing tools, <em class="ltx_emph ltx_font_italic">etc</em>. Although time-consuming and cumbersome, this process enables the model to generate synthetic data with much higher quality and aesthetics. We intentionally formulate the data as single-person-multiple-sample (SPMS), where a real face image serves as the source identity image and the synthetic data serves as the generation target image.</p>
+</div>
+<div id="S3.SS3.p6" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Step 4:</span> The synthetic SPMS data is subsequently fed into the stage-1 trained InfU model for stage-2 supervised fine-tuning (SFT). Leveraging the properties of SPMS, we use real face data as the source identity and the paired high-quality synthetic data as the generation target for model training. Other training settings remain similar to those in stage 1. This SFT enables the model to learn the high quality and aesthetics of the synthetic data while retaining identity similarity with the real face input.</p>
+</div>
+<div id="S3.SS3.p7" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Step 5:</span> After stage-2 SFT, the InfU model is ready for final inference and deployment. Without any plugins, the text-image alignment, generation aesthetics, and image quality of the generated results are significantly improved, while maintaining high facial identity similarity.</p>
+</div>
+<figure id="S3.F5" class="ltx_figure"><img src="/html/2503.16418/assets/x5.png" id="S3.F5.g1" class="ltx_graphics ltx_centering ltx_img_square" width="822" height="834" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text" style="font-size:90%;">Figure 5</span>: </span><span class="ltx_text" style="font-size:90%;">Qualitative comparison results of InfU with the state-of-the-art baselines, FLUX.1-dev IP-Adapter <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">20</span></a>]</cite> and PuLID-FLUX <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">14</span></a>]</cite>.</span></figcaption>
+</figure>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Experiments</h2>
+
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Settings</h3>
+
+<div id="S4.SS1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Implementation details.</span>
+We implement our InfiniteYou (InfU) framework using PyTorch and leverage the Hugging Face Diffusers library.
+The DiT base model is FLUX.1-dev <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">26</span></a>]</cite>.
+We set the multiplication factor <math id="S4.SS1.p1.m1" class="ltx_Math" alttext="i=4" display="inline"><semantics><mrow><mi>i</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">i=4</annotation></semantics></math> for InfuseNet.
+The projection network is derived from <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib54" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">54</span></a>]</cite>, with the token number of the projected identity feature set to <math id="S4.SS1.p1.m2" class="ltx_Math" alttext="8" display="inline"><semantics><mn>8</mn><annotation encoding="application/x-tex">8</annotation></semantics></math>.
+All experiments are conducted using FSDP <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib59" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">59</span></a>]</cite> on NVIDIA H100 GPUs, each with <math id="S4.SS1.p1.m3" class="ltx_Math" alttext="80" display="inline"><semantics><mn>80</mn><annotation encoding="application/x-tex">80</annotation></semantics></math>GB VRAM. We use the AdamW <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib35" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">35</span></a>]</cite> optimizer with <math id="S4.SS1.p1.m4" class="ltx_Math" alttext="\beta_{1}=0.9" display="inline"><semantics><mrow><msub><mi>β</mi><mn>1</mn></msub><mo>=</mo><mn>0.9</mn></mrow><annotation encoding="application/x-tex">\beta_{1}=0.9</annotation></semantics></math> and <math id="S4.SS1.p1.m5" class="ltx_Math" alttext="\beta_{2}=0.999" display="inline"><semantics><mrow><msub><mi>β</mi><mn>2</mn></msub><mo>=</mo><mn>0.999</mn></mrow><annotation encoding="application/x-tex">\beta_{2}=0.999</annotation></semantics></math>. The weight decay is set to <math id="S4.SS1.p1.m6" class="ltx_Math" alttext="0.01" display="inline"><semantics><mn>0.01</mn><annotation encoding="application/x-tex">0.01</annotation></semantics></math>.
+We employ Conditional Flow Matching <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib31" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">31</span></a>, <a href="#bib.bib12" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">12</span></a>]</cite> (<a href="#S3.E5" title="In 3.1 Preliminary ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Eq.</span> <span class="ltx_text ltx_ref_tag">5</span></a>) as the loss function with logit-normal sampling <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">12</span></a>]</cite> of <span class="ltx_text ltx_font_typewriter">rf/lognorm(0.00, 1.00)</span>.
+For stage-1 pretraining, the model is trained using an initial learning rate of <math id="S4.SS1.p1.m7" class="ltx_Math" alttext="2\times 10^{-5}" display="inline"><semantics><mrow><mn>2</mn><mo lspace="0.222em" rspace="0.222em">×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>5</mn></mrow></msup></mrow><annotation encoding="application/x-tex">2\times 10^{-5}</annotation></semantics></math> on <math id="S4.SS1.p1.m8" class="ltx_Math" alttext="128" display="inline"><semantics><mn>128</mn><annotation encoding="application/x-tex">128</annotation></semantics></math> GPUs. The total batch size is set to <math id="S4.SS1.p1.m9" class="ltx_Math" alttext="512" display="inline"><semantics><mn>512</mn><annotation encoding="application/x-tex">512</annotation></semantics></math>, and stage-1 training spans <math id="S4.SS1.p1.m10" class="ltx_Math" alttext="300" display="inline"><semantics><mn>300</mn><annotation encoding="application/x-tex">300</annotation></semantics></math>k iterations.
+For stage-2 supervised fine-tuning, the model is trained with an initial learning rate of <math id="S4.SS1.p1.m11" class="ltx_Math" alttext="1\times 10^{-5}" display="inline"><semantics><mrow><mn>1</mn><mo lspace="0.222em" rspace="0.222em">×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>5</mn></mrow></msup></mrow><annotation encoding="application/x-tex">1\times 10^{-5}</annotation></semantics></math> on <math id="S4.SS1.p1.m12" class="ltx_Math" alttext="64" display="inline"><semantics><mn>64</mn><annotation encoding="application/x-tex">64</annotation></semantics></math> GPUs, with a total batch size of <math id="S4.SS1.p1.m13" class="ltx_Math" alttext="256" display="inline"><semantics><mn>256</mn><annotation encoding="application/x-tex">256</annotation></semantics></math>. All other settings remain unchanged.</p>
+</div>
+<div id="S4.SS1.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Datasets.</span>
+For stage-1 pretraining, we use a total of nine open source datasets, including VGGFace2 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib5" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">5</span></a>]</cite>, MillionCelebs <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib58" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">58</span></a>]</cite>, CelebA <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib34" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">34</span></a>]</cite>, CelebV-HQ <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib60" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">60</span></a>]</cite>, FFHQ <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">22</span></a>]</cite>, VFHQ <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib53" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">53</span></a>]</cite>, EasyPortrait <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib25" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">25</span></a>]</cite>, CelebV-Text <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib55" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">55</span></a>]</cite>, CosmicManHQ-1.0 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib28" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">28</span></a>]</cite>, as well as several high-quality internal datasets.
+We perform careful data pre-processing and filtering, removing images with low-quality small faces, multiple faces, watermarks, or NSFW content. The data is pre-processed for training using aspect ratio bucketing <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">1</span></a>]</cite>.
+The total amount of single-person single-sample (SPSS) real data for stage-1 pre-training reaches <math id="S4.SS1.p2.m1" class="ltx_Math" alttext="43" display="inline"><semantics><mn>43</mn><annotation encoding="application/x-tex">43</annotation></semantics></math> million, which we consider sufficient for large-scale training of identity-preserved image generation models.
+For stage-2 supervised fine-tuning, the total quantity of single-person-multiple-sample (SPMS) synthetic data is <math id="S4.SS1.p2.m2" class="ltx_Math" alttext="2" display="inline"><semantics><mn>2</mn><annotation encoding="application/x-tex">2</annotation></semantics></math> million. All data is generated by the stage-1 pretrained InfU model itself, equipped with useful off-the-shelf modules (see Section <a href="#S3.SS3" title="3.3 Multi-Stage Training Strategy ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.3</span></a>). High-quality synthetic data are also carefully processed and filtered to obtain image pairs with normal poses, high ID resemblance, and good aesthetics, ensuring their usefulness.
+In addition, we observe that training the model with a mixture of captions from multiple sources, <em class="ltx_emph ltx_font_italic">e.g</em>., humans, small captioning models, and large vision-language models (VLMs), is beneficial. Besides the original captions in the datasets, we employ BLIP-2 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib27" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">27</span></a>]</cite> and InternVL2 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib8" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">8</span></a>]</cite> to obtain text captions from diverse sources for training.</p>
+</div>
+<div id="S4.SS1.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Baselines.</span>
+Since InfU is based on DiT (<em class="ltx_emph ltx_font_italic">e.g</em>., FLUX), we compare it with the most relevant and state-of-the-art DiT-based approach, PuLID-FLUX <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">14</span></a>]</cite>. Other open-source efforts, including FLUX.1-dev IP-Adapters from InstantX <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">20</span></a>]</cite> and XLabs-AI <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib3" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">3</span></a>]</cite>, are not tailored for human faces. We select the one from InstantX as a representative baseline of this series for a more comprehensive comparison. Other conventional methods based on SDXL display much lower image quality due to the limitation of the base model (see Figure <a href="#S3.F2" title="Figure 2 ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>) and are thus not fairly comparable.</p>
+</div>
+<div id="S4.SS1.p4" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Evaluation.</span>
+We conduct evaluations on a portrait benchmark created by GPT-4o <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib19" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">19</span></a>]</cite>, comprising <math id="S4.SS1.p4.m1" class="ltx_Math" alttext="200" display="inline"><semantics><mn>200</mn><annotation encoding="application/x-tex">200</annotation></semantics></math> prompts and corresponding gender information. This benchmark covers a variety of cases, including different prompt lengths, face sizes, views, scenes, ages, races, complexities, <em class="ltx_emph ltx_font_italic">etc</em>. We selected <math id="S4.SS1.p4.m2" class="ltx_Math" alttext="15" display="inline"><semantics><mn>15</mn><annotation encoding="application/x-tex">15</annotation></semantics></math> representative identity samples and paired their gender with all appropriate prompts, resulting in <math id="S4.SS1.p4.m3" class="ltx_Math" alttext="1,497" display="inline"><semantics><mrow><mn>1</mn><mo>,</mo><mn>497</mn></mrow><annotation encoding="application/x-tex">1,497</annotation></semantics></math> testing outputs for systematic evaluations.
+We apply three representative and useful evaluation metrics, <em class="ltx_emph ltx_font_italic">i.e</em>., ID Loss <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib10" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">10</span></a>]</cite>, CLIPScore <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib16" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">16</span></a>]</cite>, and PickScore <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib23" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">23</span></a>]</cite>.
+ID Loss is defined as <math id="S4.SS1.p4.m4" class="ltx_Math" alttext="1-\mathrm{CosSim}\left(\mathrm{ID}_{\text{gen}},\mathrm{ID}_{\text{ref}}\right)" display="inline"><semantics><mrow><mn>1</mn><mo>−</mo><mrow><mi>CosSim</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo>(</mo><msub><mi>ID</mi><mtext>gen</mtext></msub><mo>,</mo><msub><mi>ID</mi><mtext>ref</mtext></msub><mo>)</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">1-\mathrm{CosSim}\left(\mathrm{ID}_{\text{gen}},\mathrm{ID}_{\text{ref}}\right)</annotation></semantics></math>, where <math id="S4.SS1.p4.m5" class="ltx_Math" alttext="\mathrm{CosSim}" display="inline"><semantics><mi>CosSim</mi><annotation encoding="application/x-tex">\mathrm{CosSim}</annotation></semantics></math> is cosine similarity, and <math id="S4.SS1.p4.m6" class="ltx_Math" alttext="\mathrm{ID}_{\text{gen}}" display="inline"><semantics><msub><mi>ID</mi><mtext>gen</mtext></msub><annotation encoding="application/x-tex">\mathrm{ID}_{\text{gen}}</annotation></semantics></math> and <math id="S4.SS1.p4.m7" class="ltx_Math" alttext="\mathrm{ID}_{\text{ref}}" display="inline"><semantics><msub><mi>ID</mi><mtext>ref</mtext></msub><annotation encoding="application/x-tex">\mathrm{ID}_{\text{ref}}</annotation></semantics></math> are the generated and reference identity images, respectively. A lower ID Loss means higher similarity. We follow the original papers to use CLIPScore and PickScore. A higher CLIPScore indicates better text-image alignment, and a higher PickScore signifies better image quality and aesthetics.</p>
+</div>
+<figure id="S4.F6" class="ltx_figure"><img src="/html/2503.16418/assets/x6.png" id="S4.F6.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="822" height="423" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span class="ltx_text" style="font-size:90%;">Figure 6</span>: </span><span class="ltx_text" style="font-size:90%;">Desirable plug-and-play properties of InfU, compatible with many popular methods and plugins.</span></figcaption>
+</figure>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Main Results</h3>
+
+<div id="S4.SS2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Qualitative comparison.</span>
+The qualitative comparison results are shown in Figure <a href="#S3.F5" title="Figure 5 ‣ 3.3 Multi-Stage Training Strategy ‣ 3 Methodology ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>.
+The identity similarity of the results generated by FLUX.1-dev IP-Adapter (IPA) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">20</span></a>]</cite> is inadequate. Besides, the text-image alignment and generation quality are inferior to other methods.
+PuLID-FLUX <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">14</span></a>]</cite> generates images with decent identity similarity. However, it suffers from poor text-image alignment (Column <math id="S4.SS2.p1.m1" class="ltx_Math" alttext="1" display="inline"><semantics><mn>1</mn><annotation encoding="application/x-tex">1</annotation></semantics></math>, <math id="S4.SS2.p1.m2" class="ltx_Math" alttext="2" display="inline"><semantics><mn>2</mn><annotation encoding="application/x-tex">2</annotation></semantics></math>, <math id="S4.SS2.p1.m3" class="ltx_Math" alttext="4" display="inline"><semantics><mn>4</mn><annotation encoding="application/x-tex">4</annotation></semantics></math>), and the image quality (<em class="ltx_emph ltx_font_italic">e.g</em>., bad hands in Column <math id="S4.SS2.p1.m4" class="ltx_Math" alttext="5" display="inline"><semantics><mn>5</mn><annotation encoding="application/x-tex">5</annotation></semantics></math>) and aesthetic appeal are degraded, indicating a large compromise in the generative capability of the base model. In addition, the face copy-paste issue is evident in the results generated by PuLID-FLUX (Column <math id="S4.SS2.p1.m5" class="ltx_Math" alttext="5" display="inline"><semantics><mn>5</mn><annotation encoding="application/x-tex">5</annotation></semantics></math>). In comparison, the proposed InfU outperforms the baselines across all dimensions.</p>
+</div>
+<div id="S4.SS2.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Quantitative comparison.</span>
+The quantitative comparative results are shown in Table <a href="#S4.T1" title="Table 1 ‣ 4.2 Main Results ‣ 4 Experiments ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>.
+Our method achieves the lowest ID Loss, indicating th best identity similarity. As mentioned, the existing release of FLUX.1-dev IPA <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">20</span></a>]</cite> is not tailored for human faces, resulting in much worse identity similarity than other methods.
+In addition, our method obtains a significantly higher CLIPScore, demonstrating superior text-image alignment. Notably, the improvement in CLIPScore is substantial, reducing the gap to the upper-bound performance of FLUX.1-dev on our test set (<math id="S4.SS2.p2.m1" class="ltx_Math" alttext="0.334" display="inline"><semantics><mn>0.334</mn><annotation encoding="application/x-tex">0.334</annotation></semantics></math>) by <math id="S4.SS2.p2.m2" class="ltx_Math" alttext="66.7\%" display="inline"><semantics><mrow><mn>66.7</mn><mo>%</mo></mrow><annotation encoding="application/x-tex">66.7\%</annotation></semantics></math>.
+Furthermore, our approach produces the best PickScore, suggesting that the overall image quality and generation aesthetics of InfU surpass all baselines.</p>
+</div>
+<figure id="S4.T1" class="ltx_table">
+<figcaption class="ltx_caption" style="font-size:80%;"><span class="ltx_tag ltx_tag_table"><span class="ltx_text" style="font-size:113%;">Table 1</span>: </span><span class="ltx_text" style="font-size:113%;">The ID Loss (lower is better) and CLIPScore (higher is better), and PickScore (higher is better) comparative results.</span></figcaption>
+<table class="ltx_tabular ltx_align_middle">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_rr">
+<span class="ltx_rule" style="width:100%;height:1.0pt;background:black;display:inline-block;"> </span><span class="ltx_text" style="font-size:80%;">
+Method</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">ID Loss</span><math id="S4.T1.m1" class="ltx_Math" alttext="\downarrow" display="inline"><semantics><mo mathsize="0.800em" stretchy="false">↓</mo><annotation encoding="application/x-tex">\downarrow</annotation></semantics></math></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">CLIPScore</span><math id="S4.T1.m2" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo mathsize="0.800em" stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">PickScore</span><math id="S4.T1.m3" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo mathsize="0.800em" stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math></span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_rr">
+<span class="ltx_rule" style="width:100%;height:0.6pt;background:black;display:inline-block;"> </span><span class="ltx_text" style="font-size:80%;">
+FLUX.1-dev IPA </span><cite class="ltx_cite ltx_citemacro_cite"><span class="ltx_text" style="font-size:80%;">[</span><a href="#bib.bib20" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">20</span></a><span class="ltx_text" style="font-size:80%;">]</span></cite>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.772</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.243</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_t">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.204</span></span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_rr">
+<span class="ltx_text" style="font-size:80%;">PuLID-FLUX </span><cite class="ltx_cite ltx_citemacro_cite"><span class="ltx_text" style="font-size:80%;">[</span><a href="#bib.bib14" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">14</span></a><span class="ltx_text" style="font-size:80%;">]</span></cite>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.225</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.286</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.212</span></span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_rr"><span class="ltx_text" style="font-size:80%;">InfU (Ours)</span></td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text ltx_font_bold" style="font-size:80%;">0.209</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text ltx_font_bold" style="font-size:80%;">0.318</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text ltx_font_bold" style="font-size:80%;">0.221</span></span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_rr"><span class="ltx_rule" style="width:100%;height:1.0pt;background:black;display:inline-block;"> </span></td>
+<td class="ltx_td ltx_align_justify"></td>
+<td class="ltx_td ltx_align_justify"></td>
+<td class="ltx_td ltx_align_justify"></td>
+</tr>
+</table>
+</figure>
+<div id="S4.SS2.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">User study.</span>
+We conducted a user study on InfU and the most competitive baseline, PuLID-FLUX <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">14</span></a>]</cite>. Participants were asked to evaluate <math id="S4.SS2.p3.m1" class="ltx_Math" alttext="70" display="inline"><semantics><mn>70</mn><annotation encoding="application/x-tex">70</annotation></semantics></math> sets of samples. The study included <math id="S4.SS2.p3.m2" class="ltx_Math" alttext="16" display="inline"><semantics><mn>16</mn><annotation encoding="application/x-tex">16</annotation></semantics></math> participants from diverse backgrounds (<em class="ltx_emph ltx_font_italic">e.g</em>., QA professionals, researchers, engineers, designers, <em class="ltx_emph ltx_font_italic">etc</em>., from different countries) to reduce personal understanding bias. The best selection rate of our method reached <math id="S4.SS2.p3.m3" class="ltx_Math" alttext="72.8\%" display="inline"><semantics><mrow><mn>72.8</mn><mo>%</mo></mrow><annotation encoding="application/x-tex">72.8\%</annotation></semantics></math> in overall performance (in aspects of identity similarity, text-image alignment, image quality, and generation aesthetics), and PuLID-FLUX was <math id="S4.SS2.p3.m4" class="ltx_Math" alttext="27.2\%" display="inline"><semantics><mrow><mn>27.2</mn><mo>%</mo></mrow><annotation encoding="application/x-tex">27.2\%</annotation></semantics></math>. This suggests that our results are significantly better w.r.t. human preference.</p>
+</div>
+<div id="S4.SS2.p4" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Plug-and-play properties.</span>
+The proposed InfU method features a desirable plug-and-play design, compatible with many existing methods.
+It naturally supports base model replacement with any variants of FLUX.1-dev, such as FLUX.1-schnell <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">26</span></a>]</cite> for more efficient generation (e.g., in 4 steps, Figure <a href="#S4.F6" title="Figure 6 ‣ 4.1 Settings ‣ 4 Experiments ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> (a)).
+The compatibility with off-the-shelf ControlNets <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib56" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">56</span></a>]</cite> and LoRAs <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib18" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">18</span></a>]</cite> provides additional controllability and flexibility for customized tasks (Figure <a href="#S4.F6" title="Figure 6 ‣ 4.1 Settings ‣ 4 Experiments ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> (b)(c)(d)).
+Notably, our compatibility with OminiControl <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib48" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">48</span></a>]</cite> extends the potential of InfU for multi-concept personalization, such as interacted identity (ID) and object personalized generation (Figure <a href="#S4.F6" title="Figure 6 ‣ 4.1 Settings ‣ 4 Experiments ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> (e)).
+Although employing IP-Adapter (IPA) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib54" title="" class="ltx_ref"><span class="ltx_text" style="font-size:90%;">54</span></a>]</cite> with our method for identity injection is suboptimal (see Section <a href="#S4.SS3" title="4.3 Ablation Studies ‣ 4 Experiments ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a>), InfU is readily compatible with IPA for stylization of personalized images, producing decent results when injecting style references via IPA (Figure <a href="#S4.F6" title="Figure 6 ‣ 4.1 Settings ‣ 4 Experiments ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> (f)).
+Our plug-and-play feature can extend to even more approaches beyond those mentioned, providing valuable contributions to the broader community.</p>
+</div>
+</section>
+<section id="S4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.3 </span>Ablation Studies</h3>
+
+<figure id="S4.T2" class="ltx_table">
+<figcaption class="ltx_caption" style="font-size:80%;"><span class="ltx_tag ltx_tag_table"><span class="ltx_text" style="font-size:113%;">Table 2</span>: </span><span class="ltx_text" style="font-size:113%;">The ID Loss (lower is better) and CLIPScore (higher is better), and PickScore (higher is better) for ablation studies.</span></figcaption>
+<table class="ltx_tabular ltx_align_middle">
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_rr">
+<span class="ltx_rule" style="width:100%;height:1.0pt;background:black;display:inline-block;"> </span><span class="ltx_text" style="font-size:80%;">
+Method</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">ID Loss</span><math id="S4.T2.m1" class="ltx_Math" alttext="\downarrow" display="inline"><semantics><mo mathsize="0.800em" stretchy="false">↓</mo><annotation encoding="application/x-tex">\downarrow</annotation></semantics></math></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">CLIPScore</span><math id="S4.T2.m2" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo mathsize="0.800em" stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">PickScore</span><math id="S4.T2.m3" class="ltx_Math" alttext="\uparrow" display="inline"><semantics><mo mathsize="0.800em" stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math></span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_rr">
+<span class="ltx_rule" style="width:100%;height:0.6pt;background:black;display:inline-block;"> </span><span class="ltx_text" style="font-size:80%;">
+w/o multi-stage training</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text ltx_font_bold" style="font-size:80%;">0.172</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r ltx_border_t">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.292</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_t">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.212</span></span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_rr"><span class="ltx_text" style="font-size:80%;">w/o SPMS</span></td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.368</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.303</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.220</span></span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_rr"><span class="ltx_text" style="font-size:80%;">w/ IPA</span></td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.180</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.241</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.199</span></span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_rr"><span class="ltx_text" style="font-size:80%;">full method</span></td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text" style="font-size:80%;">0.209</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify ltx_border_r">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text ltx_font_bold" style="font-size:80%;">0.318</span></span>
+</span>
+</td>
+<td class="ltx_td ltx_align_justify">
+<span class="ltx_inline-block ltx_align_top">
+<span class="ltx_p ltx_align_center"><span class="ltx_text ltx_font_bold" style="font-size:80%;">0.221</span></span>
+</span>
+</td>
+</tr>
+<tr class="ltx_tr">
+<td class="ltx_td ltx_align_center ltx_border_rr"><span class="ltx_rule" style="width:100%;height:1.0pt;background:black;display:inline-block;"> </span></td>
+<td class="ltx_td ltx_align_justify"></td>
+<td class="ltx_td ltx_align_justify"></td>
+<td class="ltx_td ltx_align_justify"></td>
+</tr>
+</table>
+</figure>
+<div id="S4.SS3.p1" class="ltx_para">
+<p class="ltx_p">We primarily conduct ablation studies on our core contributions of the multi-stage training strategy and the identity injection design. Since InfuseNet is indispensable, we highlight the importance of using InfuseNet solely, without incorporating IPA that could introduce negative impacts.</p>
+</div>
+<div id="S4.SS3.p2" class="ltx_para">
+<p class="ltx_p">The results are shown in Table <a href="#S4.T2" title="Table 2 ‣ 4.3 Ablation Studies ‣ 4 Experiments ‣ InfiniteYou: Flexible Photo Recrafting While Preserving Your Identity" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>.
+Without stage-2 supervised fine-tuning (SFT), InfU can generate images with even higher identity similarity. However, text-image alignment degrades, and image quality and aesthetic appeal worsen. We deduce that the SPMS synthetic data introduces slightly more difficulty in learning identity, yet significantly improves other aspects.
+Using single-person-single-sample (SPSS) synthetic data instead of SPMS in stage-2 SFT (w/o SPMS) results in a significant drop in identity similarity, as well as degraded text-image alignment and image quality.
+We deduce that SPSS synthetic data may weaken the function of InfuseNet by directly learning a reconstruction of synthetic data rather than transforming reference real data into synthetic data. This may lead to fitting back to the base model’s distribution without sufficient data diversity.
+These results emphasize the importance of the multi-stage training strategy and the construction of the SPMS format.
+If we employ IPA together with InfuseNet for identity injection (distinct from stylization), text-image alignment, image quality, and aesthetics substantially deteriorate, despite a slight improvement in identity similarity (still worse than our stage-1 model). This underscores the non-optimality and negative effects of IPA.</p>
+</div>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Conclusion</h2>
+
+<div id="S5.p1" class="ltx_para">
+<p class="ltx_p">We introduced InfU, a novel framework for identity-preserved image generation with advanced DiTs. InfU addresses key limitations of existing methods in identity similarity, text-image alignment, overall image quality, and generation aesthetics. Central to our framework is InfuseNet, which enhances identity preservation while maintaining generative capabilities.
+The multi-stage training strategy further improves our overall performance.
+Comprehensive experiments showed that InfU outperforms state-of-the-art baselines.
+Moreover, InfU is plug-and-play and compatible with various methods, contributing significantly to the broader community.
+InfU sets a new benchmark in this field, showcasing the immense potential of integrating DiTs for advanced personalized generation.
+Future work may explore enhancements in scalability and efficiency, as well as expanding the application of InfU to other domains.</p>
+</div>
+<div id="S5.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Limitations and societal impact.</span>
+Despite promising results, the identity similarity and overall quality of InfU could be further improved. Potential solutions include additional model scaling and an enhanced InfuseNet design.
+On another note, InfU may raise concerns about its potential to facilitate high-quality fake media synthesis. However, we believe that developing robust media forensics approaches can serve as effective safeguards.</p>
+</div>
+<div id="S5.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">Acknowledgments.</span>
+We sincerely acknowledge the insightful discussions from Stathi Fotiadis, Min Jin Chong, Xiao Yang, Tiancheng Zhi, Jing Liu, and Xiaohui Shen.
+We genuinely appreciate the help from Jincheng Liang and Lu Guo with our user study and qualitative evaluation.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography" style="font-size:90%;">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">[1]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+NovelAI Aspect Ratio Bucketing.
+</span>
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://github.com/NovelAI/novelai-aspect-ratio-bucketing" title="" class="ltx_ref ltx_url ltx_font_typewriter" style="font-size:90%;">https://github.com/NovelAI/novelai-aspect-ratio-bucketing</a><span class="ltx_text" style="font-size:90%;">.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Accessed: 2023-02-16.
+</span>
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">AI [2024a]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Recraft AI.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Recraft V3 release: Recraft introduces a revolutionary ai model that thinks in design language.
+</span>
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://www.recraft.ai/blog/recraft-introduces-a-revolutionary-ai-model-that-thinks-in-design-language" title="" class="ltx_ref ltx_url ltx_font_typewriter" style="font-size:90%;">https://www.recraft.ai/blog/recraft-introduces-a-revolutionary-ai-model-that-thinks-in-design-language</a><span class="ltx_text" style="font-size:90%;">, 2024a.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Accessed: 2024-11-01.
+</span>
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">AI [2024b]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+XLabs AI.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">flux-ip-adapter-v2.
+</span>
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://huggingface.co/XLabs-AI/flux-ip-adapter-v2" title="" class="ltx_ref ltx_url ltx_font_typewriter" style="font-size:90%;">https://huggingface.co/XLabs-AI/flux-ip-adapter-v2</a><span class="ltx_text" style="font-size:90%;">, 2024b.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Accessed: 2024-10-25.
+</span>
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Albergo and Vanden-Eijnden [2022]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Michael S Albergo and Eric Vanden-Eijnden.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Building normalizing flows with stochastic interpolants.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2209.15571, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Cao et al. [2018]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Qiong Cao, Li Shen, Weidi Xie, Omkar M Parkhi, and Andrew Zisserman.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">VGGFace2: A dataset for recognising faces across pose and age.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">FG</em><span class="ltx_text" style="font-size:90%;">, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Chen et al. [2020]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Renwang Chen, Xuanhong Chen, Bingbing Ni, and Yanhao Ge.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">SimSwap: An efficient framework for high fidelity face swapping.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ACMMM</em><span class="ltx_text" style="font-size:90%;">, 2020.
+</span>
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Chen et al. [2018]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Ricky TQ Chen, Yulia Rubanova, Jesse Bettencourt, and David K Duvenaud.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Neural ordinary differential equations.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">NeurIPS</em><span class="ltx_text" style="font-size:90%;">, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Chen et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Zhe Chen, Jiannan Wu, Wenhai Wang, Weijie Su, Guo Chen, Sen Xing, Muyan Zhong, Qinglong Zhang, Xizhou Zhu, Lewei Lu, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">InternVL: Scaling up vision foundation models and aligning for generic visual-linguistic tasks.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">CVPR</em><span class="ltx_text" style="font-size:90%;">, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Dehghani et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Mostafa Dehghani, Josip Djolonga, Basil Mustafa, Piotr Padlewski, Jonathan Heek, Justin Gilmer, Andreas Peter Steiner, Mathilde Caron, Robert Geirhos, Ibrahim Alabdulmohsin, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Scaling vision transformers to 22 billion parameters.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ICML</em><span class="ltx_text" style="font-size:90%;">, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Deng et al. [2019]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Jiankang Deng, Jia Guo, Niannan Xue, and Stefanos Zafeiriou.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">ArcFace: Additive angular margin loss for deep face recognition.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">CVPR</em><span class="ltx_text" style="font-size:90%;">, 2019.
+</span>
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Dosovitskiy et al. [2021]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Alexey Dosovitskiy, Lucas Beyer, Alexander Kolesnikov, Dirk Weissenborn, Xiaohua Zhai, Thomas Unterthiner, Mostafa Dehghani, Matthias Minderer, Georg Heigold, Sylvain Gelly, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">An image is worth 16x16 words: Transformers for image recognition at scale.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ICLR</em><span class="ltx_text" style="font-size:90%;">, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Esser et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Patrick Esser, Sumith Kulal, Andreas Blattmann, Rahim Entezari, Jonas Müller, Harry Saini, Yam Levi, Dominik Lorenz, Axel Sauer, Frederic Boesel, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Scaling rectified flow transformers for high-resolution image synthesis.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ICML</em><span class="ltx_text" style="font-size:90%;">, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Gal et al. [2022]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Rinon Gal, Yuval Alaluf, Yuval Atzmon, Or Patashnik, Amit H Bermano, Gal Chechik, and Daniel Cohen-Or.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">An image is worth one word: Personalizing text-to-image generation using textual inversion.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2208.01618, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Guo et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Zinan Guo, Yanze Wu, Zhuowei Chen, Lang Chen, Peng Zhang, and Qian He.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">PuLID: Pure and lightning id customization via contrastive alignment.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">NeurIPS</em><span class="ltx_text" style="font-size:90%;">, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">He et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Zecheng He, Bo Sun, Felix Juefei-Xu, Haoyu Ma, Ankit Ramchandani, Vincent Cheung, Siddharth Shah, Anmol Kalia, Harihar Subramanyam, Alireza Zareian, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Imagine yourself: Tuning-free personalized image generation.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2409.13346, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Hessel et al. [2021]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Jack Hessel, Ari Holtzman, Maxwell Forbes, Ronan Le Bras, and Yejin Choi.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">CLIPScore: a reference-free evaluation metric for image captioning.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">EMNLP</em><span class="ltx_text" style="font-size:90%;">, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Ho et al. [2020]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Jonathan Ho, Ajay Jain, and Pieter Abbeel.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Denoising diffusion probabilistic models.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">NeurIPS</em><span class="ltx_text" style="font-size:90%;">, 2020.
+</span>
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Hu et al. [2022]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, Weizhu Chen, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">LoRA: Low-rank adaptation of large language models.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ICLR</em><span class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Hurst et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Aaron Hurst, Adam Lerer, Adam P Goucher, Adam Perelman, Aditya Ramesh, Aidan Clark, AJ Ostrow, Akila Welihinda, Alan Hayes, Alec Radford, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Gpt-4o system card.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2410.21276, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">InstantX [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+InstantX.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">FLUX.1-dev-IP-Adapter.
+</span>
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://huggingface.co/InstantX/FLUX.1-dev-IP-Adapter" title="" class="ltx_ref ltx_url ltx_font_typewriter" style="font-size:90%;">https://huggingface.co/InstantX/FLUX.1-dev-IP-Adapter</a><span class="ltx_text" style="font-size:90%;">, 2024.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Accessed: 2024-11-01.
+</span>
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Jiang et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Xiaohu Jiang, Yixiao Ge, Yuying Ge, Dachuan Shi, Chun Yuan, and Ying Shan.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Supervised fine-tuning in turn improves visual foundation models.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2401.10222, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Karras et al. [2019]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Tero Karras, Samuli Laine, and Timo Aila.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">A style-based generator architecture for generative adversarial networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">CVPR</em><span class="ltx_text" style="font-size:90%;">, 2019.
+</span>
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Kirstain et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Yuval Kirstain, Adam Polyak, Uriel Singer, Shahbuland Matiana, Joe Penna, and Omer Levy.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Pick-a-pic: An open dataset of user preferences for text-to-image generation.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">NeurIPS</em><span class="ltx_text" style="font-size:90%;">, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Kumari et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Nupur Kumari, Bingliang Zhang, Richard Zhang, Eli Shechtman, and Jun-Yan Zhu.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Multi-concept customization of text-to-image diffusion.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">CVPR</em><span class="ltx_text" style="font-size:90%;">, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Kvanchiani et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Karina Kvanchiani, Elizaveta Petrova, Karen Efremyan, Alexander Sautin, and Alexander Kapitanov.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">EasyPortrait–face parsing and portrait segmentation dataset.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2304.13509, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Labs [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Black Forest Labs.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">FLUX.1 release: Announcing black forest labs.
+</span>
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://blackforestlabs.ai/announcing-black-forest-labs/" title="" class="ltx_ref ltx_url ltx_font_typewriter" style="font-size:90%;">https://blackforestlabs.ai/announcing-black-forest-labs/</a><span class="ltx_text" style="font-size:90%;">, 2024.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Accessed: 2024-08-01.
+</span>
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Li et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">BLIP-2: Bootstrapping language-image pre-training with frozen image encoders and large language models.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ICML</em><span class="ltx_text" style="font-size:90%;">, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Li et al. [2024a]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Shikai Li, Jianglin Fu, Kaiyuan Liu, Wentao Wang, Kwan-Yee Lin, and Wayne Wu.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">CosmicMan: A text-to-image foundation model for humans.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2404.01294, 2024a.
+</span>
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Li et al. [2024b]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Zhen Li, Mingdeng Cao, Xintao Wang, Zhongang Qi, Ming-Ming Cheng, and Ying Shan.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">PhotoMaker: Customizing realistic human photos via stacked id embedding.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">CVPR</em><span class="ltx_text" style="font-size:90%;">, 2024b.
+</span>
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Lin et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Shanchuan Lin, Anran Wang, and Xiao Yang.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Sdxl-lightning: Progressive adversarial diffusion distillation.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2402.13929, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Lipman et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Yaron Lipman, Ricky TQ Chen, Heli Ben-Hamu, Maximilian Nickel, and Matt Le.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Flow matching for generative modeling.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ICLR</em><span class="ltx_text" style="font-size:90%;">, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Liu et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Bingchen Liu, Ehsan Akhgari, Alexander Visheratin, Aleks Kamko, Linmiao Xu, Shivam Shrirao, Chase Lambert, Joao Souza, Suhail Doshi, and Daiqing Li.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Playground v3: Improving text-to-image alignment with deep-fusion large language models.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2409.10695, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib33" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Liu et al. [2022]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Xingchao Liu, Chengyue Gong, and Qiang Liu.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Flow straight and fast: Learning to generate and transfer data with rectified flow.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2209.03003, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib34" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Liu et al. [2015]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Ziwei Liu, Ping Luo, Xiaogang Wang, and Xiaoou Tang.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Deep learning face attributes in the wild.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ICCV</em><span class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib35" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Loshchilov and Hutter [2019]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Ilya Loshchilov and Frank Hutter.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Decoupled weight decay regularization.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ICLR</em><span class="ltx_text" style="font-size:90%;">, 2019.
+</span>
+</span>
+</li>
+<li id="bib.bib36" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Papantoniou et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Foivos Paraperas Papantoniou, Alexandros Lattas, Stylianos Moschoglou, Jiankang Deng, Bernhard Kainz, and Stefanos Zafeiriou.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Arc2Face: A foundation model for id-consistent human faces.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ECCV</em><span class="ltx_text" style="font-size:90%;">, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib37" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Peebles and Xie [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+William Peebles and Saining Xie.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Scalable diffusion models with transformers.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ICCV</em><span class="ltx_text" style="font-size:90%;">, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib38" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Podell et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Dustin Podell, Zion English, Kyle Lacey, Andreas Blattmann, Tim Dockhorn, Jonas Müller, Joe Penna, and Robin Rombach.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">SDXL: Improving latent diffusion models for high-resolution image synthesis.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2307.01952, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib39" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Radford et al. [2021]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Alec Radford, Jong Wook Kim, Chris Hallacy, Aditya Ramesh, Gabriel Goh, Sandhini Agarwal, Girish Sastry, Amanda Askell, Pamela Mishkin, Jack Clark, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Learning transferable visual models from natural language supervision.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ICML</em><span class="ltx_text" style="font-size:90%;">, 2021.
+</span>
+</span>
+</li>
+<li id="bib.bib40" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Raffel et al. [2020]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Colin Raffel, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, and Peter J Liu.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Exploring the limits of transfer learning with a unified text-to-text transformer.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">JMLR</em><span class="ltx_text" style="font-size:90%;">, 21:1–67, 2020.
+</span>
+</span>
+</li>
+<li id="bib.bib41" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Rombach et al. [2022]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Robin Rombach, Andreas Blattmann, Dominik Lorenz, Patrick Esser, and Björn Ommer.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">High-resolution image synthesis with latent diffusion models.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">CVPR</em><span class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib42" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Ronneberger et al. [2015]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Olaf Ronneberger, Philipp Fischer, and Thomas Brox.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">U-Net: Convolutional networks for biomedical image segmentation.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">MICCAI</em><span class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib43" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Ruiz et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Yael Pritch, Michael Rubinstein, and Kfir Aberman.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">DreamBooth: Fine tuning text-to-image diffusion models for subject-driven generation.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">CVPR</em><span class="ltx_text" style="font-size:90%;">, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib44" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Ruiz et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Nataniel Ruiz, Yuanzhen Li, Varun Jampani, Wei Wei, Tingbo Hou, Yael Pritch, Neal Wadhwa, Michael Rubinstein, and Kfir Aberman.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">HyperDreamBooth: Hypernetworks for fast personalization of text-to-image models.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">CVPR</em><span class="ltx_text" style="font-size:90%;">, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib45" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Sauer et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Axel Sauer, Dominik Lorenz, Andreas Blattmann, and Robin Rombach.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Adversarial diffusion distillation.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ECCV</em><span class="ltx_text" style="font-size:90%;">, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib46" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Sohl-Dickstein et al. [2015]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Jascha Sohl-Dickstein, Eric Weiss, Niru Maheswaranathan, and Surya Ganguli.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Deep unsupervised learning using nonequilibrium thermodynamics.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ICML</em><span class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib47" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Song et al. [2020]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Jiaming Song, Chenlin Meng, and Stefano Ermon.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Denoising diffusion implicit models.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2010.02502, 2020.
+</span>
+</span>
+</li>
+<li id="bib.bib48" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Tan et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Zhenxiong Tan, Songhua Liu, Xingyi Yang, Qiaochu Xue, and Xinchao Wang.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">OminiControl: Minimal and universal control for diffusion transformer.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2411.15098, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib49" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Touvron et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Llama 2: Open foundation and fine-tuned chat models.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, 2307.09288, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib50" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Vaswani et al. [2017]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Attention is all you need.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">NeurIPS</em><span class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib51" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Wang et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Qixun Wang, Xu Bai, Haofan Wang, Zekui Qin, Anthony Chen, Huaxia Li, Xu Tang, and Yao Hu.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">InstantID: Zero-shot identity-preserving generation in seconds.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2401.07519, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib52" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Xiao et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Guangxuan Xiao, Tianwei Yin, William T Freeman, Frédo Durand, and Song Han.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">FastComposer: Tuning-free multi-subject image generation with localized attention.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">IJCV</em><span class="ltx_text" style="font-size:90%;">, pages 1–20, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib53" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Xie et al. [2022]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Liangbin Xie, Xintao Wang, Honglun Zhang, Chao Dong, and Ying Shan.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">VFHQ: A high-quality dataset and benchmark for video face super-resolution.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">CVPRW</em><span class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+<li id="bib.bib54" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Ye et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Hu Ye, Jun Zhang, Sibo Liu, Xiao Han, and Wei Yang.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">IP-Adapter: Text compatible image prompt adapter for text-to-image diffusion models.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2308.06721, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib55" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Yu et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Jianhui Yu, Hao Zhu, Liming Jiang, Chen Change Loy, Weidong Cai, and Wayne Wu.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">CelebV-Text: A large-scale facial text-video dataset.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">CVPR</em><span class="ltx_text" style="font-size:90%;">, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib56" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Zhang et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Lvmin Zhang, Anyi Rao, and Maneesh Agrawala.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Adding conditional control to text-to-image diffusion models.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ICCV</em><span class="ltx_text" style="font-size:90%;">, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib57" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Zhang et al. [2024]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Shilong Zhang, Lianghua Huang, Xi Chen, Yifei Zhang, Zhi-Fan Wu, Yutong Feng, Wei Wang, Yujun Shen, Yu Liu, and Ping Luo.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">FlashFace: Human image personalization with high-fidelity identity preservation.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2403.17008, 2024.
+</span>
+</span>
+</li>
+<li id="bib.bib58" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Zhang et al. [2020]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Yaobin Zhang, Weihong Deng, Mei Wang, Jiani Hu, Xian Li, Dongyue Zhao, and Dongchao Wen.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">Global-local GCN: Large-scale label noise cleansing for face recognition.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">CVPR</em><span class="ltx_text" style="font-size:90%;">, 2020.
+</span>
+</span>
+</li>
+<li id="bib.bib59" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Zhao et al. [2023]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Yanli Zhao, Andrew Gu, Rohan Varma, Liang Luo, Chien-Chin Huang, Min Xu, Less Wright, Hamid Shojanazeri, Myle Ott, Sam Shleifer, et al.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">PyTorch FSDP: experiences on scaling fully sharded data parallel.
+</span>
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic" style="font-size:90%;">arXiv preprint</em><span class="ltx_text" style="font-size:90%;">, arXiv:2304.11277, 2023.
+</span>
+</span>
+</li>
+<li id="bib.bib60" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem"><span class="ltx_text" style="font-size:90%;">Zhu et al. [2022]</span></span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">
+Hao Zhu, Wayne Wu, Wentao Zhu, Liming Jiang, Siwei Tang, Li Zhang, Ziwei Liu, and Chen Change Loy.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">CelebV-HQ: A large-scale video facial attributes dataset.
+</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text" style="font-size:90%;">In </span><em class="ltx_emph ltx_font_italic" style="font-size:90%;">ECCV</em><span class="ltx_text" style="font-size:90%;">, 2022.
+</span>
+</span>
+</li>
+</ul>
+</section>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2503.16417" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2503.16418" class="ar5iv-text-button ar5iv-severity-error">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2503.16418">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2503.16418" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2503.16419" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Sat Apr  5 17:04:46 2025 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

@@ -1,0 +1,1253 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[1905.02851] FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Answer Relevance</title><meta property="og:description" content="Frequently Asked Question (FAQ) retrieval is an important task where
+the objective is to retrieve an appropriate Question-Answer (QA) pair
+from a database based on a user’s query. We propose a FAQ retrieval
+system that…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Answer Relevance">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Answer Relevance">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/1905.02851">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/1905.02851">
+
+<!--Generated on Sat Mar  2 17:39:12 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line ltx_leqno">
+<h1 class="ltx_title ltx_title_document">FAQ Retrieval using Query-Question Similarity and
+<br class="ltx_break">BERT-Based Query-Answer Relevance</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Wataru Sakata
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_orcid"><a target="_blank" href="https://orcid.org/1234-5678-9012" title="ORCID identifier" class="ltx_ref">1234-5678-9012</a></span>
+
+<span class="ltx_contact ltx_role_affiliation"><span id="id1.1.id1" class="ltx_text ltx_affiliation_institution">LINE Corporation</span>
+</span>
+<span class="ltx_contact ltx_role_email"><a href="mailto:wataru.sakata@linecorp.com">wataru.sakata@linecorp.com</a>
+</span></span></span>
+<span class="ltx_author_before">, </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Tomohide Shibata
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation"><span id="id2.1.id1" class="ltx_text ltx_affiliation_institution">Kyoto University</span><span id="id3.2.id2" class="ltx_text ltx_affiliation_institution">CREST, JST</span>
+</span>
+<span class="ltx_contact ltx_role_email"><a href="mailto:shibata@nlp.ist.i.kyoto-u.ac.jp">shibata@nlp.ist.i.kyoto-u.ac.jp</a>
+</span></span></span>
+<span class="ltx_author_before">, </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Ribeka Tanaka
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation"><span id="id4.1.id1" class="ltx_text ltx_affiliation_institution">Kyoto University</span><span id="id5.2.id2" class="ltx_text ltx_affiliation_institution">CREST, JST</span>
+</span>
+<span class="ltx_contact ltx_role_email"><a href="mailto:tanaka@nlp.ist.i.kyoto-u.ac.jp">tanaka@nlp.ist.i.kyoto-u.ac.jp</a>
+</span></span></span>
+<span class="ltx_author_before"> and </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Sadao Kurohashi
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation"><span id="id6.1.id1" class="ltx_text ltx_affiliation_institution">Kyoto University</span><span id="id7.2.id2" class="ltx_text ltx_affiliation_institution">CREST, JST</span><span id="id8.3.id3" class="ltx_text ltx_affiliation_institution">NII, CRIS</span>
+</span>
+<span class="ltx_contact ltx_role_email"><a href="mailto:kuro@nlp.ist.i.kyoto-u.ac.jp">kuro@nlp.ist.i.kyoto-u.ac.jp</a>
+</span></span></span>
+</div>
+<div class="ltx_dates">(2019)</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract.</h6>
+<p id="id9.id1" class="ltx_p">Frequently Asked Question (FAQ) retrieval is an important task where
+the objective is to retrieve an appropriate Question-Answer (QA) pair
+from a database based on a user’s query. We propose a FAQ retrieval
+system that considers the similarity between a user’s query and a
+question as well as the relevance between the query and an
+answer. Although a common approach to FAQ retrieval is to construct
+labeled data for training, it takes annotation costs. Therefore, we
+use a traditional unsupervised information retrieval system to
+calculate the similarity between the query and question. On the other
+hand, the relevance between the query and answer can be learned by
+using QA pairs in a FAQ database. The recently-proposed BERT model is
+used for the relevance calculation. Since the number of QA pairs in
+FAQ page is not enough to train a model, we cope with this issue by
+leveraging FAQ sets that are similar to the one in question. We
+evaluate our approach on two datasets. The first one is localgovFAQ, a
+dataset we construct in a Japanese administrative municipality domain.
+The second is StackExchange dataset, which is the public dataset in
+English. We demonstrate that our proposed method outperforms baseline
+methods on these datasets.</p>
+</div>
+<span id="id1" class="ltx_note ltx_note_frontmatter ltx_role_journalyear"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">journalyear: </span>2019</span></span></span><span id="id2" class="ltx_note ltx_note_frontmatter ltx_role_copyright"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">copyright: </span>acmlicensed</span></span></span><span id="id3" class="ltx_note ltx_note_frontmatter ltx_role_conference"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">conference: </span>Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval; July 21–25, 2019; Paris, France</span></span></span><span id="id4" class="ltx_note ltx_note_frontmatter ltx_role_booktitle"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">booktitle: </span>Proceedings of the 42nd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR ’19), July 21–25, 2019, Paris, France</span></span></span><span id="id5" class="ltx_note ltx_note_frontmatter ltx_role_price"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">price: </span>15.00</span></span></span><span id="id6" class="ltx_note ltx_note_frontmatter ltx_role_doi"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">doi: </span>10.1145/3331184.3331326</span></span></span><span id="id7" class="ltx_note ltx_note_frontmatter ltx_role_isbn"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><span class="ltx_note_type">isbn: </span>978-1-4503-6172-9/19/07</span></span></span>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1. </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">There are often frequently asked question (FAQ) pages with various information on the web.
+A FAQ retrieval system, which takes a user’s query and returns relevant QA pairs, is useful for navigating these pages.
+</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.3" class="ltx_p">In FAQ retrieval tasks,
+it is standard to check similarities of user’s query (<math id="S1.p2.1.m1.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S1.p2.1.m1.1a"><mi id="S1.p2.1.m1.1.1" xref="S1.p2.1.m1.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S1.p2.1.m1.1b"><ci id="S1.p2.1.m1.1.1.cmml" xref="S1.p2.1.m1.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S1.p2.1.m1.1c">q</annotation></semantics></math>) to a FAQ’s question (<math id="S1.p2.2.m2.1" class="ltx_Math" alttext="Q" display="inline"><semantics id="S1.p2.2.m2.1a"><mi id="S1.p2.2.m2.1.1" xref="S1.p2.2.m2.1.1.cmml">Q</mi><annotation-xml encoding="MathML-Content" id="S1.p2.2.m2.1b"><ci id="S1.p2.2.m2.1.1.cmml" xref="S1.p2.2.m2.1.1">𝑄</ci></annotation-xml><annotation encoding="application/x-tex" id="S1.p2.2.m2.1c">Q</annotation></semantics></math>) or
+to a question-answer (QA) pair <cite class="ltx_cite ltx_citemacro_citep">(Karan and Snajder, <a href="#bib.bib3" title="" class="ltx_ref">2018</a>)</cite>.
+Many FAQ retrieval models use the dataset with the relevance label between <math id="S1.p2.3.m3.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S1.p2.3.m3.1a"><mi id="S1.p2.3.m3.1.1" xref="S1.p2.3.m3.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S1.p2.3.m3.1b"><ci id="S1.p2.3.m3.1.1.cmml" xref="S1.p2.3.m3.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S1.p2.3.m3.1c">q</annotation></semantics></math> and a QA pair.
+However, it costs a lot to construct such labeled data.
+To cope with this problem, we adopt an unsupervised method for calculating the similarity between a query and a question.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p">Another promising approach is to check the q-A relevance
+trained by QA pairs,
+which shows the plausibility of the FAQ answer for the given <math id="S1.p3.1.m1.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S1.p3.1.m1.1a"><mi id="S1.p3.1.m1.1.1" xref="S1.p3.1.m1.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S1.p3.1.m1.1b"><ci id="S1.p3.1.m1.1.1.cmml" xref="S1.p3.1.m1.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S1.p3.1.m1.1c">q</annotation></semantics></math>.
+Studies of community QA use a large number of QA pairs for learning the q-A relevance  <cite class="ltx_cite ltx_citemacro_citep">(Tan
+et al<span class="ltx_text">.</span>, <a href="#bib.bib9" title="" class="ltx_ref">2015</a>; Wu
+et al<span class="ltx_text">.</span>, <a href="#bib.bib12" title="" class="ltx_ref">2018</a>)</cite>.
+However, these methods do not apply to FAQ retrieval task, because the size of QA entries in FAQ is not enough to train a model generally.
+We address this problem by collecting other similar FAQ sets to increase the size of available QA data.
+</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p id="S1.p4.6" class="ltx_p">In this study, we propose a method that combines
+the q-Q similarity obtained by unsupervised model and the q-A relevance learned from the collected QA pairs.
+Figure <a href="#S1.F1" title="Figure 1 ‣ 1. Introduction ‣ FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Answer Relevance" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> shows the proposed model.
+Previous studies show that neural methods (e.g., LSTM and CNN)
+work effectively
+in learning q-A relevance.
+Here we use the recently-proposed model, BERT <cite class="ltx_cite ltx_citemacro_citep">(Devlin
+et al<span class="ltx_text">.</span>, <a href="#bib.bib2" title="" class="ltx_ref">2018</a>)</cite>.
+BERT is a powerful model that applies to
+a wide range of tasks and obtains the state-of-the-art results
+on many tasks including GLUE <cite class="ltx_cite ltx_citemacro_citep">(Wang et al<span class="ltx_text">.</span>, <a href="#bib.bib11" title="" class="ltx_ref">2018</a>)</cite> and SQuAD <cite class="ltx_cite ltx_citemacro_citep">(Rajpurkar et al<span class="ltx_text">.</span>, <a href="#bib.bib5" title="" class="ltx_ref">2016</a>)</cite>.
+An unsupervised retrieval system achieves high precision,
+but it is difficult to deal with a gap between the expressions of <math id="S1.p4.1.m1.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S1.p4.1.m1.1a"><mi id="S1.p4.1.m1.1.1" xref="S1.p4.1.m1.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S1.p4.1.m1.1b"><ci id="S1.p4.1.m1.1.1.cmml" xref="S1.p4.1.m1.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S1.p4.1.m1.1c">q</annotation></semantics></math> and <math id="S1.p4.2.m2.1" class="ltx_Math" alttext="Q" display="inline"><semantics id="S1.p4.2.m2.1a"><mi id="S1.p4.2.m2.1.1" xref="S1.p4.2.m2.1.1.cmml">Q</mi><annotation-xml encoding="MathML-Content" id="S1.p4.2.m2.1b"><ci id="S1.p4.2.m2.1.1.cmml" xref="S1.p4.2.m2.1.1">𝑄</ci></annotation-xml><annotation encoding="application/x-tex" id="S1.p4.2.m2.1c">Q</annotation></semantics></math>.
+By contrast, since BERT validates the relevance between <math id="S1.p4.3.m3.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S1.p4.3.m3.1a"><mi id="S1.p4.3.m3.1.1" xref="S1.p4.3.m3.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S1.p4.3.m3.1b"><ci id="S1.p4.3.m3.1.1.cmml" xref="S1.p4.3.m3.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S1.p4.3.m3.1c">q</annotation></semantics></math> and <math id="S1.p4.4.m4.1" class="ltx_Math" alttext="A" display="inline"><semantics id="S1.p4.4.m4.1a"><mi id="S1.p4.4.m4.1.1" xref="S1.p4.4.m4.1.1.cmml">A</mi><annotation-xml encoding="MathML-Content" id="S1.p4.4.m4.1b"><ci id="S1.p4.4.m4.1.1.cmml" xref="S1.p4.4.m4.1.1">𝐴</ci></annotation-xml><annotation encoding="application/x-tex" id="S1.p4.4.m4.1c">A</annotation></semantics></math>,
+it can retrieve an appropriate QA pair even if there is a lexical gap between <math id="S1.p4.5.m5.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S1.p4.5.m5.1a"><mi id="S1.p4.5.m5.1.1" xref="S1.p4.5.m5.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S1.p4.5.m5.1b"><ci id="S1.p4.5.m5.1.1.cmml" xref="S1.p4.5.m5.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S1.p4.5.m5.1c">q</annotation></semantics></math> and <math id="S1.p4.6.m6.1" class="ltx_Math" alttext="Q" display="inline"><semantics id="S1.p4.6.m6.1a"><mi id="S1.p4.6.m6.1.1" xref="S1.p4.6.m6.1.1.cmml">Q</mi><annotation-xml encoding="MathML-Content" id="S1.p4.6.m6.1b"><ci id="S1.p4.6.m6.1.1.cmml" xref="S1.p4.6.m6.1.1">𝑄</ci></annotation-xml><annotation encoding="application/x-tex" id="S1.p4.6.m6.1c">Q</annotation></semantics></math>.
+By combining the characteristics of two models, we achieve a robust and high-performance retrieval system.</p>
+</div>
+<figure id="S1.F1" class="ltx_figure">
+<div class="ltx_flex_figure">
+<div class="ltx_flex_cell ltx_flex_size_2"><img src="/html/1905.02851/assets/x1.png" id="S1.F1.g1" class="ltx_graphics ltx_figure_panel ltx_img_square" width="452" height="366" alt="Refer to caption"></div>
+</div>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure">Figure 1. </span>An overview of our proposed method.</figcaption><div class="ltx_flex_figure">
+<div class="ltx_flex_cell ltx_flex_size_1"><span id="S1.F1.1" class="ltx_ERROR ltx_figure_panel undefined">\Description</span></div>
+<div class="ltx_flex_break"></div>
+<div class="ltx_flex_cell ltx_flex_size_1">
+<p id="S1.F1.2" class="ltx_p ltx_figure_panel">An overview</p>
+</div>
+</div>
+</figure>
+<div id="S1.p5" class="ltx_para">
+<p id="S1.p5.1" class="ltx_p">We conduct experiments on two datasets.
+The first one is the localgovFAQ dataset,
+which we construct to evaluate our model
+in a setting where other similar FAQ sets are available.
+It consists of QA pairs collected from Japanese local government FAQ pages
+and an evaluation set constructed via crowdsourcing.
+The second one is the StackExchange dataset <cite class="ltx_cite ltx_citemacro_citep">(Karan and Snajder, <a href="#bib.bib3" title="" class="ltx_ref">2018</a>)</cite>,
+which is the public dataset for FAQ retrieval tasks.
+We evaluate our model on these datasets and show that the proposed method works effectively in FAQ retrieval.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2. </span>Proposed Method</h2>
+
+<section id="S2.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.1. </span>Task Description</h3>
+
+<div id="S2.SS1.p1" class="ltx_para">
+<p id="S2.SS1.p1.11" class="ltx_p">We begin by formally defining the task of FAQ retrieval.
+Here, we focus on local government FAQ as an example.
+Suppose that the number of local government FAQ sets is <math id="S2.SS1.p1.1.m1.1" class="ltx_Math" alttext="N" display="inline"><semantics id="S2.SS1.p1.1.m1.1a"><mi id="S2.SS1.p1.1.m1.1.1" xref="S2.SS1.p1.1.m1.1.1.cmml">N</mi><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.1.m1.1b"><ci id="S2.SS1.p1.1.m1.1.1.cmml" xref="S2.SS1.p1.1.m1.1.1">𝑁</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.1.m1.1c">N</annotation></semantics></math>.
+Our target FAQ set, <math id="S2.SS1.p1.2.m2.1" class="ltx_Math" alttext="T_{t}" display="inline"><semantics id="S2.SS1.p1.2.m2.1a"><msub id="S2.SS1.p1.2.m2.1.1" xref="S2.SS1.p1.2.m2.1.1.cmml"><mi id="S2.SS1.p1.2.m2.1.1.2" xref="S2.SS1.p1.2.m2.1.1.2.cmml">T</mi><mi id="S2.SS1.p1.2.m2.1.1.3" xref="S2.SS1.p1.2.m2.1.1.3.cmml">t</mi></msub><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.2.m2.1b"><apply id="S2.SS1.p1.2.m2.1.1.cmml" xref="S2.SS1.p1.2.m2.1.1"><csymbol cd="ambiguous" id="S2.SS1.p1.2.m2.1.1.1.cmml" xref="S2.SS1.p1.2.m2.1.1">subscript</csymbol><ci id="S2.SS1.p1.2.m2.1.1.2.cmml" xref="S2.SS1.p1.2.m2.1.1.2">𝑇</ci><ci id="S2.SS1.p1.2.m2.1.1.3.cmml" xref="S2.SS1.p1.2.m2.1.1.3">𝑡</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.2.m2.1c">T_{t}</annotation></semantics></math>, is one of them.
+When the number of QA entries in <math id="S2.SS1.p1.3.m3.1" class="ltx_Math" alttext="T_{t}" display="inline"><semantics id="S2.SS1.p1.3.m3.1a"><msub id="S2.SS1.p1.3.m3.1.1" xref="S2.SS1.p1.3.m3.1.1.cmml"><mi id="S2.SS1.p1.3.m3.1.1.2" xref="S2.SS1.p1.3.m3.1.1.2.cmml">T</mi><mi id="S2.SS1.p1.3.m3.1.1.3" xref="S2.SS1.p1.3.m3.1.1.3.cmml">t</mi></msub><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.3.m3.1b"><apply id="S2.SS1.p1.3.m3.1.1.cmml" xref="S2.SS1.p1.3.m3.1.1"><csymbol cd="ambiguous" id="S2.SS1.p1.3.m3.1.1.1.cmml" xref="S2.SS1.p1.3.m3.1.1">subscript</csymbol><ci id="S2.SS1.p1.3.m3.1.1.2.cmml" xref="S2.SS1.p1.3.m3.1.1.2">𝑇</ci><ci id="S2.SS1.p1.3.m3.1.1.3.cmml" xref="S2.SS1.p1.3.m3.1.1.3">𝑡</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.3.m3.1c">T_{t}</annotation></semantics></math> is <math id="S2.SS1.p1.4.m4.1" class="ltx_Math" alttext="M" display="inline"><semantics id="S2.SS1.p1.4.m4.1a"><mi id="S2.SS1.p1.4.m4.1.1" xref="S2.SS1.p1.4.m4.1.1.cmml">M</mi><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.4.m4.1b"><ci id="S2.SS1.p1.4.m4.1.1.cmml" xref="S2.SS1.p1.4.m4.1.1">𝑀</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.4.m4.1c">M</annotation></semantics></math>, <math id="S2.SS1.p1.5.m5.1" class="ltx_Math" alttext="T_{t}" display="inline"><semantics id="S2.SS1.p1.5.m5.1a"><msub id="S2.SS1.p1.5.m5.1.1" xref="S2.SS1.p1.5.m5.1.1.cmml"><mi id="S2.SS1.p1.5.m5.1.1.2" xref="S2.SS1.p1.5.m5.1.1.2.cmml">T</mi><mi id="S2.SS1.p1.5.m5.1.1.3" xref="S2.SS1.p1.5.m5.1.1.3.cmml">t</mi></msub><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.5.m5.1b"><apply id="S2.SS1.p1.5.m5.1.1.cmml" xref="S2.SS1.p1.5.m5.1.1"><csymbol cd="ambiguous" id="S2.SS1.p1.5.m5.1.1.1.cmml" xref="S2.SS1.p1.5.m5.1.1">subscript</csymbol><ci id="S2.SS1.p1.5.m5.1.1.2.cmml" xref="S2.SS1.p1.5.m5.1.1.2">𝑇</ci><ci id="S2.SS1.p1.5.m5.1.1.3.cmml" xref="S2.SS1.p1.5.m5.1.1.3">𝑡</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.5.m5.1c">T_{t}</annotation></semantics></math> is a collection of QA pairs <math id="S2.SS1.p1.6.m6.4" class="ltx_Math" alttext="\{(Q_{1},A_{1}),(Q_{2},A_{2}),...,(Q_{M},A_{M})\}" display="inline"><semantics id="S2.SS1.p1.6.m6.4a"><mrow id="S2.SS1.p1.6.m6.4.4.3" xref="S2.SS1.p1.6.m6.4.4.4.cmml"><mo stretchy="false" id="S2.SS1.p1.6.m6.4.4.3.4" xref="S2.SS1.p1.6.m6.4.4.4.cmml">{</mo><mrow id="S2.SS1.p1.6.m6.2.2.1.1.2" xref="S2.SS1.p1.6.m6.2.2.1.1.3.cmml"><mo stretchy="false" id="S2.SS1.p1.6.m6.2.2.1.1.2.3" xref="S2.SS1.p1.6.m6.2.2.1.1.3.cmml">(</mo><msub id="S2.SS1.p1.6.m6.2.2.1.1.1.1" xref="S2.SS1.p1.6.m6.2.2.1.1.1.1.cmml"><mi id="S2.SS1.p1.6.m6.2.2.1.1.1.1.2" xref="S2.SS1.p1.6.m6.2.2.1.1.1.1.2.cmml">Q</mi><mn id="S2.SS1.p1.6.m6.2.2.1.1.1.1.3" xref="S2.SS1.p1.6.m6.2.2.1.1.1.1.3.cmml">1</mn></msub><mo id="S2.SS1.p1.6.m6.2.2.1.1.2.4" xref="S2.SS1.p1.6.m6.2.2.1.1.3.cmml">,</mo><msub id="S2.SS1.p1.6.m6.2.2.1.1.2.2" xref="S2.SS1.p1.6.m6.2.2.1.1.2.2.cmml"><mi id="S2.SS1.p1.6.m6.2.2.1.1.2.2.2" xref="S2.SS1.p1.6.m6.2.2.1.1.2.2.2.cmml">A</mi><mn id="S2.SS1.p1.6.m6.2.2.1.1.2.2.3" xref="S2.SS1.p1.6.m6.2.2.1.1.2.2.3.cmml">1</mn></msub><mo stretchy="false" id="S2.SS1.p1.6.m6.2.2.1.1.2.5" xref="S2.SS1.p1.6.m6.2.2.1.1.3.cmml">)</mo></mrow><mo id="S2.SS1.p1.6.m6.4.4.3.5" xref="S2.SS1.p1.6.m6.4.4.4.cmml">,</mo><mrow id="S2.SS1.p1.6.m6.3.3.2.2.2" xref="S2.SS1.p1.6.m6.3.3.2.2.3.cmml"><mo stretchy="false" id="S2.SS1.p1.6.m6.3.3.2.2.2.3" xref="S2.SS1.p1.6.m6.3.3.2.2.3.cmml">(</mo><msub id="S2.SS1.p1.6.m6.3.3.2.2.1.1" xref="S2.SS1.p1.6.m6.3.3.2.2.1.1.cmml"><mi id="S2.SS1.p1.6.m6.3.3.2.2.1.1.2" xref="S2.SS1.p1.6.m6.3.3.2.2.1.1.2.cmml">Q</mi><mn id="S2.SS1.p1.6.m6.3.3.2.2.1.1.3" xref="S2.SS1.p1.6.m6.3.3.2.2.1.1.3.cmml">2</mn></msub><mo id="S2.SS1.p1.6.m6.3.3.2.2.2.4" xref="S2.SS1.p1.6.m6.3.3.2.2.3.cmml">,</mo><msub id="S2.SS1.p1.6.m6.3.3.2.2.2.2" xref="S2.SS1.p1.6.m6.3.3.2.2.2.2.cmml"><mi id="S2.SS1.p1.6.m6.3.3.2.2.2.2.2" xref="S2.SS1.p1.6.m6.3.3.2.2.2.2.2.cmml">A</mi><mn id="S2.SS1.p1.6.m6.3.3.2.2.2.2.3" xref="S2.SS1.p1.6.m6.3.3.2.2.2.2.3.cmml">2</mn></msub><mo stretchy="false" id="S2.SS1.p1.6.m6.3.3.2.2.2.5" xref="S2.SS1.p1.6.m6.3.3.2.2.3.cmml">)</mo></mrow><mo id="S2.SS1.p1.6.m6.4.4.3.6" xref="S2.SS1.p1.6.m6.4.4.4.cmml">,</mo><mi mathvariant="normal" id="S2.SS1.p1.6.m6.1.1" xref="S2.SS1.p1.6.m6.1.1.cmml">…</mi><mo id="S2.SS1.p1.6.m6.4.4.3.7" xref="S2.SS1.p1.6.m6.4.4.4.cmml">,</mo><mrow id="S2.SS1.p1.6.m6.4.4.3.3.2" xref="S2.SS1.p1.6.m6.4.4.3.3.3.cmml"><mo stretchy="false" id="S2.SS1.p1.6.m6.4.4.3.3.2.3" xref="S2.SS1.p1.6.m6.4.4.3.3.3.cmml">(</mo><msub id="S2.SS1.p1.6.m6.4.4.3.3.1.1" xref="S2.SS1.p1.6.m6.4.4.3.3.1.1.cmml"><mi id="S2.SS1.p1.6.m6.4.4.3.3.1.1.2" xref="S2.SS1.p1.6.m6.4.4.3.3.1.1.2.cmml">Q</mi><mi id="S2.SS1.p1.6.m6.4.4.3.3.1.1.3" xref="S2.SS1.p1.6.m6.4.4.3.3.1.1.3.cmml">M</mi></msub><mo id="S2.SS1.p1.6.m6.4.4.3.3.2.4" xref="S2.SS1.p1.6.m6.4.4.3.3.3.cmml">,</mo><msub id="S2.SS1.p1.6.m6.4.4.3.3.2.2" xref="S2.SS1.p1.6.m6.4.4.3.3.2.2.cmml"><mi id="S2.SS1.p1.6.m6.4.4.3.3.2.2.2" xref="S2.SS1.p1.6.m6.4.4.3.3.2.2.2.cmml">A</mi><mi id="S2.SS1.p1.6.m6.4.4.3.3.2.2.3" xref="S2.SS1.p1.6.m6.4.4.3.3.2.2.3.cmml">M</mi></msub><mo stretchy="false" id="S2.SS1.p1.6.m6.4.4.3.3.2.5" xref="S2.SS1.p1.6.m6.4.4.3.3.3.cmml">)</mo></mrow><mo stretchy="false" id="S2.SS1.p1.6.m6.4.4.3.8" xref="S2.SS1.p1.6.m6.4.4.4.cmml">}</mo></mrow><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.6.m6.4b"><set id="S2.SS1.p1.6.m6.4.4.4.cmml" xref="S2.SS1.p1.6.m6.4.4.3"><interval closure="open" id="S2.SS1.p1.6.m6.2.2.1.1.3.cmml" xref="S2.SS1.p1.6.m6.2.2.1.1.2"><apply id="S2.SS1.p1.6.m6.2.2.1.1.1.1.cmml" xref="S2.SS1.p1.6.m6.2.2.1.1.1.1"><csymbol cd="ambiguous" id="S2.SS1.p1.6.m6.2.2.1.1.1.1.1.cmml" xref="S2.SS1.p1.6.m6.2.2.1.1.1.1">subscript</csymbol><ci id="S2.SS1.p1.6.m6.2.2.1.1.1.1.2.cmml" xref="S2.SS1.p1.6.m6.2.2.1.1.1.1.2">𝑄</ci><cn type="integer" id="S2.SS1.p1.6.m6.2.2.1.1.1.1.3.cmml" xref="S2.SS1.p1.6.m6.2.2.1.1.1.1.3">1</cn></apply><apply id="S2.SS1.p1.6.m6.2.2.1.1.2.2.cmml" xref="S2.SS1.p1.6.m6.2.2.1.1.2.2"><csymbol cd="ambiguous" id="S2.SS1.p1.6.m6.2.2.1.1.2.2.1.cmml" xref="S2.SS1.p1.6.m6.2.2.1.1.2.2">subscript</csymbol><ci id="S2.SS1.p1.6.m6.2.2.1.1.2.2.2.cmml" xref="S2.SS1.p1.6.m6.2.2.1.1.2.2.2">𝐴</ci><cn type="integer" id="S2.SS1.p1.6.m6.2.2.1.1.2.2.3.cmml" xref="S2.SS1.p1.6.m6.2.2.1.1.2.2.3">1</cn></apply></interval><interval closure="open" id="S2.SS1.p1.6.m6.3.3.2.2.3.cmml" xref="S2.SS1.p1.6.m6.3.3.2.2.2"><apply id="S2.SS1.p1.6.m6.3.3.2.2.1.1.cmml" xref="S2.SS1.p1.6.m6.3.3.2.2.1.1"><csymbol cd="ambiguous" id="S2.SS1.p1.6.m6.3.3.2.2.1.1.1.cmml" xref="S2.SS1.p1.6.m6.3.3.2.2.1.1">subscript</csymbol><ci id="S2.SS1.p1.6.m6.3.3.2.2.1.1.2.cmml" xref="S2.SS1.p1.6.m6.3.3.2.2.1.1.2">𝑄</ci><cn type="integer" id="S2.SS1.p1.6.m6.3.3.2.2.1.1.3.cmml" xref="S2.SS1.p1.6.m6.3.3.2.2.1.1.3">2</cn></apply><apply id="S2.SS1.p1.6.m6.3.3.2.2.2.2.cmml" xref="S2.SS1.p1.6.m6.3.3.2.2.2.2"><csymbol cd="ambiguous" id="S2.SS1.p1.6.m6.3.3.2.2.2.2.1.cmml" xref="S2.SS1.p1.6.m6.3.3.2.2.2.2">subscript</csymbol><ci id="S2.SS1.p1.6.m6.3.3.2.2.2.2.2.cmml" xref="S2.SS1.p1.6.m6.3.3.2.2.2.2.2">𝐴</ci><cn type="integer" id="S2.SS1.p1.6.m6.3.3.2.2.2.2.3.cmml" xref="S2.SS1.p1.6.m6.3.3.2.2.2.2.3">2</cn></apply></interval><ci id="S2.SS1.p1.6.m6.1.1.cmml" xref="S2.SS1.p1.6.m6.1.1">…</ci><interval closure="open" id="S2.SS1.p1.6.m6.4.4.3.3.3.cmml" xref="S2.SS1.p1.6.m6.4.4.3.3.2"><apply id="S2.SS1.p1.6.m6.4.4.3.3.1.1.cmml" xref="S2.SS1.p1.6.m6.4.4.3.3.1.1"><csymbol cd="ambiguous" id="S2.SS1.p1.6.m6.4.4.3.3.1.1.1.cmml" xref="S2.SS1.p1.6.m6.4.4.3.3.1.1">subscript</csymbol><ci id="S2.SS1.p1.6.m6.4.4.3.3.1.1.2.cmml" xref="S2.SS1.p1.6.m6.4.4.3.3.1.1.2">𝑄</ci><ci id="S2.SS1.p1.6.m6.4.4.3.3.1.1.3.cmml" xref="S2.SS1.p1.6.m6.4.4.3.3.1.1.3">𝑀</ci></apply><apply id="S2.SS1.p1.6.m6.4.4.3.3.2.2.cmml" xref="S2.SS1.p1.6.m6.4.4.3.3.2.2"><csymbol cd="ambiguous" id="S2.SS1.p1.6.m6.4.4.3.3.2.2.1.cmml" xref="S2.SS1.p1.6.m6.4.4.3.3.2.2">subscript</csymbol><ci id="S2.SS1.p1.6.m6.4.4.3.3.2.2.2.cmml" xref="S2.SS1.p1.6.m6.4.4.3.3.2.2.2">𝐴</ci><ci id="S2.SS1.p1.6.m6.4.4.3.3.2.2.3.cmml" xref="S2.SS1.p1.6.m6.4.4.3.3.2.2.3">𝑀</ci></apply></interval></set></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.6.m6.4c">\{(Q_{1},A_{1}),(Q_{2},A_{2}),...,(Q_{M},A_{M})\}</annotation></semantics></math>.
+The task is then to find the appropriate QA pair <math id="S2.SS1.p1.7.m7.2" class="ltx_Math" alttext="(Q_{i},A_{i})" display="inline"><semantics id="S2.SS1.p1.7.m7.2a"><mrow id="S2.SS1.p1.7.m7.2.2.2" xref="S2.SS1.p1.7.m7.2.2.3.cmml"><mo stretchy="false" id="S2.SS1.p1.7.m7.2.2.2.3" xref="S2.SS1.p1.7.m7.2.2.3.cmml">(</mo><msub id="S2.SS1.p1.7.m7.1.1.1.1" xref="S2.SS1.p1.7.m7.1.1.1.1.cmml"><mi id="S2.SS1.p1.7.m7.1.1.1.1.2" xref="S2.SS1.p1.7.m7.1.1.1.1.2.cmml">Q</mi><mi id="S2.SS1.p1.7.m7.1.1.1.1.3" xref="S2.SS1.p1.7.m7.1.1.1.1.3.cmml">i</mi></msub><mo id="S2.SS1.p1.7.m7.2.2.2.4" xref="S2.SS1.p1.7.m7.2.2.3.cmml">,</mo><msub id="S2.SS1.p1.7.m7.2.2.2.2" xref="S2.SS1.p1.7.m7.2.2.2.2.cmml"><mi id="S2.SS1.p1.7.m7.2.2.2.2.2" xref="S2.SS1.p1.7.m7.2.2.2.2.2.cmml">A</mi><mi id="S2.SS1.p1.7.m7.2.2.2.2.3" xref="S2.SS1.p1.7.m7.2.2.2.2.3.cmml">i</mi></msub><mo stretchy="false" id="S2.SS1.p1.7.m7.2.2.2.5" xref="S2.SS1.p1.7.m7.2.2.3.cmml">)</mo></mrow><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.7.m7.2b"><interval closure="open" id="S2.SS1.p1.7.m7.2.2.3.cmml" xref="S2.SS1.p1.7.m7.2.2.2"><apply id="S2.SS1.p1.7.m7.1.1.1.1.cmml" xref="S2.SS1.p1.7.m7.1.1.1.1"><csymbol cd="ambiguous" id="S2.SS1.p1.7.m7.1.1.1.1.1.cmml" xref="S2.SS1.p1.7.m7.1.1.1.1">subscript</csymbol><ci id="S2.SS1.p1.7.m7.1.1.1.1.2.cmml" xref="S2.SS1.p1.7.m7.1.1.1.1.2">𝑄</ci><ci id="S2.SS1.p1.7.m7.1.1.1.1.3.cmml" xref="S2.SS1.p1.7.m7.1.1.1.1.3">𝑖</ci></apply><apply id="S2.SS1.p1.7.m7.2.2.2.2.cmml" xref="S2.SS1.p1.7.m7.2.2.2.2"><csymbol cd="ambiguous" id="S2.SS1.p1.7.m7.2.2.2.2.1.cmml" xref="S2.SS1.p1.7.m7.2.2.2.2">subscript</csymbol><ci id="S2.SS1.p1.7.m7.2.2.2.2.2.cmml" xref="S2.SS1.p1.7.m7.2.2.2.2.2">𝐴</ci><ci id="S2.SS1.p1.7.m7.2.2.2.2.3.cmml" xref="S2.SS1.p1.7.m7.2.2.2.2.3">𝑖</ci></apply></interval></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.7.m7.2c">(Q_{i},A_{i})</annotation></semantics></math>
+from <math id="S2.SS1.p1.8.m8.1" class="ltx_Math" alttext="T_{t}" display="inline"><semantics id="S2.SS1.p1.8.m8.1a"><msub id="S2.SS1.p1.8.m8.1.1" xref="S2.SS1.p1.8.m8.1.1.cmml"><mi id="S2.SS1.p1.8.m8.1.1.2" xref="S2.SS1.p1.8.m8.1.1.2.cmml">T</mi><mi id="S2.SS1.p1.8.m8.1.1.3" xref="S2.SS1.p1.8.m8.1.1.3.cmml">t</mi></msub><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.8.m8.1b"><apply id="S2.SS1.p1.8.m8.1.1.cmml" xref="S2.SS1.p1.8.m8.1.1"><csymbol cd="ambiguous" id="S2.SS1.p1.8.m8.1.1.1.cmml" xref="S2.SS1.p1.8.m8.1.1">subscript</csymbol><ci id="S2.SS1.p1.8.m8.1.1.2.cmml" xref="S2.SS1.p1.8.m8.1.1.2">𝑇</ci><ci id="S2.SS1.p1.8.m8.1.1.3.cmml" xref="S2.SS1.p1.8.m8.1.1.3">𝑡</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.8.m8.1c">T_{t}</annotation></semantics></math> based on a user’s query <math id="S2.SS1.p1.9.m9.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S2.SS1.p1.9.m9.1a"><mi id="S2.SS1.p1.9.m9.1.1" xref="S2.SS1.p1.9.m9.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.9.m9.1b"><ci id="S2.SS1.p1.9.m9.1.1.cmml" xref="S2.SS1.p1.9.m9.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.9.m9.1c">q</annotation></semantics></math>.
+We use <math id="S2.SS1.p1.10.m10.4" class="ltx_Math" alttext="T_{1},T_{2},...,T_{N}" display="inline"><semantics id="S2.SS1.p1.10.m10.4a"><mrow id="S2.SS1.p1.10.m10.4.4.3" xref="S2.SS1.p1.10.m10.4.4.4.cmml"><msub id="S2.SS1.p1.10.m10.2.2.1.1" xref="S2.SS1.p1.10.m10.2.2.1.1.cmml"><mi id="S2.SS1.p1.10.m10.2.2.1.1.2" xref="S2.SS1.p1.10.m10.2.2.1.1.2.cmml">T</mi><mn id="S2.SS1.p1.10.m10.2.2.1.1.3" xref="S2.SS1.p1.10.m10.2.2.1.1.3.cmml">1</mn></msub><mo id="S2.SS1.p1.10.m10.4.4.3.4" xref="S2.SS1.p1.10.m10.4.4.4.cmml">,</mo><msub id="S2.SS1.p1.10.m10.3.3.2.2" xref="S2.SS1.p1.10.m10.3.3.2.2.cmml"><mi id="S2.SS1.p1.10.m10.3.3.2.2.2" xref="S2.SS1.p1.10.m10.3.3.2.2.2.cmml">T</mi><mn id="S2.SS1.p1.10.m10.3.3.2.2.3" xref="S2.SS1.p1.10.m10.3.3.2.2.3.cmml">2</mn></msub><mo id="S2.SS1.p1.10.m10.4.4.3.5" xref="S2.SS1.p1.10.m10.4.4.4.cmml">,</mo><mi mathvariant="normal" id="S2.SS1.p1.10.m10.1.1" xref="S2.SS1.p1.10.m10.1.1.cmml">…</mi><mo id="S2.SS1.p1.10.m10.4.4.3.6" xref="S2.SS1.p1.10.m10.4.4.4.cmml">,</mo><msub id="S2.SS1.p1.10.m10.4.4.3.3" xref="S2.SS1.p1.10.m10.4.4.3.3.cmml"><mi id="S2.SS1.p1.10.m10.4.4.3.3.2" xref="S2.SS1.p1.10.m10.4.4.3.3.2.cmml">T</mi><mi id="S2.SS1.p1.10.m10.4.4.3.3.3" xref="S2.SS1.p1.10.m10.4.4.3.3.3.cmml">N</mi></msub></mrow><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.10.m10.4b"><list id="S2.SS1.p1.10.m10.4.4.4.cmml" xref="S2.SS1.p1.10.m10.4.4.3"><apply id="S2.SS1.p1.10.m10.2.2.1.1.cmml" xref="S2.SS1.p1.10.m10.2.2.1.1"><csymbol cd="ambiguous" id="S2.SS1.p1.10.m10.2.2.1.1.1.cmml" xref="S2.SS1.p1.10.m10.2.2.1.1">subscript</csymbol><ci id="S2.SS1.p1.10.m10.2.2.1.1.2.cmml" xref="S2.SS1.p1.10.m10.2.2.1.1.2">𝑇</ci><cn type="integer" id="S2.SS1.p1.10.m10.2.2.1.1.3.cmml" xref="S2.SS1.p1.10.m10.2.2.1.1.3">1</cn></apply><apply id="S2.SS1.p1.10.m10.3.3.2.2.cmml" xref="S2.SS1.p1.10.m10.3.3.2.2"><csymbol cd="ambiguous" id="S2.SS1.p1.10.m10.3.3.2.2.1.cmml" xref="S2.SS1.p1.10.m10.3.3.2.2">subscript</csymbol><ci id="S2.SS1.p1.10.m10.3.3.2.2.2.cmml" xref="S2.SS1.p1.10.m10.3.3.2.2.2">𝑇</ci><cn type="integer" id="S2.SS1.p1.10.m10.3.3.2.2.3.cmml" xref="S2.SS1.p1.10.m10.3.3.2.2.3">2</cn></apply><ci id="S2.SS1.p1.10.m10.1.1.cmml" xref="S2.SS1.p1.10.m10.1.1">…</ci><apply id="S2.SS1.p1.10.m10.4.4.3.3.cmml" xref="S2.SS1.p1.10.m10.4.4.3.3"><csymbol cd="ambiguous" id="S2.SS1.p1.10.m10.4.4.3.3.1.cmml" xref="S2.SS1.p1.10.m10.4.4.3.3">subscript</csymbol><ci id="S2.SS1.p1.10.m10.4.4.3.3.2.cmml" xref="S2.SS1.p1.10.m10.4.4.3.3.2">𝑇</ci><ci id="S2.SS1.p1.10.m10.4.4.3.3.3.cmml" xref="S2.SS1.p1.10.m10.4.4.3.3.3">𝑁</ci></apply></list></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.10.m10.4c">T_{1},T_{2},...,T_{N}</annotation></semantics></math> as our training data,
+including the FAQ set <math id="S2.SS1.p1.11.m11.1" class="ltx_Math" alttext="T_{t}" display="inline"><semantics id="S2.SS1.p1.11.m11.1a"><msub id="S2.SS1.p1.11.m11.1.1" xref="S2.SS1.p1.11.m11.1.1.cmml"><mi id="S2.SS1.p1.11.m11.1.1.2" xref="S2.SS1.p1.11.m11.1.1.2.cmml">T</mi><mi id="S2.SS1.p1.11.m11.1.1.3" xref="S2.SS1.p1.11.m11.1.1.3.cmml">t</mi></msub><annotation-xml encoding="MathML-Content" id="S2.SS1.p1.11.m11.1b"><apply id="S2.SS1.p1.11.m11.1.1.cmml" xref="S2.SS1.p1.11.m11.1.1"><csymbol cd="ambiguous" id="S2.SS1.p1.11.m11.1.1.1.cmml" xref="S2.SS1.p1.11.m11.1.1">subscript</csymbol><ci id="S2.SS1.p1.11.m11.1.1.2.cmml" xref="S2.SS1.p1.11.m11.1.1.2">𝑇</ci><ci id="S2.SS1.p1.11.m11.1.1.3.cmml" xref="S2.SS1.p1.11.m11.1.1.3">𝑡</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS1.p1.11.m11.1c">T_{t}</annotation></semantics></math> of the target local government.</p>
+</div>
+</section>
+<section id="S2.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.2. </span>q-Q similarity by TSUBAKI</h3>
+
+<div id="S2.SS2.p1" class="ltx_para">
+<p id="S2.SS2.p1.2" class="ltx_p">We use TSUBAKI <cite class="ltx_cite ltx_citemacro_citep">(Shinzato et al<span class="ltx_text">.</span>, <a href="#bib.bib8" title="" class="ltx_ref">2008</a>)</cite> to
+compute q-Q similarity. TSUBAKI is an unsupervised retrieval engine based on OKAPI BM25 <cite class="ltx_cite ltx_citemacro_citep">(Robertson et al<span class="ltx_text">.</span>, <a href="#bib.bib6" title="" class="ltx_ref">1992</a>)</cite>.
+TSUBAKI accounts for a dependency structure of a sentence, not just its words, to provide accurate retrieval.
+For flexible matching, it also uses synonyms automatically extracted from dictionaries
+and Web corpus.
+Here we regard <math id="S2.SS2.p1.1.m1.1" class="ltx_Math" alttext="Q" display="inline"><semantics id="S2.SS2.p1.1.m1.1a"><mi id="S2.SS2.p1.1.m1.1.1" xref="S2.SS2.p1.1.m1.1.1.cmml">Q</mi><annotation-xml encoding="MathML-Content" id="S2.SS2.p1.1.m1.1b"><ci id="S2.SS2.p1.1.m1.1.1.cmml" xref="S2.SS2.p1.1.m1.1.1">𝑄</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS2.p1.1.m1.1c">Q</annotation></semantics></math> in each QA as a document and compute <math id="S2.SS2.p1.2.m2.2" class="ltx_Math" alttext="Similarity(q,Q)" display="inline"><semantics id="S2.SS2.p1.2.m2.2a"><mrow id="S2.SS2.p1.2.m2.2.3" xref="S2.SS2.p1.2.m2.2.3.cmml"><mi id="S2.SS2.p1.2.m2.2.3.2" xref="S2.SS2.p1.2.m2.2.3.2.cmml">S</mi><mo lspace="0em" rspace="0em" id="S2.SS2.p1.2.m2.2.3.1" xref="S2.SS2.p1.2.m2.2.3.1.cmml">​</mo><mi id="S2.SS2.p1.2.m2.2.3.3" xref="S2.SS2.p1.2.m2.2.3.3.cmml">i</mi><mo lspace="0em" rspace="0em" id="S2.SS2.p1.2.m2.2.3.1a" xref="S2.SS2.p1.2.m2.2.3.1.cmml">​</mo><mi id="S2.SS2.p1.2.m2.2.3.4" xref="S2.SS2.p1.2.m2.2.3.4.cmml">m</mi><mo lspace="0em" rspace="0em" id="S2.SS2.p1.2.m2.2.3.1b" xref="S2.SS2.p1.2.m2.2.3.1.cmml">​</mo><mi id="S2.SS2.p1.2.m2.2.3.5" xref="S2.SS2.p1.2.m2.2.3.5.cmml">i</mi><mo lspace="0em" rspace="0em" id="S2.SS2.p1.2.m2.2.3.1c" xref="S2.SS2.p1.2.m2.2.3.1.cmml">​</mo><mi id="S2.SS2.p1.2.m2.2.3.6" xref="S2.SS2.p1.2.m2.2.3.6.cmml">l</mi><mo lspace="0em" rspace="0em" id="S2.SS2.p1.2.m2.2.3.1d" xref="S2.SS2.p1.2.m2.2.3.1.cmml">​</mo><mi id="S2.SS2.p1.2.m2.2.3.7" xref="S2.SS2.p1.2.m2.2.3.7.cmml">a</mi><mo lspace="0em" rspace="0em" id="S2.SS2.p1.2.m2.2.3.1e" xref="S2.SS2.p1.2.m2.2.3.1.cmml">​</mo><mi id="S2.SS2.p1.2.m2.2.3.8" xref="S2.SS2.p1.2.m2.2.3.8.cmml">r</mi><mo lspace="0em" rspace="0em" id="S2.SS2.p1.2.m2.2.3.1f" xref="S2.SS2.p1.2.m2.2.3.1.cmml">​</mo><mi id="S2.SS2.p1.2.m2.2.3.9" xref="S2.SS2.p1.2.m2.2.3.9.cmml">i</mi><mo lspace="0em" rspace="0em" id="S2.SS2.p1.2.m2.2.3.1g" xref="S2.SS2.p1.2.m2.2.3.1.cmml">​</mo><mi id="S2.SS2.p1.2.m2.2.3.10" xref="S2.SS2.p1.2.m2.2.3.10.cmml">t</mi><mo lspace="0em" rspace="0em" id="S2.SS2.p1.2.m2.2.3.1h" xref="S2.SS2.p1.2.m2.2.3.1.cmml">​</mo><mi id="S2.SS2.p1.2.m2.2.3.11" xref="S2.SS2.p1.2.m2.2.3.11.cmml">y</mi><mo lspace="0em" rspace="0em" id="S2.SS2.p1.2.m2.2.3.1i" xref="S2.SS2.p1.2.m2.2.3.1.cmml">​</mo><mrow id="S2.SS2.p1.2.m2.2.3.12.2" xref="S2.SS2.p1.2.m2.2.3.12.1.cmml"><mo stretchy="false" id="S2.SS2.p1.2.m2.2.3.12.2.1" xref="S2.SS2.p1.2.m2.2.3.12.1.cmml">(</mo><mi id="S2.SS2.p1.2.m2.1.1" xref="S2.SS2.p1.2.m2.1.1.cmml">q</mi><mo id="S2.SS2.p1.2.m2.2.3.12.2.2" xref="S2.SS2.p1.2.m2.2.3.12.1.cmml">,</mo><mi id="S2.SS2.p1.2.m2.2.2" xref="S2.SS2.p1.2.m2.2.2.cmml">Q</mi><mo stretchy="false" id="S2.SS2.p1.2.m2.2.3.12.2.3" xref="S2.SS2.p1.2.m2.2.3.12.1.cmml">)</mo></mrow></mrow><annotation-xml encoding="MathML-Content" id="S2.SS2.p1.2.m2.2b"><apply id="S2.SS2.p1.2.m2.2.3.cmml" xref="S2.SS2.p1.2.m2.2.3"><times id="S2.SS2.p1.2.m2.2.3.1.cmml" xref="S2.SS2.p1.2.m2.2.3.1"></times><ci id="S2.SS2.p1.2.m2.2.3.2.cmml" xref="S2.SS2.p1.2.m2.2.3.2">𝑆</ci><ci id="S2.SS2.p1.2.m2.2.3.3.cmml" xref="S2.SS2.p1.2.m2.2.3.3">𝑖</ci><ci id="S2.SS2.p1.2.m2.2.3.4.cmml" xref="S2.SS2.p1.2.m2.2.3.4">𝑚</ci><ci id="S2.SS2.p1.2.m2.2.3.5.cmml" xref="S2.SS2.p1.2.m2.2.3.5">𝑖</ci><ci id="S2.SS2.p1.2.m2.2.3.6.cmml" xref="S2.SS2.p1.2.m2.2.3.6">𝑙</ci><ci id="S2.SS2.p1.2.m2.2.3.7.cmml" xref="S2.SS2.p1.2.m2.2.3.7">𝑎</ci><ci id="S2.SS2.p1.2.m2.2.3.8.cmml" xref="S2.SS2.p1.2.m2.2.3.8">𝑟</ci><ci id="S2.SS2.p1.2.m2.2.3.9.cmml" xref="S2.SS2.p1.2.m2.2.3.9">𝑖</ci><ci id="S2.SS2.p1.2.m2.2.3.10.cmml" xref="S2.SS2.p1.2.m2.2.3.10">𝑡</ci><ci id="S2.SS2.p1.2.m2.2.3.11.cmml" xref="S2.SS2.p1.2.m2.2.3.11">𝑦</ci><interval closure="open" id="S2.SS2.p1.2.m2.2.3.12.1.cmml" xref="S2.SS2.p1.2.m2.2.3.12.2"><ci id="S2.SS2.p1.2.m2.1.1.cmml" xref="S2.SS2.p1.2.m2.1.1">𝑞</ci><ci id="S2.SS2.p1.2.m2.2.2.cmml" xref="S2.SS2.p1.2.m2.2.2">𝑄</ci></interval></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS2.p1.2.m2.2c">Similarity(q,Q)</annotation></semantics></math> for
+the q-Q similarity.</p>
+</div>
+</section>
+<section id="S2.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.3. </span>q-A relevance by BERT</h3>
+
+<div id="S2.SS3.p1" class="ltx_para">
+<p id="S2.SS3.p1.1" class="ltx_p">We use BERT to compute q-A relevance.
+BERT is based on the Transformer <cite class="ltx_cite ltx_citemacro_citep">(Vaswani et al<span class="ltx_text">.</span>, <a href="#bib.bib10" title="" class="ltx_ref">2017</a>)</cite> that effectively encodes an input text. It is designed to be pre-trained using a language model objective on
+a large raw corpus and fine-tuned for each specific task including sentence classification, sentence-pair classification, and question answering.
+As it is pre-trained on a large corpus, BERT achieves high accuracy even if the data size of the specific task is not large enough. We apply BERT to a sentence-pair classifier for questions and answers. By applying the Transformer to the input question and answer, it captures the relevance between the pair.</p>
+</div>
+<div id="S2.SS3.p2" class="ltx_para">
+<p id="S2.SS3.p2.8" class="ltx_p">The training data we use is
+the collection of QA pairs from FAQ sets (see Sec. <a href="#S2.SS1" title="2.1. Task Description ‣ 2. Proposed Method ‣ FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Answer Relevance" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.1</span></a>).
+For each positive example <math id="S2.SS3.p2.1.m1.2" class="ltx_Math" alttext="(Q,A)" display="inline"><semantics id="S2.SS3.p2.1.m1.2a"><mrow id="S2.SS3.p2.1.m1.2.3.2" xref="S2.SS3.p2.1.m1.2.3.1.cmml"><mo stretchy="false" id="S2.SS3.p2.1.m1.2.3.2.1" xref="S2.SS3.p2.1.m1.2.3.1.cmml">(</mo><mi id="S2.SS3.p2.1.m1.1.1" xref="S2.SS3.p2.1.m1.1.1.cmml">Q</mi><mo id="S2.SS3.p2.1.m1.2.3.2.2" xref="S2.SS3.p2.1.m1.2.3.1.cmml">,</mo><mi id="S2.SS3.p2.1.m1.2.2" xref="S2.SS3.p2.1.m1.2.2.cmml">A</mi><mo stretchy="false" id="S2.SS3.p2.1.m1.2.3.2.3" xref="S2.SS3.p2.1.m1.2.3.1.cmml">)</mo></mrow><annotation-xml encoding="MathML-Content" id="S2.SS3.p2.1.m1.2b"><interval closure="open" id="S2.SS3.p2.1.m1.2.3.1.cmml" xref="S2.SS3.p2.1.m1.2.3.2"><ci id="S2.SS3.p2.1.m1.1.1.cmml" xref="S2.SS3.p2.1.m1.1.1">𝑄</ci><ci id="S2.SS3.p2.1.m1.2.2.cmml" xref="S2.SS3.p2.1.m1.2.2">𝐴</ci></interval></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p2.1.m1.2c">(Q,A)</annotation></semantics></math>,
+we randomly select <math id="S2.SS3.p2.2.m2.1" class="ltx_Math" alttext="\bar{A}" display="inline"><semantics id="S2.SS3.p2.2.m2.1a"><mover accent="true" id="S2.SS3.p2.2.m2.1.1" xref="S2.SS3.p2.2.m2.1.1.cmml"><mi id="S2.SS3.p2.2.m2.1.1.2" xref="S2.SS3.p2.2.m2.1.1.2.cmml">A</mi><mo id="S2.SS3.p2.2.m2.1.1.1" xref="S2.SS3.p2.2.m2.1.1.1.cmml">¯</mo></mover><annotation-xml encoding="MathML-Content" id="S2.SS3.p2.2.m2.1b"><apply id="S2.SS3.p2.2.m2.1.1.cmml" xref="S2.SS3.p2.2.m2.1.1"><ci id="S2.SS3.p2.2.m2.1.1.1.cmml" xref="S2.SS3.p2.2.m2.1.1.1">¯</ci><ci id="S2.SS3.p2.2.m2.1.1.2.cmml" xref="S2.SS3.p2.2.m2.1.1.2">𝐴</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p2.2.m2.1c">\bar{A}</annotation></semantics></math>
+and produce negative training data <math id="S2.SS3.p2.3.m3.2" class="ltx_Math" alttext="(Q,\bar{A})" display="inline"><semantics id="S2.SS3.p2.3.m3.2a"><mrow id="S2.SS3.p2.3.m3.2.3.2" xref="S2.SS3.p2.3.m3.2.3.1.cmml"><mo stretchy="false" id="S2.SS3.p2.3.m3.2.3.2.1" xref="S2.SS3.p2.3.m3.2.3.1.cmml">(</mo><mi id="S2.SS3.p2.3.m3.1.1" xref="S2.SS3.p2.3.m3.1.1.cmml">Q</mi><mo id="S2.SS3.p2.3.m3.2.3.2.2" xref="S2.SS3.p2.3.m3.2.3.1.cmml">,</mo><mover accent="true" id="S2.SS3.p2.3.m3.2.2" xref="S2.SS3.p2.3.m3.2.2.cmml"><mi id="S2.SS3.p2.3.m3.2.2.2" xref="S2.SS3.p2.3.m3.2.2.2.cmml">A</mi><mo id="S2.SS3.p2.3.m3.2.2.1" xref="S2.SS3.p2.3.m3.2.2.1.cmml">¯</mo></mover><mo stretchy="false" id="S2.SS3.p2.3.m3.2.3.2.3" xref="S2.SS3.p2.3.m3.2.3.1.cmml">)</mo></mrow><annotation-xml encoding="MathML-Content" id="S2.SS3.p2.3.m3.2b"><interval closure="open" id="S2.SS3.p2.3.m3.2.3.1.cmml" xref="S2.SS3.p2.3.m3.2.3.2"><ci id="S2.SS3.p2.3.m3.1.1.cmml" xref="S2.SS3.p2.3.m3.1.1">𝑄</ci><apply id="S2.SS3.p2.3.m3.2.2.cmml" xref="S2.SS3.p2.3.m3.2.2"><ci id="S2.SS3.p2.3.m3.2.2.1.cmml" xref="S2.SS3.p2.3.m3.2.2.1">¯</ci><ci id="S2.SS3.p2.3.m3.2.2.2.cmml" xref="S2.SS3.p2.3.m3.2.2.2">𝐴</ci></apply></interval></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p2.3.m3.2c">(Q,\bar{A})</annotation></semantics></math>.
+On this data, we train BERT to solve the two-class classification problem:
+<math id="S2.SS3.p2.4.m4.2" class="ltx_Math" alttext="Relevance(Q,A)" display="inline"><semantics id="S2.SS3.p2.4.m4.2a"><mrow id="S2.SS3.p2.4.m4.2.3" xref="S2.SS3.p2.4.m4.2.3.cmml"><mi id="S2.SS3.p2.4.m4.2.3.2" xref="S2.SS3.p2.4.m4.2.3.2.cmml">R</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.4.m4.2.3.1" xref="S2.SS3.p2.4.m4.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.4.m4.2.3.3" xref="S2.SS3.p2.4.m4.2.3.3.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.4.m4.2.3.1a" xref="S2.SS3.p2.4.m4.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.4.m4.2.3.4" xref="S2.SS3.p2.4.m4.2.3.4.cmml">l</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.4.m4.2.3.1b" xref="S2.SS3.p2.4.m4.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.4.m4.2.3.5" xref="S2.SS3.p2.4.m4.2.3.5.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.4.m4.2.3.1c" xref="S2.SS3.p2.4.m4.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.4.m4.2.3.6" xref="S2.SS3.p2.4.m4.2.3.6.cmml">v</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.4.m4.2.3.1d" xref="S2.SS3.p2.4.m4.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.4.m4.2.3.7" xref="S2.SS3.p2.4.m4.2.3.7.cmml">a</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.4.m4.2.3.1e" xref="S2.SS3.p2.4.m4.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.4.m4.2.3.8" xref="S2.SS3.p2.4.m4.2.3.8.cmml">n</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.4.m4.2.3.1f" xref="S2.SS3.p2.4.m4.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.4.m4.2.3.9" xref="S2.SS3.p2.4.m4.2.3.9.cmml">c</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.4.m4.2.3.1g" xref="S2.SS3.p2.4.m4.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.4.m4.2.3.10" xref="S2.SS3.p2.4.m4.2.3.10.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.4.m4.2.3.1h" xref="S2.SS3.p2.4.m4.2.3.1.cmml">​</mo><mrow id="S2.SS3.p2.4.m4.2.3.11.2" xref="S2.SS3.p2.4.m4.2.3.11.1.cmml"><mo stretchy="false" id="S2.SS3.p2.4.m4.2.3.11.2.1" xref="S2.SS3.p2.4.m4.2.3.11.1.cmml">(</mo><mi id="S2.SS3.p2.4.m4.1.1" xref="S2.SS3.p2.4.m4.1.1.cmml">Q</mi><mo id="S2.SS3.p2.4.m4.2.3.11.2.2" xref="S2.SS3.p2.4.m4.2.3.11.1.cmml">,</mo><mi id="S2.SS3.p2.4.m4.2.2" xref="S2.SS3.p2.4.m4.2.2.cmml">A</mi><mo stretchy="false" id="S2.SS3.p2.4.m4.2.3.11.2.3" xref="S2.SS3.p2.4.m4.2.3.11.1.cmml">)</mo></mrow></mrow><annotation-xml encoding="MathML-Content" id="S2.SS3.p2.4.m4.2b"><apply id="S2.SS3.p2.4.m4.2.3.cmml" xref="S2.SS3.p2.4.m4.2.3"><times id="S2.SS3.p2.4.m4.2.3.1.cmml" xref="S2.SS3.p2.4.m4.2.3.1"></times><ci id="S2.SS3.p2.4.m4.2.3.2.cmml" xref="S2.SS3.p2.4.m4.2.3.2">𝑅</ci><ci id="S2.SS3.p2.4.m4.2.3.3.cmml" xref="S2.SS3.p2.4.m4.2.3.3">𝑒</ci><ci id="S2.SS3.p2.4.m4.2.3.4.cmml" xref="S2.SS3.p2.4.m4.2.3.4">𝑙</ci><ci id="S2.SS3.p2.4.m4.2.3.5.cmml" xref="S2.SS3.p2.4.m4.2.3.5">𝑒</ci><ci id="S2.SS3.p2.4.m4.2.3.6.cmml" xref="S2.SS3.p2.4.m4.2.3.6">𝑣</ci><ci id="S2.SS3.p2.4.m4.2.3.7.cmml" xref="S2.SS3.p2.4.m4.2.3.7">𝑎</ci><ci id="S2.SS3.p2.4.m4.2.3.8.cmml" xref="S2.SS3.p2.4.m4.2.3.8">𝑛</ci><ci id="S2.SS3.p2.4.m4.2.3.9.cmml" xref="S2.SS3.p2.4.m4.2.3.9">𝑐</ci><ci id="S2.SS3.p2.4.m4.2.3.10.cmml" xref="S2.SS3.p2.4.m4.2.3.10">𝑒</ci><interval closure="open" id="S2.SS3.p2.4.m4.2.3.11.1.cmml" xref="S2.SS3.p2.4.m4.2.3.11.2"><ci id="S2.SS3.p2.4.m4.1.1.cmml" xref="S2.SS3.p2.4.m4.1.1">𝑄</ci><ci id="S2.SS3.p2.4.m4.2.2.cmml" xref="S2.SS3.p2.4.m4.2.2">𝐴</ci></interval></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p2.4.m4.2c">Relevance(Q,A)</annotation></semantics></math> is 1 and <math id="S2.SS3.p2.5.m5.2" class="ltx_Math" alttext="Relevance(Q,\bar{A})" display="inline"><semantics id="S2.SS3.p2.5.m5.2a"><mrow id="S2.SS3.p2.5.m5.2.3" xref="S2.SS3.p2.5.m5.2.3.cmml"><mi id="S2.SS3.p2.5.m5.2.3.2" xref="S2.SS3.p2.5.m5.2.3.2.cmml">R</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.5.m5.2.3.1" xref="S2.SS3.p2.5.m5.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.5.m5.2.3.3" xref="S2.SS3.p2.5.m5.2.3.3.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.5.m5.2.3.1a" xref="S2.SS3.p2.5.m5.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.5.m5.2.3.4" xref="S2.SS3.p2.5.m5.2.3.4.cmml">l</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.5.m5.2.3.1b" xref="S2.SS3.p2.5.m5.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.5.m5.2.3.5" xref="S2.SS3.p2.5.m5.2.3.5.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.5.m5.2.3.1c" xref="S2.SS3.p2.5.m5.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.5.m5.2.3.6" xref="S2.SS3.p2.5.m5.2.3.6.cmml">v</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.5.m5.2.3.1d" xref="S2.SS3.p2.5.m5.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.5.m5.2.3.7" xref="S2.SS3.p2.5.m5.2.3.7.cmml">a</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.5.m5.2.3.1e" xref="S2.SS3.p2.5.m5.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.5.m5.2.3.8" xref="S2.SS3.p2.5.m5.2.3.8.cmml">n</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.5.m5.2.3.1f" xref="S2.SS3.p2.5.m5.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.5.m5.2.3.9" xref="S2.SS3.p2.5.m5.2.3.9.cmml">c</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.5.m5.2.3.1g" xref="S2.SS3.p2.5.m5.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.5.m5.2.3.10" xref="S2.SS3.p2.5.m5.2.3.10.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.5.m5.2.3.1h" xref="S2.SS3.p2.5.m5.2.3.1.cmml">​</mo><mrow id="S2.SS3.p2.5.m5.2.3.11.2" xref="S2.SS3.p2.5.m5.2.3.11.1.cmml"><mo stretchy="false" id="S2.SS3.p2.5.m5.2.3.11.2.1" xref="S2.SS3.p2.5.m5.2.3.11.1.cmml">(</mo><mi id="S2.SS3.p2.5.m5.1.1" xref="S2.SS3.p2.5.m5.1.1.cmml">Q</mi><mo id="S2.SS3.p2.5.m5.2.3.11.2.2" xref="S2.SS3.p2.5.m5.2.3.11.1.cmml">,</mo><mover accent="true" id="S2.SS3.p2.5.m5.2.2" xref="S2.SS3.p2.5.m5.2.2.cmml"><mi id="S2.SS3.p2.5.m5.2.2.2" xref="S2.SS3.p2.5.m5.2.2.2.cmml">A</mi><mo id="S2.SS3.p2.5.m5.2.2.1" xref="S2.SS3.p2.5.m5.2.2.1.cmml">¯</mo></mover><mo stretchy="false" id="S2.SS3.p2.5.m5.2.3.11.2.3" xref="S2.SS3.p2.5.m5.2.3.11.1.cmml">)</mo></mrow></mrow><annotation-xml encoding="MathML-Content" id="S2.SS3.p2.5.m5.2b"><apply id="S2.SS3.p2.5.m5.2.3.cmml" xref="S2.SS3.p2.5.m5.2.3"><times id="S2.SS3.p2.5.m5.2.3.1.cmml" xref="S2.SS3.p2.5.m5.2.3.1"></times><ci id="S2.SS3.p2.5.m5.2.3.2.cmml" xref="S2.SS3.p2.5.m5.2.3.2">𝑅</ci><ci id="S2.SS3.p2.5.m5.2.3.3.cmml" xref="S2.SS3.p2.5.m5.2.3.3">𝑒</ci><ci id="S2.SS3.p2.5.m5.2.3.4.cmml" xref="S2.SS3.p2.5.m5.2.3.4">𝑙</ci><ci id="S2.SS3.p2.5.m5.2.3.5.cmml" xref="S2.SS3.p2.5.m5.2.3.5">𝑒</ci><ci id="S2.SS3.p2.5.m5.2.3.6.cmml" xref="S2.SS3.p2.5.m5.2.3.6">𝑣</ci><ci id="S2.SS3.p2.5.m5.2.3.7.cmml" xref="S2.SS3.p2.5.m5.2.3.7">𝑎</ci><ci id="S2.SS3.p2.5.m5.2.3.8.cmml" xref="S2.SS3.p2.5.m5.2.3.8">𝑛</ci><ci id="S2.SS3.p2.5.m5.2.3.9.cmml" xref="S2.SS3.p2.5.m5.2.3.9">𝑐</ci><ci id="S2.SS3.p2.5.m5.2.3.10.cmml" xref="S2.SS3.p2.5.m5.2.3.10">𝑒</ci><interval closure="open" id="S2.SS3.p2.5.m5.2.3.11.1.cmml" xref="S2.SS3.p2.5.m5.2.3.11.2"><ci id="S2.SS3.p2.5.m5.1.1.cmml" xref="S2.SS3.p2.5.m5.1.1">𝑄</ci><apply id="S2.SS3.p2.5.m5.2.2.cmml" xref="S2.SS3.p2.5.m5.2.2"><ci id="S2.SS3.p2.5.m5.2.2.1.cmml" xref="S2.SS3.p2.5.m5.2.2.1">¯</ci><ci id="S2.SS3.p2.5.m5.2.2.2.cmml" xref="S2.SS3.p2.5.m5.2.2.2">𝐴</ci></apply></interval></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p2.5.m5.2c">Relevance(Q,\bar{A})</annotation></semantics></math> is 0,
+where <math id="S2.SS3.p2.6.m6.2" class="ltx_Math" alttext="Relevance(Q,A)" display="inline"><semantics id="S2.SS3.p2.6.m6.2a"><mrow id="S2.SS3.p2.6.m6.2.3" xref="S2.SS3.p2.6.m6.2.3.cmml"><mi id="S2.SS3.p2.6.m6.2.3.2" xref="S2.SS3.p2.6.m6.2.3.2.cmml">R</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.6.m6.2.3.1" xref="S2.SS3.p2.6.m6.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.6.m6.2.3.3" xref="S2.SS3.p2.6.m6.2.3.3.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.6.m6.2.3.1a" xref="S2.SS3.p2.6.m6.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.6.m6.2.3.4" xref="S2.SS3.p2.6.m6.2.3.4.cmml">l</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.6.m6.2.3.1b" xref="S2.SS3.p2.6.m6.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.6.m6.2.3.5" xref="S2.SS3.p2.6.m6.2.3.5.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.6.m6.2.3.1c" xref="S2.SS3.p2.6.m6.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.6.m6.2.3.6" xref="S2.SS3.p2.6.m6.2.3.6.cmml">v</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.6.m6.2.3.1d" xref="S2.SS3.p2.6.m6.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.6.m6.2.3.7" xref="S2.SS3.p2.6.m6.2.3.7.cmml">a</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.6.m6.2.3.1e" xref="S2.SS3.p2.6.m6.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.6.m6.2.3.8" xref="S2.SS3.p2.6.m6.2.3.8.cmml">n</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.6.m6.2.3.1f" xref="S2.SS3.p2.6.m6.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.6.m6.2.3.9" xref="S2.SS3.p2.6.m6.2.3.9.cmml">c</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.6.m6.2.3.1g" xref="S2.SS3.p2.6.m6.2.3.1.cmml">​</mo><mi id="S2.SS3.p2.6.m6.2.3.10" xref="S2.SS3.p2.6.m6.2.3.10.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p2.6.m6.2.3.1h" xref="S2.SS3.p2.6.m6.2.3.1.cmml">​</mo><mrow id="S2.SS3.p2.6.m6.2.3.11.2" xref="S2.SS3.p2.6.m6.2.3.11.1.cmml"><mo stretchy="false" id="S2.SS3.p2.6.m6.2.3.11.2.1" xref="S2.SS3.p2.6.m6.2.3.11.1.cmml">(</mo><mi id="S2.SS3.p2.6.m6.1.1" xref="S2.SS3.p2.6.m6.1.1.cmml">Q</mi><mo id="S2.SS3.p2.6.m6.2.3.11.2.2" xref="S2.SS3.p2.6.m6.2.3.11.1.cmml">,</mo><mi id="S2.SS3.p2.6.m6.2.2" xref="S2.SS3.p2.6.m6.2.2.cmml">A</mi><mo stretchy="false" id="S2.SS3.p2.6.m6.2.3.11.2.3" xref="S2.SS3.p2.6.m6.2.3.11.1.cmml">)</mo></mrow></mrow><annotation-xml encoding="MathML-Content" id="S2.SS3.p2.6.m6.2b"><apply id="S2.SS3.p2.6.m6.2.3.cmml" xref="S2.SS3.p2.6.m6.2.3"><times id="S2.SS3.p2.6.m6.2.3.1.cmml" xref="S2.SS3.p2.6.m6.2.3.1"></times><ci id="S2.SS3.p2.6.m6.2.3.2.cmml" xref="S2.SS3.p2.6.m6.2.3.2">𝑅</ci><ci id="S2.SS3.p2.6.m6.2.3.3.cmml" xref="S2.SS3.p2.6.m6.2.3.3">𝑒</ci><ci id="S2.SS3.p2.6.m6.2.3.4.cmml" xref="S2.SS3.p2.6.m6.2.3.4">𝑙</ci><ci id="S2.SS3.p2.6.m6.2.3.5.cmml" xref="S2.SS3.p2.6.m6.2.3.5">𝑒</ci><ci id="S2.SS3.p2.6.m6.2.3.6.cmml" xref="S2.SS3.p2.6.m6.2.3.6">𝑣</ci><ci id="S2.SS3.p2.6.m6.2.3.7.cmml" xref="S2.SS3.p2.6.m6.2.3.7">𝑎</ci><ci id="S2.SS3.p2.6.m6.2.3.8.cmml" xref="S2.SS3.p2.6.m6.2.3.8">𝑛</ci><ci id="S2.SS3.p2.6.m6.2.3.9.cmml" xref="S2.SS3.p2.6.m6.2.3.9">𝑐</ci><ci id="S2.SS3.p2.6.m6.2.3.10.cmml" xref="S2.SS3.p2.6.m6.2.3.10">𝑒</ci><interval closure="open" id="S2.SS3.p2.6.m6.2.3.11.1.cmml" xref="S2.SS3.p2.6.m6.2.3.11.2"><ci id="S2.SS3.p2.6.m6.1.1.cmml" xref="S2.SS3.p2.6.m6.1.1">𝑄</ci><ci id="S2.SS3.p2.6.m6.2.2.cmml" xref="S2.SS3.p2.6.m6.2.2">𝐴</ci></interval></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p2.6.m6.2c">Relevance(Q,A)</annotation></semantics></math> stands for the relevance between <math id="S2.SS3.p2.7.m7.1" class="ltx_Math" alttext="Q" display="inline"><semantics id="S2.SS3.p2.7.m7.1a"><mi id="S2.SS3.p2.7.m7.1.1" xref="S2.SS3.p2.7.m7.1.1.cmml">Q</mi><annotation-xml encoding="MathML-Content" id="S2.SS3.p2.7.m7.1b"><ci id="S2.SS3.p2.7.m7.1.1.cmml" xref="S2.SS3.p2.7.m7.1.1">𝑄</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p2.7.m7.1c">Q</annotation></semantics></math> and <math id="S2.SS3.p2.8.m8.1" class="ltx_Math" alttext="A" display="inline"><semantics id="S2.SS3.p2.8.m8.1a"><mi id="S2.SS3.p2.8.m8.1.1" xref="S2.SS3.p2.8.m8.1.1.cmml">A</mi><annotation-xml encoding="MathML-Content" id="S2.SS3.p2.8.m8.1b"><ci id="S2.SS3.p2.8.m8.1.1.cmml" xref="S2.SS3.p2.8.m8.1.1">𝐴</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p2.8.m8.1c">A</annotation></semantics></math>.</p>
+</div>
+<div id="S2.SS3.p3" class="ltx_para">
+<p id="S2.SS3.p3.4" class="ltx_p">At the search stage, we compute <math id="S2.SS3.p3.1.m1.2" class="ltx_Math" alttext="Relevance(q,A_{i})" display="inline"><semantics id="S2.SS3.p3.1.m1.2a"><mrow id="S2.SS3.p3.1.m1.2.2" xref="S2.SS3.p3.1.m1.2.2.cmml"><mi id="S2.SS3.p3.1.m1.2.2.3" xref="S2.SS3.p3.1.m1.2.2.3.cmml">R</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p3.1.m1.2.2.2" xref="S2.SS3.p3.1.m1.2.2.2.cmml">​</mo><mi id="S2.SS3.p3.1.m1.2.2.4" xref="S2.SS3.p3.1.m1.2.2.4.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p3.1.m1.2.2.2a" xref="S2.SS3.p3.1.m1.2.2.2.cmml">​</mo><mi id="S2.SS3.p3.1.m1.2.2.5" xref="S2.SS3.p3.1.m1.2.2.5.cmml">l</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p3.1.m1.2.2.2b" xref="S2.SS3.p3.1.m1.2.2.2.cmml">​</mo><mi id="S2.SS3.p3.1.m1.2.2.6" xref="S2.SS3.p3.1.m1.2.2.6.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p3.1.m1.2.2.2c" xref="S2.SS3.p3.1.m1.2.2.2.cmml">​</mo><mi id="S2.SS3.p3.1.m1.2.2.7" xref="S2.SS3.p3.1.m1.2.2.7.cmml">v</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p3.1.m1.2.2.2d" xref="S2.SS3.p3.1.m1.2.2.2.cmml">​</mo><mi id="S2.SS3.p3.1.m1.2.2.8" xref="S2.SS3.p3.1.m1.2.2.8.cmml">a</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p3.1.m1.2.2.2e" xref="S2.SS3.p3.1.m1.2.2.2.cmml">​</mo><mi id="S2.SS3.p3.1.m1.2.2.9" xref="S2.SS3.p3.1.m1.2.2.9.cmml">n</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p3.1.m1.2.2.2f" xref="S2.SS3.p3.1.m1.2.2.2.cmml">​</mo><mi id="S2.SS3.p3.1.m1.2.2.10" xref="S2.SS3.p3.1.m1.2.2.10.cmml">c</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p3.1.m1.2.2.2g" xref="S2.SS3.p3.1.m1.2.2.2.cmml">​</mo><mi id="S2.SS3.p3.1.m1.2.2.11" xref="S2.SS3.p3.1.m1.2.2.11.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS3.p3.1.m1.2.2.2h" xref="S2.SS3.p3.1.m1.2.2.2.cmml">​</mo><mrow id="S2.SS3.p3.1.m1.2.2.1.1" xref="S2.SS3.p3.1.m1.2.2.1.2.cmml"><mo stretchy="false" id="S2.SS3.p3.1.m1.2.2.1.1.2" xref="S2.SS3.p3.1.m1.2.2.1.2.cmml">(</mo><mi id="S2.SS3.p3.1.m1.1.1" xref="S2.SS3.p3.1.m1.1.1.cmml">q</mi><mo id="S2.SS3.p3.1.m1.2.2.1.1.3" xref="S2.SS3.p3.1.m1.2.2.1.2.cmml">,</mo><msub id="S2.SS3.p3.1.m1.2.2.1.1.1" xref="S2.SS3.p3.1.m1.2.2.1.1.1.cmml"><mi id="S2.SS3.p3.1.m1.2.2.1.1.1.2" xref="S2.SS3.p3.1.m1.2.2.1.1.1.2.cmml">A</mi><mi id="S2.SS3.p3.1.m1.2.2.1.1.1.3" xref="S2.SS3.p3.1.m1.2.2.1.1.1.3.cmml">i</mi></msub><mo stretchy="false" id="S2.SS3.p3.1.m1.2.2.1.1.4" xref="S2.SS3.p3.1.m1.2.2.1.2.cmml">)</mo></mrow></mrow><annotation-xml encoding="MathML-Content" id="S2.SS3.p3.1.m1.2b"><apply id="S2.SS3.p3.1.m1.2.2.cmml" xref="S2.SS3.p3.1.m1.2.2"><times id="S2.SS3.p3.1.m1.2.2.2.cmml" xref="S2.SS3.p3.1.m1.2.2.2"></times><ci id="S2.SS3.p3.1.m1.2.2.3.cmml" xref="S2.SS3.p3.1.m1.2.2.3">𝑅</ci><ci id="S2.SS3.p3.1.m1.2.2.4.cmml" xref="S2.SS3.p3.1.m1.2.2.4">𝑒</ci><ci id="S2.SS3.p3.1.m1.2.2.5.cmml" xref="S2.SS3.p3.1.m1.2.2.5">𝑙</ci><ci id="S2.SS3.p3.1.m1.2.2.6.cmml" xref="S2.SS3.p3.1.m1.2.2.6">𝑒</ci><ci id="S2.SS3.p3.1.m1.2.2.7.cmml" xref="S2.SS3.p3.1.m1.2.2.7">𝑣</ci><ci id="S2.SS3.p3.1.m1.2.2.8.cmml" xref="S2.SS3.p3.1.m1.2.2.8">𝑎</ci><ci id="S2.SS3.p3.1.m1.2.2.9.cmml" xref="S2.SS3.p3.1.m1.2.2.9">𝑛</ci><ci id="S2.SS3.p3.1.m1.2.2.10.cmml" xref="S2.SS3.p3.1.m1.2.2.10">𝑐</ci><ci id="S2.SS3.p3.1.m1.2.2.11.cmml" xref="S2.SS3.p3.1.m1.2.2.11">𝑒</ci><interval closure="open" id="S2.SS3.p3.1.m1.2.2.1.2.cmml" xref="S2.SS3.p3.1.m1.2.2.1.1"><ci id="S2.SS3.p3.1.m1.1.1.cmml" xref="S2.SS3.p3.1.m1.1.1">𝑞</ci><apply id="S2.SS3.p3.1.m1.2.2.1.1.1.cmml" xref="S2.SS3.p3.1.m1.2.2.1.1.1"><csymbol cd="ambiguous" id="S2.SS3.p3.1.m1.2.2.1.1.1.1.cmml" xref="S2.SS3.p3.1.m1.2.2.1.1.1">subscript</csymbol><ci id="S2.SS3.p3.1.m1.2.2.1.1.1.2.cmml" xref="S2.SS3.p3.1.m1.2.2.1.1.1.2">𝐴</ci><ci id="S2.SS3.p3.1.m1.2.2.1.1.1.3.cmml" xref="S2.SS3.p3.1.m1.2.2.1.1.1.3">𝑖</ci></apply></interval></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p3.1.m1.2c">Relevance(q,A_{i})</annotation></semantics></math>
+<math id="S2.SS3.p3.2.m2.4" class="ltx_Math" alttext="(i=1,\cdots,M)" display="inline"><semantics id="S2.SS3.p3.2.m2.4a"><mrow id="S2.SS3.p3.2.m2.4.4.1" xref="S2.SS3.p3.2.m2.4.4.1.1.cmml"><mo stretchy="false" id="S2.SS3.p3.2.m2.4.4.1.2" xref="S2.SS3.p3.2.m2.4.4.1.1.cmml">(</mo><mrow id="S2.SS3.p3.2.m2.4.4.1.1" xref="S2.SS3.p3.2.m2.4.4.1.1.cmml"><mi id="S2.SS3.p3.2.m2.4.4.1.1.2" xref="S2.SS3.p3.2.m2.4.4.1.1.2.cmml">i</mi><mo id="S2.SS3.p3.2.m2.4.4.1.1.1" xref="S2.SS3.p3.2.m2.4.4.1.1.1.cmml">=</mo><mrow id="S2.SS3.p3.2.m2.4.4.1.1.3.2" xref="S2.SS3.p3.2.m2.4.4.1.1.3.1.cmml"><mn id="S2.SS3.p3.2.m2.1.1" xref="S2.SS3.p3.2.m2.1.1.cmml">1</mn><mo id="S2.SS3.p3.2.m2.4.4.1.1.3.2.1" xref="S2.SS3.p3.2.m2.4.4.1.1.3.1.cmml">,</mo><mi mathvariant="normal" id="S2.SS3.p3.2.m2.2.2" xref="S2.SS3.p3.2.m2.2.2.cmml">⋯</mi><mo id="S2.SS3.p3.2.m2.4.4.1.1.3.2.2" xref="S2.SS3.p3.2.m2.4.4.1.1.3.1.cmml">,</mo><mi id="S2.SS3.p3.2.m2.3.3" xref="S2.SS3.p3.2.m2.3.3.cmml">M</mi></mrow></mrow><mo stretchy="false" id="S2.SS3.p3.2.m2.4.4.1.3" xref="S2.SS3.p3.2.m2.4.4.1.1.cmml">)</mo></mrow><annotation-xml encoding="MathML-Content" id="S2.SS3.p3.2.m2.4b"><apply id="S2.SS3.p3.2.m2.4.4.1.1.cmml" xref="S2.SS3.p3.2.m2.4.4.1"><eq id="S2.SS3.p3.2.m2.4.4.1.1.1.cmml" xref="S2.SS3.p3.2.m2.4.4.1.1.1"></eq><ci id="S2.SS3.p3.2.m2.4.4.1.1.2.cmml" xref="S2.SS3.p3.2.m2.4.4.1.1.2">𝑖</ci><list id="S2.SS3.p3.2.m2.4.4.1.1.3.1.cmml" xref="S2.SS3.p3.2.m2.4.4.1.1.3.2"><cn type="integer" id="S2.SS3.p3.2.m2.1.1.cmml" xref="S2.SS3.p3.2.m2.1.1">1</cn><ci id="S2.SS3.p3.2.m2.2.2.cmml" xref="S2.SS3.p3.2.m2.2.2">⋯</ci><ci id="S2.SS3.p3.2.m2.3.3.cmml" xref="S2.SS3.p3.2.m2.3.3">𝑀</ci></list></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p3.2.m2.4c">(i=1,\cdots,M)</annotation></semantics></math> for the user’s query <math id="S2.SS3.p3.3.m3.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S2.SS3.p3.3.m3.1a"><mi id="S2.SS3.p3.3.m3.1.1" xref="S2.SS3.p3.3.m3.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S2.SS3.p3.3.m3.1b"><ci id="S2.SS3.p3.3.m3.1.1.cmml" xref="S2.SS3.p3.3.m3.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p3.3.m3.1c">q</annotation></semantics></math> and every QA pair in the target <math id="S2.SS3.p3.4.m4.1" class="ltx_Math" alttext="T_{t}" display="inline"><semantics id="S2.SS3.p3.4.m4.1a"><msub id="S2.SS3.p3.4.m4.1.1" xref="S2.SS3.p3.4.m4.1.1.cmml"><mi id="S2.SS3.p3.4.m4.1.1.2" xref="S2.SS3.p3.4.m4.1.1.2.cmml">T</mi><mi id="S2.SS3.p3.4.m4.1.1.3" xref="S2.SS3.p3.4.m4.1.1.3.cmml">t</mi></msub><annotation-xml encoding="MathML-Content" id="S2.SS3.p3.4.m4.1b"><apply id="S2.SS3.p3.4.m4.1.1.cmml" xref="S2.SS3.p3.4.m4.1.1"><csymbol cd="ambiguous" id="S2.SS3.p3.4.m4.1.1.1.cmml" xref="S2.SS3.p3.4.m4.1.1">subscript</csymbol><ci id="S2.SS3.p3.4.m4.1.1.2.cmml" xref="S2.SS3.p3.4.m4.1.1.2">𝑇</ci><ci id="S2.SS3.p3.4.m4.1.1.3.cmml" xref="S2.SS3.p3.4.m4.1.1.3">𝑡</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS3.p3.4.m4.1c">T_{t}</annotation></semantics></math>.
+QA pairs in a higher rank are used as search results.</p>
+</div>
+</section>
+<section id="S2.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.4. </span>Combining TSUBAKI and BERT</h3>
+
+<div id="S2.SS4.p1" class="ltx_para">
+<p id="S2.SS4.p1.1" class="ltx_p">In order to realize robust and flexible matching, we combine the q-Q similarity by TSUBAKI and the q-A relevance by BERT.</p>
+</div>
+<div id="S2.SS4.p2" class="ltx_para">
+<p id="S2.SS4.p2.11" class="ltx_p">When TSUBAKI’s similarity score is high,
+this is probably a positive case because the words in <math id="S2.SS4.p2.1.m1.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S2.SS4.p2.1.m1.1a"><mi id="S2.SS4.p2.1.m1.1.1" xref="S2.SS4.p2.1.m1.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S2.SS4.p2.1.m1.1b"><ci id="S2.SS4.p2.1.m1.1.1.cmml" xref="S2.SS4.p2.1.m1.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS4.p2.1.m1.1c">q</annotation></semantics></math> and <math id="S2.SS4.p2.2.m2.1" class="ltx_Math" alttext="Q" display="inline"><semantics id="S2.SS4.p2.2.m2.1a"><mi id="S2.SS4.p2.2.m2.1.1" xref="S2.SS4.p2.2.m2.1.1.cmml">Q</mi><annotation-xml encoding="MathML-Content" id="S2.SS4.p2.2.m2.1b"><ci id="S2.SS4.p2.2.m2.1.1.cmml" xref="S2.SS4.p2.2.m2.1.1">𝑄</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS4.p2.2.m2.1c">Q</annotation></semantics></math> highly overlap with each other.
+However, it is difficult to cope with the lexical gaps between <math id="S2.SS4.p2.3.m3.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S2.SS4.p2.3.m3.1a"><mi id="S2.SS4.p2.3.m3.1.1" xref="S2.SS4.p2.3.m3.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S2.SS4.p2.3.m3.1b"><ci id="S2.SS4.p2.3.m3.1.1.cmml" xref="S2.SS4.p2.3.m3.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS4.p2.3.m3.1c">q</annotation></semantics></math> and <math id="S2.SS4.p2.4.m4.1" class="ltx_Math" alttext="Q" display="inline"><semantics id="S2.SS4.p2.4.m4.1a"><mi id="S2.SS4.p2.4.m4.1.1" xref="S2.SS4.p2.4.m4.1.1.cmml">Q</mi><annotation-xml encoding="MathML-Content" id="S2.SS4.p2.4.m4.1b"><ci id="S2.SS4.p2.4.m4.1.1.cmml" xref="S2.SS4.p2.4.m4.1.1">𝑄</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS4.p2.4.m4.1c">Q</annotation></semantics></math>.
+On the other hand, since BERT validates the relevance between <math id="S2.SS4.p2.5.m5.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S2.SS4.p2.5.m5.1a"><mi id="S2.SS4.p2.5.m5.1.1" xref="S2.SS4.p2.5.m5.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S2.SS4.p2.5.m5.1b"><ci id="S2.SS4.p2.5.m5.1.1.cmml" xref="S2.SS4.p2.5.m5.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS4.p2.5.m5.1c">q</annotation></semantics></math> and <math id="S2.SS4.p2.6.m6.1" class="ltx_Math" alttext="A" display="inline"><semantics id="S2.SS4.p2.6.m6.1a"><mi id="S2.SS4.p2.6.m6.1.1" xref="S2.SS4.p2.6.m6.1.1.cmml">A</mi><annotation-xml encoding="MathML-Content" id="S2.SS4.p2.6.m6.1b"><ci id="S2.SS4.p2.6.m6.1.1.cmml" xref="S2.SS4.p2.6.m6.1.1">𝐴</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS4.p2.6.m6.1c">A</annotation></semantics></math>,
+it can retrieve an appropriate QA pair even if there is a lexical gap between <math id="S2.SS4.p2.7.m7.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S2.SS4.p2.7.m7.1a"><mi id="S2.SS4.p2.7.m7.1.1" xref="S2.SS4.p2.7.m7.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S2.SS4.p2.7.m7.1b"><ci id="S2.SS4.p2.7.m7.1.1.cmml" xref="S2.SS4.p2.7.m7.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS4.p2.7.m7.1c">q</annotation></semantics></math> and <math id="S2.SS4.p2.8.m8.1" class="ltx_Math" alttext="Q" display="inline"><semantics id="S2.SS4.p2.8.m8.1a"><mi id="S2.SS4.p2.8.m8.1.1" xref="S2.SS4.p2.8.m8.1.1.cmml">Q</mi><annotation-xml encoding="MathML-Content" id="S2.SS4.p2.8.m8.1b"><ci id="S2.SS4.p2.8.m8.1.1.cmml" xref="S2.SS4.p2.8.m8.1.1">𝑄</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS4.p2.8.m8.1c">Q</annotation></semantics></math>.
+To make use of these characteristics, we combine two methods as follows.
+First, we take the ten-highest results of BERT’s output.
+For QA pairs whose TSUBAKI score gets a higher score than <math id="S2.SS4.p2.9.m9.1" class="ltx_Math" alttext="\alpha" display="inline"><semantics id="S2.SS4.p2.9.m9.1a"><mi id="S2.SS4.p2.9.m9.1.1" xref="S2.SS4.p2.9.m9.1.1.cmml">α</mi><annotation-xml encoding="MathML-Content" id="S2.SS4.p2.9.m9.1b"><ci id="S2.SS4.p2.9.m9.1.1.cmml" xref="S2.SS4.p2.9.m9.1.1">𝛼</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS4.p2.9.m9.1c">\alpha</annotation></semantics></math>, we rank them in order of TSUBAKI’s score.
+For the others, we rank them in order of the score of <math id="S2.SS4.p2.10.m10.4" class="ltx_Math" alttext="Similarity(q,Q)\times t+Relevance(q,A)" display="inline"><semantics id="S2.SS4.p2.10.m10.4a"><mrow id="S2.SS4.p2.10.m10.4.5" xref="S2.SS4.p2.10.m10.4.5.cmml"><mrow id="S2.SS4.p2.10.m10.4.5.2" xref="S2.SS4.p2.10.m10.4.5.2.cmml"><mrow id="S2.SS4.p2.10.m10.4.5.2.2" xref="S2.SS4.p2.10.m10.4.5.2.2.cmml"><mi id="S2.SS4.p2.10.m10.4.5.2.2.2" xref="S2.SS4.p2.10.m10.4.5.2.2.2.cmml">S</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.2.2.1" xref="S2.SS4.p2.10.m10.4.5.2.2.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.2.2.3" xref="S2.SS4.p2.10.m10.4.5.2.2.3.cmml">i</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.2.2.1a" xref="S2.SS4.p2.10.m10.4.5.2.2.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.2.2.4" xref="S2.SS4.p2.10.m10.4.5.2.2.4.cmml">m</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.2.2.1b" xref="S2.SS4.p2.10.m10.4.5.2.2.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.2.2.5" xref="S2.SS4.p2.10.m10.4.5.2.2.5.cmml">i</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.2.2.1c" xref="S2.SS4.p2.10.m10.4.5.2.2.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.2.2.6" xref="S2.SS4.p2.10.m10.4.5.2.2.6.cmml">l</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.2.2.1d" xref="S2.SS4.p2.10.m10.4.5.2.2.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.2.2.7" xref="S2.SS4.p2.10.m10.4.5.2.2.7.cmml">a</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.2.2.1e" xref="S2.SS4.p2.10.m10.4.5.2.2.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.2.2.8" xref="S2.SS4.p2.10.m10.4.5.2.2.8.cmml">r</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.2.2.1f" xref="S2.SS4.p2.10.m10.4.5.2.2.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.2.2.9" xref="S2.SS4.p2.10.m10.4.5.2.2.9.cmml">i</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.2.2.1g" xref="S2.SS4.p2.10.m10.4.5.2.2.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.2.2.10" xref="S2.SS4.p2.10.m10.4.5.2.2.10.cmml">t</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.2.2.1h" xref="S2.SS4.p2.10.m10.4.5.2.2.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.2.2.11" xref="S2.SS4.p2.10.m10.4.5.2.2.11.cmml">y</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.2.2.1i" xref="S2.SS4.p2.10.m10.4.5.2.2.1.cmml">​</mo><mrow id="S2.SS4.p2.10.m10.4.5.2.2.12.2" xref="S2.SS4.p2.10.m10.4.5.2.2.12.1.cmml"><mo stretchy="false" id="S2.SS4.p2.10.m10.4.5.2.2.12.2.1" xref="S2.SS4.p2.10.m10.4.5.2.2.12.1.cmml">(</mo><mi id="S2.SS4.p2.10.m10.1.1" xref="S2.SS4.p2.10.m10.1.1.cmml">q</mi><mo id="S2.SS4.p2.10.m10.4.5.2.2.12.2.2" xref="S2.SS4.p2.10.m10.4.5.2.2.12.1.cmml">,</mo><mi id="S2.SS4.p2.10.m10.2.2" xref="S2.SS4.p2.10.m10.2.2.cmml">Q</mi><mo rspace="0.055em" stretchy="false" id="S2.SS4.p2.10.m10.4.5.2.2.12.2.3" xref="S2.SS4.p2.10.m10.4.5.2.2.12.1.cmml">)</mo></mrow></mrow><mo rspace="0.222em" id="S2.SS4.p2.10.m10.4.5.2.1" xref="S2.SS4.p2.10.m10.4.5.2.1.cmml">×</mo><mi id="S2.SS4.p2.10.m10.4.5.2.3" xref="S2.SS4.p2.10.m10.4.5.2.3.cmml">t</mi></mrow><mo id="S2.SS4.p2.10.m10.4.5.1" xref="S2.SS4.p2.10.m10.4.5.1.cmml">+</mo><mrow id="S2.SS4.p2.10.m10.4.5.3" xref="S2.SS4.p2.10.m10.4.5.3.cmml"><mi id="S2.SS4.p2.10.m10.4.5.3.2" xref="S2.SS4.p2.10.m10.4.5.3.2.cmml">R</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.3.1" xref="S2.SS4.p2.10.m10.4.5.3.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.3.3" xref="S2.SS4.p2.10.m10.4.5.3.3.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.3.1a" xref="S2.SS4.p2.10.m10.4.5.3.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.3.4" xref="S2.SS4.p2.10.m10.4.5.3.4.cmml">l</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.3.1b" xref="S2.SS4.p2.10.m10.4.5.3.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.3.5" xref="S2.SS4.p2.10.m10.4.5.3.5.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.3.1c" xref="S2.SS4.p2.10.m10.4.5.3.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.3.6" xref="S2.SS4.p2.10.m10.4.5.3.6.cmml">v</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.3.1d" xref="S2.SS4.p2.10.m10.4.5.3.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.3.7" xref="S2.SS4.p2.10.m10.4.5.3.7.cmml">a</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.3.1e" xref="S2.SS4.p2.10.m10.4.5.3.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.3.8" xref="S2.SS4.p2.10.m10.4.5.3.8.cmml">n</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.3.1f" xref="S2.SS4.p2.10.m10.4.5.3.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.3.9" xref="S2.SS4.p2.10.m10.4.5.3.9.cmml">c</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.3.1g" xref="S2.SS4.p2.10.m10.4.5.3.1.cmml">​</mo><mi id="S2.SS4.p2.10.m10.4.5.3.10" xref="S2.SS4.p2.10.m10.4.5.3.10.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.SS4.p2.10.m10.4.5.3.1h" xref="S2.SS4.p2.10.m10.4.5.3.1.cmml">​</mo><mrow id="S2.SS4.p2.10.m10.4.5.3.11.2" xref="S2.SS4.p2.10.m10.4.5.3.11.1.cmml"><mo stretchy="false" id="S2.SS4.p2.10.m10.4.5.3.11.2.1" xref="S2.SS4.p2.10.m10.4.5.3.11.1.cmml">(</mo><mi id="S2.SS4.p2.10.m10.3.3" xref="S2.SS4.p2.10.m10.3.3.cmml">q</mi><mo id="S2.SS4.p2.10.m10.4.5.3.11.2.2" xref="S2.SS4.p2.10.m10.4.5.3.11.1.cmml">,</mo><mi id="S2.SS4.p2.10.m10.4.4" xref="S2.SS4.p2.10.m10.4.4.cmml">A</mi><mo stretchy="false" id="S2.SS4.p2.10.m10.4.5.3.11.2.3" xref="S2.SS4.p2.10.m10.4.5.3.11.1.cmml">)</mo></mrow></mrow></mrow><annotation-xml encoding="MathML-Content" id="S2.SS4.p2.10.m10.4b"><apply id="S2.SS4.p2.10.m10.4.5.cmml" xref="S2.SS4.p2.10.m10.4.5"><plus id="S2.SS4.p2.10.m10.4.5.1.cmml" xref="S2.SS4.p2.10.m10.4.5.1"></plus><apply id="S2.SS4.p2.10.m10.4.5.2.cmml" xref="S2.SS4.p2.10.m10.4.5.2"><times id="S2.SS4.p2.10.m10.4.5.2.1.cmml" xref="S2.SS4.p2.10.m10.4.5.2.1"></times><apply id="S2.SS4.p2.10.m10.4.5.2.2.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2"><times id="S2.SS4.p2.10.m10.4.5.2.2.1.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2.1"></times><ci id="S2.SS4.p2.10.m10.4.5.2.2.2.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2.2">𝑆</ci><ci id="S2.SS4.p2.10.m10.4.5.2.2.3.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2.3">𝑖</ci><ci id="S2.SS4.p2.10.m10.4.5.2.2.4.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2.4">𝑚</ci><ci id="S2.SS4.p2.10.m10.4.5.2.2.5.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2.5">𝑖</ci><ci id="S2.SS4.p2.10.m10.4.5.2.2.6.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2.6">𝑙</ci><ci id="S2.SS4.p2.10.m10.4.5.2.2.7.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2.7">𝑎</ci><ci id="S2.SS4.p2.10.m10.4.5.2.2.8.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2.8">𝑟</ci><ci id="S2.SS4.p2.10.m10.4.5.2.2.9.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2.9">𝑖</ci><ci id="S2.SS4.p2.10.m10.4.5.2.2.10.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2.10">𝑡</ci><ci id="S2.SS4.p2.10.m10.4.5.2.2.11.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2.11">𝑦</ci><interval closure="open" id="S2.SS4.p2.10.m10.4.5.2.2.12.1.cmml" xref="S2.SS4.p2.10.m10.4.5.2.2.12.2"><ci id="S2.SS4.p2.10.m10.1.1.cmml" xref="S2.SS4.p2.10.m10.1.1">𝑞</ci><ci id="S2.SS4.p2.10.m10.2.2.cmml" xref="S2.SS4.p2.10.m10.2.2">𝑄</ci></interval></apply><ci id="S2.SS4.p2.10.m10.4.5.2.3.cmml" xref="S2.SS4.p2.10.m10.4.5.2.3">𝑡</ci></apply><apply id="S2.SS4.p2.10.m10.4.5.3.cmml" xref="S2.SS4.p2.10.m10.4.5.3"><times id="S2.SS4.p2.10.m10.4.5.3.1.cmml" xref="S2.SS4.p2.10.m10.4.5.3.1"></times><ci id="S2.SS4.p2.10.m10.4.5.3.2.cmml" xref="S2.SS4.p2.10.m10.4.5.3.2">𝑅</ci><ci id="S2.SS4.p2.10.m10.4.5.3.3.cmml" xref="S2.SS4.p2.10.m10.4.5.3.3">𝑒</ci><ci id="S2.SS4.p2.10.m10.4.5.3.4.cmml" xref="S2.SS4.p2.10.m10.4.5.3.4">𝑙</ci><ci id="S2.SS4.p2.10.m10.4.5.3.5.cmml" xref="S2.SS4.p2.10.m10.4.5.3.5">𝑒</ci><ci id="S2.SS4.p2.10.m10.4.5.3.6.cmml" xref="S2.SS4.p2.10.m10.4.5.3.6">𝑣</ci><ci id="S2.SS4.p2.10.m10.4.5.3.7.cmml" xref="S2.SS4.p2.10.m10.4.5.3.7">𝑎</ci><ci id="S2.SS4.p2.10.m10.4.5.3.8.cmml" xref="S2.SS4.p2.10.m10.4.5.3.8">𝑛</ci><ci id="S2.SS4.p2.10.m10.4.5.3.9.cmml" xref="S2.SS4.p2.10.m10.4.5.3.9">𝑐</ci><ci id="S2.SS4.p2.10.m10.4.5.3.10.cmml" xref="S2.SS4.p2.10.m10.4.5.3.10">𝑒</ci><interval closure="open" id="S2.SS4.p2.10.m10.4.5.3.11.1.cmml" xref="S2.SS4.p2.10.m10.4.5.3.11.2"><ci id="S2.SS4.p2.10.m10.3.3.cmml" xref="S2.SS4.p2.10.m10.3.3">𝑞</ci><ci id="S2.SS4.p2.10.m10.4.4.cmml" xref="S2.SS4.p2.10.m10.4.4">𝐴</ci></interval></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS4.p2.10.m10.4c">Similarity(q,Q)\times t+Relevance(q,A)</annotation></semantics></math> where <math id="S2.SS4.p2.11.m11.1" class="ltx_Math" alttext="t" display="inline"><semantics id="S2.SS4.p2.11.m11.1a"><mi id="S2.SS4.p2.11.m11.1.1" xref="S2.SS4.p2.11.m11.1.1.cmml">t</mi><annotation-xml encoding="MathML-Content" id="S2.SS4.p2.11.m11.1b"><ci id="S2.SS4.p2.11.m11.1.1.cmml" xref="S2.SS4.p2.11.m11.1.1">𝑡</ci></annotation-xml><annotation encoding="application/x-tex" id="S2.SS4.p2.11.m11.1c">t</annotation></semantics></math> is a hyper-parameter.</p>
+</div>
+<div id="S2.SS4.p3" class="ltx_para">
+<p id="S2.SS4.p3.1" class="ltx_p">TSUBAKI’s score tends to be higher when the given query is longer. Hence, before taking the sum, we normalize TSUBAKI’s score by using the numbers of content words and dependency relations in the query. We divide the original score by the following value.<span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note">1</span>
+We do not normalize the BERT’s score because it takes a value between 0 to 1.
+</span></span></span></p>
+</div>
+<div id="S2.SS4.1" class="ltx_para">
+<p id="S2.SS4.1.1" class="ltx_p ltx_align_center"><math id="S2.SS4.1.1.m1.2" class="ltx_Math" alttext="Count(\mathit{ContentWords})\times k_{1}+Count(\mathit{DependencyRelations})\times k_{2}" display="inline"><semantics id="S2.SS4.1.1.m1.2a"><mrow id="S2.SS4.1.1.m1.2.3" xref="S2.SS4.1.1.m1.2.3.cmml"><mrow id="S2.SS4.1.1.m1.2.3.2" xref="S2.SS4.1.1.m1.2.3.2.cmml"><mrow id="S2.SS4.1.1.m1.2.3.2.2" xref="S2.SS4.1.1.m1.2.3.2.2.cmml"><mi id="S2.SS4.1.1.m1.2.3.2.2.2" xref="S2.SS4.1.1.m1.2.3.2.2.2.cmml">C</mi><mo lspace="0em" rspace="0em" id="S2.SS4.1.1.m1.2.3.2.2.1" xref="S2.SS4.1.1.m1.2.3.2.2.1.cmml">​</mo><mi id="S2.SS4.1.1.m1.2.3.2.2.3" xref="S2.SS4.1.1.m1.2.3.2.2.3.cmml">o</mi><mo lspace="0em" rspace="0em" id="S2.SS4.1.1.m1.2.3.2.2.1a" xref="S2.SS4.1.1.m1.2.3.2.2.1.cmml">​</mo><mi id="S2.SS4.1.1.m1.2.3.2.2.4" xref="S2.SS4.1.1.m1.2.3.2.2.4.cmml">u</mi><mo lspace="0em" rspace="0em" id="S2.SS4.1.1.m1.2.3.2.2.1b" xref="S2.SS4.1.1.m1.2.3.2.2.1.cmml">​</mo><mi id="S2.SS4.1.1.m1.2.3.2.2.5" xref="S2.SS4.1.1.m1.2.3.2.2.5.cmml">n</mi><mo lspace="0em" rspace="0em" id="S2.SS4.1.1.m1.2.3.2.2.1c" xref="S2.SS4.1.1.m1.2.3.2.2.1.cmml">​</mo><mi id="S2.SS4.1.1.m1.2.3.2.2.6" xref="S2.SS4.1.1.m1.2.3.2.2.6.cmml">t</mi><mo lspace="0em" rspace="0em" id="S2.SS4.1.1.m1.2.3.2.2.1d" xref="S2.SS4.1.1.m1.2.3.2.2.1.cmml">​</mo><mrow id="S2.SS4.1.1.m1.2.3.2.2.7.2" xref="S2.SS4.1.1.m1.2.3.2.2.cmml"><mo stretchy="false" id="S2.SS4.1.1.m1.2.3.2.2.7.2.1" xref="S2.SS4.1.1.m1.2.3.2.2.cmml">(</mo><mi id="S2.SS4.1.1.m1.1.1" xref="S2.SS4.1.1.m1.1.1.cmml">𝐶𝑜𝑛𝑡𝑒𝑛𝑡𝑊𝑜𝑟𝑑𝑠</mi><mo rspace="0.055em" stretchy="false" id="S2.SS4.1.1.m1.2.3.2.2.7.2.2" xref="S2.SS4.1.1.m1.2.3.2.2.cmml">)</mo></mrow></mrow><mo rspace="0.222em" id="S2.SS4.1.1.m1.2.3.2.1" xref="S2.SS4.1.1.m1.2.3.2.1.cmml">×</mo><msub id="S2.SS4.1.1.m1.2.3.2.3" xref="S2.SS4.1.1.m1.2.3.2.3.cmml"><mi id="S2.SS4.1.1.m1.2.3.2.3.2" xref="S2.SS4.1.1.m1.2.3.2.3.2.cmml">k</mi><mn id="S2.SS4.1.1.m1.2.3.2.3.3" xref="S2.SS4.1.1.m1.2.3.2.3.3.cmml">1</mn></msub></mrow><mo id="S2.SS4.1.1.m1.2.3.1" xref="S2.SS4.1.1.m1.2.3.1.cmml">+</mo><mrow id="S2.SS4.1.1.m1.2.3.3" xref="S2.SS4.1.1.m1.2.3.3.cmml"><mrow id="S2.SS4.1.1.m1.2.3.3.2" xref="S2.SS4.1.1.m1.2.3.3.2.cmml"><mi id="S2.SS4.1.1.m1.2.3.3.2.2" xref="S2.SS4.1.1.m1.2.3.3.2.2.cmml">C</mi><mo lspace="0em" rspace="0em" id="S2.SS4.1.1.m1.2.3.3.2.1" xref="S2.SS4.1.1.m1.2.3.3.2.1.cmml">​</mo><mi id="S2.SS4.1.1.m1.2.3.3.2.3" xref="S2.SS4.1.1.m1.2.3.3.2.3.cmml">o</mi><mo lspace="0em" rspace="0em" id="S2.SS4.1.1.m1.2.3.3.2.1a" xref="S2.SS4.1.1.m1.2.3.3.2.1.cmml">​</mo><mi id="S2.SS4.1.1.m1.2.3.3.2.4" xref="S2.SS4.1.1.m1.2.3.3.2.4.cmml">u</mi><mo lspace="0em" rspace="0em" id="S2.SS4.1.1.m1.2.3.3.2.1b" xref="S2.SS4.1.1.m1.2.3.3.2.1.cmml">​</mo><mi id="S2.SS4.1.1.m1.2.3.3.2.5" xref="S2.SS4.1.1.m1.2.3.3.2.5.cmml">n</mi><mo lspace="0em" rspace="0em" id="S2.SS4.1.1.m1.2.3.3.2.1c" xref="S2.SS4.1.1.m1.2.3.3.2.1.cmml">​</mo><mi id="S2.SS4.1.1.m1.2.3.3.2.6" xref="S2.SS4.1.1.m1.2.3.3.2.6.cmml">t</mi><mo lspace="0em" rspace="0em" id="S2.SS4.1.1.m1.2.3.3.2.1d" xref="S2.SS4.1.1.m1.2.3.3.2.1.cmml">​</mo><mrow id="S2.SS4.1.1.m1.2.3.3.2.7.2" xref="S2.SS4.1.1.m1.2.3.3.2.cmml"><mo stretchy="false" id="S2.SS4.1.1.m1.2.3.3.2.7.2.1" xref="S2.SS4.1.1.m1.2.3.3.2.cmml">(</mo><mi id="S2.SS4.1.1.m1.2.2" xref="S2.SS4.1.1.m1.2.2.cmml">𝐷𝑒𝑝𝑒𝑛𝑑𝑒𝑛𝑐𝑦𝑅𝑒𝑙𝑎𝑡𝑖𝑜𝑛𝑠</mi><mo rspace="0.055em" stretchy="false" id="S2.SS4.1.1.m1.2.3.3.2.7.2.2" xref="S2.SS4.1.1.m1.2.3.3.2.cmml">)</mo></mrow></mrow><mo rspace="0.222em" id="S2.SS4.1.1.m1.2.3.3.1" xref="S2.SS4.1.1.m1.2.3.3.1.cmml">×</mo><msub id="S2.SS4.1.1.m1.2.3.3.3" xref="S2.SS4.1.1.m1.2.3.3.3.cmml"><mi id="S2.SS4.1.1.m1.2.3.3.3.2" xref="S2.SS4.1.1.m1.2.3.3.3.2.cmml">k</mi><mn id="S2.SS4.1.1.m1.2.3.3.3.3" xref="S2.SS4.1.1.m1.2.3.3.3.3.cmml">2</mn></msub></mrow></mrow><annotation-xml encoding="MathML-Content" id="S2.SS4.1.1.m1.2b"><apply id="S2.SS4.1.1.m1.2.3.cmml" xref="S2.SS4.1.1.m1.2.3"><plus id="S2.SS4.1.1.m1.2.3.1.cmml" xref="S2.SS4.1.1.m1.2.3.1"></plus><apply id="S2.SS4.1.1.m1.2.3.2.cmml" xref="S2.SS4.1.1.m1.2.3.2"><times id="S2.SS4.1.1.m1.2.3.2.1.cmml" xref="S2.SS4.1.1.m1.2.3.2.1"></times><apply id="S2.SS4.1.1.m1.2.3.2.2.cmml" xref="S2.SS4.1.1.m1.2.3.2.2"><times id="S2.SS4.1.1.m1.2.3.2.2.1.cmml" xref="S2.SS4.1.1.m1.2.3.2.2.1"></times><ci id="S2.SS4.1.1.m1.2.3.2.2.2.cmml" xref="S2.SS4.1.1.m1.2.3.2.2.2">𝐶</ci><ci id="S2.SS4.1.1.m1.2.3.2.2.3.cmml" xref="S2.SS4.1.1.m1.2.3.2.2.3">𝑜</ci><ci id="S2.SS4.1.1.m1.2.3.2.2.4.cmml" xref="S2.SS4.1.1.m1.2.3.2.2.4">𝑢</ci><ci id="S2.SS4.1.1.m1.2.3.2.2.5.cmml" xref="S2.SS4.1.1.m1.2.3.2.2.5">𝑛</ci><ci id="S2.SS4.1.1.m1.2.3.2.2.6.cmml" xref="S2.SS4.1.1.m1.2.3.2.2.6">𝑡</ci><ci id="S2.SS4.1.1.m1.1.1.cmml" xref="S2.SS4.1.1.m1.1.1">𝐶𝑜𝑛𝑡𝑒𝑛𝑡𝑊𝑜𝑟𝑑𝑠</ci></apply><apply id="S2.SS4.1.1.m1.2.3.2.3.cmml" xref="S2.SS4.1.1.m1.2.3.2.3"><csymbol cd="ambiguous" id="S2.SS4.1.1.m1.2.3.2.3.1.cmml" xref="S2.SS4.1.1.m1.2.3.2.3">subscript</csymbol><ci id="S2.SS4.1.1.m1.2.3.2.3.2.cmml" xref="S2.SS4.1.1.m1.2.3.2.3.2">𝑘</ci><cn type="integer" id="S2.SS4.1.1.m1.2.3.2.3.3.cmml" xref="S2.SS4.1.1.m1.2.3.2.3.3">1</cn></apply></apply><apply id="S2.SS4.1.1.m1.2.3.3.cmml" xref="S2.SS4.1.1.m1.2.3.3"><times id="S2.SS4.1.1.m1.2.3.3.1.cmml" xref="S2.SS4.1.1.m1.2.3.3.1"></times><apply id="S2.SS4.1.1.m1.2.3.3.2.cmml" xref="S2.SS4.1.1.m1.2.3.3.2"><times id="S2.SS4.1.1.m1.2.3.3.2.1.cmml" xref="S2.SS4.1.1.m1.2.3.3.2.1"></times><ci id="S2.SS4.1.1.m1.2.3.3.2.2.cmml" xref="S2.SS4.1.1.m1.2.3.3.2.2">𝐶</ci><ci id="S2.SS4.1.1.m1.2.3.3.2.3.cmml" xref="S2.SS4.1.1.m1.2.3.3.2.3">𝑜</ci><ci id="S2.SS4.1.1.m1.2.3.3.2.4.cmml" xref="S2.SS4.1.1.m1.2.3.3.2.4">𝑢</ci><ci id="S2.SS4.1.1.m1.2.3.3.2.5.cmml" xref="S2.SS4.1.1.m1.2.3.3.2.5">𝑛</ci><ci id="S2.SS4.1.1.m1.2.3.3.2.6.cmml" xref="S2.SS4.1.1.m1.2.3.3.2.6">𝑡</ci><ci id="S2.SS4.1.1.m1.2.2.cmml" xref="S2.SS4.1.1.m1.2.2">𝐷𝑒𝑝𝑒𝑛𝑑𝑒𝑛𝑐𝑦𝑅𝑒𝑙𝑎𝑡𝑖𝑜𝑛𝑠</ci></apply><apply id="S2.SS4.1.1.m1.2.3.3.3.cmml" xref="S2.SS4.1.1.m1.2.3.3.3"><csymbol cd="ambiguous" id="S2.SS4.1.1.m1.2.3.3.3.1.cmml" xref="S2.SS4.1.1.m1.2.3.3.3">subscript</csymbol><ci id="S2.SS4.1.1.m1.2.3.3.3.2.cmml" xref="S2.SS4.1.1.m1.2.3.3.3.2">𝑘</ci><cn type="integer" id="S2.SS4.1.1.m1.2.3.3.3.3.cmml" xref="S2.SS4.1.1.m1.2.3.3.3.3">2</cn></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.SS4.1.1.m1.2c">Count(\mathit{ContentWords})\times k_{1}+Count(\mathit{DependencyRelations})\times k_{2}</annotation></semantics></math></p>
+</div>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3. </span>Experiments and Evaluation</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.2" class="ltx_p">We conducted our experiments on two datasets, <span id="S3.p1.2.1" class="ltx_text ltx_font_italic">localgovFAQ</span> and <span id="S3.p1.2.2" class="ltx_text ltx_font_italic">StackExchange</span>.
+We constructed localgovFAQ dataset, as explained in Sec <a href="#S3.SS1" title="3.1. LocalgovFAQ Evaluation Set Construction ‣ 3. Experiments and Evaluation ‣ FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Answer Relevance" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.1</span></a>.
+StackExchange dataset is constructed in the paper <cite class="ltx_cite ltx_citemacro_citep">(Karan and Snajder, <a href="#bib.bib3" title="" class="ltx_ref">2018</a>)</cite>
+by extracting QA pairs from the web apps domain of StackExchange and consists of 719 QA pairs. Each <math id="S3.p1.1.m1.1" class="ltx_Math" alttext="Q" display="inline"><semantics id="S3.p1.1.m1.1a"><mi id="S3.p1.1.m1.1.1" xref="S3.p1.1.m1.1.1.cmml">Q</mi><annotation-xml encoding="MathML-Content" id="S3.p1.1.m1.1b"><ci id="S3.p1.1.m1.1.1.cmml" xref="S3.p1.1.m1.1.1">𝑄</ci></annotation-xml><annotation encoding="application/x-tex" id="S3.p1.1.m1.1c">Q</annotation></semantics></math> has paraphrase queries, and the total number of queries is 1,250. All the models were evaluated using five-fold cross validation. In each validation, all the queries were split into training (60%), development (20%) and test (20%). The task is to estimate an appropriate QA pair for each query <math id="S3.p1.2.m2.1" class="ltx_Math" alttext="q" display="inline"><semantics id="S3.p1.2.m2.1a"><mi id="S3.p1.2.m2.1.1" xref="S3.p1.2.m2.1.1.cmml">q</mi><annotation-xml encoding="MathML-Content" id="S3.p1.2.m2.1b"><ci id="S3.p1.2.m2.1.1.cmml" xref="S3.p1.2.m2.1.1">𝑞</ci></annotation-xml><annotation encoding="application/x-tex" id="S3.p1.2.m2.1c">q</annotation></semantics></math> among 719 QA pairs.</p>
+</div>
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1. </span>LocalgovFAQ Evaluation Set Construction</h3>
+
+<figure id="S3.F2" class="ltx_figure">
+<table id="S3.F2.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S3.F2.1.1.1" class="ltx_tr">
+<td id="S3.F2.1.1.1.1" class="ltx_td ltx_align_justify ltx_align_top ltx_border_b ltx_border_t">
+<span id="S3.F2.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.F2.1.1.1.1.1.1" class="ltx_p" style="width:199.2pt;"><span id="S3.F2.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">
+</span>
+<span id="S3.I1" class="ltx_itemize">
+<span id="S3.I1.i1" class="ltx_item" style="list-style-type:none;"><span class="ltx_tag ltx_tag_item">•</span> 
+<span id="S3.I1.i1.p1" class="ltx_para">
+<span id="S3.I1.i1.p1.1" class="ltx_p"><span id="S3.I1.i1.p1.1.1" class="ltx_text" style="font-size:90%;">I’d like you to issue a copy of family register, but how much does it cost?</span></span>
+</span></span>
+<span id="S3.I1.i2" class="ltx_item" style="list-style-type:none;"><span class="ltx_tag ltx_tag_item">•</span> 
+<span id="S3.I1.i2.p1" class="ltx_para">
+<span id="S3.I1.i2.p1.1" class="ltx_p"><span id="S3.I1.i2.p1.1.1" class="ltx_text" style="font-size:90%;">I’d like you to publish a maternal and child health handbook, but what is required for the procedure?</span></span>
+</span></span>
+<span id="S3.I1.i3" class="ltx_item" style="list-style-type:none;"><span class="ltx_tag ltx_tag_item">•</span> 
+<span id="S3.I1.i3.p1" class="ltx_para">
+<span id="S3.I1.i3.p1.1" class="ltx_p"><span id="S3.I1.i3.p1.1.1" class="ltx_text" style="font-size:90%;">I’m thinking of purchasing a new housing, so I want to know about the reduction measure.</span></span>
+</span></span>
+<span id="S3.I1.i4" class="ltx_item" style="list-style-type:none;"><span class="ltx_tag ltx_tag_item">•</span> 
+<span id="S3.I1.i4.p1" class="ltx_para">
+<span id="S3.I1.i4.p1.1" class="ltx_p"><span id="S3.I1.i4.p1.1.1" class="ltx_text" style="font-size:90%;">From which station does the pick-up bus of the Center Pool come out?</span></span>
+</span></span>
+</span></span>
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_figure">Figure 2. </span>Examples of queries collected via crowdsourcing.</figcaption>
+</figure>
+<div id="S3.SS1.p1" class="ltx_para">
+<p id="S3.SS1.p1.1" class="ltx_p">Amagasaki-city, a relatively large city in Japan, was chosen as a target government, whose Web site has 1,786 QA pairs. First, queries to this government were collected using a crowdsourcing. Example queries are shown in Figure  <a href="#S3.F2" title="Figure 2 ‣ 3.1. LocalgovFAQ Evaluation Set Construction ‣ 3. Experiments and Evaluation ‣ FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Answer Relevance" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>. We collected 990 queries in total.</p>
+</div>
+<div id="S3.SS1.p2" class="ltx_para">
+<p id="S3.SS1.p2.1" class="ltx_p">TSUBAKI and BERT output at most five relevant QA pairs for each query, and each QA pair was manually evaluated assigning one of the following four categories:</p>
+</div>
+<div id="S3.SS1.p3" class="ltx_para">
+<dl id="S3.I2" class="ltx_description">
+<dt id="S3.I2.ix1" class="ltx_item"><span class="ltx_tag ltx_tag_item"><span id="S3.I2.ix1.1.1.1" class="ltx_text ltx_font_bold">A: </span></span></dt>
+<dd class="ltx_item">
+<div id="S3.I2.ix1.p1" class="ltx_para">
+<p id="S3.I2.ix1.p1.1" class="ltx_p">Contain correct information.</p>
+</div>
+</dd>
+<dt id="S3.I2.ix2" class="ltx_item"><span class="ltx_tag ltx_tag_item"><span id="S3.I2.ix2.1.1.1" class="ltx_text ltx_font_bold">B: </span></span></dt>
+<dd class="ltx_item">
+<div id="S3.I2.ix2.p1" class="ltx_para">
+<p id="S3.I2.ix2.p1.1" class="ltx_p">Contain relevant information.</p>
+</div>
+</dd>
+<dt id="S3.I2.ix3" class="ltx_item"><span class="ltx_tag ltx_tag_item"><span id="S3.I2.ix3.1.1.1" class="ltx_text ltx_font_bold">C: </span></span></dt>
+<dd class="ltx_item">
+<div id="S3.I2.ix3.p1" class="ltx_para">
+<p id="S3.I2.ix3.p1.1" class="ltx_p">The topic is same as a query, but do not contain relevant information.</p>
+</div>
+</dd>
+<dt id="S3.I2.ix4" class="ltx_item"><span class="ltx_tag ltx_tag_item"><span id="S3.I2.ix4.1.1.1" class="ltx_text ltx_font_bold">D: </span></span></dt>
+<dd class="ltx_item">
+<div id="S3.I2.ix4.p1" class="ltx_para">
+<p id="S3.I2.ix4.p1.1" class="ltx_p">Contain only irrelevant information.</p>
+</div>
+</dd>
+</dl>
+</div>
+<div id="S3.SS1.p4" class="ltx_para">
+<p id="S3.SS1.p4.1" class="ltx_p">In general, information retrieval evaluation based on the pooling method has inherently a <span id="S3.SS1.p4.1.1" class="ltx_text ltx_font_italic">biased</span> problem.
+To alleviate this problem, when there are no relevant QA pairs among the outputs by TSUBAKI and BERT, a correct QA pair was searched by using appropriate different keywords. If there are no relevant QA pair found, this query was excluded from our evaluation set. The resultant queries were 784.
+Since 20% of queries were used for the development set, 627 queries were used for our evaluation.</p>
+</div>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.2. </span>Experimental Settings</h3>
+
+<div id="S3.SS2.p1" class="ltx_para">
+<p id="S3.SS2.p1.1" class="ltx_p">For the localgovFAQ dataset, MAP (Mean Average Precision), MRR (Mean Reciprocal Rank), P@5 (Precision at 5), SR@k (Success Rate)<span id="footnote2" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">2</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">2</sup><span class="ltx_tag ltx_tag_note">2</span>Success Rate is
+the fraction of questions for which at least one related question is
+ranked among the top <math id="footnote2.m1.1" class="ltx_Math" alttext="k" display="inline"><semantics id="footnote2.m1.1b"><mi id="footnote2.m1.1.1" xref="footnote2.m1.1.1.cmml">k</mi><annotation-xml encoding="MathML-Content" id="footnote2.m1.1c"><ci id="footnote2.m1.1.1.cmml" xref="footnote2.m1.1.1">𝑘</ci></annotation-xml><annotation encoding="application/x-tex" id="footnote2.m1.1d">k</annotation></semantics></math>. </span></span></span> and nDCG (normalized Discounted Cumulative
+Gain) were used as our evaluation measures.
+The categories A, B and C
+were regarded as correct for MAP, MRR, P@5 and SR@k, and the evaluation level of
+categories A, B and C was regarded as 3, 2 and 1 for nDCG, respectively.
+For the StackExchange dataset, MAP, MRR and P@5 were used, following Karan et al. <cite class="ltx_cite ltx_citemacro_citep">(Karan and Snajder, <a href="#bib.bib3" title="" class="ltx_ref">2018</a>)</cite> .</p>
+</div>
+<div id="S3.SS2.p2" class="ltx_para">
+<p id="S3.SS2.p2.3" class="ltx_p">For Japanese, the pre-training of BERT was performed using Japanese Wikipedia, which
+consists of approximately 18M sentences, and the fine-tuning was
+performed using FAQs of 21 Japanese local governments, which consists of
+approximately 20K QA pairs. The morphological analyzer Juman++<span id="footnote3" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">3</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">3</sup><span class="ltx_tag ltx_tag_note">3</span><a target="_blank" href="http://nlp.ist.i.kyoto-u.ac.jp/EN/index.php?JUMAN++" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://nlp.ist.i.kyoto-u.ac.jp/EN/index.php?JUMAN++</a></span></span></span> was
+applied to input texts for word segmentation, and words were broken into subwords by applying BPE <cite class="ltx_cite ltx_citemacro_citep">(Sennrich
+et al<span class="ltx_text">.</span>, <a href="#bib.bib7" title="" class="ltx_ref">2016</a>)</cite>.
+For English BERT pre-trained model, a publicly-available model was used<span id="footnote4" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">4</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">4</sup><span class="ltx_tag ltx_tag_note">4</span><a target="_blank" href="https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip</a></span></span></span>. For the fine-tuning for StackExchange dataset, the training set <math id="S3.SS2.p2.1.m1.3" class="ltx_Math" alttext="(q,Q,A)" display="inline"><semantics id="S3.SS2.p2.1.m1.3a"><mrow id="S3.SS2.p2.1.m1.3.4.2" xref="S3.SS2.p2.1.m1.3.4.1.cmml"><mo stretchy="false" id="S3.SS2.p2.1.m1.3.4.2.1" xref="S3.SS2.p2.1.m1.3.4.1.cmml">(</mo><mi id="S3.SS2.p2.1.m1.1.1" xref="S3.SS2.p2.1.m1.1.1.cmml">q</mi><mo id="S3.SS2.p2.1.m1.3.4.2.2" xref="S3.SS2.p2.1.m1.3.4.1.cmml">,</mo><mi id="S3.SS2.p2.1.m1.2.2" xref="S3.SS2.p2.1.m1.2.2.cmml">Q</mi><mo id="S3.SS2.p2.1.m1.3.4.2.3" xref="S3.SS2.p2.1.m1.3.4.1.cmml">,</mo><mi id="S3.SS2.p2.1.m1.3.3" xref="S3.SS2.p2.1.m1.3.3.cmml">A</mi><mo stretchy="false" id="S3.SS2.p2.1.m1.3.4.2.4" xref="S3.SS2.p2.1.m1.3.4.1.cmml">)</mo></mrow><annotation-xml encoding="MathML-Content" id="S3.SS2.p2.1.m1.3b"><vector id="S3.SS2.p2.1.m1.3.4.1.cmml" xref="S3.SS2.p2.1.m1.3.4.2"><ci id="S3.SS2.p2.1.m1.1.1.cmml" xref="S3.SS2.p2.1.m1.1.1">𝑞</ci><ci id="S3.SS2.p2.1.m1.2.2.cmml" xref="S3.SS2.p2.1.m1.2.2">𝑄</ci><ci id="S3.SS2.p2.1.m1.3.3.cmml" xref="S3.SS2.p2.1.m1.3.3">𝐴</ci></vector></annotation-xml><annotation encoding="application/x-tex" id="S3.SS2.p2.1.m1.3c">(q,Q,A)</annotation></semantics></math> was divided into <math id="S3.SS2.p2.2.m2.2" class="ltx_Math" alttext="(q,A)" display="inline"><semantics id="S3.SS2.p2.2.m2.2a"><mrow id="S3.SS2.p2.2.m2.2.3.2" xref="S3.SS2.p2.2.m2.2.3.1.cmml"><mo stretchy="false" id="S3.SS2.p2.2.m2.2.3.2.1" xref="S3.SS2.p2.2.m2.2.3.1.cmml">(</mo><mi id="S3.SS2.p2.2.m2.1.1" xref="S3.SS2.p2.2.m2.1.1.cmml">q</mi><mo id="S3.SS2.p2.2.m2.2.3.2.2" xref="S3.SS2.p2.2.m2.2.3.1.cmml">,</mo><mi id="S3.SS2.p2.2.m2.2.2" xref="S3.SS2.p2.2.m2.2.2.cmml">A</mi><mo stretchy="false" id="S3.SS2.p2.2.m2.2.3.2.3" xref="S3.SS2.p2.2.m2.2.3.1.cmml">)</mo></mrow><annotation-xml encoding="MathML-Content" id="S3.SS2.p2.2.m2.2b"><interval closure="open" id="S3.SS2.p2.2.m2.2.3.1.cmml" xref="S3.SS2.p2.2.m2.2.3.2"><ci id="S3.SS2.p2.2.m2.1.1.cmml" xref="S3.SS2.p2.2.m2.1.1">𝑞</ci><ci id="S3.SS2.p2.2.m2.2.2.cmml" xref="S3.SS2.p2.2.m2.2.2">𝐴</ci></interval></annotation-xml><annotation encoding="application/x-tex" id="S3.SS2.p2.2.m2.2c">(q,A)</annotation></semantics></math> and <math id="S3.SS2.p2.3.m3.2" class="ltx_Math" alttext="(Q,A)" display="inline"><semantics id="S3.SS2.p2.3.m3.2a"><mrow id="S3.SS2.p2.3.m3.2.3.2" xref="S3.SS2.p2.3.m3.2.3.1.cmml"><mo stretchy="false" id="S3.SS2.p2.3.m3.2.3.2.1" xref="S3.SS2.p2.3.m3.2.3.1.cmml">(</mo><mi id="S3.SS2.p2.3.m3.1.1" xref="S3.SS2.p2.3.m3.1.1.cmml">Q</mi><mo id="S3.SS2.p2.3.m3.2.3.2.2" xref="S3.SS2.p2.3.m3.2.3.1.cmml">,</mo><mi id="S3.SS2.p2.3.m3.2.2" xref="S3.SS2.p2.3.m3.2.2.cmml">A</mi><mo stretchy="false" id="S3.SS2.p2.3.m3.2.3.2.3" xref="S3.SS2.p2.3.m3.2.3.1.cmml">)</mo></mrow><annotation-xml encoding="MathML-Content" id="S3.SS2.p2.3.m3.2b"><interval closure="open" id="S3.SS2.p2.3.m3.2.3.1.cmml" xref="S3.SS2.p2.3.m3.2.3.2"><ci id="S3.SS2.p2.3.m3.1.1.cmml" xref="S3.SS2.p2.3.m3.1.1">𝑄</ci><ci id="S3.SS2.p2.3.m3.2.2.cmml" xref="S3.SS2.p2.3.m3.2.2">𝐴</ci></interval></annotation-xml><annotation encoding="application/x-tex" id="S3.SS2.p2.3.m3.2c">(Q,A)</annotation></semantics></math>.</p>
+</div>
+<div id="S3.SS2.p3" class="ltx_para">
+<p id="S3.SS2.p3.2" class="ltx_p">In the localgovFAQ dataset, Bi-LSTM with attention <cite class="ltx_cite ltx_citemacro_citep">(Tan
+et al<span class="ltx_text">.</span>, <a href="#bib.bib9" title="" class="ltx_ref">2015</a>)</cite> was adopted as our baseline.
+We also used model BERT<sub id="S3.SS2.p3.2.1" class="ltx_sub"><span id="S3.SS2.p3.2.1.1" class="ltx_text ltx_font_italic">targetOnly</span></sub>, which is fine-tuned only with the target FAQ set, in order to test the effect of using other FAQ sets.
+In the StackExchange dataset, CNN-rank in q-Q and q-QA settings, which is the neural FAQ retrieval model based on a convolutional neural network, was used, whose scores were from Karan et al. <cite class="ltx_cite ltx_citemacro_citep">(Karan and Snajder, <a href="#bib.bib3" title="" class="ltx_ref">2018</a>)</cite>.
+Furthermore, BERT (w/o query paraphrases) was adopted, where <math id="S3.SS2.p3.2.m2.2" class="ltx_Math" alttext="(q,A)" display="inline"><semantics id="S3.SS2.p3.2.m2.2a"><mrow id="S3.SS2.p3.2.m2.2.3.2" xref="S3.SS2.p3.2.m2.2.3.1.cmml"><mo stretchy="false" id="S3.SS2.p3.2.m2.2.3.2.1" xref="S3.SS2.p3.2.m2.2.3.1.cmml">(</mo><mi id="S3.SS2.p3.2.m2.1.1" xref="S3.SS2.p3.2.m2.1.1.cmml">q</mi><mo id="S3.SS2.p3.2.m2.2.3.2.2" xref="S3.SS2.p3.2.m2.2.3.1.cmml">,</mo><mi id="S3.SS2.p3.2.m2.2.2" xref="S3.SS2.p3.2.m2.2.2.cmml">A</mi><mo stretchy="false" id="S3.SS2.p3.2.m2.2.3.2.3" xref="S3.SS2.p3.2.m2.2.3.1.cmml">)</mo></mrow><annotation-xml encoding="MathML-Content" id="S3.SS2.p3.2.m2.2b"><interval closure="open" id="S3.SS2.p3.2.m2.2.3.1.cmml" xref="S3.SS2.p3.2.m2.2.3.2"><ci id="S3.SS2.p3.2.m2.1.1.cmml" xref="S3.SS2.p3.2.m2.1.1">𝑞</ci><ci id="S3.SS2.p3.2.m2.2.2.cmml" xref="S3.SS2.p3.2.m2.2.2">𝐴</ci></interval></annotation-xml><annotation encoding="application/x-tex" id="S3.SS2.p3.2.m2.2c">(q,A)</annotation></semantics></math> pairs were not used for BERT training, to see the performance
+when no manually-assigned query paraphrases were available.
+For both datasets, TSUBAKI was applied only in q-Q setting<span id="footnote5" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">5</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">5</sup><span class="ltx_tag ltx_tag_note">5</span>We omit the TSUBAKI’s results in the q-A setting and the q-QA setting as we got the worse scores than the q-Q setting.</span></span></span>.</p>
+</div>
+<div id="S3.SS2.p4" class="ltx_para">
+<p id="S3.SS2.p4.4" class="ltx_p">For both BERT and Bi-LSTM models, 24 negative samples for one positive sample were used. For the coefficients explained in Sec. <a href="#S2.SS4" title="2.4. Combining TSUBAKI and BERT ‣ 2. Proposed Method ‣ FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Answer Relevance" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2.4</span></a>, <math id="S3.SS2.p4.1.m1.1" class="ltx_Math" alttext="k_{1}" display="inline"><semantics id="S3.SS2.p4.1.m1.1a"><msub id="S3.SS2.p4.1.m1.1.1" xref="S3.SS2.p4.1.m1.1.1.cmml"><mi id="S3.SS2.p4.1.m1.1.1.2" xref="S3.SS2.p4.1.m1.1.1.2.cmml">k</mi><mn id="S3.SS2.p4.1.m1.1.1.3" xref="S3.SS2.p4.1.m1.1.1.3.cmml">1</mn></msub><annotation-xml encoding="MathML-Content" id="S3.SS2.p4.1.m1.1b"><apply id="S3.SS2.p4.1.m1.1.1.cmml" xref="S3.SS2.p4.1.m1.1.1"><csymbol cd="ambiguous" id="S3.SS2.p4.1.m1.1.1.1.cmml" xref="S3.SS2.p4.1.m1.1.1">subscript</csymbol><ci id="S3.SS2.p4.1.m1.1.1.2.cmml" xref="S3.SS2.p4.1.m1.1.1.2">𝑘</ci><cn type="integer" id="S3.SS2.p4.1.m1.1.1.3.cmml" xref="S3.SS2.p4.1.m1.1.1.3">1</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS2.p4.1.m1.1c">k_{1}</annotation></semantics></math> and <math id="S3.SS2.p4.2.m2.1" class="ltx_Math" alttext="k_{2}" display="inline"><semantics id="S3.SS2.p4.2.m2.1a"><msub id="S3.SS2.p4.2.m2.1.1" xref="S3.SS2.p4.2.m2.1.1.cmml"><mi id="S3.SS2.p4.2.m2.1.1.2" xref="S3.SS2.p4.2.m2.1.1.2.cmml">k</mi><mn id="S3.SS2.p4.2.m2.1.1.3" xref="S3.SS2.p4.2.m2.1.1.3.cmml">2</mn></msub><annotation-xml encoding="MathML-Content" id="S3.SS2.p4.2.m2.1b"><apply id="S3.SS2.p4.2.m2.1.1.cmml" xref="S3.SS2.p4.2.m2.1.1"><csymbol cd="ambiguous" id="S3.SS2.p4.2.m2.1.1.1.cmml" xref="S3.SS2.p4.2.m2.1.1">subscript</csymbol><ci id="S3.SS2.p4.2.m2.1.1.2.cmml" xref="S3.SS2.p4.2.m2.1.1.2">𝑘</ci><cn type="integer" id="S3.SS2.p4.2.m2.1.1.3.cmml" xref="S3.SS2.p4.2.m2.1.1.3">2</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS2.p4.2.m2.1c">k_{2}</annotation></semantics></math> were set to 4 and 2, respectively, and <math id="S3.SS2.p4.3.m3.1" class="ltx_Math" alttext="\alpha" display="inline"><semantics id="S3.SS2.p4.3.m3.1a"><mi id="S3.SS2.p4.3.m3.1.1" xref="S3.SS2.p4.3.m3.1.1.cmml">α</mi><annotation-xml encoding="MathML-Content" id="S3.SS2.p4.3.m3.1b"><ci id="S3.SS2.p4.3.m3.1.1.cmml" xref="S3.SS2.p4.3.m3.1.1">𝛼</ci></annotation-xml><annotation encoding="application/x-tex" id="S3.SS2.p4.3.m3.1c">\alpha</annotation></semantics></math> and <math id="S3.SS2.p4.4.m4.1" class="ltx_Math" alttext="t" display="inline"><semantics id="S3.SS2.p4.4.m4.1a"><mi id="S3.SS2.p4.4.m4.1.1" xref="S3.SS2.p4.4.m4.1.1.cmml">t</mi><annotation-xml encoding="MathML-Content" id="S3.SS2.p4.4.m4.1b"><ci id="S3.SS2.p4.4.m4.1.1.cmml" xref="S3.SS2.p4.4.m4.1.1">𝑡</ci></annotation-xml><annotation encoding="application/x-tex" id="S3.SS2.p4.4.m4.1c">t</annotation></semantics></math> were set to 0.3 and 10 respectively using the development set.</p>
+</div>
+</section>
+<section id="S3.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.3. </span>Evaluation Results and Discussions</h3>
+
+<div id="S3.SS3.p1" class="ltx_para">
+<p id="S3.SS3.p1.1" class="ltx_p">Table <a href="#S3.T1" title="Table 1 ‣ 3.3. Evaluation Results and Discussions ‣ 3. Experiments and Evaluation ‣ FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Answer Relevance" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> shows an experimental result on localgovFAQ dataset.
+In q-A setting, BERT was better than the Bi-LSTM baseline, which indicates BERT was useful for this task.
+Although the performances of TSUBAKI and BERT were almost the same in terms of SR@1, the performance of BERT was better than TSUBAKI in terms of SR@5, which indicates BERT could retrieve a variety of QA pairs.
+The proposed method performed the best. This demonstrated the effectiveness of our proposed method.
+The score of BERT was better than one of BERT<sub id="S3.SS3.p1.1.1" class="ltx_sub"><span id="S3.SS3.p1.1.1.1" class="ltx_text ltx_font_italic">targetOnly</span></sub>, which indidates that using other FAQ sets is effective.</p>
+</div>
+<div id="S3.SS3.p2" class="ltx_para">
+<p id="S3.SS3.p2.1" class="ltx_p">Table <a href="#S3.T2" title="Table 2 ‣ 3.3. Evaluation Results and Discussions ‣ 3. Experiments and Evaluation ‣ FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Answer Relevance" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> shows an experimental result on StackExchange dataset. In the same way as the result on localgovFAQ, BERT performed well, and the proposed method performed the best in terms of all the measures. The performance of BERT was better than one of ”BERT (w/o query paraphrases)”, which indicates that the use of various augmented questions was effective.</p>
+</div>
+<div id="S3.SS3.p3" class="ltx_para">
+<p id="S3.SS3.p3.1" class="ltx_p">Figure <a href="#S3.F3" title="Figure 3 ‣ 3.3. Evaluation Results and Discussions ‣ 3. Experiments and Evaluation ‣ FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Answer Relevance" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> shows the performance of TSUBAKI and BERT on localgovFAQ according to their TOP1 scores.
+From this figure, we can find that in the retrieved QA pair whose TSUBAKI score is high, its accuracy is very high. On the otherhand, there is a relatively loose correlation between the accuracy and BERT score.
+This indicates TSUBAKI and BERT have different characteristics, and our proposed combining method is reasonable.</p>
+</div>
+<figure id="S3.T1" class="ltx_table">
+<table id="S3.T1.1.1" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S3.T1.1.1.2.1" class="ltx_tr">
+<th id="S3.T1.1.1.2.1.1" class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t"></th>
+<th id="S3.T1.1.1.2.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t">Model</th>
+<th id="S3.T1.1.1.2.1.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t">MAP</th>
+<th id="S3.T1.1.1.2.1.4" class="ltx_td ltx_nopad_l ltx_align_center ltx_th ltx_th_column ltx_border_t">MRR</th>
+<th id="S3.T1.1.1.2.1.5" class="ltx_td ltx_nopad_l ltx_align_center ltx_th ltx_th_column ltx_border_t">P@5</th>
+<th id="S3.T1.1.1.2.1.6" class="ltx_td ltx_nopad_l ltx_align_center ltx_th ltx_th_column ltx_border_t">SR@1</th>
+<th id="S3.T1.1.1.2.1.7" class="ltx_td ltx_nopad_l ltx_align_center ltx_th ltx_th_column ltx_border_t">SR@5</th>
+<th id="S3.T1.1.1.2.1.8" class="ltx_td ltx_nopad_l ltx_align_center ltx_th ltx_th_column ltx_border_t">NDCG</th>
+</tr>
+<tr id="S3.T1.1.1.3.2" class="ltx_tr">
+<th id="S3.T1.1.1.3.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t">q-Q</th>
+<th id="S3.T1.1.1.3.2.2" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t">TSUBAKI</th>
+<th id="S3.T1.1.1.3.2.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t">0.558</th>
+<th id="S3.T1.1.1.3.2.4" class="ltx_td ltx_nopad_l ltx_align_center ltx_th ltx_th_column ltx_border_t">0.598</th>
+<th id="S3.T1.1.1.3.2.5" class="ltx_td ltx_nopad_l ltx_align_center ltx_th ltx_th_column ltx_border_t">0.297</th>
+<th id="S3.T1.1.1.3.2.6" class="ltx_td ltx_nopad_l ltx_align_center ltx_th ltx_th_column ltx_border_t">0.504</th>
+<th id="S3.T1.1.1.3.2.7" class="ltx_td ltx_nopad_l ltx_align_center ltx_th ltx_th_column ltx_border_t">0.734</th>
+<th id="S3.T1.1.1.3.2.8" class="ltx_td ltx_nopad_l ltx_align_center ltx_th ltx_th_column ltx_border_t">0.501</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S3.T1.1.1.4.1" class="ltx_tr">
+<th id="S3.T1.1.1.4.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">q-A</th>
+<th id="S3.T1.1.1.4.1.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">Bi-LSTM</th>
+<td id="S3.T1.1.1.4.1.3" class="ltx_td ltx_align_center ltx_border_t">0.451</td>
+<td id="S3.T1.1.1.4.1.4" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_t">0.498</td>
+<td id="S3.T1.1.1.4.1.5" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_t">0.248</td>
+<td id="S3.T1.1.1.4.1.6" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_t">0.379</td>
+<td id="S3.T1.1.1.4.1.7" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_t">0.601</td>
+<td id="S3.T1.1.1.4.1.8" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_t">0.496</td>
+</tr>
+<tr id="S3.T1.1.1.1" class="ltx_tr">
+<th id="S3.T1.1.1.1.2" class="ltx_td ltx_th ltx_th_row ltx_border_r"></th>
+<th id="S3.T1.1.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">BERT<sub id="S3.T1.1.1.1.1.1" class="ltx_sub"><span id="S3.T1.1.1.1.1.1.1" class="ltx_text ltx_font_italic">targetOnly</span></sub>
+</th>
+<td id="S3.T1.1.1.1.3" class="ltx_td ltx_align_center">0.559</td>
+<td id="S3.T1.1.1.1.4" class="ltx_td ltx_nopad_l ltx_align_center">0.610</td>
+<td id="S3.T1.1.1.1.5" class="ltx_td ltx_nopad_l ltx_align_center">0.285</td>
+<td id="S3.T1.1.1.1.6" class="ltx_td ltx_nopad_l ltx_align_center">0.504</td>
+<td id="S3.T1.1.1.1.7" class="ltx_td ltx_nopad_l ltx_align_center">0.751</td>
+<td id="S3.T1.1.1.1.8" class="ltx_td ltx_nopad_l ltx_align_center">0.526</td>
+</tr>
+<tr id="S3.T1.1.1.5.2" class="ltx_tr">
+<th id="S3.T1.1.1.5.2.1" class="ltx_td ltx_th ltx_th_row ltx_border_r"></th>
+<th id="S3.T1.1.1.5.2.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">BERT</th>
+<td id="S3.T1.1.1.5.2.3" class="ltx_td ltx_align_center">0.576</td>
+<td id="S3.T1.1.1.5.2.4" class="ltx_td ltx_nopad_l ltx_align_center">0.631</td>
+<td id="S3.T1.1.1.5.2.5" class="ltx_td ltx_nopad_l ltx_align_center">0.333</td>
+<td id="S3.T1.1.1.5.2.6" class="ltx_td ltx_nopad_l ltx_align_center">0.509</td>
+<td id="S3.T1.1.1.5.2.7" class="ltx_td ltx_nopad_l ltx_align_center">0.810</td>
+<td id="S3.T1.1.1.5.2.8" class="ltx_td ltx_nopad_l ltx_align_center">0.560</td>
+</tr>
+<tr id="S3.T1.1.1.6.3" class="ltx_tr">
+<th id="S3.T1.1.1.6.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_r ltx_border_t">q-QA</th>
+<th id="S3.T1.1.1.6.3.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_r ltx_border_t">Proposed</th>
+<td id="S3.T1.1.1.6.3.3" class="ltx_td ltx_align_center ltx_border_b ltx_border_t"><span id="S3.T1.1.1.6.3.3.1" class="ltx_text ltx_font_bold">0.647</span></td>
+<td id="S3.T1.1.1.6.3.4" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_b ltx_border_t"><span id="S3.T1.1.1.6.3.4.1" class="ltx_text ltx_font_bold">0.705</span></td>
+<td id="S3.T1.1.1.6.3.5" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_b ltx_border_t"><span id="S3.T1.1.1.6.3.5.1" class="ltx_text ltx_font_bold">0.357</span></td>
+<td id="S3.T1.1.1.6.3.6" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_b ltx_border_t"><span id="S3.T1.1.1.6.3.6.1" class="ltx_text ltx_font_bold">0.612</span></td>
+<td id="S3.T1.1.1.6.3.7" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_b ltx_border_t"><span id="S3.T1.1.1.6.3.7.1" class="ltx_text ltx_font_bold">0.841</span></td>
+<td id="S3.T1.1.1.6.3.8" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_b ltx_border_t"><span id="S3.T1.1.1.6.3.8.1" class="ltx_text ltx_font_bold">0.621</span></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 1. </span>Evaluation result on the localgovFAQ dataset.</figcaption>
+</figure>
+<figure id="S3.T2" class="ltx_table">
+<table id="S3.T2.1" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S3.T2.1.1.1" class="ltx_tr">
+<th id="S3.T2.1.1.1.1" class="ltx_td ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t"></th>
+<th id="S3.T2.1.1.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_r ltx_border_t">Model</th>
+<th id="S3.T2.1.1.1.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t">MAP</th>
+<th id="S3.T2.1.1.1.4" class="ltx_td ltx_nopad_l ltx_align_center ltx_th ltx_th_column ltx_border_t">MRR</th>
+<th id="S3.T2.1.1.1.5" class="ltx_td ltx_nopad_l ltx_align_center ltx_th ltx_th_column ltx_border_t">P@5</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S3.T2.1.2.1" class="ltx_tr">
+<th id="S3.T2.1.2.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">q-Q</th>
+<th id="S3.T2.1.2.1.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">CNN-rank</th>
+<td id="S3.T2.1.2.1.3" class="ltx_td ltx_align_center ltx_border_t">0.79</td>
+<td id="S3.T2.1.2.1.4" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_t">0.77</td>
+<td id="S3.T2.1.2.1.5" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_t">0.63</td>
+</tr>
+<tr id="S3.T2.1.3.2" class="ltx_tr">
+<th id="S3.T2.1.3.2.1" class="ltx_td ltx_th ltx_th_row ltx_border_r"></th>
+<th id="S3.T2.1.3.2.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">TSUBAKI</th>
+<td id="S3.T2.1.3.2.3" class="ltx_td ltx_align_center">0.698</td>
+<td id="S3.T2.1.3.2.4" class="ltx_td ltx_nopad_l ltx_align_center">0.669</td>
+<td id="S3.T2.1.3.2.5" class="ltx_td ltx_nopad_l ltx_align_center">0.638</td>
+</tr>
+<tr id="S3.T2.1.4.3" class="ltx_tr">
+<th id="S3.T2.1.4.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">q-A</th>
+<th id="S3.T2.1.4.3.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">BERT (w/o query paraphrases)</th>
+<td id="S3.T2.1.4.3.3" class="ltx_td ltx_align_center ltx_border_t">0.631</td>
+<td id="S3.T2.1.4.3.4" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_t">0.805</td>
+<td id="S3.T2.1.4.3.5" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_t">0.546</td>
+</tr>
+<tr id="S3.T2.1.5.4" class="ltx_tr">
+<th id="S3.T2.1.5.4.1" class="ltx_td ltx_th ltx_th_row ltx_border_r"></th>
+<th id="S3.T2.1.5.4.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r">BERT</th>
+<td id="S3.T2.1.5.4.3" class="ltx_td ltx_align_center">0.887</td>
+<td id="S3.T2.1.5.4.4" class="ltx_td ltx_nopad_l ltx_align_center">0.936</td>
+<td id="S3.T2.1.5.4.5" class="ltx_td ltx_nopad_l ltx_align_center">0.770</td>
+</tr>
+<tr id="S3.T2.1.6.5" class="ltx_tr">
+<th id="S3.T2.1.6.5.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">q-QA</th>
+<th id="S3.T2.1.6.5.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_r ltx_border_t">CNN-rank</th>
+<td id="S3.T2.1.6.5.3" class="ltx_td ltx_align_center ltx_border_t">0.74</td>
+<td id="S3.T2.1.6.5.4" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_t">0.84</td>
+<td id="S3.T2.1.6.5.5" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_t">0.62</td>
+</tr>
+<tr id="S3.T2.1.7.6" class="ltx_tr">
+<th id="S3.T2.1.7.6.1" class="ltx_td ltx_th ltx_th_row ltx_border_b ltx_border_r"></th>
+<th id="S3.T2.1.7.6.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b ltx_border_r">Proposed</th>
+<td id="S3.T2.1.7.6.3" class="ltx_td ltx_align_center ltx_border_b"><span id="S3.T2.1.7.6.3.1" class="ltx_text ltx_font_bold">0.897</span></td>
+<td id="S3.T2.1.7.6.4" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_b"><span id="S3.T2.1.7.6.4.1" class="ltx_text ltx_font_bold">0.942</span></td>
+<td id="S3.T2.1.7.6.5" class="ltx_td ltx_nopad_l ltx_align_center ltx_border_b"><span id="S3.T2.1.7.6.5.1" class="ltx_text ltx_font_bold">0.776</span></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 2. </span>Evaluation result on the StackExchange dataset.</figcaption>
+</figure>
+<figure id="S3.F3" class="ltx_figure">
+<div class="ltx_flex_figure">
+<div class="ltx_flex_cell ltx_flex_size_2"><img src="/html/1905.02851/assets/x2.png" id="S3.F3.g1" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_landscape" width="461" height="322" alt="Refer to caption"></div>
+</div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 3. </span>The number of queries to which the systems can or cannot output correct QA pair as TOP1 with respect to their scores.</figcaption><div class="ltx_flex_figure">
+<div class="ltx_flex_cell ltx_flex_size_1"><span id="S3.F3.1" class="ltx_ERROR ltx_centering ltx_figure_panel undefined">\Description</span></div>
+<div class="ltx_flex_break"></div>
+<div class="ltx_flex_cell ltx_flex_size_1">
+<p id="S3.F3.2" class="ltx_p ltx_figure_panel ltx_align_center">comparison</p>
+</div>
+</div>
+</figure>
+<figure id="S3.T3" class="ltx_table">
+<table id="S3.T3.8.8" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S3.T3.8.8.9.1" class="ltx_tr">
+<th id="S3.T3.8.8.9.1.1" class="ltx_td ltx_align_center ltx_align_top ltx_th ltx_th_column ltx_border_r ltx_border_t"><span id="S3.T3.8.8.9.1.1.1" class="ltx_text" style="font-size:90%;">Query</span></th>
+<th id="S3.T3.8.8.9.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" colspan="2"><span id="S3.T3.8.8.9.1.2.1" class="ltx_text" style="font-size:90%;">TSUBAKI</span></th>
+<th id="S3.T3.8.8.9.1.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_r ltx_border_t" colspan="2"><span id="S3.T3.8.8.9.1.3.1" class="ltx_text" style="font-size:90%;">BERT</span></th>
+<th id="S3.T3.8.8.9.1.4" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t" colspan="2"><span id="S3.T3.8.8.9.1.4.1" class="ltx_text" style="font-size:90%;">Proposed method</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S3.T3.1.1.1" class="ltx_tr">
+<td id="S3.T3.1.1.1.2" class="ltx_td ltx_align_justify ltx_align_top ltx_border_r ltx_border_t">
+<span id="S3.T3.1.1.1.2.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.1.1.1.2.1.1" class="ltx_p" style="width:71.1pt;"><span id="S3.T3.1.1.1.2.1.1.1" class="ltx_text" style="font-size:90%;">Is there a consultation desk for workplace harassment?</span></span>
+</span>
+</td>
+<td id="S3.T3.1.1.1.1" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r ltx_border_t">
+<table id="S3.T3.1.1.1.1.1" class="ltx_tabular ltx_align_top">
+<tr id="S3.T3.1.1.1.1.1.2" class="ltx_tr">
+<td id="S3.T3.1.1.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.1.1.2.1.1" class="ltx_text" style="font-size:90%;">1</span></td>
+</tr>
+<tr id="S3.T3.1.1.1.1.1.1" class="ltx_tr">
+<td id="S3.T3.1.1.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><math id="S3.T3.1.1.1.1.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.T3.1.1.1.1.1.1.1.m1.1a"><mo mathsize="90%" id="S3.T3.1.1.1.1.1.1.1.m1.1.1" xref="S3.T3.1.1.1.1.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.T3.1.1.1.1.1.1.1.m1.1b"><times id="S3.T3.1.1.1.1.1.1.1.m1.1.1.cmml" xref="S3.T3.1.1.1.1.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.T3.1.1.1.1.1.1.1.m1.1c">\times</annotation></semantics></math></td>
+</tr>
+</table>
+</td>
+<td id="S3.T3.1.1.1.3" class="ltx_td ltx_nopad_l ltx_align_justify ltx_align_top ltx_border_r ltx_border_t">
+<span id="S3.T3.1.1.1.3.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.1.1.1.3.1.1" class="ltx_p" style="width:113.8pt;">
+<span id="S3.T3.1.1.1.3.1.1.1" class="ltx_tabular ltx_align_top">
+<span id="S3.T3.1.1.1.3.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.1.1.1.3.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.1.1.1.3.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.1.1.1.3.1.1.1.1.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.1.1.1.3.1.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Q: I’d like to have a career counseling.</span></span>
+</span></span></span>
+<span id="S3.T3.1.1.1.3.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.1.1.1.3.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.1.1.1.3.1.1.1.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.1.1.1.3.1.1.1.2.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.1.1.1.3.1.1.1.2.1.1.1.1" class="ltx_text" style="font-size:90%;">A: Consultation place: Amagasaki-city, …</span></span>
+</span></span></span>
+</span></span>
+</span>
+</td>
+<td id="S3.T3.1.1.1.4" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r ltx_border_t">
+<table id="S3.T3.1.1.1.4.1" class="ltx_tabular ltx_align_top">
+<tr id="S3.T3.1.1.1.4.1.1" class="ltx_tr">
+<td id="S3.T3.1.1.1.4.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.4.1.1.1.1" class="ltx_text" style="font-size:90%;">1</span></td>
+</tr>
+<tr id="S3.T3.1.1.1.4.1.2" class="ltx_tr">
+<td id="S3.T3.1.1.1.4.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.4.1.2.1.1" class="ltx_text" style="font-size:90%;">✓</span></td>
+</tr>
+</table>
+</td>
+<td id="S3.T3.1.1.1.5" class="ltx_td ltx_nopad_l ltx_align_justify ltx_align_top ltx_border_r ltx_border_t">
+<span id="S3.T3.1.1.1.5.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.1.1.1.5.1.1" class="ltx_p" style="width:113.8pt;">
+<span id="S3.T3.1.1.1.5.1.1.1" class="ltx_tabular ltx_align_top">
+<span id="S3.T3.1.1.1.5.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.1.1.1.5.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.1.1.1.5.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.1.1.1.5.1.1.1.1.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.1.1.1.5.1.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Q: I’d like to consult a lawyer for work-related problems.</span></span>
+</span></span></span>
+<span id="S3.T3.1.1.1.5.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.1.1.1.5.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.1.1.1.5.1.1.1.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.1.1.1.5.1.1.1.2.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.1.1.1.5.1.1.1.2.1.1.1.1" class="ltx_text" style="font-size:90%;">A: On specialized and sophisticated labor issues such as wages, dismissal, occupational accidents, …</span></span>
+</span></span></span>
+</span></span>
+</span>
+</td>
+<td id="S3.T3.1.1.1.6" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r ltx_border_t">
+<table id="S3.T3.1.1.1.6.1" class="ltx_tabular ltx_align_top">
+<tr id="S3.T3.1.1.1.6.1.1" class="ltx_tr">
+<td id="S3.T3.1.1.1.6.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.6.1.1.1.1" class="ltx_text" style="font-size:90%;">1</span></td>
+</tr>
+<tr id="S3.T3.1.1.1.6.1.2" class="ltx_tr">
+<td id="S3.T3.1.1.1.6.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.6.1.2.1.1" class="ltx_text" style="font-size:90%;">✓</span></td>
+</tr>
+</table>
+</td>
+<td id="S3.T3.1.1.1.7" class="ltx_td ltx_nopad_l ltx_align_justify ltx_align_top ltx_border_t">
+<span id="S3.T3.1.1.1.7.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.1.1.1.7.1.1" class="ltx_p" style="width:113.8pt;">
+<span id="S3.T3.1.1.1.7.1.1.1" class="ltx_tabular ltx_align_top">
+<span id="S3.T3.1.1.1.7.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.1.1.1.7.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.1.1.1.7.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.1.1.1.7.1.1.1.1.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.1.1.1.7.1.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Q: Can we get a lawyer’s labor counselor?</span></span>
+</span></span></span>
+<span id="S3.T3.1.1.1.7.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.1.1.1.7.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.1.1.1.7.1.1.1.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.1.1.1.7.1.1.1.2.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.1.1.1.7.1.1.1.2.1.1.1.1" class="ltx_text" style="font-size:90%;">A: On specialized and sophisticated labor issues such as wages, dismissal, occupational accidents, …</span></span>
+</span></span></span>
+</span></span>
+</span>
+</td>
+</tr>
+<tr id="S3.T3.3.3.3" class="ltx_tr">
+<td id="S3.T3.3.3.3.3" class="ltx_td ltx_align_justify ltx_align_top ltx_border_r ltx_border_t">
+<span id="S3.T3.3.3.3.3.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.3.3.3.3.1.1" class="ltx_p" style="width:71.1pt;"><span id="S3.T3.3.3.3.3.1.1.1" class="ltx_text" style="font-size:90%;">Where should I renew my license?</span></span>
+</span>
+</td>
+<td id="S3.T3.2.2.2.1" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r ltx_border_t">
+<table id="S3.T3.2.2.2.1.1" class="ltx_tabular ltx_align_top">
+<tr id="S3.T3.2.2.2.1.1.2" class="ltx_tr">
+<td id="S3.T3.2.2.2.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.2.2.2.1.1.2.1.1" class="ltx_text" style="font-size:90%;">1</span></td>
+</tr>
+<tr id="S3.T3.2.2.2.1.1.1" class="ltx_tr">
+<td id="S3.T3.2.2.2.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><math id="S3.T3.2.2.2.1.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.T3.2.2.2.1.1.1.1.m1.1a"><mo mathsize="90%" id="S3.T3.2.2.2.1.1.1.1.m1.1.1" xref="S3.T3.2.2.2.1.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.T3.2.2.2.1.1.1.1.m1.1b"><times id="S3.T3.2.2.2.1.1.1.1.m1.1.1.cmml" xref="S3.T3.2.2.2.1.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.T3.2.2.2.1.1.1.1.m1.1c">\times</annotation></semantics></math></td>
+</tr>
+</table>
+</td>
+<td id="S3.T3.3.3.3.4" class="ltx_td ltx_nopad_l ltx_align_justify ltx_align_top ltx_border_r ltx_border_t">
+<span id="S3.T3.3.3.3.4.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.3.3.3.4.1.1" class="ltx_p" style="width:113.8pt;">
+<span id="S3.T3.3.3.3.4.1.1.1" class="ltx_tabular ltx_align_top">
+<span id="S3.T3.3.3.3.4.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.3.3.3.4.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.3.3.3.4.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.3.3.3.4.1.1.1.1.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.3.3.3.4.1.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Q: Where should I apply for medical staff licenses (new, corrected / rewritten, re-issued)?</span></span>
+</span></span></span>
+<span id="S3.T3.3.3.3.4.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.3.3.3.4.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.3.3.3.4.1.1.1.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.3.3.3.4.1.1.1.2.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.3.3.3.4.1.1.1.2.1.1.1.1" class="ltx_text" style="font-size:90%;">A: License application for doctors, dentists, public health nurses …</span></span>
+</span></span></span>
+</span></span>
+</span>
+</td>
+<td id="S3.T3.3.3.3.2" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r ltx_border_t">
+<table id="S3.T3.3.3.3.2.1" class="ltx_tabular ltx_align_top">
+<tr id="S3.T3.3.3.3.2.1.2" class="ltx_tr">
+<td id="S3.T3.3.3.3.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.3.3.3.2.1.2.1.1" class="ltx_text" style="font-size:90%;">1</span></td>
+</tr>
+<tr id="S3.T3.3.3.3.2.1.1" class="ltx_tr">
+<td id="S3.T3.3.3.3.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><math id="S3.T3.3.3.3.2.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.T3.3.3.3.2.1.1.1.m1.1a"><mo mathsize="90%" id="S3.T3.3.3.3.2.1.1.1.m1.1.1" xref="S3.T3.3.3.3.2.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.T3.3.3.3.2.1.1.1.m1.1b"><times id="S3.T3.3.3.3.2.1.1.1.m1.1.1.cmml" xref="S3.T3.3.3.3.2.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.T3.3.3.3.2.1.1.1.m1.1c">\times</annotation></semantics></math></td>
+</tr>
+</table>
+</td>
+<td id="S3.T3.3.3.3.5" class="ltx_td ltx_nopad_l ltx_align_justify ltx_align_top ltx_border_r ltx_border_t">
+<span id="S3.T3.3.3.3.5.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.3.3.3.5.1.1" class="ltx_p" style="width:113.8pt;">
+<span id="S3.T3.3.3.3.5.1.1.1" class="ltx_tabular ltx_align_top">
+<span id="S3.T3.3.3.3.5.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.3.3.3.5.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.3.3.3.5.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.3.3.3.5.1.1.1.1.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.3.3.3.5.1.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Q: To update a bus ticket, do I have to go myself?</span></span>
+</span></span></span>
+<span id="S3.T3.3.3.3.5.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.3.3.3.5.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.3.3.3.5.1.1.1.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.3.3.3.5.1.1.1.2.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.3.3.3.5.1.1.1.2.1.1.1.1" class="ltx_text" style="font-size:90%;">A: In principle, please apply for the application by yourself. …</span></span>
+</span></span></span>
+</span></span>
+</span>
+</td>
+<td id="S3.T3.3.3.3.6" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r ltx_border_t">
+<table id="S3.T3.3.3.3.6.1" class="ltx_tabular ltx_align_top">
+<tr id="S3.T3.3.3.3.6.1.1" class="ltx_tr">
+<td id="S3.T3.3.3.3.6.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.3.3.3.6.1.1.1.1" class="ltx_text" style="font-size:90%;">1</span></td>
+</tr>
+<tr id="S3.T3.3.3.3.6.1.2" class="ltx_tr">
+<td id="S3.T3.3.3.3.6.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.3.3.3.6.1.2.1.1" class="ltx_text" style="font-size:90%;">✓</span></td>
+</tr>
+</table>
+</td>
+<td id="S3.T3.3.3.3.7" class="ltx_td ltx_nopad_l ltx_align_justify ltx_align_top ltx_border_t">
+<span id="S3.T3.3.3.3.7.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.3.3.3.7.1.1" class="ltx_p" style="width:113.8pt;">
+<span id="S3.T3.3.3.3.7.1.1.1" class="ltx_tabular ltx_align_top">
+<span id="S3.T3.3.3.3.7.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.3.3.3.7.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.3.3.3.7.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.3.3.3.7.1.1.1.1.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.3.3.3.7.1.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Q: Please tell me about the procedure of updating your driver’s license.</span></span>
+</span></span></span>
+<span id="S3.T3.3.3.3.7.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.3.3.3.7.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.3.3.3.7.1.1.1.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.3.3.3.7.1.1.1.2.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.3.3.3.7.1.1.1.2.1.1.1.1" class="ltx_text" style="font-size:90%;">A: Regarding the renewal procedure of your driver’s license …</span></span>
+</span></span></span>
+</span></span>
+</span>
+</td>
+</tr>
+<tr id="S3.T3.5.5.5" class="ltx_tr">
+<td id="S3.T3.5.5.5.3" class="ltx_td ltx_align_top ltx_border_r"></td>
+<td id="S3.T3.5.5.5.4" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r ltx_border_t">
+<table id="S3.T3.5.5.5.4.1" class="ltx_tabular ltx_align_top">
+<tr id="S3.T3.5.5.5.4.1.1" class="ltx_tr">
+<td id="S3.T3.5.5.5.4.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.5.5.5.4.1.1.1.1" class="ltx_text" style="font-size:90%;">2</span></td>
+</tr>
+<tr id="S3.T3.5.5.5.4.1.2" class="ltx_tr">
+<td id="S3.T3.5.5.5.4.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.5.5.5.4.1.2.1.1" class="ltx_text" style="font-size:90%;">✓</span></td>
+</tr>
+</table>
+</td>
+<td id="S3.T3.5.5.5.5" class="ltx_td ltx_nopad_l ltx_align_justify ltx_align_top ltx_border_r ltx_border_t">
+<span id="S3.T3.5.5.5.5.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.5.5.5.5.1.1" class="ltx_p" style="width:113.8pt;">
+<span id="S3.T3.5.5.5.5.1.1.1" class="ltx_tabular ltx_align_top">
+<span id="S3.T3.5.5.5.5.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.5.5.5.5.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.5.5.5.5.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.5.5.5.5.1.1.1.1.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.5.5.5.5.1.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Q: Please tell me about the procedure of updating your driver’s license.</span></span>
+</span></span></span>
+<span id="S3.T3.5.5.5.5.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.5.5.5.5.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.5.5.5.5.1.1.1.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.5.5.5.5.1.1.1.2.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.5.5.5.5.1.1.1.2.1.1.1.1" class="ltx_text" style="font-size:90%;">A: Regarding the renewal procedure of your driver’s license …</span></span>
+</span></span></span>
+</span></span>
+</span>
+</td>
+<td id="S3.T3.4.4.4.1" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r ltx_border_t">
+<table id="S3.T3.4.4.4.1.1" class="ltx_tabular ltx_align_top">
+<tr id="S3.T3.4.4.4.1.1.2" class="ltx_tr">
+<td id="S3.T3.4.4.4.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.4.4.4.1.1.2.1.1" class="ltx_text" style="font-size:90%;">2</span></td>
+</tr>
+<tr id="S3.T3.4.4.4.1.1.1" class="ltx_tr">
+<td id="S3.T3.4.4.4.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><math id="S3.T3.4.4.4.1.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.T3.4.4.4.1.1.1.1.m1.1a"><mo mathsize="90%" id="S3.T3.4.4.4.1.1.1.1.m1.1.1" xref="S3.T3.4.4.4.1.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.T3.4.4.4.1.1.1.1.m1.1b"><times id="S3.T3.4.4.4.1.1.1.1.m1.1.1.cmml" xref="S3.T3.4.4.4.1.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.T3.4.4.4.1.1.1.1.m1.1c">\times</annotation></semantics></math></td>
+</tr>
+</table>
+</td>
+<td id="S3.T3.5.5.5.6" class="ltx_td ltx_nopad_l ltx_align_justify ltx_align_top ltx_border_r ltx_border_t">
+<span id="S3.T3.5.5.5.6.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.5.5.5.6.1.1" class="ltx_p" style="width:113.8pt;">
+<span id="S3.T3.5.5.5.6.1.1.1" class="ltx_tabular ltx_align_top">
+<span id="S3.T3.5.5.5.6.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.5.5.5.6.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.5.5.5.6.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.5.5.5.6.1.1.1.1.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.5.5.5.6.1.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Q: Can I file an agent application to renew my bus ticket?</span></span>
+</span></span></span>
+<span id="S3.T3.5.5.5.6.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.5.5.5.6.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.5.5.5.6.1.1.1.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.5.5.5.6.1.1.1.2.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.5.5.5.6.1.1.1.2.1.1.1.1" class="ltx_text" style="font-size:90%;">A: As a general rule, please apply for yourself. …</span></span>
+</span></span></span>
+</span></span>
+</span>
+</td>
+<td id="S3.T3.5.5.5.2" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r ltx_border_t">
+<table id="S3.T3.5.5.5.2.1" class="ltx_tabular ltx_align_top">
+<tr id="S3.T3.5.5.5.2.1.2" class="ltx_tr">
+<td id="S3.T3.5.5.5.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.5.5.5.2.1.2.1.1" class="ltx_text" style="font-size:90%;">2</span></td>
+</tr>
+<tr id="S3.T3.5.5.5.2.1.1" class="ltx_tr">
+<td id="S3.T3.5.5.5.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><math id="S3.T3.5.5.5.2.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.T3.5.5.5.2.1.1.1.m1.1a"><mo mathsize="90%" id="S3.T3.5.5.5.2.1.1.1.m1.1.1" xref="S3.T3.5.5.5.2.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.T3.5.5.5.2.1.1.1.m1.1b"><times id="S3.T3.5.5.5.2.1.1.1.m1.1.1.cmml" xref="S3.T3.5.5.5.2.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.T3.5.5.5.2.1.1.1.m1.1c">\times</annotation></semantics></math></td>
+</tr>
+</table>
+</td>
+<td id="S3.T3.5.5.5.7" class="ltx_td ltx_nopad_l ltx_align_justify ltx_align_top ltx_border_t">
+<span id="S3.T3.5.5.5.7.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.5.5.5.7.1.1" class="ltx_p" style="width:113.8pt;">
+<span id="S3.T3.5.5.5.7.1.1.1" class="ltx_tabular ltx_align_top">
+<span id="S3.T3.5.5.5.7.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.5.5.5.7.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.5.5.5.7.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.5.5.5.7.1.1.1.1.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.5.5.5.7.1.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Q: Can I file an agent application to renew my bus ticket?</span></span>
+</span></span></span>
+<span id="S3.T3.5.5.5.7.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.5.5.5.7.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.5.5.5.7.1.1.1.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.5.5.5.7.1.1.1.2.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.5.5.5.7.1.1.1.2.1.1.1.1" class="ltx_text" style="font-size:90%;">A: As a general rule, please apply for yourself. …</span></span>
+</span></span></span>
+</span></span>
+</span>
+</td>
+</tr>
+<tr id="S3.T3.8.8.8" class="ltx_tr">
+<td id="S3.T3.8.8.8.4" class="ltx_td ltx_align_justify ltx_align_top ltx_border_b ltx_border_r ltx_border_t">
+<span id="S3.T3.8.8.8.4.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.8.8.8.4.1.1" class="ltx_p" style="width:71.1pt;"><span id="S3.T3.8.8.8.4.1.1.1" class="ltx_text" style="font-size:90%;">Is there a place that we can use for practicing instruments?</span></span>
+</span>
+</td>
+<td id="S3.T3.6.6.6.1" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_b ltx_border_r ltx_border_t">
+<table id="S3.T3.6.6.6.1.1" class="ltx_tabular ltx_align_top">
+<tr id="S3.T3.6.6.6.1.1.2" class="ltx_tr">
+<td id="S3.T3.6.6.6.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.6.6.6.1.1.2.1.1" class="ltx_text" style="font-size:90%;">1</span></td>
+</tr>
+<tr id="S3.T3.6.6.6.1.1.1" class="ltx_tr">
+<td id="S3.T3.6.6.6.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><math id="S3.T3.6.6.6.1.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.T3.6.6.6.1.1.1.1.m1.1a"><mo mathsize="90%" id="S3.T3.6.6.6.1.1.1.1.m1.1.1" xref="S3.T3.6.6.6.1.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.T3.6.6.6.1.1.1.1.m1.1b"><times id="S3.T3.6.6.6.1.1.1.1.m1.1.1.cmml" xref="S3.T3.6.6.6.1.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.T3.6.6.6.1.1.1.1.m1.1c">\times</annotation></semantics></math></td>
+</tr>
+</table>
+</td>
+<td id="S3.T3.8.8.8.5" class="ltx_td ltx_nopad_l ltx_align_justify ltx_align_top ltx_border_b ltx_border_r ltx_border_t">
+<span id="S3.T3.8.8.8.5.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.8.8.8.5.1.1" class="ltx_p" style="width:113.8pt;">
+<span id="S3.T3.8.8.8.5.1.1.1" class="ltx_tabular ltx_align_top">
+<span id="S3.T3.8.8.8.5.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.8.8.8.5.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.8.8.8.5.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.8.8.8.5.1.1.1.1.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.8.8.8.5.1.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Q: Where is the location of the polling place before the election’s due date?</span></span>
+</span></span></span>
+<span id="S3.T3.8.8.8.5.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.8.8.8.5.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.8.8.8.5.1.1.1.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.8.8.8.5.1.1.1.2.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.8.8.8.5.1.1.1.2.1.1.1.1" class="ltx_text" style="font-size:90%;">A: There are three polling stations before the date in the city. …</span></span>
+</span></span></span>
+</span></span>
+</span>
+</td>
+<td id="S3.T3.7.7.7.2" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_b ltx_border_r ltx_border_t">
+<table id="S3.T3.7.7.7.2.1" class="ltx_tabular ltx_align_top">
+<tr id="S3.T3.7.7.7.2.1.2" class="ltx_tr">
+<td id="S3.T3.7.7.7.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.7.7.7.2.1.2.1.1" class="ltx_text" style="font-size:90%;">1</span></td>
+</tr>
+<tr id="S3.T3.7.7.7.2.1.1" class="ltx_tr">
+<td id="S3.T3.7.7.7.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><math id="S3.T3.7.7.7.2.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.T3.7.7.7.2.1.1.1.m1.1a"><mo mathsize="90%" id="S3.T3.7.7.7.2.1.1.1.m1.1.1" xref="S3.T3.7.7.7.2.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.T3.7.7.7.2.1.1.1.m1.1b"><times id="S3.T3.7.7.7.2.1.1.1.m1.1.1.cmml" xref="S3.T3.7.7.7.2.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.T3.7.7.7.2.1.1.1.m1.1c">\times</annotation></semantics></math></td>
+</tr>
+</table>
+</td>
+<td id="S3.T3.8.8.8.6" class="ltx_td ltx_nopad_l ltx_align_justify ltx_align_top ltx_border_b ltx_border_r ltx_border_t">
+<span id="S3.T3.8.8.8.6.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.8.8.8.6.1.1" class="ltx_p" style="width:113.8pt;">
+<span id="S3.T3.8.8.8.6.1.1.1" class="ltx_tabular ltx_align_top">
+<span id="S3.T3.8.8.8.6.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.8.8.8.6.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.8.8.8.6.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.8.8.8.6.1.1.1.1.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.8.8.8.6.1.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Q: Please tell me about Amagasaki City boys music corps.</span></span>
+</span></span></span>
+<span id="S3.T3.8.8.8.6.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.8.8.8.6.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.8.8.8.6.1.1.1.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.8.8.8.6.1.1.1.2.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.8.8.8.6.1.1.1.2.1.1.1.1" class="ltx_text" style="font-size:90%;">A: ”Amagasaki City Boys Music Club” includes a choir corps, a brass band, …</span></span>
+</span></span></span>
+</span></span>
+</span>
+</td>
+<td id="S3.T3.8.8.8.3" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_b ltx_border_r ltx_border_t">
+<table id="S3.T3.8.8.8.3.1" class="ltx_tabular ltx_align_top">
+<tr id="S3.T3.8.8.8.3.1.2" class="ltx_tr">
+<td id="S3.T3.8.8.8.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.8.8.8.3.1.2.1.1" class="ltx_text" style="font-size:90%;">1</span></td>
+</tr>
+<tr id="S3.T3.8.8.8.3.1.1" class="ltx_tr">
+<td id="S3.T3.8.8.8.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><math id="S3.T3.8.8.8.3.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.T3.8.8.8.3.1.1.1.m1.1a"><mo mathsize="90%" id="S3.T3.8.8.8.3.1.1.1.m1.1.1" xref="S3.T3.8.8.8.3.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.T3.8.8.8.3.1.1.1.m1.1b"><times id="S3.T3.8.8.8.3.1.1.1.m1.1.1.cmml" xref="S3.T3.8.8.8.3.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.T3.8.8.8.3.1.1.1.m1.1c">\times</annotation></semantics></math></td>
+</tr>
+</table>
+</td>
+<td id="S3.T3.8.8.8.7" class="ltx_td ltx_nopad_l ltx_align_justify ltx_align_top ltx_border_b ltx_border_t">
+<span id="S3.T3.8.8.8.7.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.8.8.8.7.1.1" class="ltx_p" style="width:113.8pt;">
+<span id="S3.T3.8.8.8.7.1.1.1" class="ltx_tabular ltx_align_top">
+<span id="S3.T3.8.8.8.7.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.8.8.8.7.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.8.8.8.7.1.1.1.1.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.8.8.8.7.1.1.1.1.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.8.8.8.7.1.1.1.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Q: Please tell me about Amagasaki City boys music corps.</span></span>
+</span></span></span>
+<span id="S3.T3.8.8.8.7.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.8.8.8.7.1.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_justify ltx_align_top">
+<span id="S3.T3.8.8.8.7.1.1.1.2.1.1" class="ltx_inline-block ltx_align_top">
+<span id="S3.T3.8.8.8.7.1.1.1.2.1.1.1" class="ltx_p" style="width:113.8pt;"><span id="S3.T3.8.8.8.7.1.1.1.2.1.1.1.1" class="ltx_text" style="font-size:90%;">A: ”Amagasaki City Boys Music Club” includes a choir corps, a brass band, …</span></span>
+</span></span></span>
+</span></span>
+</span>
+</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_table">Table 3. </span>Examples of system outputs and their manual evaluations. (✓and <math id="S3.T3.10.10.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.T3.10.10.m1.1b"><mo id="S3.T3.10.10.m1.1.1" xref="S3.T3.10.10.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.T3.10.10.m1.1c"><times id="S3.T3.10.10.m1.1.1.cmml" xref="S3.T3.10.10.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.T3.10.10.m1.1d">\times</annotation></semantics></math> in the table mean correct and incorrect, respectively, where the evaluation categories A, B, and C are regarded as correct.)</figcaption>
+</figure>
+<div id="S3.SS3.p4" class="ltx_para">
+<p id="S3.SS3.p4.1" class="ltx_p">Table <a href="#S3.T3" title="Table 3 ‣ 3.3. Evaluation Results and Discussions ‣ 3. Experiments and Evaluation ‣ FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Answer Relevance" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> shows the examples, translated from Japanese, of system outputs and correct QA pairs on localgovFAQ. In the first example, although TSUBAKI retrieved the wrong QA pair since there is a word ”consultation” and ”counseling” in the query and <math id="S3.SS3.p4.1.m1.1" class="ltx_Math" alttext="Q" display="inline"><semantics id="S3.SS3.p4.1.m1.1a"><mi id="S3.SS3.p4.1.m1.1.1" xref="S3.SS3.p4.1.m1.1.1.cmml">Q</mi><annotation-xml encoding="MathML-Content" id="S3.SS3.p4.1.m1.1b"><ci id="S3.SS3.p4.1.m1.1.1.cmml" xref="S3.SS3.p4.1.m1.1.1">𝑄</ci></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.p4.1.m1.1c">Q</annotation></semantics></math>, BERT and the proposed method could retrieve a correct QA pair.
+In the second example, the proposed method could retrieve a correct QA pair on the first rank although the first rank of TSUBAKI and BERT was wrong.</p>
+</div>
+<div id="S3.SS3.p5" class="ltx_para">
+<p id="S3.SS3.p5.3" class="ltx_p">In the third example, no methods could retrieve a correct QA pair.
+Although BERT could capture the relevance between a word ”instruments” in the query and ”music” in <math id="S3.SS3.p5.1.m1.1" class="ltx_Math" alttext="A" display="inline"><semantics id="S3.SS3.p5.1.m1.1a"><mi id="S3.SS3.p5.1.m1.1.1" xref="S3.SS3.p5.1.m1.1.1.cmml">A</mi><annotation-xml encoding="MathML-Content" id="S3.SS3.p5.1.m1.1b"><ci id="S3.SS3.p5.1.m1.1.1.cmml" xref="S3.SS3.p5.1.m1.1.1">𝐴</ci></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.p5.1.m1.1c">A</annotation></semantics></math>, the retrieved QA pair was wrong.
+The correct QA pair consists of <math id="S3.SS3.p5.2.m2.1" class="ltx_Math" alttext="Q" display="inline"><semantics id="S3.SS3.p5.2.m2.1a"><mi id="S3.SS3.p5.2.m2.1.1" xref="S3.SS3.p5.2.m2.1.1.cmml">Q</mi><annotation-xml encoding="MathML-Content" id="S3.SS3.p5.2.m2.1b"><ci id="S3.SS3.p5.2.m2.1.1.cmml" xref="S3.SS3.p5.2.m2.1.1">𝑄</ci></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.p5.2.m2.1c">Q</annotation></semantics></math> saying ”Information on the facility of the youth center, hours of use, and closed day” and <math id="S3.SS3.p5.3.m3.1" class="ltx_Math" alttext="A" display="inline"><semantics id="S3.SS3.p5.3.m3.1a"><mi id="S3.SS3.p5.3.m3.1.1" xref="S3.SS3.p5.3.m3.1.1.cmml">A</mi><annotation-xml encoding="MathML-Content" id="S3.SS3.p5.3.m3.1b"><ci id="S3.SS3.p5.3.m3.1.1.cmml" xref="S3.SS3.p5.3.m3.1.1">𝐴</ci></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.p5.3.m3.1c">A</annotation></semantics></math> mentioning a music room as one of the available facilities in the youth center. To retrieve this correct QA pair, the deeper understanding of QA texts is necessary.</p>
+</div>
+<div id="S3.SS3.p6" class="ltx_para">
+<p id="S3.SS3.p6.1" class="ltx_p">It takes about 2 seconds to retrieve QA pairs per query on localgovFAQ dataset by using 7 GPUs (TITAN X Pascal), and our model is practical enough.
+For a larger FAQ set, one can use our method in a telescoping setting <cite class="ltx_cite ltx_citemacro_citep">(Matveeva et al<span class="ltx_text">.</span>, <a href="#bib.bib4" title="" class="ltx_ref">2006</a>)</cite>.</p>
+</div>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4. </span>Conclusion</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p">This paper presented a method for using query-question similarity and BERT-based query-answer relevance in a FAQ retrieval task.
+By collecting other similar FAQ sets, we could increase the size of available QA data.
+BERT, which has been recently proposed, was applied to capture the relevance between queries and answers. This method realized the robust and high-performance retrieval.
+The experimental results demonstrated that our combined use of query-question similarity and query-answer relevance was effective.
+We are planning to make the code and constructed dataset localgovFAQ publicly available<span id="footnote6" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">6</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">6</sup><span class="ltx_tag ltx_tag_note">6</span>http://nlp.ist.i.kyoto-u.ac.jp/EN/index.php?BERT-Based_FAQ_Retrieval</span></span></span>.</p>
+</div>
+</section>
+<section id="Sx1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">Acknowledgment</h2>
+
+<div id="Sx1.p1" class="ltx_para">
+<p id="Sx1.p1.1" class="ltx_p">This work was partly supported by JST CREST Grant Number JPMJCR1301, Japan.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">(1)</span>
+<span class="ltx_bibblock">        
+
+
+
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Devlin
+et al<span id="bib.bib2.2.2.1" class="ltx_text">.</span> (2018)</span>
+<span class="ltx_bibblock">
+Jacob Devlin, Ming-Wei
+Chang, Kenton Lee, and Kristina
+Toutanova. 2018.
+
+</span>
+<span class="ltx_bibblock">BERT: Pre-training of Deep Bidirectional
+Transformers for Language Understanding.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib2.3.1" class="ltx_emph ltx_font_italic">CoRR</em> abs/1810.04805
+(2018).
+
+</span>
+<span class="ltx_bibblock">arXiv:1810.04805
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Karan and Snajder (2018)</span>
+<span class="ltx_bibblock">
+Mladen Karan and Jan
+Snajder. 2018.
+
+</span>
+<span class="ltx_bibblock">Paraphrase-focused learning to rank for
+domain-specific frequently asked questions retrieval.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib3.1.1" class="ltx_emph ltx_font_italic">Expert Systems with Applications</em>
+91 (2018), 418–433.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Matveeva et al<span id="bib.bib4.2.2.1" class="ltx_text">.</span> (2006)</span>
+<span class="ltx_bibblock">
+Irina Matveeva, Chris
+Burges, Timo Burkard, Andy Laucius,
+and Leon Wong. 2006.
+
+</span>
+<span class="ltx_bibblock">High Accuracy Retrieval with Multiple Nested
+Ranker. In <em id="bib.bib4.3.1" class="ltx_emph ltx_font_italic">SIGIR</em>. ACM,
+437–444.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Rajpurkar et al<span id="bib.bib5.2.2.1" class="ltx_text">.</span> (2016)</span>
+<span class="ltx_bibblock">
+Pranav Rajpurkar, Jian
+Zhang, Konstantin Lopyrev, and Percy
+Liang. 2016.
+
+</span>
+<span class="ltx_bibblock">SQuAD: 100,000+ Questions for Machine Comprehension
+of Text. In <em id="bib.bib5.3.1" class="ltx_emph ltx_font_italic">EMNLP</em>.
+Association for Computational Linguistics,
+2383–2392.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Robertson et al<span id="bib.bib6.2.2.1" class="ltx_text">.</span> (1992)</span>
+<span class="ltx_bibblock">
+Stephen E. Robertson,
+Steve Walker, Micheline Hancock-Beaulieu,
+Aarron Gull, and Marianna Lau.
+1992.
+
+</span>
+<span class="ltx_bibblock">Okapi at TREC. In
+<em id="bib.bib6.3.1" class="ltx_emph ltx_font_italic">TREC</em>. 21–30.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sennrich
+et al<span id="bib.bib7.2.2.1" class="ltx_text">.</span> (2016)</span>
+<span class="ltx_bibblock">
+Rico Sennrich, Barry
+Haddow, and Alexandra Birch.
+2016.
+
+</span>
+<span class="ltx_bibblock">Neural Machine Translation of Rare Words with
+Subword Units. In <em id="bib.bib7.3.1" class="ltx_emph ltx_font_italic">ACL</em>.
+Association for Computational Linguistics,
+1715–1725.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Shinzato et al<span id="bib.bib8.2.2.1" class="ltx_text">.</span> (2008)</span>
+<span class="ltx_bibblock">
+Keiji Shinzato, Tomohide
+Shibata, Daisuke Kawahara, Chikara
+Hashimoto, and Sadao Kurohashi.
+2008.
+
+</span>
+<span class="ltx_bibblock">TSUBAKI: An Open Search Engine Infrastructure for
+Developing New Information Access Methodology. In
+<em id="bib.bib8.3.1" class="ltx_emph ltx_font_italic">IJCNLP</em>. 189–196.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Tan
+et al<span id="bib.bib9.2.2.1" class="ltx_text">.</span> (2015)</span>
+<span class="ltx_bibblock">
+Ming Tan, Bing Xiang,
+and Bowen Zhou. 2015.
+
+</span>
+<span class="ltx_bibblock">LSTM-based Deep Learning Models for Non-factoid
+Answer Selection.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib9.3.1" class="ltx_emph ltx_font_italic">CoRR</em> abs/1511.04108
+(2015).
+
+</span>
+<span class="ltx_bibblock">arXiv:1511.04108
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Vaswani et al<span id="bib.bib10.2.2.1" class="ltx_text">.</span> (2017)</span>
+<span class="ltx_bibblock">
+Ashish Vaswani, Noam
+Shazeer, Niki Parmar, Jakob Uszkoreit,
+Llion Jones, Aidan N Gomez,
+Lukasz Kaiser, and Illia Polosukhin.
+2017.
+
+</span>
+<span class="ltx_bibblock">Attention is All you Need.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib10.3.1" class="ltx_emph ltx_font_italic">NIPS</em>. 5998–6008.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wang et al<span id="bib.bib11.2.2.1" class="ltx_text">.</span> (2018)</span>
+<span class="ltx_bibblock">
+Alex Wang, Amanpreet
+Singh, Julian Michael, Felix Hill,
+Omer Levy, and Samuel Bowman.
+2018.
+
+</span>
+<span class="ltx_bibblock">GLUE: A Multi-Task Benchmark and Analysis Platform
+for Natural Language Understanding. In <em id="bib.bib11.3.1" class="ltx_emph ltx_font_italic">EMNLP2018
+Workshop BlackboxNLP</em>. Association for Computational
+Linguistics, 353–355.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wu
+et al<span id="bib.bib12.2.2.1" class="ltx_text">.</span> (2018)</span>
+<span class="ltx_bibblock">
+Yu Wu, Wei Wu,
+Zhoujun Li, and Ming Zhou.
+2018.
+
+</span>
+<span class="ltx_bibblock">Learning Matching Models with Weak Supervision for
+Response Selection in Retrieval-based Chatbots. In
+<em id="bib.bib12.3.1" class="ltx_emph ltx_font_italic">ACL</em>. 420–425.
+
+</span>
+<span class="ltx_bibblock">
+</span>
+</li>
+</ul>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/1905.02850" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/1905.02851" class="ar5iv-text-button ar5iv-severity-error">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+1905.02851">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/1905.02851" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/1905.02852" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Sat Mar  2 17:39:12 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

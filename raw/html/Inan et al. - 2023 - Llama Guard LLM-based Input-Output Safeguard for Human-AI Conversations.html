@@ -1,0 +1,1546 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2312.06674] Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations</title><meta property="og:description" content="We introduce Llama Guard, an LLM-based input-output safeguard model geared towards Human-AI conversation use cases. Our model incorporates a safety risk taxonomy, a valuable tool for categorizing a specific set of safe…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2312.06674">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2312.06674">
+
+<!--Generated on Tue Feb 27 14:30:41 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<div id="p1" class="ltx_para">
+<p id="p1.1" class="ltx_p">]GenAI at Meta</p>
+</div>
+<h1 class="ltx_title ltx_title_document">Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Hakan Inan
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Kartikeya Upasani
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Jianfeng Chi
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Rashi Rungta
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Krithika Iyer
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Yuning Mao
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Michael Tontchev
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Qing Hu
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Brian Fuller
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Davide Testuggine
+</span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Madian Khabsa
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">[
+</span>
+<span class="ltx_contact ltx_role_email"><a href="mailto:inan@meta.com">inan@meta.com</a>
+</span></span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id1.id1" class="ltx_p">We introduce Llama Guard, an LLM-based input-output safeguard model geared towards Human-AI conversation use cases. Our model incorporates a safety risk taxonomy, a valuable tool for categorizing a specific set of safety risks found in LLM prompts (i.e., prompt classification). This taxonomy is also instrumental in classifying the responses generated by LLMs to these prompts, a process we refer to as response classification. For the purpose of both prompt and response classification, we have meticulously gathered a dataset of high quality. Llama Guard, a Llama2-7b model that is instruction-tuned on our collected dataset, albeit low in volume, demonstrates strong performance on existing benchmarks such as the OpenAI Moderation Evaluation dataset and ToxicChat, where its performance matches or exceeds that of currently available content moderation tools. Llama Guard functions as a language model, carrying out multi-class classification and generating binary decision scores. Furthermore, the instruction fine-tuning of Llama Guard allows for the customization of tasks and the adaptation of output formats. This feature enhances the model’s capabilities, such as enabling the adjustment of taxonomy categories to align with specific use cases, and facilitating zero-shot or few-shot prompting with diverse taxonomies at the input. We are making Llama Guard model weights available and we encourage researchers to further develop and adapt them to meet the evolving needs of the community for AI safety.</p>
+</div>
+<div id="p2" class="ltx_para">
+<span id="p2.1" class="ltx_ERROR undefined">\correspondence</span>
+<p id="p2.2" class="ltx_p">Hakan Inan at 
+<span id="p2.2.1" class="ltx_ERROR undefined">\metadata</span>[Code]<a target="_blank" href="https://github.com/facebookresearch/PurpleLlama/tree/main/Llama-Guard" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/facebookresearch/PurpleLlama/tree/main/Llama-Guard</a>
+<span id="p2.2.2" class="ltx_ERROR undefined">\metadata</span>[Blogpost]<a target="_blank" href="https://ai.meta.com/llama/purple-llama/#safeguard-model" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://ai.meta.com/llama/purple-llama/#safeguard-model</a>
+</p>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">The past few years have seen an unprecedented leap in the capabilities of conversational AI agents, catalyzed by the success in scaling up auto-regressive language modeling in terms of data, model size, and computational power <cite class="ltx_cite ltx_citemacro_citep">(Hoffmann et al., <a href="#bib.bib12" title="" class="ltx_ref">2022</a>)</cite>. Large language models (LLMs) are commonplace in chat assistant applications, exhibiting excellent linguistic abilities <cite class="ltx_cite ltx_citemacro_citep">(Brown et al., <a href="#bib.bib3" title="" class="ltx_ref">2020</a>; Anil et al., <a href="#bib.bib1" title="" class="ltx_ref">2023</a>; Touvron et al., <a href="#bib.bib24" title="" class="ltx_ref">2023</a>)</cite>, commonsense reasoning <cite class="ltx_cite ltx_citemacro_citep">(Wei et al., <a href="#bib.bib26" title="" class="ltx_ref">2022b</a>; Yao et al., <a href="#bib.bib27" title="" class="ltx_ref">2023</a>)</cite>, and general tool use <cite class="ltx_cite ltx_citemacro_citep">(Schick et al., <a href="#bib.bib23" title="" class="ltx_ref">2023</a>; Cai et al., <a href="#bib.bib4" title="" class="ltx_ref">2023</a>)</cite> among other capabilities.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">These emerging applications require extensive testing <cite class="ltx_cite ltx_citemacro_citep">(Liang et al., <a href="#bib.bib18" title="" class="ltx_ref">2023</a>; Chang et al., <a href="#bib.bib6" title="" class="ltx_ref">2023</a>)</cite> and careful deployments to minimize risks <cite class="ltx_cite ltx_citemacro_citep">(Markov et al., <a href="#bib.bib20" title="" class="ltx_ref">2023</a>)</cite>. For this reason, resources such as the Llama 2 Responsible Use Guide <cite class="ltx_cite ltx_citemacro_citep">(Meta, <a href="#bib.bib21" title="" class="ltx_ref">2023</a>)</cite> recommend that products powered by Generative AI deploy guardrails that mitigate all inputs and outputs to the model itself to have safeguards against generating high-risk or policy-violating content as well as to protect against adversarial inputs and attempts at jailbreaking the model.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p">How should one go about building these guardrails? A reasonable starting point is to reuse tools that were built to moderate online content, such as the Perspective API<span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note">1</span><a target="_blank" href="https://perspectiveapi.com/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://perspectiveapi.com/</a></span></span></span>, OpenAI Content Moderation API<span id="footnote2" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">2</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">2</sup><span class="ltx_tag ltx_tag_note">2</span><a target="_blank" href="https://platform.openai.com/docs/guides/moderation/overview" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://platform.openai.com/docs/guides/moderation/overview</a></span></span></span>, and Azure Content Safety API<span id="footnote3" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">3</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">3</sup><span class="ltx_tag ltx_tag_note">3</span><a target="_blank" href="https://azure.microsoft.com/en-us/products/ai-services/ai-content-safety" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://azure.microsoft.com/en-us/products/ai-services/ai-content-safety</a></span></span></span>. However, these online moderation tools fall short when applied as input/output guardrails for several reasons. First, none of the available tools distinguishes between assessing safety risks posed by the user and the AI agent, which are arguably two distinct tasks: users generally solicit information and help, and the AI agents typically provide them.
+Second, each tool only enforces a fixed policy; hence it is not possible to adapt them to emerging policies.
+Third, each tool only provides API access; hence, it is not possible to custom-tailor them to specific use cases via fine-tuning.
+Lastly, all available tools use conventional transformer models that are small in size as their backbone <cite class="ltx_cite ltx_citemacro_citep">(Markov et al., <a href="#bib.bib20" title="" class="ltx_ref">2023</a>; Lees et al., <a href="#bib.bib17" title="" class="ltx_ref">2022</a>)</cite>. This limits the capabilities when compared to the more capable LLMs.</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p id="S1.p4.1" class="ltx_p">In this work, we publicly release an input-output safeguard tool for classifying safety risks in prompts and responses for conversational AI agent use cases. In doing so, we bridge the existing gaps in the field by leveraging LLMs as the moderation backbone. Our work makes the following contributions:</p>
+<ul id="S1.I1" class="ltx_itemize">
+<li id="S1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i1.p1" class="ltx_para">
+<p id="S1.I1.i1.p1.1" class="ltx_p">We introduce a safety risk taxonomy associated with interacting with AI agents. The taxonomy covers a set of potential legal and policy risks that can be applicable to a number of developer use cases.</p>
+</div>
+</li>
+<li id="S1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i2.p1" class="ltx_para">
+<p id="S1.I1.i2.p1.1" class="ltx_p">We introduce Llama Guard, an LLM-based input-output safeguard model, fine-tuned on data labeled according to our taxonomy.
+Llama Guard includes the applicable taxonomy as the input and uses instruction tasks for classification. This allows users to customize the model input in order to adapt to other taxonomies appropriate for their use case with zero-shot or few-shot prompting. One can also fine-tune Llama Guard on multiple taxonomies and decide which one to use at inference time.</p>
+</div>
+</li>
+<li id="S1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i3.p1" class="ltx_para">
+<p id="S1.I1.i3.p1.1" class="ltx_p">We provide different instructions for classifying human prompts (input to the LLM) vs AI model responses (output of the LLM). Therefore, Llama Guard is able to capture the semantic disparity between the user and agent roles. We do this with a single model by leveraging the capabilities of LLM models to follow instructions <cite class="ltx_cite ltx_citemacro_citep">(Wei et al., <a href="#bib.bib25" title="" class="ltx_ref">2022a</a>)</cite>.</p>
+</div>
+</li>
+<li id="S1.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i4.p1" class="ltx_para">
+<p id="S1.I1.i4.p1.1" class="ltx_p">We publicly release our model weights, allowing practitioners and researchers to use our model freely without depending on paid APIs with limited bandwidth, as well as to further experiment and fine-tune Llama Guard in order to cater to their own needs.</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Safety Risk Taxonomy</h2>
+
+<div id="S2.p1" class="ltx_para">
+<p id="S2.p1.1" class="ltx_p">Building automated input-output safeguards relies on classifiers to make decisions about content in real time. A prerequisite to building these systems is to have the following components:</p>
+</div>
+<div id="S2.p2" class="ltx_para">
+<ol id="S2.I1" class="ltx_enumerate">
+<li id="S2.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">1.</span> 
+<div id="S2.I1.i1.p1" class="ltx_para">
+<p id="S2.I1.i1.p1.1" class="ltx_p">A <span id="S2.I1.i1.p1.1.1" class="ltx_text ltx_font_bold">taxonomy</span> of risks that are of interest – these become the classes of a classifier.</p>
+</div>
+</li>
+<li id="S2.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">2.</span> 
+<div id="S2.I1.i2.p1" class="ltx_para">
+<p id="S2.I1.i2.p1.1" class="ltx_p"><span id="S2.I1.i2.p1.1.1" class="ltx_text ltx_font_bold">Risk guidelines</span> that determine where the line is drawn between encouraged and discouraged outputs for each risk category in the taxonomy.</p>
+</div>
+</li>
+</ol>
+</div>
+<div id="S2.p3" class="ltx_para">
+<p id="S2.p3.1" class="ltx_p">There are many different ways that companies have approached the creation of taxonomies to mitigate areas of risk.</p>
+</div>
+<div id="S2.p4" class="ltx_para">
+<p id="S2.p4.1" class="ltx_p">Because there is no one standard, for this purpose we have created a sample taxonomy based on risk categories commonly considered in the mitigation of unintended outputs from large language models. The taxonomy is not intended to comprehensively measure how effectively the model mitigates all potential risks; we believe it is general enough to be broadly applicable in the scientific community while also allowing us to demonstrate the value of our method to tune LLMs into classifiers that show high performance and high degrees of adaptability to different risk guidelines.</p>
+</div>
+<section id="S2.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.1 </span>The Llama Guard Safety Taxonomy &amp; Risk Guidelines</h3>
+
+<div id="S2.SS1.p1" class="ltx_para">
+<p id="S2.SS1.p1.1" class="ltx_p">Below, we provide both the content types themselves and also examples of the specific kinds of content that we consider inappropriate for this purpose under each category:</p>
+</div>
+<div id="S2.SS1.p2" class="ltx_para">
+<ul id="S2.I2" class="ltx_itemize">
+<li id="S2.I2.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I2.i1.p1" class="ltx_para">
+<p id="S2.I2.i1.p1.1" class="ltx_p"><span id="S2.I2.i1.p1.1.1" class="ltx_text ltx_font_bold">Violence &amp; Hate</span> encompasses statements that encourage or could help people plan or engage in violence. Similarly, statements that advocate discrimination, contain slurs, or voice hateful sentiments against people based on their sensitive personal characteristics (ex: race, color, religion, national origin, sexual orientation, gender, gender identity, or disability) would also be considered inappropriate under this category.</p>
+</div>
+</li>
+<li id="S2.I2.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I2.i2.p1" class="ltx_para">
+<p id="S2.I2.i2.p1.1" class="ltx_p"><span id="S2.I2.i2.p1.1.1" class="ltx_text ltx_font_bold">Sexual Content</span> encompasses statements encouraging someone (who could be underage) to engage in specific sex acts. Similarly, sexually explicit (i.e., erotic) statements would also be considered inappropriate under this category.</p>
+</div>
+</li>
+<li id="S2.I2.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I2.i3.p1" class="ltx_para">
+<p id="S2.I2.i3.p1.1" class="ltx_p"><span id="S2.I2.i3.p1.1.1" class="ltx_text ltx_font_bold">Guns &amp; Illegal Weapons</span> encompasses statements that specifically encourage, condone, or could help people plan or execute specific crimes involving the illegal acquisition, creation, or use of guns or illegal weapons (ex: explosives, biological agents, or chemical weapons), including instructions on how to create or use them.</p>
+</div>
+</li>
+<li id="S2.I2.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I2.i4.p1" class="ltx_para">
+<p id="S2.I2.i4.p1.1" class="ltx_p"><span id="S2.I2.i4.p1.1.1" class="ltx_text ltx_font_bold">Regulated or Controlled Substances</span> encompasses statements that specifically encourage or could help people to illegally produce, transfer, or consume regulated or controlled substances like illegal drugs, tobacco, alcohol, or cannabis.</p>
+</div>
+</li>
+<li id="S2.I2.i5" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I2.i5.p1" class="ltx_para">
+<p id="S2.I2.i5.p1.1" class="ltx_p"><span id="S2.I2.i5.p1.1.1" class="ltx_text ltx_font_bold">Suicide &amp; Self Harm</span> encompasses statements that encourage, condone, or enable people to harm themselves (ex: by providing instructions or information on methods of self-harm). When people express or imply an intent to harm themselves, any response other than one that provides links to appropriate health resources would be considered inappropriate (even if entirely supportive).</p>
+</div>
+</li>
+<li id="S2.I2.i6" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I2.i6.p1" class="ltx_para">
+<p id="S2.I2.i6.p1.1" class="ltx_p"><span id="S2.I2.i6.p1.1.1" class="ltx_text ltx_font_bold">Criminal Planning</span> encompasses miscellaneous statements that encourage, condone, or could help people plan or execute specific criminal activities, like arson, kidnapping, or theft. Items should only be considered harmful under this category when they could not be read as violating any of the other harm types above (ex: statements that encourage violence should be considered violating under Violence &amp; Hate rather than this category).</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Building Llama Guard</h2>
+
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1 </span>Input-output Safeguarding as Instruction-following Tasks</h3>
+
+<div id="S3.SS1.p1" class="ltx_para">
+<p id="S3.SS1.p1.1" class="ltx_p">A key development that established LLMs as zero-shot performers was the adoption of the instruction following framework <cite class="ltx_cite ltx_citemacro_citep">(Wei et al., <a href="#bib.bib25" title="" class="ltx_ref">2022a</a>)</cite>, where the language modeling objective is used on sequences that include a user instruction, followed by a target response. In our work, we adopt this paradigm as well, and fine-tune LLMs with tasks that ask to classify content as being safe or unsafe. For input-output safeguarding tasks, we identify the following four key ingredients.</p>
+</div>
+<div id="S3.SS1.p2" class="ltx_para">
+<p id="S3.SS1.p2.1" class="ltx_p"><span id="S3.SS1.p2.1.1" class="ltx_text ltx_font_bold">A set of guidelines.</span> Each task takes a set of guidelines as input, which consist of numbered categories of violation, as well as plain text descriptions as to what is safe and unsafe within that category. The model should only take into account the given categories and their descriptions for making a safety assessment. Although Llama Guard is fine-tuned using the specific guidelines outlined above, one can fine-tune it further on different guidelines. We also have had success with zero-shot and few-shot Llama Guard prompts with novel policies (without any fine-tuning).</p>
+</div>
+<div id="S3.SS1.p3" class="ltx_para">
+<p id="S3.SS1.p3.1" class="ltx_p"><span id="S3.SS1.p3.1.1" class="ltx_text ltx_font_bold">The type of classification.</span> Each task indicates whether the model needs to classify the user messages (dubbed “prompts”) or the agent messages (dubbed “responses”).<span id="footnote4" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">4</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">4</sup><span class="ltx_tag ltx_tag_note">4</span>We recognize that the word “prompt” may apply to both the prompts of LLM-based AI agents, and the prompts for Llama Guard. To avoid confusion, this paper uses “prompt” to refer to the former, and the latter is referred to as “Llama Guard prompt”.</span></span></span>.
+The distinction of prompt vs. response classification is an important one, and to our knowledge, our work is the first that carves out two separate content moderation tasks for these two problems. Notably, we draw this distinction simply by change of wording in the instruction tasks for the same model, which does not require significant added effort.</p>
+</div>
+<div id="S3.SS1.p4" class="ltx_para">
+<p id="S3.SS1.p4.1" class="ltx_p"><span id="S3.SS1.p4.1.1" class="ltx_text ltx_font_bold">The conversation.</span> Each task contains a conversation where users and agents take turn. A conversation may be single-turn, with a single user message followed by a single agent response, or multi-turn.</p>
+</div>
+<div id="S3.SS1.p5" class="ltx_para">
+<p id="S3.SS1.p5.1" class="ltx_p"><span id="S3.SS1.p5.1.1" class="ltx_text ltx_font_bold">The output format.</span> Each task specifies the desired output format, which dictates the nature of the classification problem. In Llama Guard, the output contains two elements.
+First, the model should output “safe” or “unsafe”, both of which are single tokens in the SentencePiece tokenizer that we use <cite class="ltx_cite ltx_citemacro_citep">(Kudo and Richardson, <a href="#bib.bib15" title="" class="ltx_ref">2018</a>)</cite>. If the model assessment is “unsafe”, then the output should contain a new line, listing the taxonomy categories that are violated in the given piece of content. We train Llama Guard to use a format for the taxonomy categories that consists of a letter (e.g. ’O’) followed by the 1-based category index.
+With this output format, Llama Guard accommodates binary and multi-label classification, where the classifier score can be read off from the probability of the first token. The same format allows for <span id="S3.SS1.p5.1.2" class="ltx_text ltx_font_italic">1 vs. all</span> classification, by including a single category of interest in the prompt of each sample and generating a single token to read off the binary decision.</p>
+</div>
+<figure id="S3.F1" class="ltx_figure ltx_figure_panel ltx_align_center"><img src="/html/2312.06674/assets/figure/task3.png" id="S3.SS1.1.g1" class="ltx_graphics ltx_figure_panel ltx_img_landscape" width="628" height="364" alt="Refer to caption">
+<br class="ltx_break ltx_break">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure">Figure 1: </span>Example task instructions for the Llama Guard prompt and response classification tasks. A task consists of four main components. Llama Guard is trained on producing the desired result in the output format described in the instructions.</figcaption>
+</figure>
+<div id="S3.SS1.p6" class="ltx_para">
+<p id="S3.SS1.p6.1" class="ltx_p">Figure <a href="#S3.F1" title="Figure 1 ‣ 3.1 Input-output Safeguarding as Instruction-following Tasks ‣ 3 Building Llama Guard ‣ Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> illustrates the prompt and response classification tasks for Llama Guard, as well as the desired output format.</p>
+</div>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.2 </span>Zero-shot and Few-shot Prompting</h3>
+
+<div id="S3.SS2.p1" class="ltx_para">
+<p id="S3.SS2.p1.1" class="ltx_p">The guidelines that Llama Guard is trained on may not be the same as the desired guidelines for the target domain. For such cases, we can leverage the zero-shot or few-shot abilities of LLMs for adapting Llama Guard to a different taxonomy and set of guidelines that meet requirements for the target use case.</p>
+</div>
+<div id="S3.SS2.p2" class="ltx_para">
+<p id="S3.SS2.p2.1" class="ltx_p"><span id="S3.SS2.p2.1.1" class="ltx_text ltx_font_bold">Zero-shot</span> prompting involves using category names, or category names as well as category descriptions of the target domain in the prompt at inference time.</p>
+</div>
+<div id="S3.SS2.p3" class="ltx_para">
+<p id="S3.SS2.p3.1" class="ltx_p"><span id="S3.SS2.p3.1.1" class="ltx_text ltx_font_bold">Few-shot</span> prompting is similar to zero-shot but additionally includes 2 to 4 examples for each category in the prompt. The learning happens <span id="S3.SS2.p3.1.2" class="ltx_text ltx_font_italic">in-context</span>, i.e., we do not train on these examples. We include a mix of unsafe and safe examples, where the safe examples are hard negatives.</p>
+</div>
+</section>
+<section id="S3.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.3 </span>Data Collection</h3>
+
+<div id="S3.SS3.p1" class="ltx_para">
+<p id="S3.SS3.p1.1" class="ltx_p">We leverage the human preference data about harmlessness from Anthropic (Ganguli et al., 2022). From this dataset, we pick the first human prompt and discard the corresponding response from the assistant, as well as all the other turns to create an initial single-turn prompt dataset.
+Next, we use one of our internal Llama checkpoints to generate a mix of cooperating and refusing responses for these prompts.
+We employ our expert, in-house red team to label the prompt and response pairs for the corresponding category based on the taxonomy defined in Section <a href="#S2" title="2 Safety Risk Taxonomy ‣ Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>. The red-teamers annotate the dataset for 4 labels: prompt-category, response-category, prompt-label (safe or unsafe), and response-label (safe or unsafe).
+During the annotation process, we also do data cleaning, and discard examples with badly formatted inputs or outputs.
+The final dataset comprises of 13,997 prompts and responses, with their respective annotations.
+Table <a href="#S3.T1" title="Table 1 ‣ 3.3 Data Collection ‣ 3 Building Llama Guard ‣ Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> lists the category wise breakdown for the dataset. Although we leverage our in-house redteam for this task, this data and process is separate from our redteaming process for production models.</p>
+</div>
+<div id="S3.SS3.p2" class="ltx_para">
+<p id="S3.SS3.p2.1" class="ltx_p">Finally, we perform a random split of 3:1 ratio between fine-tuning and evaluation.</p>
+</div>
+<figure id="S3.T1" class="ltx_table">
+<table id="S3.T1.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S3.T1.1.1" class="ltx_tr">
+<td id="S3.T1.1.1.1" class="ltx_td ltx_align_left ltx_border_tt">Category</td>
+<td id="S3.T1.1.1.2" class="ltx_td ltx_align_center ltx_border_tt">Prompts</td>
+<td id="S3.T1.1.1.3" class="ltx_td ltx_align_center ltx_border_tt">Responses</td>
+</tr>
+<tr id="S3.T1.1.2" class="ltx_tr">
+<td id="S3.T1.1.2.1" class="ltx_td ltx_align_left ltx_border_t">Violence &amp; Hate</td>
+<td id="S3.T1.1.2.2" class="ltx_td ltx_align_center ltx_border_t">1750</td>
+<td id="S3.T1.1.2.3" class="ltx_td ltx_align_center ltx_border_t">1909</td>
+</tr>
+<tr id="S3.T1.1.3" class="ltx_tr">
+<td id="S3.T1.1.3.1" class="ltx_td ltx_align_left">Sexual Content</td>
+<td id="S3.T1.1.3.2" class="ltx_td ltx_align_center">283</td>
+<td id="S3.T1.1.3.3" class="ltx_td ltx_align_center">347</td>
+</tr>
+<tr id="S3.T1.1.4" class="ltx_tr">
+<td id="S3.T1.1.4.1" class="ltx_td ltx_align_left">Criminal Planning</td>
+<td id="S3.T1.1.4.2" class="ltx_td ltx_align_center">3915</td>
+<td id="S3.T1.1.4.3" class="ltx_td ltx_align_center">4292</td>
+</tr>
+<tr id="S3.T1.1.5" class="ltx_tr">
+<td id="S3.T1.1.5.1" class="ltx_td ltx_align_left">Guns &amp; Illegal Weapons</td>
+<td id="S3.T1.1.5.2" class="ltx_td ltx_align_center">166</td>
+<td id="S3.T1.1.5.3" class="ltx_td ltx_align_center">222</td>
+</tr>
+<tr id="S3.T1.1.6" class="ltx_tr">
+<td id="S3.T1.1.6.1" class="ltx_td ltx_align_left">Regulated or Controlled Substances</td>
+<td id="S3.T1.1.6.2" class="ltx_td ltx_align_center">566</td>
+<td id="S3.T1.1.6.3" class="ltx_td ltx_align_center">581</td>
+</tr>
+<tr id="S3.T1.1.7" class="ltx_tr">
+<td id="S3.T1.1.7.1" class="ltx_td ltx_align_left">Suicide &amp; Self-Harm</td>
+<td id="S3.T1.1.7.2" class="ltx_td ltx_align_center">89</td>
+<td id="S3.T1.1.7.3" class="ltx_td ltx_align_center">96</td>
+</tr>
+<tr id="S3.T1.1.8" class="ltx_tr">
+<td id="S3.T1.1.8.1" class="ltx_td ltx_align_left ltx_border_bb">Safe</td>
+<td id="S3.T1.1.8.2" class="ltx_td ltx_align_center ltx_border_bb">7228</td>
+<td id="S3.T1.1.8.3" class="ltx_td ltx_align_center ltx_border_bb">6550</td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 1: </span>Category wise breakdown of the annotated dataset according to our safety risk taxonomy.
+</figcaption>
+</figure>
+</section>
+<section id="S3.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.4 </span>Model &amp; Training Details</h3>
+
+<div id="S3.SS4.p1" class="ltx_para">
+<p id="S3.SS4.p1.2" class="ltx_p">We build Llama Guard on top of Llama2-7b <cite class="ltx_cite ltx_citemacro_citep">(Touvron et al., <a href="#bib.bib24" title="" class="ltx_ref">2023</a>)</cite>. We use the smallest model among the three available model sizes primarily due to being more user friendly, affording lower potential inference and deployment costs. We train on a single machine with 8xA100 80GB GPUs using a batch size of 2, with sequence length of 4096, using model parallelism of 1 and a learning rate of <math id="S3.SS4.p1.1.m1.1" class="ltx_Math" alttext="2\times 10^{-6}" display="inline"><semantics id="S3.SS4.p1.1.m1.1a"><mrow id="S3.SS4.p1.1.m1.1.1" xref="S3.SS4.p1.1.m1.1.1.cmml"><mn id="S3.SS4.p1.1.m1.1.1.2" xref="S3.SS4.p1.1.m1.1.1.2.cmml">2</mn><mo lspace="0.222em" rspace="0.222em" id="S3.SS4.p1.1.m1.1.1.1" xref="S3.SS4.p1.1.m1.1.1.1.cmml">×</mo><msup id="S3.SS4.p1.1.m1.1.1.3" xref="S3.SS4.p1.1.m1.1.1.3.cmml"><mn id="S3.SS4.p1.1.m1.1.1.3.2" xref="S3.SS4.p1.1.m1.1.1.3.2.cmml">10</mn><mrow id="S3.SS4.p1.1.m1.1.1.3.3" xref="S3.SS4.p1.1.m1.1.1.3.3.cmml"><mo id="S3.SS4.p1.1.m1.1.1.3.3a" xref="S3.SS4.p1.1.m1.1.1.3.3.cmml">−</mo><mn id="S3.SS4.p1.1.m1.1.1.3.3.2" xref="S3.SS4.p1.1.m1.1.1.3.3.2.cmml">6</mn></mrow></msup></mrow><annotation-xml encoding="MathML-Content" id="S3.SS4.p1.1.m1.1b"><apply id="S3.SS4.p1.1.m1.1.1.cmml" xref="S3.SS4.p1.1.m1.1.1"><times id="S3.SS4.p1.1.m1.1.1.1.cmml" xref="S3.SS4.p1.1.m1.1.1.1"></times><cn type="integer" id="S3.SS4.p1.1.m1.1.1.2.cmml" xref="S3.SS4.p1.1.m1.1.1.2">2</cn><apply id="S3.SS4.p1.1.m1.1.1.3.cmml" xref="S3.SS4.p1.1.m1.1.1.3"><csymbol cd="ambiguous" id="S3.SS4.p1.1.m1.1.1.3.1.cmml" xref="S3.SS4.p1.1.m1.1.1.3">superscript</csymbol><cn type="integer" id="S3.SS4.p1.1.m1.1.1.3.2.cmml" xref="S3.SS4.p1.1.m1.1.1.3.2">10</cn><apply id="S3.SS4.p1.1.m1.1.1.3.3.cmml" xref="S3.SS4.p1.1.m1.1.1.3.3"><minus id="S3.SS4.p1.1.m1.1.1.3.3.1.cmml" xref="S3.SS4.p1.1.m1.1.1.3.3"></minus><cn type="integer" id="S3.SS4.p1.1.m1.1.1.3.3.2.cmml" xref="S3.SS4.p1.1.m1.1.1.3.3.2">6</cn></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS4.p1.1.m1.1c">2\times 10^{-6}</annotation></semantics></math>. We train for 500 steps, which corresponds to <math id="S3.SS4.p1.2.m2.1" class="ltx_Math" alttext="\sim" display="inline"><semantics id="S3.SS4.p1.2.m2.1a"><mo id="S3.SS4.p1.2.m2.1.1" xref="S3.SS4.p1.2.m2.1.1.cmml">∼</mo><annotation-xml encoding="MathML-Content" id="S3.SS4.p1.2.m2.1b"><csymbol cd="latexml" id="S3.SS4.p1.2.m2.1.1.cmml" xref="S3.SS4.p1.2.m2.1.1">similar-to</csymbol></annotation-xml><annotation encoding="application/x-tex" id="S3.SS4.p1.2.m2.1c">\sim</annotation></semantics></math>1 epoch over our training set.</p>
+</div>
+<div id="S3.SS4.p2" class="ltx_para">
+<p id="S3.SS4.p2.1" class="ltx_p"><span id="S3.SS4.p2.1.1" class="ltx_text ltx_font_bold">Data Augmentation.</span> Since Llama Guard takes guidelines as model input, it is desired that when any subset of the categories in a full taxonomy is included, the safety assessment should take into account only the included categories. In order to promote this behavior, we employ two data augmentation techniques. In the first one, we drop a random number of categories from the model prompt if they’re not violated in the given example. In the second one, we drop all violated categories from the input prompt, while changing the label for that example to be ’safe’. We shuffle the category indices across training examples (while making corresponding changes in the desired outputs) in order to avoid format memorization.</p>
+</div>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Experiments</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p">The absence of standardized taxonomies makes comparing different models challenging, as they were trained against different taxonomies (for example, Llama Guard recognizes <span id="S4.p1.1.1" class="ltx_text ltx_font_italic">Guns and Illegal Weapons</span> as a category, while Perspective API focuses on toxicity and does not have this particular category). Likewise, comparing models on different datasets presents similar challenges, since the test set is aligned to its own taxonomy.</p>
+</div>
+<div id="S4.p2" class="ltx_para">
+<p id="S4.p2.1" class="ltx_p">For this reason, we evaluate Llama Guard on two axes:</p>
+</div>
+<div id="S4.p3" class="ltx_para">
+<ol id="S4.I1" class="ltx_enumerate">
+<li id="S4.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">1.</span> 
+<div id="S4.I1.i1.p1" class="ltx_para">
+<p id="S4.I1.i1.p1.1" class="ltx_p"><span id="S4.I1.i1.p1.1.1" class="ltx_text ltx_font_bold">In-domain performance</span> on its own datasets (and taxonomy) to gauge absolute performance;</p>
+</div>
+</li>
+<li id="S4.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">2.</span> 
+<div id="S4.I1.i2.p1" class="ltx_para">
+<p id="S4.I1.i2.p1.1" class="ltx_p"><span id="S4.I1.i2.p1.1.1" class="ltx_text ltx_font_bold">Adaptability</span> to other taxonomies.
+Since Llama Guard is an LLM, we use zero-shot and few-shot prompting and fine-tuning using the taxonomy applicable to the dataset for evaluating it.</p>
+</div>
+</li>
+</ol>
+</div>
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Evaluation Methodology in On- and Off-policy Settings</h3>
+
+<div id="S4.SS1.p1" class="ltx_para">
+<p id="S4.SS1.p1.1" class="ltx_p">Given that we are interested in evaluating different methods on several datasets, each with distinct taxonomies, we need to decide how to evaluate the methods in different settings.
+Evaluating a model, especially in an <span id="S4.SS1.p1.1.1" class="ltx_text ltx_font_italic">off-policy setup</span> (i.e., to a test set that uses foreign taxonomy and guidelines), makes fair comparisons challenging and requires trade-offs. For example, <cite class="ltx_cite ltx_citemacro_citet">Markov et al. (<a href="#bib.bib20" title="" class="ltx_ref">2023</a>)</cite> tries to align taxonomies whenever possible, resulting in partial alignment.
+However, such alignment presents several issues, such as not having a clear mapping for certain categories (e.g., Perspective API does not have a category for <span id="S4.SS1.p1.1.2" class="ltx_text ltx_font_italic">self-harm</span>) or having unclear mappings, which can lead to subjectivity.
+Finally, policies include bars for what is and is not allowed, and those could still be different even if two taxonomies were perfectly aligned.
+Consequently, we take a different approach than <cite class="ltx_cite ltx_citemacro_citet">Markov et al. (<a href="#bib.bib20" title="" class="ltx_ref">2023</a>)</cite> for obtaining scores in the off-policy setup. We list the three techniques we employ for evaluating different methods in on- and off- policy settings.</p>
+</div>
+<div id="S4.SS1.p2" class="ltx_para">
+<p id="S4.SS1.p2.1" class="ltx_p"><span id="S4.SS1.p2.1.1" class="ltx_text ltx_font_bold">Overall binary classification for APIs that provide per-category output</span>.
+Most content moderation APIs produce per-category probability scores. Given the probability scores from a classifier, the probability score for binary classification across all categories is computed as</p>
+<table id="S4.E1" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S4.E1.m1.7" class="ltx_Math" alttext="\hat{y}_{i}=\max_{c\in\{c_{1},c_{2},...,c_{n}\}}(\hat{y}_{c,i})," display="block"><semantics id="S4.E1.m1.7a"><mrow id="S4.E1.m1.7.7.1" xref="S4.E1.m1.7.7.1.1.cmml"><mrow id="S4.E1.m1.7.7.1.1" xref="S4.E1.m1.7.7.1.1.cmml"><msub id="S4.E1.m1.7.7.1.1.4" xref="S4.E1.m1.7.7.1.1.4.cmml"><mover accent="true" id="S4.E1.m1.7.7.1.1.4.2" xref="S4.E1.m1.7.7.1.1.4.2.cmml"><mi id="S4.E1.m1.7.7.1.1.4.2.2" xref="S4.E1.m1.7.7.1.1.4.2.2.cmml">y</mi><mo id="S4.E1.m1.7.7.1.1.4.2.1" xref="S4.E1.m1.7.7.1.1.4.2.1.cmml">^</mo></mover><mi id="S4.E1.m1.7.7.1.1.4.3" xref="S4.E1.m1.7.7.1.1.4.3.cmml">i</mi></msub><mo id="S4.E1.m1.7.7.1.1.3" xref="S4.E1.m1.7.7.1.1.3.cmml">=</mo><mrow id="S4.E1.m1.7.7.1.1.2.2" xref="S4.E1.m1.7.7.1.1.2.3.cmml"><munder id="S4.E1.m1.7.7.1.1.1.1.1" xref="S4.E1.m1.7.7.1.1.1.1.1.cmml"><mi id="S4.E1.m1.7.7.1.1.1.1.1.2" xref="S4.E1.m1.7.7.1.1.1.1.1.2.cmml">max</mi><mrow id="S4.E1.m1.4.4.4" xref="S4.E1.m1.4.4.4.cmml"><mi id="S4.E1.m1.4.4.4.6" xref="S4.E1.m1.4.4.4.6.cmml">c</mi><mo id="S4.E1.m1.4.4.4.5" xref="S4.E1.m1.4.4.4.5.cmml">∈</mo><mrow id="S4.E1.m1.4.4.4.4.3" xref="S4.E1.m1.4.4.4.4.4.cmml"><mo stretchy="false" id="S4.E1.m1.4.4.4.4.3.4" xref="S4.E1.m1.4.4.4.4.4.cmml">{</mo><msub id="S4.E1.m1.2.2.2.2.1.1" xref="S4.E1.m1.2.2.2.2.1.1.cmml"><mi id="S4.E1.m1.2.2.2.2.1.1.2" xref="S4.E1.m1.2.2.2.2.1.1.2.cmml">c</mi><mn id="S4.E1.m1.2.2.2.2.1.1.3" xref="S4.E1.m1.2.2.2.2.1.1.3.cmml">1</mn></msub><mo id="S4.E1.m1.4.4.4.4.3.5" xref="S4.E1.m1.4.4.4.4.4.cmml">,</mo><msub id="S4.E1.m1.3.3.3.3.2.2" xref="S4.E1.m1.3.3.3.3.2.2.cmml"><mi id="S4.E1.m1.3.3.3.3.2.2.2" xref="S4.E1.m1.3.3.3.3.2.2.2.cmml">c</mi><mn id="S4.E1.m1.3.3.3.3.2.2.3" xref="S4.E1.m1.3.3.3.3.2.2.3.cmml">2</mn></msub><mo id="S4.E1.m1.4.4.4.4.3.6" xref="S4.E1.m1.4.4.4.4.4.cmml">,</mo><mi mathvariant="normal" id="S4.E1.m1.1.1.1.1" xref="S4.E1.m1.1.1.1.1.cmml">…</mi><mo id="S4.E1.m1.4.4.4.4.3.7" xref="S4.E1.m1.4.4.4.4.4.cmml">,</mo><msub id="S4.E1.m1.4.4.4.4.3.3" xref="S4.E1.m1.4.4.4.4.3.3.cmml"><mi id="S4.E1.m1.4.4.4.4.3.3.2" xref="S4.E1.m1.4.4.4.4.3.3.2.cmml">c</mi><mi id="S4.E1.m1.4.4.4.4.3.3.3" xref="S4.E1.m1.4.4.4.4.3.3.3.cmml">n</mi></msub><mo stretchy="false" id="S4.E1.m1.4.4.4.4.3.8" xref="S4.E1.m1.4.4.4.4.4.cmml">}</mo></mrow></mrow></munder><mo id="S4.E1.m1.7.7.1.1.2.2a" xref="S4.E1.m1.7.7.1.1.2.3.cmml">⁡</mo><mrow id="S4.E1.m1.7.7.1.1.2.2.2" xref="S4.E1.m1.7.7.1.1.2.3.cmml"><mo stretchy="false" id="S4.E1.m1.7.7.1.1.2.2.2.2" xref="S4.E1.m1.7.7.1.1.2.3.cmml">(</mo><msub id="S4.E1.m1.7.7.1.1.2.2.2.1" xref="S4.E1.m1.7.7.1.1.2.2.2.1.cmml"><mover accent="true" id="S4.E1.m1.7.7.1.1.2.2.2.1.2" xref="S4.E1.m1.7.7.1.1.2.2.2.1.2.cmml"><mi id="S4.E1.m1.7.7.1.1.2.2.2.1.2.2" xref="S4.E1.m1.7.7.1.1.2.2.2.1.2.2.cmml">y</mi><mo id="S4.E1.m1.7.7.1.1.2.2.2.1.2.1" xref="S4.E1.m1.7.7.1.1.2.2.2.1.2.1.cmml">^</mo></mover><mrow id="S4.E1.m1.6.6.2.4" xref="S4.E1.m1.6.6.2.3.cmml"><mi id="S4.E1.m1.5.5.1.1" xref="S4.E1.m1.5.5.1.1.cmml">c</mi><mo id="S4.E1.m1.6.6.2.4.1" xref="S4.E1.m1.6.6.2.3.cmml">,</mo><mi id="S4.E1.m1.6.6.2.2" xref="S4.E1.m1.6.6.2.2.cmml">i</mi></mrow></msub><mo stretchy="false" id="S4.E1.m1.7.7.1.1.2.2.2.3" xref="S4.E1.m1.7.7.1.1.2.3.cmml">)</mo></mrow></mrow></mrow><mo id="S4.E1.m1.7.7.1.2" xref="S4.E1.m1.7.7.1.1.cmml">,</mo></mrow><annotation-xml encoding="MathML-Content" id="S4.E1.m1.7b"><apply id="S4.E1.m1.7.7.1.1.cmml" xref="S4.E1.m1.7.7.1"><eq id="S4.E1.m1.7.7.1.1.3.cmml" xref="S4.E1.m1.7.7.1.1.3"></eq><apply id="S4.E1.m1.7.7.1.1.4.cmml" xref="S4.E1.m1.7.7.1.1.4"><csymbol cd="ambiguous" id="S4.E1.m1.7.7.1.1.4.1.cmml" xref="S4.E1.m1.7.7.1.1.4">subscript</csymbol><apply id="S4.E1.m1.7.7.1.1.4.2.cmml" xref="S4.E1.m1.7.7.1.1.4.2"><ci id="S4.E1.m1.7.7.1.1.4.2.1.cmml" xref="S4.E1.m1.7.7.1.1.4.2.1">^</ci><ci id="S4.E1.m1.7.7.1.1.4.2.2.cmml" xref="S4.E1.m1.7.7.1.1.4.2.2">𝑦</ci></apply><ci id="S4.E1.m1.7.7.1.1.4.3.cmml" xref="S4.E1.m1.7.7.1.1.4.3">𝑖</ci></apply><apply id="S4.E1.m1.7.7.1.1.2.3.cmml" xref="S4.E1.m1.7.7.1.1.2.2"><apply id="S4.E1.m1.7.7.1.1.1.1.1.cmml" xref="S4.E1.m1.7.7.1.1.1.1.1"><csymbol cd="ambiguous" id="S4.E1.m1.7.7.1.1.1.1.1.1.cmml" xref="S4.E1.m1.7.7.1.1.1.1.1">subscript</csymbol><max id="S4.E1.m1.7.7.1.1.1.1.1.2.cmml" xref="S4.E1.m1.7.7.1.1.1.1.1.2"></max><apply id="S4.E1.m1.4.4.4.cmml" xref="S4.E1.m1.4.4.4"><in id="S4.E1.m1.4.4.4.5.cmml" xref="S4.E1.m1.4.4.4.5"></in><ci id="S4.E1.m1.4.4.4.6.cmml" xref="S4.E1.m1.4.4.4.6">𝑐</ci><set id="S4.E1.m1.4.4.4.4.4.cmml" xref="S4.E1.m1.4.4.4.4.3"><apply id="S4.E1.m1.2.2.2.2.1.1.cmml" xref="S4.E1.m1.2.2.2.2.1.1"><csymbol cd="ambiguous" id="S4.E1.m1.2.2.2.2.1.1.1.cmml" xref="S4.E1.m1.2.2.2.2.1.1">subscript</csymbol><ci id="S4.E1.m1.2.2.2.2.1.1.2.cmml" xref="S4.E1.m1.2.2.2.2.1.1.2">𝑐</ci><cn type="integer" id="S4.E1.m1.2.2.2.2.1.1.3.cmml" xref="S4.E1.m1.2.2.2.2.1.1.3">1</cn></apply><apply id="S4.E1.m1.3.3.3.3.2.2.cmml" xref="S4.E1.m1.3.3.3.3.2.2"><csymbol cd="ambiguous" id="S4.E1.m1.3.3.3.3.2.2.1.cmml" xref="S4.E1.m1.3.3.3.3.2.2">subscript</csymbol><ci id="S4.E1.m1.3.3.3.3.2.2.2.cmml" xref="S4.E1.m1.3.3.3.3.2.2.2">𝑐</ci><cn type="integer" id="S4.E1.m1.3.3.3.3.2.2.3.cmml" xref="S4.E1.m1.3.3.3.3.2.2.3">2</cn></apply><ci id="S4.E1.m1.1.1.1.1.cmml" xref="S4.E1.m1.1.1.1.1">…</ci><apply id="S4.E1.m1.4.4.4.4.3.3.cmml" xref="S4.E1.m1.4.4.4.4.3.3"><csymbol cd="ambiguous" id="S4.E1.m1.4.4.4.4.3.3.1.cmml" xref="S4.E1.m1.4.4.4.4.3.3">subscript</csymbol><ci id="S4.E1.m1.4.4.4.4.3.3.2.cmml" xref="S4.E1.m1.4.4.4.4.3.3.2">𝑐</ci><ci id="S4.E1.m1.4.4.4.4.3.3.3.cmml" xref="S4.E1.m1.4.4.4.4.3.3.3">𝑛</ci></apply></set></apply></apply><apply id="S4.E1.m1.7.7.1.1.2.2.2.1.cmml" xref="S4.E1.m1.7.7.1.1.2.2.2.1"><csymbol cd="ambiguous" id="S4.E1.m1.7.7.1.1.2.2.2.1.1.cmml" xref="S4.E1.m1.7.7.1.1.2.2.2.1">subscript</csymbol><apply id="S4.E1.m1.7.7.1.1.2.2.2.1.2.cmml" xref="S4.E1.m1.7.7.1.1.2.2.2.1.2"><ci id="S4.E1.m1.7.7.1.1.2.2.2.1.2.1.cmml" xref="S4.E1.m1.7.7.1.1.2.2.2.1.2.1">^</ci><ci id="S4.E1.m1.7.7.1.1.2.2.2.1.2.2.cmml" xref="S4.E1.m1.7.7.1.1.2.2.2.1.2.2">𝑦</ci></apply><list id="S4.E1.m1.6.6.2.3.cmml" xref="S4.E1.m1.6.6.2.4"><ci id="S4.E1.m1.5.5.1.1.cmml" xref="S4.E1.m1.5.5.1.1">𝑐</ci><ci id="S4.E1.m1.6.6.2.2.cmml" xref="S4.E1.m1.6.6.2.2">𝑖</ci></list></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.E1.m1.7c">\hat{y}_{i}=\max_{c\in\{c_{1},c_{2},...,c_{n}\}}(\hat{y}_{c,i}),</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(1)</span></td>
+</tr></tbody>
+</table>
+<p id="S4.SS1.p2.2" class="ltx_p">where</p>
+<ul id="S4.I2" class="ltx_itemize">
+<li id="S4.I2.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I2.i1.p1" class="ltx_para">
+<p id="S4.I2.i1.p1.2" class="ltx_p"><math id="S4.I2.i1.p1.1.m1.1" class="ltx_Math" alttext="\hat{y}_{i}" display="inline"><semantics id="S4.I2.i1.p1.1.m1.1a"><msub id="S4.I2.i1.p1.1.m1.1.1" xref="S4.I2.i1.p1.1.m1.1.1.cmml"><mover accent="true" id="S4.I2.i1.p1.1.m1.1.1.2" xref="S4.I2.i1.p1.1.m1.1.1.2.cmml"><mi id="S4.I2.i1.p1.1.m1.1.1.2.2" xref="S4.I2.i1.p1.1.m1.1.1.2.2.cmml">y</mi><mo id="S4.I2.i1.p1.1.m1.1.1.2.1" xref="S4.I2.i1.p1.1.m1.1.1.2.1.cmml">^</mo></mover><mi id="S4.I2.i1.p1.1.m1.1.1.3" xref="S4.I2.i1.p1.1.m1.1.1.3.cmml">i</mi></msub><annotation-xml encoding="MathML-Content" id="S4.I2.i1.p1.1.m1.1b"><apply id="S4.I2.i1.p1.1.m1.1.1.cmml" xref="S4.I2.i1.p1.1.m1.1.1"><csymbol cd="ambiguous" id="S4.I2.i1.p1.1.m1.1.1.1.cmml" xref="S4.I2.i1.p1.1.m1.1.1">subscript</csymbol><apply id="S4.I2.i1.p1.1.m1.1.1.2.cmml" xref="S4.I2.i1.p1.1.m1.1.1.2"><ci id="S4.I2.i1.p1.1.m1.1.1.2.1.cmml" xref="S4.I2.i1.p1.1.m1.1.1.2.1">^</ci><ci id="S4.I2.i1.p1.1.m1.1.1.2.2.cmml" xref="S4.I2.i1.p1.1.m1.1.1.2.2">𝑦</ci></apply><ci id="S4.I2.i1.p1.1.m1.1.1.3.cmml" xref="S4.I2.i1.p1.1.m1.1.1.3">𝑖</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.I2.i1.p1.1.m1.1c">\hat{y}_{i}</annotation></semantics></math> is the predicted score for the <math id="S4.I2.i1.p1.2.m2.1" class="ltx_Math" alttext="i" display="inline"><semantics id="S4.I2.i1.p1.2.m2.1a"><mi id="S4.I2.i1.p1.2.m2.1.1" xref="S4.I2.i1.p1.2.m2.1.1.cmml">i</mi><annotation-xml encoding="MathML-Content" id="S4.I2.i1.p1.2.m2.1b"><ci id="S4.I2.i1.p1.2.m2.1.1.cmml" xref="S4.I2.i1.p1.2.m2.1.1">𝑖</ci></annotation-xml><annotation encoding="application/x-tex" id="S4.I2.i1.p1.2.m2.1c">i</annotation></semantics></math>-th example,</p>
+</div>
+</li>
+<li id="S4.I2.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I2.i2.p1" class="ltx_para">
+<p id="S4.I2.i2.p1.2" class="ltx_p"><math id="S4.I2.i2.p1.1.m1.4" class="ltx_Math" alttext="c_{1},c_{2},...,c_{n}" display="inline"><semantics id="S4.I2.i2.p1.1.m1.4a"><mrow id="S4.I2.i2.p1.1.m1.4.4.3" xref="S4.I2.i2.p1.1.m1.4.4.4.cmml"><msub id="S4.I2.i2.p1.1.m1.2.2.1.1" xref="S4.I2.i2.p1.1.m1.2.2.1.1.cmml"><mi id="S4.I2.i2.p1.1.m1.2.2.1.1.2" xref="S4.I2.i2.p1.1.m1.2.2.1.1.2.cmml">c</mi><mn id="S4.I2.i2.p1.1.m1.2.2.1.1.3" xref="S4.I2.i2.p1.1.m1.2.2.1.1.3.cmml">1</mn></msub><mo id="S4.I2.i2.p1.1.m1.4.4.3.4" xref="S4.I2.i2.p1.1.m1.4.4.4.cmml">,</mo><msub id="S4.I2.i2.p1.1.m1.3.3.2.2" xref="S4.I2.i2.p1.1.m1.3.3.2.2.cmml"><mi id="S4.I2.i2.p1.1.m1.3.3.2.2.2" xref="S4.I2.i2.p1.1.m1.3.3.2.2.2.cmml">c</mi><mn id="S4.I2.i2.p1.1.m1.3.3.2.2.3" xref="S4.I2.i2.p1.1.m1.3.3.2.2.3.cmml">2</mn></msub><mo id="S4.I2.i2.p1.1.m1.4.4.3.5" xref="S4.I2.i2.p1.1.m1.4.4.4.cmml">,</mo><mi mathvariant="normal" id="S4.I2.i2.p1.1.m1.1.1" xref="S4.I2.i2.p1.1.m1.1.1.cmml">…</mi><mo id="S4.I2.i2.p1.1.m1.4.4.3.6" xref="S4.I2.i2.p1.1.m1.4.4.4.cmml">,</mo><msub id="S4.I2.i2.p1.1.m1.4.4.3.3" xref="S4.I2.i2.p1.1.m1.4.4.3.3.cmml"><mi id="S4.I2.i2.p1.1.m1.4.4.3.3.2" xref="S4.I2.i2.p1.1.m1.4.4.3.3.2.cmml">c</mi><mi id="S4.I2.i2.p1.1.m1.4.4.3.3.3" xref="S4.I2.i2.p1.1.m1.4.4.3.3.3.cmml">n</mi></msub></mrow><annotation-xml encoding="MathML-Content" id="S4.I2.i2.p1.1.m1.4b"><list id="S4.I2.i2.p1.1.m1.4.4.4.cmml" xref="S4.I2.i2.p1.1.m1.4.4.3"><apply id="S4.I2.i2.p1.1.m1.2.2.1.1.cmml" xref="S4.I2.i2.p1.1.m1.2.2.1.1"><csymbol cd="ambiguous" id="S4.I2.i2.p1.1.m1.2.2.1.1.1.cmml" xref="S4.I2.i2.p1.1.m1.2.2.1.1">subscript</csymbol><ci id="S4.I2.i2.p1.1.m1.2.2.1.1.2.cmml" xref="S4.I2.i2.p1.1.m1.2.2.1.1.2">𝑐</ci><cn type="integer" id="S4.I2.i2.p1.1.m1.2.2.1.1.3.cmml" xref="S4.I2.i2.p1.1.m1.2.2.1.1.3">1</cn></apply><apply id="S4.I2.i2.p1.1.m1.3.3.2.2.cmml" xref="S4.I2.i2.p1.1.m1.3.3.2.2"><csymbol cd="ambiguous" id="S4.I2.i2.p1.1.m1.3.3.2.2.1.cmml" xref="S4.I2.i2.p1.1.m1.3.3.2.2">subscript</csymbol><ci id="S4.I2.i2.p1.1.m1.3.3.2.2.2.cmml" xref="S4.I2.i2.p1.1.m1.3.3.2.2.2">𝑐</ci><cn type="integer" id="S4.I2.i2.p1.1.m1.3.3.2.2.3.cmml" xref="S4.I2.i2.p1.1.m1.3.3.2.2.3">2</cn></apply><ci id="S4.I2.i2.p1.1.m1.1.1.cmml" xref="S4.I2.i2.p1.1.m1.1.1">…</ci><apply id="S4.I2.i2.p1.1.m1.4.4.3.3.cmml" xref="S4.I2.i2.p1.1.m1.4.4.3.3"><csymbol cd="ambiguous" id="S4.I2.i2.p1.1.m1.4.4.3.3.1.cmml" xref="S4.I2.i2.p1.1.m1.4.4.3.3">subscript</csymbol><ci id="S4.I2.i2.p1.1.m1.4.4.3.3.2.cmml" xref="S4.I2.i2.p1.1.m1.4.4.3.3.2">𝑐</ci><ci id="S4.I2.i2.p1.1.m1.4.4.3.3.3.cmml" xref="S4.I2.i2.p1.1.m1.4.4.3.3.3">𝑛</ci></apply></list></annotation-xml><annotation encoding="application/x-tex" id="S4.I2.i2.p1.1.m1.4c">c_{1},c_{2},...,c_{n}</annotation></semantics></math> are the classes (from the classifier’s taxonomy), with <math id="S4.I2.i2.p1.2.m2.1" class="ltx_Math" alttext="c_{0}" display="inline"><semantics id="S4.I2.i2.p1.2.m2.1a"><msub id="S4.I2.i2.p1.2.m2.1.1" xref="S4.I2.i2.p1.2.m2.1.1.cmml"><mi id="S4.I2.i2.p1.2.m2.1.1.2" xref="S4.I2.i2.p1.2.m2.1.1.2.cmml">c</mi><mn id="S4.I2.i2.p1.2.m2.1.1.3" xref="S4.I2.i2.p1.2.m2.1.1.3.cmml">0</mn></msub><annotation-xml encoding="MathML-Content" id="S4.I2.i2.p1.2.m2.1b"><apply id="S4.I2.i2.p1.2.m2.1.1.cmml" xref="S4.I2.i2.p1.2.m2.1.1"><csymbol cd="ambiguous" id="S4.I2.i2.p1.2.m2.1.1.1.cmml" xref="S4.I2.i2.p1.2.m2.1.1">subscript</csymbol><ci id="S4.I2.i2.p1.2.m2.1.1.2.cmml" xref="S4.I2.i2.p1.2.m2.1.1.2">𝑐</ci><cn type="integer" id="S4.I2.i2.p1.2.m2.1.1.3.cmml" xref="S4.I2.i2.p1.2.m2.1.1.3">0</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.I2.i2.p1.2.m2.1c">c_{0}</annotation></semantics></math> being the benign class,</p>
+</div>
+</li>
+<li id="S4.I2.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I2.i3.p1" class="ltx_para">
+<p id="S4.I2.i3.p1.3" class="ltx_p"><math id="S4.I2.i3.p1.1.m1.2" class="ltx_Math" alttext="\hat{y}_{c,i}" display="inline"><semantics id="S4.I2.i3.p1.1.m1.2a"><msub id="S4.I2.i3.p1.1.m1.2.3" xref="S4.I2.i3.p1.1.m1.2.3.cmml"><mover accent="true" id="S4.I2.i3.p1.1.m1.2.3.2" xref="S4.I2.i3.p1.1.m1.2.3.2.cmml"><mi id="S4.I2.i3.p1.1.m1.2.3.2.2" xref="S4.I2.i3.p1.1.m1.2.3.2.2.cmml">y</mi><mo id="S4.I2.i3.p1.1.m1.2.3.2.1" xref="S4.I2.i3.p1.1.m1.2.3.2.1.cmml">^</mo></mover><mrow id="S4.I2.i3.p1.1.m1.2.2.2.4" xref="S4.I2.i3.p1.1.m1.2.2.2.3.cmml"><mi id="S4.I2.i3.p1.1.m1.1.1.1.1" xref="S4.I2.i3.p1.1.m1.1.1.1.1.cmml">c</mi><mo id="S4.I2.i3.p1.1.m1.2.2.2.4.1" xref="S4.I2.i3.p1.1.m1.2.2.2.3.cmml">,</mo><mi id="S4.I2.i3.p1.1.m1.2.2.2.2" xref="S4.I2.i3.p1.1.m1.2.2.2.2.cmml">i</mi></mrow></msub><annotation-xml encoding="MathML-Content" id="S4.I2.i3.p1.1.m1.2b"><apply id="S4.I2.i3.p1.1.m1.2.3.cmml" xref="S4.I2.i3.p1.1.m1.2.3"><csymbol cd="ambiguous" id="S4.I2.i3.p1.1.m1.2.3.1.cmml" xref="S4.I2.i3.p1.1.m1.2.3">subscript</csymbol><apply id="S4.I2.i3.p1.1.m1.2.3.2.cmml" xref="S4.I2.i3.p1.1.m1.2.3.2"><ci id="S4.I2.i3.p1.1.m1.2.3.2.1.cmml" xref="S4.I2.i3.p1.1.m1.2.3.2.1">^</ci><ci id="S4.I2.i3.p1.1.m1.2.3.2.2.cmml" xref="S4.I2.i3.p1.1.m1.2.3.2.2">𝑦</ci></apply><list id="S4.I2.i3.p1.1.m1.2.2.2.3.cmml" xref="S4.I2.i3.p1.1.m1.2.2.2.4"><ci id="S4.I2.i3.p1.1.m1.1.1.1.1.cmml" xref="S4.I2.i3.p1.1.m1.1.1.1.1">𝑐</ci><ci id="S4.I2.i3.p1.1.m1.2.2.2.2.cmml" xref="S4.I2.i3.p1.1.m1.2.2.2.2">𝑖</ci></list></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.I2.i3.p1.1.m1.2c">\hat{y}_{c,i}</annotation></semantics></math> are the predicted scores for each of the positive categories <math id="S4.I2.i3.p1.2.m2.4" class="ltx_Math" alttext="c_{1},c_{2},...,c_{n}" display="inline"><semantics id="S4.I2.i3.p1.2.m2.4a"><mrow id="S4.I2.i3.p1.2.m2.4.4.3" xref="S4.I2.i3.p1.2.m2.4.4.4.cmml"><msub id="S4.I2.i3.p1.2.m2.2.2.1.1" xref="S4.I2.i3.p1.2.m2.2.2.1.1.cmml"><mi id="S4.I2.i3.p1.2.m2.2.2.1.1.2" xref="S4.I2.i3.p1.2.m2.2.2.1.1.2.cmml">c</mi><mn id="S4.I2.i3.p1.2.m2.2.2.1.1.3" xref="S4.I2.i3.p1.2.m2.2.2.1.1.3.cmml">1</mn></msub><mo id="S4.I2.i3.p1.2.m2.4.4.3.4" xref="S4.I2.i3.p1.2.m2.4.4.4.cmml">,</mo><msub id="S4.I2.i3.p1.2.m2.3.3.2.2" xref="S4.I2.i3.p1.2.m2.3.3.2.2.cmml"><mi id="S4.I2.i3.p1.2.m2.3.3.2.2.2" xref="S4.I2.i3.p1.2.m2.3.3.2.2.2.cmml">c</mi><mn id="S4.I2.i3.p1.2.m2.3.3.2.2.3" xref="S4.I2.i3.p1.2.m2.3.3.2.2.3.cmml">2</mn></msub><mo id="S4.I2.i3.p1.2.m2.4.4.3.5" xref="S4.I2.i3.p1.2.m2.4.4.4.cmml">,</mo><mi mathvariant="normal" id="S4.I2.i3.p1.2.m2.1.1" xref="S4.I2.i3.p1.2.m2.1.1.cmml">…</mi><mo id="S4.I2.i3.p1.2.m2.4.4.3.6" xref="S4.I2.i3.p1.2.m2.4.4.4.cmml">,</mo><msub id="S4.I2.i3.p1.2.m2.4.4.3.3" xref="S4.I2.i3.p1.2.m2.4.4.3.3.cmml"><mi id="S4.I2.i3.p1.2.m2.4.4.3.3.2" xref="S4.I2.i3.p1.2.m2.4.4.3.3.2.cmml">c</mi><mi id="S4.I2.i3.p1.2.m2.4.4.3.3.3" xref="S4.I2.i3.p1.2.m2.4.4.3.3.3.cmml">n</mi></msub></mrow><annotation-xml encoding="MathML-Content" id="S4.I2.i3.p1.2.m2.4b"><list id="S4.I2.i3.p1.2.m2.4.4.4.cmml" xref="S4.I2.i3.p1.2.m2.4.4.3"><apply id="S4.I2.i3.p1.2.m2.2.2.1.1.cmml" xref="S4.I2.i3.p1.2.m2.2.2.1.1"><csymbol cd="ambiguous" id="S4.I2.i3.p1.2.m2.2.2.1.1.1.cmml" xref="S4.I2.i3.p1.2.m2.2.2.1.1">subscript</csymbol><ci id="S4.I2.i3.p1.2.m2.2.2.1.1.2.cmml" xref="S4.I2.i3.p1.2.m2.2.2.1.1.2">𝑐</ci><cn type="integer" id="S4.I2.i3.p1.2.m2.2.2.1.1.3.cmml" xref="S4.I2.i3.p1.2.m2.2.2.1.1.3">1</cn></apply><apply id="S4.I2.i3.p1.2.m2.3.3.2.2.cmml" xref="S4.I2.i3.p1.2.m2.3.3.2.2"><csymbol cd="ambiguous" id="S4.I2.i3.p1.2.m2.3.3.2.2.1.cmml" xref="S4.I2.i3.p1.2.m2.3.3.2.2">subscript</csymbol><ci id="S4.I2.i3.p1.2.m2.3.3.2.2.2.cmml" xref="S4.I2.i3.p1.2.m2.3.3.2.2.2">𝑐</ci><cn type="integer" id="S4.I2.i3.p1.2.m2.3.3.2.2.3.cmml" xref="S4.I2.i3.p1.2.m2.3.3.2.2.3">2</cn></apply><ci id="S4.I2.i3.p1.2.m2.1.1.cmml" xref="S4.I2.i3.p1.2.m2.1.1">…</ci><apply id="S4.I2.i3.p1.2.m2.4.4.3.3.cmml" xref="S4.I2.i3.p1.2.m2.4.4.3.3"><csymbol cd="ambiguous" id="S4.I2.i3.p1.2.m2.4.4.3.3.1.cmml" xref="S4.I2.i3.p1.2.m2.4.4.3.3">subscript</csymbol><ci id="S4.I2.i3.p1.2.m2.4.4.3.3.2.cmml" xref="S4.I2.i3.p1.2.m2.4.4.3.3.2">𝑐</ci><ci id="S4.I2.i3.p1.2.m2.4.4.3.3.3.cmml" xref="S4.I2.i3.p1.2.m2.4.4.3.3.3">𝑛</ci></apply></list></annotation-xml><annotation encoding="application/x-tex" id="S4.I2.i3.p1.2.m2.4c">c_{1},c_{2},...,c_{n}</annotation></semantics></math> for the <math id="S4.I2.i3.p1.3.m3.1" class="ltx_Math" alttext="i" display="inline"><semantics id="S4.I2.i3.p1.3.m3.1a"><mi id="S4.I2.i3.p1.3.m3.1.1" xref="S4.I2.i3.p1.3.m3.1.1.cmml">i</mi><annotation-xml encoding="MathML-Content" id="S4.I2.i3.p1.3.m3.1b"><ci id="S4.I2.i3.p1.3.m3.1.1.cmml" xref="S4.I2.i3.p1.3.m3.1.1">𝑖</ci></annotation-xml><annotation encoding="application/x-tex" id="S4.I2.i3.p1.3.m3.1c">i</annotation></semantics></math>th example.</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="S4.SS1.p3" class="ltx_para">
+<p id="S4.SS1.p3.1" class="ltx_p">In other words, we consider that a classifier assigns a positive label if it predicts a positive label due <span id="S4.SS1.p3.1.1" class="ltx_text ltx_font_italic">any</span> of its own categories. We do not look into whether that category aligns with the ground truth target category.</p>
+</div>
+<div id="S4.SS1.p4" class="ltx_para">
+<p id="S4.SS1.p4.2" class="ltx_p"><span id="S4.SS1.p4.2.1" class="ltx_text ltx_font_bold">Per-category binary classification via 1-vs-all</span>.
+In this setting, we run one prediction task <math id="S4.SS1.p4.1.m1.1" class="ltx_Math" alttext="t_{k}" display="inline"><semantics id="S4.SS1.p4.1.m1.1a"><msub id="S4.SS1.p4.1.m1.1.1" xref="S4.SS1.p4.1.m1.1.1.cmml"><mi id="S4.SS1.p4.1.m1.1.1.2" xref="S4.SS1.p4.1.m1.1.1.2.cmml">t</mi><mi id="S4.SS1.p4.1.m1.1.1.3" xref="S4.SS1.p4.1.m1.1.1.3.cmml">k</mi></msub><annotation-xml encoding="MathML-Content" id="S4.SS1.p4.1.m1.1b"><apply id="S4.SS1.p4.1.m1.1.1.cmml" xref="S4.SS1.p4.1.m1.1.1"><csymbol cd="ambiguous" id="S4.SS1.p4.1.m1.1.1.1.cmml" xref="S4.SS1.p4.1.m1.1.1">subscript</csymbol><ci id="S4.SS1.p4.1.m1.1.1.2.cmml" xref="S4.SS1.p4.1.m1.1.1.2">𝑡</ci><ci id="S4.SS1.p4.1.m1.1.1.3.cmml" xref="S4.SS1.p4.1.m1.1.1.3">𝑘</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.SS1.p4.1.m1.1c">t_{k}</annotation></semantics></math> per category <math id="S4.SS1.p4.2.m2.1" class="ltx_Math" alttext="c_{k}" display="inline"><semantics id="S4.SS1.p4.2.m2.1a"><msub id="S4.SS1.p4.2.m2.1.1" xref="S4.SS1.p4.2.m2.1.1.cmml"><mi id="S4.SS1.p4.2.m2.1.1.2" xref="S4.SS1.p4.2.m2.1.1.2.cmml">c</mi><mi id="S4.SS1.p4.2.m2.1.1.3" xref="S4.SS1.p4.2.m2.1.1.3.cmml">k</mi></msub><annotation-xml encoding="MathML-Content" id="S4.SS1.p4.2.m2.1b"><apply id="S4.SS1.p4.2.m2.1.1.cmml" xref="S4.SS1.p4.2.m2.1.1"><csymbol cd="ambiguous" id="S4.SS1.p4.2.m2.1.1.1.cmml" xref="S4.SS1.p4.2.m2.1.1">subscript</csymbol><ci id="S4.SS1.p4.2.m2.1.1.2.cmml" xref="S4.SS1.p4.2.m2.1.1.2">𝑐</ci><ci id="S4.SS1.p4.2.m2.1.1.3.cmml" xref="S4.SS1.p4.2.m2.1.1.3">𝑘</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.SS1.p4.2.m2.1c">c_{k}</annotation></semantics></math> in the target taxonomy such that:</p>
+<ul id="S4.I3" class="ltx_itemize">
+<li id="S4.I3.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I3.i1.p1" class="ltx_para">
+<p id="S4.I3.i1.p1.3" class="ltx_p">only the <math id="S4.I3.i1.p1.1.m1.1" class="ltx_Math" alttext="c_{k}" display="inline"><semantics id="S4.I3.i1.p1.1.m1.1a"><msub id="S4.I3.i1.p1.1.m1.1.1" xref="S4.I3.i1.p1.1.m1.1.1.cmml"><mi id="S4.I3.i1.p1.1.m1.1.1.2" xref="S4.I3.i1.p1.1.m1.1.1.2.cmml">c</mi><mi id="S4.I3.i1.p1.1.m1.1.1.3" xref="S4.I3.i1.p1.1.m1.1.1.3.cmml">k</mi></msub><annotation-xml encoding="MathML-Content" id="S4.I3.i1.p1.1.m1.1b"><apply id="S4.I3.i1.p1.1.m1.1.1.cmml" xref="S4.I3.i1.p1.1.m1.1.1"><csymbol cd="ambiguous" id="S4.I3.i1.p1.1.m1.1.1.1.cmml" xref="S4.I3.i1.p1.1.m1.1.1">subscript</csymbol><ci id="S4.I3.i1.p1.1.m1.1.1.2.cmml" xref="S4.I3.i1.p1.1.m1.1.1.2">𝑐</ci><ci id="S4.I3.i1.p1.1.m1.1.1.3.cmml" xref="S4.I3.i1.p1.1.m1.1.1.3">𝑘</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.I3.i1.p1.1.m1.1c">c_{k}</annotation></semantics></math> is considered as positive for task <math id="S4.I3.i1.p1.2.m2.1" class="ltx_Math" alttext="t_{k}" display="inline"><semantics id="S4.I3.i1.p1.2.m2.1a"><msub id="S4.I3.i1.p1.2.m2.1.1" xref="S4.I3.i1.p1.2.m2.1.1.cmml"><mi id="S4.I3.i1.p1.2.m2.1.1.2" xref="S4.I3.i1.p1.2.m2.1.1.2.cmml">t</mi><mi id="S4.I3.i1.p1.2.m2.1.1.3" xref="S4.I3.i1.p1.2.m2.1.1.3.cmml">k</mi></msub><annotation-xml encoding="MathML-Content" id="S4.I3.i1.p1.2.m2.1b"><apply id="S4.I3.i1.p1.2.m2.1.1.cmml" xref="S4.I3.i1.p1.2.m2.1.1"><csymbol cd="ambiguous" id="S4.I3.i1.p1.2.m2.1.1.1.cmml" xref="S4.I3.i1.p1.2.m2.1.1">subscript</csymbol><ci id="S4.I3.i1.p1.2.m2.1.1.2.cmml" xref="S4.I3.i1.p1.2.m2.1.1.2">𝑡</ci><ci id="S4.I3.i1.p1.2.m2.1.1.3.cmml" xref="S4.I3.i1.p1.2.m2.1.1.3">𝑘</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.I3.i1.p1.2.m2.1c">t_{k}</annotation></semantics></math>. All other samples including the true negatives and samples from other categories <math id="S4.I3.i1.p1.3.m3.1" class="ltx_Math" alttext="c_{j}\neq k" display="inline"><semantics id="S4.I3.i1.p1.3.m3.1a"><mrow id="S4.I3.i1.p1.3.m3.1.1" xref="S4.I3.i1.p1.3.m3.1.1.cmml"><msub id="S4.I3.i1.p1.3.m3.1.1.2" xref="S4.I3.i1.p1.3.m3.1.1.2.cmml"><mi id="S4.I3.i1.p1.3.m3.1.1.2.2" xref="S4.I3.i1.p1.3.m3.1.1.2.2.cmml">c</mi><mi id="S4.I3.i1.p1.3.m3.1.1.2.3" xref="S4.I3.i1.p1.3.m3.1.1.2.3.cmml">j</mi></msub><mo id="S4.I3.i1.p1.3.m3.1.1.1" xref="S4.I3.i1.p1.3.m3.1.1.1.cmml">≠</mo><mi id="S4.I3.i1.p1.3.m3.1.1.3" xref="S4.I3.i1.p1.3.m3.1.1.3.cmml">k</mi></mrow><annotation-xml encoding="MathML-Content" id="S4.I3.i1.p1.3.m3.1b"><apply id="S4.I3.i1.p1.3.m3.1.1.cmml" xref="S4.I3.i1.p1.3.m3.1.1"><neq id="S4.I3.i1.p1.3.m3.1.1.1.cmml" xref="S4.I3.i1.p1.3.m3.1.1.1"></neq><apply id="S4.I3.i1.p1.3.m3.1.1.2.cmml" xref="S4.I3.i1.p1.3.m3.1.1.2"><csymbol cd="ambiguous" id="S4.I3.i1.p1.3.m3.1.1.2.1.cmml" xref="S4.I3.i1.p1.3.m3.1.1.2">subscript</csymbol><ci id="S4.I3.i1.p1.3.m3.1.1.2.2.cmml" xref="S4.I3.i1.p1.3.m3.1.1.2.2">𝑐</ci><ci id="S4.I3.i1.p1.3.m3.1.1.2.3.cmml" xref="S4.I3.i1.p1.3.m3.1.1.2.3">𝑗</ci></apply><ci id="S4.I3.i1.p1.3.m3.1.1.3.cmml" xref="S4.I3.i1.p1.3.m3.1.1.3">𝑘</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.I3.i1.p1.3.m3.1c">c_{j}\neq k</annotation></semantics></math> are considered as negatives.</p>
+</div>
+</li>
+<li id="S4.I3.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I3.i2.p1" class="ltx_para">
+<p id="S4.I3.i2.p1.2" class="ltx_p">for <math id="S4.I3.i2.p1.1.m1.1" class="ltx_Math" alttext="t_{k}" display="inline"><semantics id="S4.I3.i2.p1.1.m1.1a"><msub id="S4.I3.i2.p1.1.m1.1.1" xref="S4.I3.i2.p1.1.m1.1.1.cmml"><mi id="S4.I3.i2.p1.1.m1.1.1.2" xref="S4.I3.i2.p1.1.m1.1.1.2.cmml">t</mi><mi id="S4.I3.i2.p1.1.m1.1.1.3" xref="S4.I3.i2.p1.1.m1.1.1.3.cmml">k</mi></msub><annotation-xml encoding="MathML-Content" id="S4.I3.i2.p1.1.m1.1b"><apply id="S4.I3.i2.p1.1.m1.1.1.cmml" xref="S4.I3.i2.p1.1.m1.1.1"><csymbol cd="ambiguous" id="S4.I3.i2.p1.1.m1.1.1.1.cmml" xref="S4.I3.i2.p1.1.m1.1.1">subscript</csymbol><ci id="S4.I3.i2.p1.1.m1.1.1.2.cmml" xref="S4.I3.i2.p1.1.m1.1.1.2">𝑡</ci><ci id="S4.I3.i2.p1.1.m1.1.1.3.cmml" xref="S4.I3.i2.p1.1.m1.1.1.3">𝑘</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.I3.i2.p1.1.m1.1c">t_{k}</annotation></semantics></math>, the classifier is instructed via the prompt to predict a sample as unsafe only if it violates <math id="S4.I3.i2.p1.2.m2.1" class="ltx_Math" alttext="c_{k}" display="inline"><semantics id="S4.I3.i2.p1.2.m2.1a"><msub id="S4.I3.i2.p1.2.m2.1.1" xref="S4.I3.i2.p1.2.m2.1.1.cmml"><mi id="S4.I3.i2.p1.2.m2.1.1.2" xref="S4.I3.i2.p1.2.m2.1.1.2.cmml">c</mi><mi id="S4.I3.i2.p1.2.m2.1.1.3" xref="S4.I3.i2.p1.2.m2.1.1.3.cmml">k</mi></msub><annotation-xml encoding="MathML-Content" id="S4.I3.i2.p1.2.m2.1b"><apply id="S4.I3.i2.p1.2.m2.1.1.cmml" xref="S4.I3.i2.p1.2.m2.1.1"><csymbol cd="ambiguous" id="S4.I3.i2.p1.2.m2.1.1.1.cmml" xref="S4.I3.i2.p1.2.m2.1.1">subscript</csymbol><ci id="S4.I3.i2.p1.2.m2.1.1.2.cmml" xref="S4.I3.i2.p1.2.m2.1.1.2">𝑐</ci><ci id="S4.I3.i2.p1.2.m2.1.1.3.cmml" xref="S4.I3.i2.p1.2.m2.1.1.3">𝑘</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.I3.i2.p1.2.m2.1c">c_{k}</annotation></semantics></math>.</p>
+</div>
+</li>
+<li id="S4.I3.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I3.i3.p1" class="ltx_para">
+<p id="S4.I3.i3.p1.2" class="ltx_p">the binary classification score for <math id="S4.I3.i3.p1.1.m1.1" class="ltx_Math" alttext="t_{k}" display="inline"><semantics id="S4.I3.i3.p1.1.m1.1a"><msub id="S4.I3.i3.p1.1.m1.1.1" xref="S4.I3.i3.p1.1.m1.1.1.cmml"><mi id="S4.I3.i3.p1.1.m1.1.1.2" xref="S4.I3.i3.p1.1.m1.1.1.2.cmml">t</mi><mi id="S4.I3.i3.p1.1.m1.1.1.3" xref="S4.I3.i3.p1.1.m1.1.1.3.cmml">k</mi></msub><annotation-xml encoding="MathML-Content" id="S4.I3.i3.p1.1.m1.1b"><apply id="S4.I3.i3.p1.1.m1.1.1.cmml" xref="S4.I3.i3.p1.1.m1.1.1"><csymbol cd="ambiguous" id="S4.I3.i3.p1.1.m1.1.1.1.cmml" xref="S4.I3.i3.p1.1.m1.1.1">subscript</csymbol><ci id="S4.I3.i3.p1.1.m1.1.1.2.cmml" xref="S4.I3.i3.p1.1.m1.1.1.2">𝑡</ci><ci id="S4.I3.i3.p1.1.m1.1.1.3.cmml" xref="S4.I3.i3.p1.1.m1.1.1.3">𝑘</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.I3.i3.p1.1.m1.1c">t_{k}</annotation></semantics></math> is used as the score for <math id="S4.I3.i3.p1.2.m2.1" class="ltx_Math" alttext="c_{k}" display="inline"><semantics id="S4.I3.i3.p1.2.m2.1a"><msub id="S4.I3.i3.p1.2.m2.1.1" xref="S4.I3.i3.p1.2.m2.1.1.cmml"><mi id="S4.I3.i3.p1.2.m2.1.1.2" xref="S4.I3.i3.p1.2.m2.1.1.2.cmml">c</mi><mi id="S4.I3.i3.p1.2.m2.1.1.3" xref="S4.I3.i3.p1.2.m2.1.1.3.cmml">k</mi></msub><annotation-xml encoding="MathML-Content" id="S4.I3.i3.p1.2.m2.1b"><apply id="S4.I3.i3.p1.2.m2.1.1.cmml" xref="S4.I3.i3.p1.2.m2.1.1"><csymbol cd="ambiguous" id="S4.I3.i3.p1.2.m2.1.1.1.cmml" xref="S4.I3.i3.p1.2.m2.1.1">subscript</csymbol><ci id="S4.I3.i3.p1.2.m2.1.1.2.cmml" xref="S4.I3.i3.p1.2.m2.1.1.2">𝑐</ci><ci id="S4.I3.i3.p1.2.m2.1.1.3.cmml" xref="S4.I3.i3.p1.2.m2.1.1.3">𝑘</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.I3.i3.p1.2.m2.1c">c_{k}</annotation></semantics></math>.</p>
+</div>
+</li>
+</ul>
+<p id="S4.SS1.p4.4" class="ltx_p">where <math id="S4.SS1.p4.3.m1.3" class="ltx_Math" alttext="c_{1},...,c_{n}" display="inline"><semantics id="S4.SS1.p4.3.m1.3a"><mrow id="S4.SS1.p4.3.m1.3.3.2" xref="S4.SS1.p4.3.m1.3.3.3.cmml"><msub id="S4.SS1.p4.3.m1.2.2.1.1" xref="S4.SS1.p4.3.m1.2.2.1.1.cmml"><mi id="S4.SS1.p4.3.m1.2.2.1.1.2" xref="S4.SS1.p4.3.m1.2.2.1.1.2.cmml">c</mi><mn id="S4.SS1.p4.3.m1.2.2.1.1.3" xref="S4.SS1.p4.3.m1.2.2.1.1.3.cmml">1</mn></msub><mo id="S4.SS1.p4.3.m1.3.3.2.3" xref="S4.SS1.p4.3.m1.3.3.3.cmml">,</mo><mi mathvariant="normal" id="S4.SS1.p4.3.m1.1.1" xref="S4.SS1.p4.3.m1.1.1.cmml">…</mi><mo id="S4.SS1.p4.3.m1.3.3.2.4" xref="S4.SS1.p4.3.m1.3.3.3.cmml">,</mo><msub id="S4.SS1.p4.3.m1.3.3.2.2" xref="S4.SS1.p4.3.m1.3.3.2.2.cmml"><mi id="S4.SS1.p4.3.m1.3.3.2.2.2" xref="S4.SS1.p4.3.m1.3.3.2.2.2.cmml">c</mi><mi id="S4.SS1.p4.3.m1.3.3.2.2.3" xref="S4.SS1.p4.3.m1.3.3.2.2.3.cmml">n</mi></msub></mrow><annotation-xml encoding="MathML-Content" id="S4.SS1.p4.3.m1.3b"><list id="S4.SS1.p4.3.m1.3.3.3.cmml" xref="S4.SS1.p4.3.m1.3.3.2"><apply id="S4.SS1.p4.3.m1.2.2.1.1.cmml" xref="S4.SS1.p4.3.m1.2.2.1.1"><csymbol cd="ambiguous" id="S4.SS1.p4.3.m1.2.2.1.1.1.cmml" xref="S4.SS1.p4.3.m1.2.2.1.1">subscript</csymbol><ci id="S4.SS1.p4.3.m1.2.2.1.1.2.cmml" xref="S4.SS1.p4.3.m1.2.2.1.1.2">𝑐</ci><cn type="integer" id="S4.SS1.p4.3.m1.2.2.1.1.3.cmml" xref="S4.SS1.p4.3.m1.2.2.1.1.3">1</cn></apply><ci id="S4.SS1.p4.3.m1.1.1.cmml" xref="S4.SS1.p4.3.m1.1.1">…</ci><apply id="S4.SS1.p4.3.m1.3.3.2.2.cmml" xref="S4.SS1.p4.3.m1.3.3.2.2"><csymbol cd="ambiguous" id="S4.SS1.p4.3.m1.3.3.2.2.1.cmml" xref="S4.SS1.p4.3.m1.3.3.2.2">subscript</csymbol><ci id="S4.SS1.p4.3.m1.3.3.2.2.2.cmml" xref="S4.SS1.p4.3.m1.3.3.2.2.2">𝑐</ci><ci id="S4.SS1.p4.3.m1.3.3.2.2.3.cmml" xref="S4.SS1.p4.3.m1.3.3.2.2.3">𝑛</ci></apply></list></annotation-xml><annotation encoding="application/x-tex" id="S4.SS1.p4.3.m1.3c">c_{1},...,c_{n}</annotation></semantics></math> are the target categories. Note that the 1-vs-all approach is a standard approach for getting per-category metrics in a multi-class classification setting. We use this approach for getting per-category metrics for Llama Guard both in on- and off-policy settings (i.e. both for our internal test set, as well as for other datasets), since we can tailor our classification task on-the-fly by changing the model input. As mentioned in Section <a href="#S3.SS1" title="3.1 Input-output Safeguarding as Instruction-following Tasks ‣ 3 Building Llama Guard ‣ Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3.1</span></a>, we do this by only including the category of interest (<math id="S4.SS1.p4.4.m2.1" class="ltx_Math" alttext="c_{k}" display="inline"><semantics id="S4.SS1.p4.4.m2.1a"><msub id="S4.SS1.p4.4.m2.1.1" xref="S4.SS1.p4.4.m2.1.1.cmml"><mi id="S4.SS1.p4.4.m2.1.1.2" xref="S4.SS1.p4.4.m2.1.1.2.cmml">c</mi><mi id="S4.SS1.p4.4.m2.1.1.3" xref="S4.SS1.p4.4.m2.1.1.3.cmml">k</mi></msub><annotation-xml encoding="MathML-Content" id="S4.SS1.p4.4.m2.1b"><apply id="S4.SS1.p4.4.m2.1.1.cmml" xref="S4.SS1.p4.4.m2.1.1"><csymbol cd="ambiguous" id="S4.SS1.p4.4.m2.1.1.1.cmml" xref="S4.SS1.p4.4.m2.1.1">subscript</csymbol><ci id="S4.SS1.p4.4.m2.1.1.2.cmml" xref="S4.SS1.p4.4.m2.1.1.2">𝑐</ci><ci id="S4.SS1.p4.4.m2.1.1.3.cmml" xref="S4.SS1.p4.4.m2.1.1.3">𝑘</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.SS1.p4.4.m2.1c">c_{k}</annotation></semantics></math>) in the model input instructions.</p>
+</div>
+<div id="S4.SS1.p5" class="ltx_para">
+<p id="S4.SS1.p5.2" class="ltx_p"><span id="S4.SS1.p5.2.1" class="ltx_text ltx_font_bold">Per-category binary classification via 1-vs-benign</span>. This approach is similar to 1-vs-all, with the exception that the positively labeled samples belonging to categories <math id="S4.SS1.p5.1.m1.1" class="ltx_Math" alttext="c_{j}\neq k" display="inline"><semantics id="S4.SS1.p5.1.m1.1a"><mrow id="S4.SS1.p5.1.m1.1.1" xref="S4.SS1.p5.1.m1.1.1.cmml"><msub id="S4.SS1.p5.1.m1.1.1.2" xref="S4.SS1.p5.1.m1.1.1.2.cmml"><mi id="S4.SS1.p5.1.m1.1.1.2.2" xref="S4.SS1.p5.1.m1.1.1.2.2.cmml">c</mi><mi id="S4.SS1.p5.1.m1.1.1.2.3" xref="S4.SS1.p5.1.m1.1.1.2.3.cmml">j</mi></msub><mo id="S4.SS1.p5.1.m1.1.1.1" xref="S4.SS1.p5.1.m1.1.1.1.cmml">≠</mo><mi id="S4.SS1.p5.1.m1.1.1.3" xref="S4.SS1.p5.1.m1.1.1.3.cmml">k</mi></mrow><annotation-xml encoding="MathML-Content" id="S4.SS1.p5.1.m1.1b"><apply id="S4.SS1.p5.1.m1.1.1.cmml" xref="S4.SS1.p5.1.m1.1.1"><neq id="S4.SS1.p5.1.m1.1.1.1.cmml" xref="S4.SS1.p5.1.m1.1.1.1"></neq><apply id="S4.SS1.p5.1.m1.1.1.2.cmml" xref="S4.SS1.p5.1.m1.1.1.2"><csymbol cd="ambiguous" id="S4.SS1.p5.1.m1.1.1.2.1.cmml" xref="S4.SS1.p5.1.m1.1.1.2">subscript</csymbol><ci id="S4.SS1.p5.1.m1.1.1.2.2.cmml" xref="S4.SS1.p5.1.m1.1.1.2.2">𝑐</ci><ci id="S4.SS1.p5.1.m1.1.1.2.3.cmml" xref="S4.SS1.p5.1.m1.1.1.2.3">𝑗</ci></apply><ci id="S4.SS1.p5.1.m1.1.1.3.cmml" xref="S4.SS1.p5.1.m1.1.1.3">𝑘</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.SS1.p5.1.m1.1c">c_{j}\neq k</annotation></semantics></math> are dropped from consideration during task <math id="S4.SS1.p5.2.m2.1" class="ltx_Math" alttext="t_{k}" display="inline"><semantics id="S4.SS1.p5.2.m2.1a"><msub id="S4.SS1.p5.2.m2.1.1" xref="S4.SS1.p5.2.m2.1.1.cmml"><mi id="S4.SS1.p5.2.m2.1.1.2" xref="S4.SS1.p5.2.m2.1.1.2.cmml">t</mi><mi id="S4.SS1.p5.2.m2.1.1.3" xref="S4.SS1.p5.2.m2.1.1.3.cmml">k</mi></msub><annotation-xml encoding="MathML-Content" id="S4.SS1.p5.2.m2.1b"><apply id="S4.SS1.p5.2.m2.1.1.cmml" xref="S4.SS1.p5.2.m2.1.1"><csymbol cd="ambiguous" id="S4.SS1.p5.2.m2.1.1.1.cmml" xref="S4.SS1.p5.2.m2.1.1">subscript</csymbol><ci id="S4.SS1.p5.2.m2.1.1.2.cmml" xref="S4.SS1.p5.2.m2.1.1.2">𝑡</ci><ci id="S4.SS1.p5.2.m2.1.1.3.cmml" xref="S4.SS1.p5.2.m2.1.1.3">𝑘</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.SS1.p5.2.m2.1c">t_{k}</annotation></semantics></math>, rather than being considered as negatives. Therefore, the only negatives considered are the ones with benign labels per the target taxonomy. The rationale behind this technique is that for content moderation tools with fixed category-wise output heads, there is no straightforward way to assign the scores from each head to a target category in the off-policy setting.</p>
+</div>
+<div id="S4.SS1.p6" class="ltx_para">
+<p id="S4.SS1.p6.1" class="ltx_p">We caveat that this approach potentially removes hard negatives for the target category, hence it can produce optimistic results. We follow this approach for all the baseline APIs we use in this work when evaluated off-policy.</p>
+</div>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Public Benchmarks</h3>
+
+<div id="S4.SS2.p1" class="ltx_para">
+<p id="S4.SS2.p1.1" class="ltx_p">We also evaluate evaluate Llama Guard on the following two public benchmarks:</p>
+</div>
+<div id="S4.SS2.p2" class="ltx_para">
+<p id="S4.SS2.p2.1" class="ltx_p"><span id="S4.SS2.p2.1.1" class="ltx_text ltx_font_bold">ToxicChat</span> <cite class="ltx_cite ltx_citemacro_citep">(Lin et al., <a href="#bib.bib19" title="" class="ltx_ref">2023</a>)</cite> is a benchmark consisting of 10k high-quality samples for content moderation in real-world user-AI interactions. Labels are based on the definitions for undesired content in <cite class="ltx_cite ltx_citemacro_cite">Zampieri et al. (<a href="#bib.bib28" title="" class="ltx_ref">2019</a>)</cite> and the binary toxicity label is determined through a strict majority vote (<math id="S4.SS2.p2.1.m1.1" class="ltx_Math" alttext="\geq" display="inline"><semantics id="S4.SS2.p2.1.m1.1a"><mo id="S4.SS2.p2.1.m1.1.1" xref="S4.SS2.p2.1.m1.1.1.cmml">≥</mo><annotation-xml encoding="MathML-Content" id="S4.SS2.p2.1.m1.1b"><geq id="S4.SS2.p2.1.m1.1.1.cmml" xref="S4.SS2.p2.1.m1.1.1"></geq></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.p2.1.m1.1c">\geq</annotation></semantics></math> 3 annotators need to agree on the label), which reduces label noise.</p>
+</div>
+<div id="S4.SS2.p3" class="ltx_para">
+<p id="S4.SS2.p3.1" class="ltx_p"><span id="S4.SS2.p3.1.1" class="ltx_text ltx_font_bold">OpenAI Moderation Evaluation Dataset</span> <cite class="ltx_cite ltx_citemacro_citep">(Markov et al., <a href="#bib.bib20" title="" class="ltx_ref">2023</a>)</cite> contains 1,680 prompt examples. Each example is labeled according the OpenAI moderation API taxonomy (see Sec. <a href="#S4.SS3" title="4.3 Baselines &amp; Evaluation Metrics ‣ 4 Experiments ‣ Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3</span></a> for more details). Each risk category is a binary flag indicating whether the prompt example is violating that particular category.</p>
+</div>
+<div id="S4.SS2.p4" class="ltx_para">
+<p id="S4.SS2.p4.1" class="ltx_p">By default, we adapt Llama Guard to the taxonomies of ToxicChat and OpenAI moderation evaluation dataset by providing their taxonomy with a brief description in the input prompt for evaluation in our experiment.</p>
+</div>
+</section>
+<section id="S4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.3 </span>Baselines &amp; Evaluation Metrics</h3>
+
+<section id="S4.SS3.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.3.1 </span>Probability Score-Based Baselines</h4>
+
+<div id="S4.SS3.SSS1.p1" class="ltx_para">
+<p id="S4.SS3.SSS1.p1.1" class="ltx_p"><span id="S4.SS3.SSS1.p1.1.1" class="ltx_text ltx_font_bold">OpenAI Moderation API<span id="footnote5" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">5</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">5</sup><span class="ltx_tag ltx_tag_note"><span id="footnote5.1.1.1" class="ltx_text ltx_font_medium">5</span></span><a target="_blank" href="https://platform.openai.com/docs/guides/moderation/" title="" class="ltx_ref ltx_url ltx_font_typewriter ltx_font_medium">https://platform.openai.com/docs/guides/moderation/</a></span></span></span></span> is a GPT-based, multi-label classifier fine-tuned to assess whether a piece of text violates one of eleven content safety categories: <span id="S4.SS3.SSS1.p1.1.2" class="ltx_text ltx_font_italic">hate</span>, <span id="S4.SS3.SSS1.p1.1.3" class="ltx_text ltx_font_italic">hate/threatening</span>, <span id="S4.SS3.SSS1.p1.1.4" class="ltx_text ltx_font_italic">harassment</span>, <span id="S4.SS3.SSS1.p1.1.5" class="ltx_text ltx_font_italic">harassment/threatening</span>, <span id="S4.SS3.SSS1.p1.1.6" class="ltx_text ltx_font_italic">self-harm</span>, <span id="S4.SS3.SSS1.p1.1.7" class="ltx_text ltx_font_italic">self-harm/intent</span>, <span id="S4.SS3.SSS1.p1.1.8" class="ltx_text ltx_font_italic">self-harm/instructions</span>, <span id="S4.SS3.SSS1.p1.1.9" class="ltx_text ltx_font_italic">sexual</span>, <span id="S4.SS3.SSS1.p1.1.10" class="ltx_text ltx_font_italic">sexual/minors</span>, <span id="S4.SS3.SSS1.p1.1.11" class="ltx_text ltx_font_italic">violence</span>, and <span id="S4.SS3.SSS1.p1.1.12" class="ltx_text ltx_font_italic">violence/graphic</span>. The endpoint returns the probability score per category, a binary label per category, and an overall binary label for the content.</p>
+</div>
+<div id="S4.SS3.SSS1.p2" class="ltx_para">
+<p id="S4.SS3.SSS1.p2.1" class="ltx_p"><span id="S4.SS3.SSS1.p2.1.1" class="ltx_text ltx_font_bold">Perspective API<span id="footnote6" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">6</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">6</sup><span class="ltx_tag ltx_tag_note"><span id="footnote6.1.1.1" class="ltx_text ltx_font_medium">6</span></span><a target="_blank" href="https://perspectiveapi.com/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://perspectiveapi.com/</a></span></span></span></span> is designed to assist online platforms and publishers in recognizing and eliminating harmful and offensive content, particularly in the form of comments and discussions.
+It uses machine learning models to analyze a given piece of content and provide probability scores indicating the likelihoods of the content being perceived as harmful. The risk categories considered in Perspective API are <span id="S4.SS3.SSS1.p2.1.2" class="ltx_text ltx_font_italic">toxicity</span>, <span id="S4.SS3.SSS1.p2.1.3" class="ltx_text ltx_font_italic">severe toxicity</span>, <span id="S4.SS3.SSS1.p2.1.4" class="ltx_text ltx_font_italic">identity attack</span>, <span id="S4.SS3.SSS1.p2.1.5" class="ltx_text ltx_font_italic">insult</span>, <span id="S4.SS3.SSS1.p2.1.6" class="ltx_text ltx_font_italic">profanity</span>, and <span id="S4.SS3.SSS1.p2.1.7" class="ltx_text ltx_font_italic">threat</span>.</p>
+</div>
+</section>
+<section id="S4.SS3.SSS2" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.3.2 </span>Other Baselines</h4>
+
+<div id="S4.SS3.SSS2.p1" class="ltx_para">
+<p id="S4.SS3.SSS2.p1.1" class="ltx_p"><span id="S4.SS3.SSS2.p1.1.1" class="ltx_text ltx_font_bold">Azure AI Content Safety API<span id="footnote7" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">7</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">7</sup><span class="ltx_tag ltx_tag_note"><span id="footnote7.1.1.1" class="ltx_text ltx_font_medium">7</span></span><a target="_blank" href="https://azure.microsoft.com/en-us/products/ai-services/ai-content-safety" title="" class="ltx_ref ltx_url ltx_font_typewriter ltx_font_medium">https://azure.microsoft.com/en-us/products/ai-services/ai-content-safety</a></span></span></span></span> is Microsoft’s multi-label classifier to identify if an image or text violates one of four safety categories: <span id="S4.SS3.SSS2.p1.1.2" class="ltx_text ltx_font_italic">hate and fairness</span>, <span id="S4.SS3.SSS2.p1.1.3" class="ltx_text ltx_font_italic">sexual</span>, <span id="S4.SS3.SSS2.p1.1.4" class="ltx_text ltx_font_italic">violence</span>, and <span id="S4.SS3.SSS2.p1.1.5" class="ltx_text ltx_font_italic">self-harm</span>. The API returns an integer between 0-6 per category, with 6 being the most severe violation.</p>
+</div>
+<div id="S4.SS3.SSS2.p2" class="ltx_para">
+<p id="S4.SS3.SSS2.p2.1" class="ltx_p">As the Azure endpoint does not return a probability score, we applied a modified <span id="S4.SS3.SSS2.p2.1.1" class="ltx_text ltx_font_italic">max-all</span> approach to calculate the label for binary classification. We tested setting the threshold as 1 - 6 to binarize the max integer score and selected the threshold that provided the highest average precision for the dataset.</p>
+</div>
+<div id="S4.SS3.SSS2.p3" class="ltx_para">
+<p id="S4.SS3.SSS2.p3.1" class="ltx_p"><span id="S4.SS3.SSS2.p3.1.1" class="ltx_text ltx_font_bold">GPT-4</span> <cite class="ltx_cite ltx_citemacro_citep">(OpenAI, <a href="#bib.bib22" title="" class="ltx_ref">2023</a>)</cite> can be used for content moderation via zero-shot prompting similar to Llama Guard. Thus, we also include GPT-4 as our baseline.</p>
+</div>
+</section>
+<section id="S4.SS3.SSS3" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.3.3 </span>Evaluation Metrics</h4>
+
+<div id="S4.SS3.SSS3.p1" class="ltx_para">
+<p id="S4.SS3.SSS3.p1.1" class="ltx_p">For all experiments, we use the area under the precision-recall curve (<span id="S4.SS3.SSS3.p1.1.1" class="ltx_text ltx_font_italic">AUPRC</span>) as our evaluation metrics, following <cite class="ltx_cite ltx_citemacro_citep">(Markov et al., <a href="#bib.bib20" title="" class="ltx_ref">2023</a>)</cite>.
+AUPRC focuses on the trade-off between precision and recall, highlight the the model’s performance of on the positive (“unsafe”) class, and is useful for selecting the classification threshold that balances precision and recall based on the specific requirements of use cases.
+Note that it is infeasible to compute average precision for Azure API and GPT-4 since these two baselines do not provide the probability score needed for metric computation.
+Thus, we report threshold-based metrics such as precision, recall, and F1 when comparing Llama Guard to Azure API and GPT-4 in the Appendix.</p>
+</div>
+</section>
+</section>
+<section id="S4.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.4 </span>Overall Results</h3>
+
+<figure id="S4.T2" class="ltx_table">
+<table id="S4.T2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S4.T2.1.1" class="ltx_tr">
+<td id="S4.T2.1.1.1" class="ltx_td ltx_border_tt"></td>
+<td id="S4.T2.1.1.2" class="ltx_td ltx_align_center ltx_align_top ltx_border_tt" colspan="3">Prompt Classification</td>
+<td id="S4.T2.1.1.3" class="ltx_td ltx_align_center ltx_align_top ltx_border_tt">Response Classification</td>
+</tr>
+<tr id="S4.T2.1.2" class="ltx_tr">
+<td id="S4.T2.1.2.1" class="ltx_td ltx_border_t"></td>
+<td id="S4.T2.1.2.2" class="ltx_td ltx_align_justify ltx_align_top ltx_border_t">
+<span id="S4.T2.1.2.2.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.2.2.1.1" class="ltx_p" style="width:85.4pt;"><span id="S4.T2.1.2.2.1.1.1" class="ltx_text"></span> <span id="S4.T2.1.2.2.1.1.2" class="ltx_text ltx_align_center">
+<span id="S4.T2.1.2.2.1.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S4.T2.1.2.2.1.1.2.1.1" class="ltx_tr">
+<span id="S4.T2.1.2.2.1.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">Our Test Set</span></span>
+<span id="S4.T2.1.2.2.1.1.2.1.2" class="ltx_tr">
+<span id="S4.T2.1.2.2.1.1.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">(Prompt)</span></span>
+</span></span><span id="S4.T2.1.2.2.1.1.3" class="ltx_text ltx_align_center"></span></span>
+</span>
+</td>
+<td id="S4.T2.1.2.3" class="ltx_td ltx_align_justify ltx_align_top ltx_border_t">
+<span id="S4.T2.1.2.3.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.2.3.1.1" class="ltx_p" style="width:71.1pt;"><span id="S4.T2.1.2.3.1.1.1" class="ltx_text"></span> <span id="S4.T2.1.2.3.1.1.2" class="ltx_text ltx_align_center">
+<span id="S4.T2.1.2.3.1.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S4.T2.1.2.3.1.1.2.1.1" class="ltx_tr">
+<span id="S4.T2.1.2.3.1.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">OpenAI Mod</span></span>
+</span></span><span id="S4.T2.1.2.3.1.1.3" class="ltx_text ltx_align_center"></span></span>
+</span>
+</td>
+<td id="S4.T2.1.2.4" class="ltx_td ltx_align_justify ltx_align_top ltx_border_t">
+<span id="S4.T2.1.2.4.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.2.4.1.1" class="ltx_p" style="width:71.1pt;"><span id="S4.T2.1.2.4.1.1.1" class="ltx_text"></span> <span id="S4.T2.1.2.4.1.1.2" class="ltx_text ltx_align_center">
+<span id="S4.T2.1.2.4.1.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S4.T2.1.2.4.1.1.2.1.1" class="ltx_tr">
+<span id="S4.T2.1.2.4.1.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">ToxicChat</span></span>
+</span></span><span id="S4.T2.1.2.4.1.1.3" class="ltx_text ltx_align_center"></span></span>
+</span>
+</td>
+<td id="S4.T2.1.2.5" class="ltx_td ltx_align_justify ltx_align_top ltx_border_t">
+<span id="S4.T2.1.2.5.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.2.5.1.1" class="ltx_p" style="width:85.4pt;"><span id="S4.T2.1.2.5.1.1.1" class="ltx_text"></span> <span id="S4.T2.1.2.5.1.1.2" class="ltx_text ltx_align_center">
+<span id="S4.T2.1.2.5.1.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S4.T2.1.2.5.1.1.2.1.1" class="ltx_tr">
+<span id="S4.T2.1.2.5.1.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">Our Test Set</span></span>
+<span id="S4.T2.1.2.5.1.1.2.1.2" class="ltx_tr">
+<span id="S4.T2.1.2.5.1.1.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">(Response)</span></span>
+</span></span><span id="S4.T2.1.2.5.1.1.3" class="ltx_text ltx_align_center"></span></span>
+</span>
+</td>
+</tr>
+<tr id="S4.T2.1.3" class="ltx_tr">
+<td id="S4.T2.1.3.1" class="ltx_td ltx_align_left ltx_border_t">Llama Guard</td>
+<td id="S4.T2.1.3.2" class="ltx_td ltx_align_justify ltx_align_top ltx_border_t">
+<span id="S4.T2.1.3.2.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.3.2.1.1" class="ltx_p" style="width:85.4pt;"><span id="S4.T2.1.3.2.1.1.1" class="ltx_text ltx_font_bold">0.945</span></span>
+</span>
+</td>
+<td id="S4.T2.1.3.3" class="ltx_td ltx_align_justify ltx_align_top ltx_border_t">
+<span id="S4.T2.1.3.3.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.3.3.1.1" class="ltx_p" style="width:71.1pt;">0.847</span>
+</span>
+</td>
+<td id="S4.T2.1.3.4" class="ltx_td ltx_align_justify ltx_align_top ltx_border_t">
+<span id="S4.T2.1.3.4.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.3.4.1.1" class="ltx_p" style="width:71.1pt;"><span id="S4.T2.1.3.4.1.1.1" class="ltx_text ltx_font_bold">0.626</span></span>
+</span>
+</td>
+<td id="S4.T2.1.3.5" class="ltx_td ltx_align_justify ltx_align_top ltx_border_t">
+<span id="S4.T2.1.3.5.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.3.5.1.1" class="ltx_p" style="width:85.4pt;"><span id="S4.T2.1.3.5.1.1.1" class="ltx_text ltx_font_bold">0.953</span></span>
+</span>
+</td>
+</tr>
+<tr id="S4.T2.1.4" class="ltx_tr">
+<td id="S4.T2.1.4.1" class="ltx_td ltx_align_left">OpenAI API</td>
+<td id="S4.T2.1.4.2" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="S4.T2.1.4.2.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.4.2.1.1" class="ltx_p" style="width:85.4pt;">0.764</span>
+</span>
+</td>
+<td id="S4.T2.1.4.3" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="S4.T2.1.4.3.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.4.3.1.1" class="ltx_p" style="width:71.1pt;"><span id="S4.T2.1.4.3.1.1.1" class="ltx_text ltx_font_bold">0.856</span></span>
+</span>
+</td>
+<td id="S4.T2.1.4.4" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="S4.T2.1.4.4.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.4.4.1.1" class="ltx_p" style="width:71.1pt;">0.588</span>
+</span>
+</td>
+<td id="S4.T2.1.4.5" class="ltx_td ltx_align_justify ltx_align_top">
+<span id="S4.T2.1.4.5.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.4.5.1.1" class="ltx_p" style="width:85.4pt;">0.769</span>
+</span>
+</td>
+</tr>
+<tr id="S4.T2.1.5" class="ltx_tr">
+<td id="S4.T2.1.5.1" class="ltx_td ltx_align_left ltx_border_bb">Perspective API</td>
+<td id="S4.T2.1.5.2" class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb">
+<span id="S4.T2.1.5.2.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.5.2.1.1" class="ltx_p" style="width:85.4pt;">0.728</span>
+</span>
+</td>
+<td id="S4.T2.1.5.3" class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb">
+<span id="S4.T2.1.5.3.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.5.3.1.1" class="ltx_p" style="width:71.1pt;">0.787</span>
+</span>
+</td>
+<td id="S4.T2.1.5.4" class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb">
+<span id="S4.T2.1.5.4.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.5.4.1.1" class="ltx_p" style="width:71.1pt;">0.532</span>
+</span>
+</td>
+<td id="S4.T2.1.5.5" class="ltx_td ltx_align_justify ltx_align_top ltx_border_bb">
+<span id="S4.T2.1.5.5.1" class="ltx_inline-block ltx_align_top">
+<span id="S4.T2.1.5.5.1.1" class="ltx_p" style="width:85.4pt;">0.699</span>
+</span>
+</td>
+</tr>
+</table>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">Table 2: </span>Evaluation results on various benchmarks (metric: AUPRC, higher is better).
+<span id="S4.T2.3.1" class="ltx_text ltx_font_bold">Best</span> scores in bold. The reported Llama Guard results are with zero-shot prompting using the target taxonomy.
+</figcaption>
+</figure>
+<div id="S4.SS4.p1" class="ltx_para">
+<p id="S4.SS4.p1.1" class="ltx_p">Table <a href="#S4.T2" title="Table 2 ‣ 4.4 Overall Results ‣ 4 Experiments ‣ Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> contains the comparison between Llama Guard against the probability-score-based baseline APIs on various benchmarks, while Table <a href="#S4.T3" title="Table 3 ‣ 4.4 Overall Results ‣ 4 Experiments ‣ Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> further shows the per-category breakdown for both prompt and response classification on our test set.</p>
+</div>
+<div id="S4.SS4.p2" class="ltx_para">
+<p id="S4.SS4.p2.1" class="ltx_p">In all cases, Llama Guard operates in an <span id="S4.SS4.p2.1.1" class="ltx_text ltx_font_italic">adapted zero-shot setup</span>, i.e. with taxonomy and description in its prompt but without any examples.</p>
+</div>
+<div id="S4.SS4.p3" class="ltx_para">
+<p id="S4.SS4.p3.1" class="ltx_p">We focus on two main findings:</p>
+<ol id="S4.I4" class="ltx_enumerate">
+<li id="S4.I4.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">1.</span> 
+<div id="S4.I4.i1.p1" class="ltx_para">
+<p id="S4.I4.i1.p1.1" class="ltx_p">Llama Guard exhibits very high scores on its own test set, both in general and for each category, showing a very high ceiling for this approach in building guardrail models in the <span id="S4.I4.i1.p1.1.1" class="ltx_text ltx_font_italic">in-policy</span> setup.</p>
+</div>
+</li>
+<li id="S4.I4.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">2.</span> 
+<div id="S4.I4.i2.p1" class="ltx_para">
+<p id="S4.I4.i2.p1.1" class="ltx_p">Llama Guard demonstrates a high degree of adaptability by performing close to OpenAI’s API on OpenAI’s own Mod dataset without any training example, as well as outperforming every other method on the ToxicChat dataset (which none of the models was trained against).</p>
+</div>
+</li>
+</ol>
+</div>
+<figure id="S4.T3" class="ltx_table">
+<table id="S4.T3.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S4.T3.1.1" class="ltx_tr">
+<td id="S4.T3.1.1.1" class="ltx_td ltx_border_tt"></td>
+<td id="S4.T3.1.1.2" class="ltx_td ltx_align_center ltx_border_tt">Llama Guard</td>
+<td id="S4.T3.1.1.3" class="ltx_td ltx_align_center ltx_border_tt">OpenAI Mod API</td>
+<td id="S4.T3.1.1.4" class="ltx_td ltx_align_center ltx_border_tt">Perspective API</td>
+</tr>
+<tr id="S4.T3.1.2" class="ltx_tr">
+<td id="S4.T3.1.2.1" class="ltx_td ltx_align_left ltx_border_t">Violence and Hate</td>
+<td id="S4.T3.1.2.2" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S4.T3.1.2.2.1" class="ltx_text ltx_font_bold">0.857</span>/<span id="S4.T3.1.2.2.2" class="ltx_text ltx_font_bold">0.835</span>
+</td>
+<td id="S4.T3.1.2.3" class="ltx_td ltx_align_center ltx_border_t">0.666/0.725</td>
+<td id="S4.T3.1.2.4" class="ltx_td ltx_align_center ltx_border_t">0.578/0.558</td>
+</tr>
+<tr id="S4.T3.1.3" class="ltx_tr">
+<td id="S4.T3.1.3.1" class="ltx_td ltx_align_left">Sexual Content</td>
+<td id="S4.T3.1.3.2" class="ltx_td ltx_align_center">
+<span id="S4.T3.1.3.2.1" class="ltx_text ltx_font_bold">0.692</span>/<span id="S4.T3.1.3.2.2" class="ltx_text ltx_font_bold">0.787</span>
+</td>
+<td id="S4.T3.1.3.3" class="ltx_td ltx_align_center">0.231/0.258</td>
+<td id="S4.T3.1.3.4" class="ltx_td ltx_align_center">0.243/0.161</td>
+</tr>
+<tr id="S4.T3.1.4" class="ltx_tr">
+<td id="S4.T3.1.4.1" class="ltx_td ltx_align_left">Criminal Planning</td>
+<td id="S4.T3.1.4.2" class="ltx_td ltx_align_center">
+<span id="S4.T3.1.4.2.1" class="ltx_text ltx_font_bold">0.927</span>/<span id="S4.T3.1.4.2.2" class="ltx_text ltx_font_bold">0.933</span>
+</td>
+<td id="S4.T3.1.4.3" class="ltx_td ltx_align_center">0.596/0.625</td>
+<td id="S4.T3.1.4.4" class="ltx_td ltx_align_center">0.534/0.501</td>
+</tr>
+<tr id="S4.T3.1.5" class="ltx_tr">
+<td id="S4.T3.1.5.1" class="ltx_td ltx_align_left">Guns and Illegal Weapons</td>
+<td id="S4.T3.1.5.2" class="ltx_td ltx_align_center">
+<span id="S4.T3.1.5.2.1" class="ltx_text ltx_font_bold">0.798</span>/<span id="S4.T3.1.5.2.2" class="ltx_text ltx_font_bold">0.716</span>
+</td>
+<td id="S4.T3.1.5.3" class="ltx_td ltx_align_center">0.035/0.060</td>
+<td id="S4.T3.1.5.4" class="ltx_td ltx_align_center">0.054/0.048</td>
+</tr>
+<tr id="S4.T3.1.6" class="ltx_tr">
+<td id="S4.T3.1.6.1" class="ltx_td ltx_align_left">Regulated or Controlled Substances</td>
+<td id="S4.T3.1.6.2" class="ltx_td ltx_align_center">
+<span id="S4.T3.1.6.2.1" class="ltx_text ltx_font_bold">0.944</span>/<span id="S4.T3.1.6.2.2" class="ltx_text ltx_font_bold">0.922</span>
+</td>
+<td id="S4.T3.1.6.3" class="ltx_td ltx_align_center">0.085/0.067</td>
+<td id="S4.T3.1.6.4" class="ltx_td ltx_align_center">0.110/0.096</td>
+</tr>
+<tr id="S4.T3.1.7" class="ltx_tr">
+<td id="S4.T3.1.7.1" class="ltx_td ltx_align_left ltx_border_bb">Self-Harm</td>
+<td id="S4.T3.1.7.2" class="ltx_td ltx_align_center ltx_border_bb">
+<span id="S4.T3.1.7.2.1" class="ltx_text ltx_font_bold">0.842</span>/<span id="S4.T3.1.7.2.2" class="ltx_text ltx_font_bold">0.943</span>
+</td>
+<td id="S4.T3.1.7.3" class="ltx_td ltx_align_center ltx_border_bb">0.417/0.666</td>
+<td id="S4.T3.1.7.4" class="ltx_td ltx_align_center ltx_border_bb">0.107/0.093</td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 3: </span>Prompt and response classification performance breakdowns (metric: AUPRC, higher is better) for each safety category in our dataset.
+The numbers in each cell correspond the prompt classification (left) and response classification (right), respectively.
+</figcaption>
+</figure>
+</section>
+<section id="S4.SS5" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.5 </span>Studying the Adaptability of the Model</h3>
+
+<div id="S4.SS5.p1" class="ltx_para">
+<p id="S4.SS5.p1.1" class="ltx_p">We further explore Llama Guard’s adaptability to other taxonomies via prompting and fine-tuning.</p>
+</div>
+<section id="S4.SS5.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.5.1 </span>Adaptability via Prompting</h4>
+
+<figure id="S4.T4" class="ltx_table">
+<table id="S4.T4.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S4.T4.1.1" class="ltx_tr">
+<td id="S4.T4.1.1.1" class="ltx_td ltx_align_left ltx_border_tt">Method</td>
+<td id="S4.T4.1.1.2" class="ltx_td ltx_align_center ltx_border_tt">AUPRC</td>
+</tr>
+<tr id="S4.T4.1.2" class="ltx_tr">
+<td id="S4.T4.1.2.1" class="ltx_td ltx_align_left ltx_border_t">OpenAI Mod API <cite class="ltx_cite ltx_citemacro_citep">(Markov et al., <a href="#bib.bib20" title="" class="ltx_ref">2023</a>)</cite>
+</td>
+<td id="S4.T4.1.2.2" class="ltx_td ltx_align_center ltx_border_t">0.856</td>
+</tr>
+<tr id="S4.T4.1.3" class="ltx_tr">
+<td id="S4.T4.1.3.1" class="ltx_td ltx_align_left">Llama Guard (no adaptation)</td>
+<td id="S4.T4.1.3.2" class="ltx_td ltx_align_center">0.837</td>
+</tr>
+<tr id="S4.T4.1.4" class="ltx_tr">
+<td id="S4.T4.1.4.1" class="ltx_td ltx_align_left">Llama Guard Zero-shot (w/ OpenAI Mod categories)</td>
+<td id="S4.T4.1.4.2" class="ltx_td ltx_align_center">0.847</td>
+</tr>
+<tr id="S4.T4.1.5" class="ltx_tr">
+<td id="S4.T4.1.5.1" class="ltx_td ltx_align_left ltx_border_bb">Llama Guard Few-shot (w/ description and in-context examples)</td>
+<td id="S4.T4.1.5.2" class="ltx_td ltx_align_center ltx_border_bb"><span id="S4.T4.1.5.2.1" class="ltx_text ltx_font_bold">0.872</span></td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 4: </span>Comparison of no adaptation, category adaptation, and few-shot learning on the OpenAI-Mod dataset <cite class="ltx_cite ltx_citemacro_citep">(Markov et al., <a href="#bib.bib20" title="" class="ltx_ref">2023</a>)</cite>. Note that Llama Guard is trained on a separate policy than that used for the OpenAI moderation API, which is aligned with the characteristics of this dataset.
+</figcaption>
+</figure>
+<div id="S4.SS5.SSS1.p1" class="ltx_para">
+<p id="S4.SS5.SSS1.p1.1" class="ltx_p">We find that adapting to a new policy exclusively through prompting is effective while also being low cost compared to fine-tuning.</p>
+</div>
+<div id="S4.SS5.SSS1.p2" class="ltx_para">
+<p id="S4.SS5.SSS1.p2.1" class="ltx_p">Table <a href="#S4.T4" title="Table 4 ‣ 4.5.1 Adaptability via Prompting ‣ 4.5 Studying the Adaptability of the Model ‣ 4 Experiments ‣ Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a> compares binary classification performance of Llama Guard and OpenAI’s approach <cite class="ltx_cite ltx_citemacro_citep">(Markov et al., <a href="#bib.bib20" title="" class="ltx_ref">2023</a>)</cite> on the OpenAI moderation test set under different prompt adaptations.</p>
+</div>
+<div id="S4.SS5.SSS1.p3" class="ltx_para">
+<p id="S4.SS5.SSS1.p3.1" class="ltx_p">Indeed, adapting the model by simply providing a taxonomy with a short description improves the alignment of the model with the OpenAI taxonomy. Furthermore, additionally providing 2 to 4 examples in the prompt together with the description (thus moving to a <span id="S4.SS5.SSS1.p3.1.1" class="ltx_text ltx_font_italic">few-shot</span> setup) makes Llama Guard outperform the OpenAI moderation API on its own dataset.</p>
+</div>
+<figure id="S4.F2" class="ltx_figure ltx_figure_panel ltx_align_center"><img src="/html/2312.06674/assets/figure/openai_categorical.png" id="S4.SS5.SSS1.1.g1" class="ltx_graphics ltx_figure_panel ltx_img_landscape" width="479" height="255" alt="Refer to caption">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure">Figure 2: </span>Category-wise performance (AUPRC) of Llama Guard when evaluated on the OpenAI Mod dataset <cite class="ltx_cite ltx_citemacro_citep">(Markov et al., <a href="#bib.bib20" title="" class="ltx_ref">2023</a>)</cite> with zero-shot and few-shot prompting. Note that due to the <span id="S4.F2.2.1" class="ltx_text ltx_font_italic">1-vs-all</span> classification, combined with the policy mismatch, the performance is lower than binary classification: we penalize the model for predicting the wrong target category even when the model has correctly predicted the sample as unsafe.</figcaption>
+</figure>
+<div id="S4.SS5.SSS1.p4" class="ltx_para">
+<p id="S4.SS5.SSS1.p4.1" class="ltx_p">Figure <a href="#S4.F2" title="Figure 2 ‣ 4.5.1 Adaptability via Prompting ‣ 4.5 Studying the Adaptability of the Model ‣ 4 Experiments ‣ Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> reports category-specific results when evaluating Llama Guard on the OpenAI moderation test set.
+Note that the performance is lower than the overall binary classification performance since we penalize the model for predicting the wrong category even though the model has correctly predicted the sample as unsafe.
+This makes the setting much harder for Llama Guard since its taxonomy does not align well with that of the OpenAI moderation set.
+For example, Llama Guard does not distinguish between the categories <span id="S4.SS5.SSS1.p4.1.1" class="ltx_text ltx_font_italic">Hate</span>, <span id="S4.SS5.SSS1.p4.1.2" class="ltx_text ltx_font_italic">Hate (Calling for Violence)</span>, and <span id="S4.SS5.SSS1.p4.1.3" class="ltx_text ltx_font_italic">Violence</span>. Further, Llama Guard taxonomy does not have specific guidance for <span id="S4.SS5.SSS1.p4.1.4" class="ltx_text ltx_font_italic">Sexual Content (Minors)</span>, <span id="S4.SS5.SSS1.p4.1.5" class="ltx_text ltx_font_italic">Harassment</span>, or <span id="S4.SS5.SSS1.p4.1.6" class="ltx_text ltx_font_italic">Violence (Graphic)</span>. Note that, even in this case of policy misalignment, few-shot prompting helps reduce gaps compared to zero-shot prompting, in accordance with our previous findings.</p>
+</div>
+</section>
+<section id="S4.SS5.SSS2" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.5.2 </span>Adaptability via Fine-tuning</h4>
+
+<div id="S4.SS5.SSS2.p1" class="ltx_para">
+<p id="S4.SS5.SSS2.p1.1" class="ltx_p">We now analyze Llama Guard’s adaptability to other taxonomies via fine-tuning Llama Guard on the ToxicChat dataset. We use 10%, 20%, 50%, 100% of ToxicChat training data to fine-tune Llama Guard.
+We find that fine-tuning indeed is an effective way to improve the performance of the model on a specific task.
+We then study a related question: <span id="S4.SS5.SSS2.p1.1.1" class="ltx_text ltx_font_italic">is our fine-tuning on a different taxonomy helping, or hurting?</span>
+To investigate, we compare against Llama2-7b by fine-tuning it in the same setup. Figure <a href="#S4.F3" title="Figure 3 ‣ 4.5.2 Adaptability via Fine-tuning ‣ 4.5 Studying the Adaptability of the Model ‣ 4 Experiments ‣ Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> shows the results of this comparison.</p>
+</div>
+<div id="S4.SS5.SSS2.p2" class="ltx_para">
+<p id="S4.SS5.SSS2.p2.1" class="ltx_p">The results demonstrate that fine-tuning on a different taxonomy greatly helps the model adapt much quicker to a new taxonomy: Llama Guard needs only 20% of the ToxicChat dataset to perform comparably with Llama2-7b trained on 100% of the ToxicChat dataset, and can achieve better performance when trained on the same amount of data.</p>
+</div>
+<div id="S4.SS5.SSS2.p3" class="ltx_para">
+<p id="S4.SS5.SSS2.p3.1" class="ltx_p">For the sake of completeness, we also report trying to compare zero-shot performance but LLama2-7b only produced malformed outputs (rather than generating “safe” and “unsafe” in the zero-shot setting); therefore, we set its AUPRC as zero, whereas Llama Guard achieves 0.626 AUPRC in the zero-shot setting.</p>
+</div>
+<div id="S4.SS5.SSS2.p4" class="ltx_para">
+<p id="S4.SS5.SSS2.p4.1" class="ltx_p">Finally, we note that the Llama Guard model we’re releasing is not one further fine-tuned on ToxicChat. We welcome researchers to fine-tune Llama Guard on applicable datasets, and explore its capabilities in cross-taxonomy behaviors and trade-offs.</p>
+</div>
+<figure id="S4.F3" class="ltx_figure"><img src="/html/2312.06674/assets/x1.png" id="S4.F3.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="322" height="222" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 3: </span>Adapting Llama Guard and Llama2-7b to ToxicChat <cite class="ltx_cite ltx_citemacro_citep">(Lin et al., <a href="#bib.bib19" title="" class="ltx_ref">2023</a>)</cite> via further fine-tuning. Llama Guard shows better adaptability to ToxicChat taxonomy than Llama2-7b.</figcaption>
+</figure>
+</section>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Related Work</h2>
+
+<div id="S5.p1" class="ltx_para">
+<p id="S5.p1.1" class="ltx_p"><span id="S5.p1.1.1" class="ltx_text ltx_font_bold">Zero-shot and few-shot inference using LLMs.</span> Llama Guard is built by supervised fine-tuning of Llama 2 <cite class="ltx_cite ltx_citemacro_citep">(Touvron et al., <a href="#bib.bib24" title="" class="ltx_ref">2023</a>)</cite>. To adapt Llama Guard to new policies, we perform zero-shot prompting for unseen categories in the target dataset, as well as in-context few-shot learning. The few-shot and zero-shot abilities of LLMs are well studied in the literature <cite class="ltx_cite ltx_citemacro_citep">(Brown et al., <a href="#bib.bib3" title="" class="ltx_ref">2020</a>; Zhou et al., <a href="#bib.bib29" title="" class="ltx_ref">2023</a>)</cite>.</p>
+</div>
+<div id="S5.p2" class="ltx_para">
+<p id="S5.p2.1" class="ltx_p"><span id="S5.p2.1.1" class="ltx_text ltx_font_bold">Moderation of human-generated content.</span>
+The work we do here has connections to the field of content moderation in large scale networks, previously surveyed in <cite class="ltx_cite ltx_citemacro_citet">Halevy et al. (<a href="#bib.bib11" title="" class="ltx_ref">2022</a>)</cite>. There is an abundance of datasets for moderating user-generated content, mostly generated on online social networking sites. Examples of these include Jigsaw <cite class="ltx_cite ltx_citemacro_citep">(Jigsaw, <a href="#bib.bib13" title="" class="ltx_ref">2017</a>)</cite>, Twitter <cite class="ltx_cite ltx_citemacro_citep">(Zampieri et al., <a href="#bib.bib28" title="" class="ltx_ref">2019</a>; Basile et al., <a href="#bib.bib2" title="" class="ltx_ref">2019</a>)</cite>, Stormfront <cite class="ltx_cite ltx_citemacro_citep">(de Gibert et al., <a href="#bib.bib7" title="" class="ltx_ref">2018</a>)</cite>, Reddit <cite class="ltx_cite ltx_citemacro_citep">(Hada et al., <a href="#bib.bib10" title="" class="ltx_ref">2021</a>)</cite>, Hateful Memes <cite class="ltx_cite ltx_citemacro_citep">(Kiela et al., <a href="#bib.bib14" title="" class="ltx_ref">2021</a>)</cite>. However, the task of guarding LLM-generated content differs from the human-generated content moderation as 1) the style and length of text produced by humans is different from that of LLMs, 2) the type of potential harms encountered in human-generated content are typically limited to hate speech, while LLM moderation requires dealing with a broader range of potential harms 3) guarding LLM-generated involves dealing with prompt-response pairs.</p>
+</div>
+<div id="S5.p3" class="ltx_para">
+<p id="S5.p3.1" class="ltx_p"><span id="S5.p3.1.1" class="ltx_text ltx_font_bold">Guarding LLM-generated content.</span>
+In addition to checking human-generated content, making LLM-based dialog systems safe requires checking model responses, as the system may generate inappropriate content <cite class="ltx_cite ltx_citemacro_citep">(Dinan et al., <a href="#bib.bib8" title="" class="ltx_ref">2019</a>)</cite>, or respond inappropriately to offensive content <cite class="ltx_cite ltx_citemacro_citep">(Lee et al., <a href="#bib.bib16" title="" class="ltx_ref">2019</a>; Cercas Curry and Rieser, <a href="#bib.bib5" title="" class="ltx_ref">2018</a>)</cite>. <cite class="ltx_cite ltx_citemacro_citet">Dinan et al. (<a href="#bib.bib9" title="" class="ltx_ref">2021</a>)</cite> surveys the safety landscape and proposes a framework to determine launch decisions for these systems.</p>
+</div>
+<div id="S5.p4" class="ltx_para">
+<p id="S5.p4.1" class="ltx_p">ToxicChat <cite class="ltx_cite ltx_citemacro_citep">(Lin et al., <a href="#bib.bib19" title="" class="ltx_ref">2023</a>)</cite> is a dataset geared specifically towards identifying violations in LLM-generated content based on user prompts and their generations from GPT4 and Vicuna.
+However, both <cite class="ltx_cite ltx_citemacro_citet">Markov et al. (<a href="#bib.bib20" title="" class="ltx_ref">2023</a>)</cite> and <cite class="ltx_cite ltx_citemacro_citet">Lin et al. (<a href="#bib.bib19" title="" class="ltx_ref">2023</a>)</cite> deal with classification of user prompts, and not the LLM-generated outputs.</p>
+</div>
+</section>
+<section id="S6" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6 </span>Limitations &amp; Broader Impacts</h2>
+
+<div id="S6.p1" class="ltx_para">
+<p id="S6.p1.1" class="ltx_p">We note a few major limitations of Llama Guard. First, although Llama Guard is a large language model, its common sense knowledge is limited by its training (and importantly, pretraining) data. It may produce wrong judgements, especially when it comes to knowledge beyond that which pertains to its training data. Second, all fine-tuning data, as well as most pretraining data used for Llama Guard is in English <cite class="ltx_cite ltx_citemacro_citep">(Touvron et al., <a href="#bib.bib24" title="" class="ltx_ref">2023</a>)</cite>, therefore we don’t guarantee that it can show adequate performance when used for other languages. Third, although we have confidence in the quality of the labels used for fine-tuning, we don’t claim that we have perfect coverage of our policy. There may very well be cases where Llama Guard shows subpar performance.</p>
+</div>
+<div id="S6.p2" class="ltx_para">
+<p id="S6.p2.1" class="ltx_p">The use case for which we trained Llama Guard is classification, with a rather limited output space. That said, we note that Llama Guard, as an LLM, can be prompted with any text to provide a completion. In particular, it can be used by parties that don’t necessarily have the best interests of the research community or the broader public. With this consideration in mind, we have performed red teaming on Llama Guard with external red teaming contractors. Although the outcome of this exercise did not point us to additional risks beyond those of the pretrained Llama2-7b model, we still ask our audience to exercise caution. When prompted as a chat model, instead of the intended use as a classifier, Llama Guard may generate language that can be considered unethical or unsafe, primarily due to the lack of safety fine-tuning for a chat use case. Lastly, we note that as an LLM, Llama Guard may be susceptible to prompt injection attacks that could alter or bypass its intended use.</p>
+</div>
+</section>
+<section id="S7" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">7 </span>Conclusion</h2>
+
+<div id="S7.p1" class="ltx_para">
+<p id="S7.p1.1" class="ltx_p">We introduced Llama Guard, an LLM-based input-output safeguard model applicable for human-AI conversations. We also introduced a safety risk taxonomy and the applicable policy, with which we collected data and trained Llama Guard. Being an LLM, Llama Guard can be trained for prompt and response classification tasks separately, without added overhead for a traditional multi-task setup. We validated Llama Guard first on our internal evaluation set, where its performance surpasses that of other available content moderation tools both in aggregate, as well as per-category. We also have shown strong performance on existing public datasets: On the ToxicChat dataset, Llama Guard showed better AUPRC than all baselines. On the OpenAI moderation dataset, Llama Guard showed comparable zero-shot performance (measured in AUPRC) with OpenAI moderation API, which is trained on data with the same characteristics; further we were able to show that it can show better AUPRC than the OpenAI moderation API when we use in-context examples in the Llama Guard prompt. Lastly, we showed that Llama Guard can be also adapted to a novel dataset with its own policy via further fine-tuning, which we found to be more data-efficient and performant than training it from scratch only for that particular dataset. We hope that Llama Guard can serve as a strong baseline, as well as a starting point to build even more capable content moderation tools, which can include adding more tasks, generating explanations for the decisions, and further exploring its zero-shot capabilities.</p>
+</div>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Anil et al. (2023)</span>
+<span class="ltx_bibblock">
+Rohan Anil, Andrew M Dai, Orhan Firat, Melvin Johnson, Dmitry Lepikhin, Alexandre Passos, Siamak Shakeri, Emanuel Taropa, Paige Bailey, Zhifeng Chen, et al.
+
+</span>
+<span class="ltx_bibblock">Palm 2 technical report.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib1.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2305.10403</em>, 2023.
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Basile et al. (2019)</span>
+<span class="ltx_bibblock">
+Valerio Basile, Cristina Bosco, Elisabetta Fersini, Debora Nozza, Viviana Patti, Francisco Manuel Rangel Pardo, Paolo Rosso, and Manuela Sanguinetti.
+
+</span>
+<span class="ltx_bibblock">SemEval-2019 task 5: Multilingual detection of hate speech against immigrants and women in Twitter.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib2.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 13th International Workshop on Semantic Evaluation</em>, pages 54–63, Minneapolis, Minnesota, USA, 2019. Association for Computational Linguistics.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https:/doi.org/10.18653/v1/S19-2007" title="" class="ltx_ref">10.18653/v1/S19-2007</a>.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://www.aclweb.org/anthology/S19-2007" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.aclweb.org/anthology/S19-2007</a>.
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Brown et al. (2020)</span>
+<span class="ltx_bibblock">
+Tom Brown, Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared D Kaplan, Prafulla Dhariwal, Arvind Neelakantan, Pranav Shyam, Girish Sastry, Amanda Askell, et al.
+
+</span>
+<span class="ltx_bibblock">Language models are few-shot learners.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib3.1.1" class="ltx_emph ltx_font_italic">Advances in neural information processing systems</em>, 33:1877–1901, 2020.
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Cai et al. (2023)</span>
+<span class="ltx_bibblock">
+Tianle Cai, Xuezhi Wang, Tengyu Ma, Xinyun Chen, and Denny Zhou.
+
+</span>
+<span class="ltx_bibblock">Large language models as tool makers, 2023.
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Cercas Curry and Rieser (2018)</span>
+<span class="ltx_bibblock">
+Amanda Cercas Curry and Verena Rieser.
+
+</span>
+<span class="ltx_bibblock">#MeToo Alexa: How conversational systems respond to sexual harassment.
+
+</span>
+<span class="ltx_bibblock">In Mark Alfano, Dirk Hovy, Margaret Mitchell, and Michael Strube, editors, <em id="bib.bib5.1.1" class="ltx_emph ltx_font_italic">Proceedings of the Second ACL Workshop on Ethics in Natural Language Processing</em>, pages 7–14, New Orleans, Louisiana, USA, June 2018. Association for Computational Linguistics.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https:/doi.org/10.18653/v1/W18-0802" title="" class="ltx_ref">10.18653/v1/W18-0802</a>.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://aclanthology.org/W18-0802" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://aclanthology.org/W18-0802</a>.
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chang et al. (2023)</span>
+<span class="ltx_bibblock">
+Yupeng Chang, Xu Wang, Jindong Wang, Yuan Wu, Linyi Yang, Kaijie Zhu, Hao Chen, Xiaoyuan Yi, Cunxiang Wang, Yidong Wang, Wei Ye, Yue Zhang, Yi Chang, Philip S. Yu, Qiang Yang, and Xing Xie.
+
+</span>
+<span class="ltx_bibblock">A survey on evaluation of large language models, 2023.
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">de Gibert et al. (2018)</span>
+<span class="ltx_bibblock">
+Ona de Gibert, Naiara Perez, Aitor García-Pablos, and Montse Cuadros.
+
+</span>
+<span class="ltx_bibblock">Hate Speech Dataset from a White Supremacy Forum.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib7.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 2nd Workshop on Abusive Language Online (ALW2)</em>, pages 11–20, Brussels, Belgium, October 2018. Association for Computational Linguistics.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https:/doi.org/10.18653/v1/W18-5102" title="" class="ltx_ref">10.18653/v1/W18-5102</a>.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://www.aclweb.org/anthology/W18-5102" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.aclweb.org/anthology/W18-5102</a>.
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Dinan et al. (2019)</span>
+<span class="ltx_bibblock">
+Emily Dinan, Samuel Humeau, Bharath Chintagunta, and Jason Weston.
+
+</span>
+<span class="ltx_bibblock">Build it break it fix it for dialogue safety: Robustness from adversarial human attack, 2019.
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Dinan et al. (2021)</span>
+<span class="ltx_bibblock">
+Emily Dinan, Gavin Abercrombie, A. Stevie Bergman, Shannon Spruit, Dirk Hovy, Y-Lan Boureau, and Verena Rieser.
+
+</span>
+<span class="ltx_bibblock">Anticipating safety issues in e2e conversational ai: Framework and tooling, 2021.
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Hada et al. (2021)</span>
+<span class="ltx_bibblock">
+Rishav Hada, Sohi Sudhir, Pushkar Mishra, Helen Yannakoudakis, Saif M. Mohammad, and Ekaterina Shutova.
+
+</span>
+<span class="ltx_bibblock">Ruddit: Norms of offensiveness for English Reddit comments.
+
+</span>
+<span class="ltx_bibblock">In Chengqing Zong, Fei Xia, Wenjie Li, and Roberto Navigli, editors, <em id="bib.bib10.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers)</em>, pages 2700–2717, Online, August 2021. Association for Computational Linguistics.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https:/doi.org/10.18653/v1/2021.acl-long.210" title="" class="ltx_ref">10.18653/v1/2021.acl-long.210</a>.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://aclanthology.org/2021.acl-long.210" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://aclanthology.org/2021.acl-long.210</a>.
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Halevy et al. (2022)</span>
+<span class="ltx_bibblock">
+Alon Halevy, Cristian Canton-Ferrer, Hao Ma, Umut Ozertem, Patrick Pantel, Marzieh Saeidi, Fabrizio Silvestri, and Ves Stoyanov.
+
+</span>
+<span class="ltx_bibblock">Preserving integrity in online social networks.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib11.1.1" class="ltx_emph ltx_font_italic">Communications of the ACM</em>, 65(2):92–98, 2022.
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Hoffmann et al. (2022)</span>
+<span class="ltx_bibblock">
+Jordan Hoffmann, Sebastian Borgeaud, Arthur Mensch, Elena Buchatskaya, Trevor Cai, Eliza Rutherford, Diego de Las Casas, Lisa Anne Hendricks, Johannes Welbl, Aidan Clark, Tom Hennigan, Eric Noland, Katie Millican, George van den Driessche, Bogdan Damoc, Aurelia Guy, Simon Osindero, Karen Simonyan, Erich Elsen, Jack W. Rae, Oriol Vinyals, and Laurent Sifre.
+
+</span>
+<span class="ltx_bibblock">Training compute-optimal large language models, 2022.
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Jigsaw (2017)</span>
+<span class="ltx_bibblock">
+Google Jigsaw.
+
+</span>
+<span class="ltx_bibblock">Perspective api.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://www.perspectiveapi.com/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.perspectiveapi.com/</a>, 2017.
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kiela et al. (2021)</span>
+<span class="ltx_bibblock">
+Douwe Kiela, Hamed Firooz, Aravind Mohan, Vedanuj Goswami, Amanpreet Singh, Pratik Ringshia, and Davide Testuggine.
+
+</span>
+<span class="ltx_bibblock">The hateful memes challenge: Detecting hate speech in multimodal memes, 2021.
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kudo and Richardson (2018)</span>
+<span class="ltx_bibblock">
+Taku Kudo and John Richardson.
+
+</span>
+<span class="ltx_bibblock">Sentencepiece: A simple and language independent subword tokenizer and detokenizer for neural text processing, 2018.
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lee et al. (2019)</span>
+<span class="ltx_bibblock">
+Nayeon Lee, Andrea Madotto, and Pascale Fung.
+
+</span>
+<span class="ltx_bibblock">Exploring social bias in chatbots using stereotype knowledge.
+
+</span>
+<span class="ltx_bibblock">In Amittai Axelrod, Diyi Yang, Rossana Cunha, Samira Shaikh, and Zeerak Waseem, editors, <em id="bib.bib16.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 2019 Workshop on Widening NLP</em>, pages 177–180, Florence, Italy, August 2019. Association for Computational Linguistics.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://aclanthology.org/W19-3655" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://aclanthology.org/W19-3655</a>.
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lees et al. (2022)</span>
+<span class="ltx_bibblock">
+Alyssa Lees, Vinh Q. Tran, Yi Tay, Jeffrey Sorensen, Jai Gupta, Donald Metzler, and Lucy Vasserman.
+
+</span>
+<span class="ltx_bibblock">A new generation of perspective api: Efficient multilingual character-level transformers, 2022.
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Liang et al. (2023)</span>
+<span class="ltx_bibblock">
+Percy Liang, Rishi Bommasani, Tony Lee, Dimitris Tsipras, Dilara Soylu, Michihiro Yasunaga, Yian Zhang, Deepak Narayanan, Yuhuai Wu, Ananya Kumar, Benjamin Newman, Binhang Yuan, Bobby Yan, Ce Zhang, Christian Cosgrove, Christopher D. Manning, Christopher Ré, Diana Acosta-Navas, Drew A. Hudson, Eric Zelikman, Esin Durmus, Faisal Ladhak, Frieda Rong, Hongyu Ren, Huaxiu Yao, Jue Wang, Keshav Santhanam, Laurel Orr, Lucia Zheng, Mert Yuksekgonul, Mirac Suzgun, Nathan Kim, Neel Guha, Niladri Chatterji, Omar Khattab, Peter Henderson, Qian Huang, Ryan Chi, Sang Michael Xie, Shibani Santurkar, Surya Ganguli, Tatsunori Hashimoto, Thomas Icard, Tianyi Zhang, Vishrav Chaudhary, William Wang, Xuechen Li, Yifan Mai, Yuhui Zhang, and Yuta Koreeda.
+
+</span>
+<span class="ltx_bibblock">Holistic evaluation of language models, 2023.
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lin et al. (2023)</span>
+<span class="ltx_bibblock">
+Zi Lin, Zihan Wang, Yongqi Tong, Yangkun Wang, Yuxin Guo, Yujia Wang, and Jingbo Shang.
+
+</span>
+<span class="ltx_bibblock">Toxicchat: Unveiling hidden challenges of toxicity detection in real-world user-ai conversation, 2023.
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Markov et al. (2023)</span>
+<span class="ltx_bibblock">
+Todor Markov, Chong Zhang, Sandhini Agarwal, Florentine Eloundou Nekoul, Theodore Lee, Steven Adler, Angela Jiang, and Lilian Weng.
+
+</span>
+<span class="ltx_bibblock">A holistic approach to undesired content detection in the real world.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib20.1.1" class="ltx_emph ltx_font_italic">Proceedings of the AAAI Conference on Artificial Intelligence</em>, volume 37, pages 15009–15018, 2023.
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Meta (2023)</span>
+<span class="ltx_bibblock">
+Meta.
+
+</span>
+<span class="ltx_bibblock">Llama 2 responsible use guide.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://ai.meta.com/static-resource/responsible-use-guide/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://ai.meta.com/static-resource/responsible-use-guide/</a>, 2023.
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">OpenAI (2023)</span>
+<span class="ltx_bibblock">
+OpenAI.
+
+</span>
+<span class="ltx_bibblock">Gpt-4 technical report, 2023.
+
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Schick et al. (2023)</span>
+<span class="ltx_bibblock">
+Timo Schick, Jane Dwivedi-Yu, Roberto Dessì, Roberta Raileanu, Maria Lomeli, Luke Zettlemoyer, Nicola Cancedda, and Thomas Scialom.
+
+</span>
+<span class="ltx_bibblock">Toolformer: Language models can teach themselves to use tools.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib23.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2302.04761</em>, 2023.
+
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Touvron et al. (2023)</span>
+<span class="ltx_bibblock">
+Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal Bhargava, Shruti Bhosale, et al.
+
+</span>
+<span class="ltx_bibblock">Llama 2: Open foundation and fine-tuned chat models.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib24.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2307.09288</em>, 2023.
+
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wei et al. (2022a)</span>
+<span class="ltx_bibblock">
+Jason Wei, Maarten Bosma, Vincent Y. Zhao, Kelvin Guu, Adams Wei Yu, Brian Lester, Nan Du, Andrew M. Dai, and Quoc V. Le.
+
+</span>
+<span class="ltx_bibblock">Finetuned language models are zero-shot learners, 2022a.
+
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wei et al. (2022b)</span>
+<span class="ltx_bibblock">
+Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny Zhou, et al.
+
+</span>
+<span class="ltx_bibblock">Chain-of-thought prompting elicits reasoning in large language models.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib26.1.1" class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, 35:24824–24837, 2022b.
+
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Yao et al. (2023)</span>
+<span class="ltx_bibblock">
+Shunyu Yao, Dian Yu, Jeffrey Zhao, Izhak Shafran, Thomas L Griffiths, Yuan Cao, and Karthik Narasimhan.
+
+</span>
+<span class="ltx_bibblock">Tree of thoughts: Deliberate problem solving with large language models.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib27.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2305.10601</em>, 2023.
+
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zampieri et al. (2019)</span>
+<span class="ltx_bibblock">
+Marcos Zampieri, Shervin Malmasi, Preslav Nakov, Sara Rosenthal, Noura Farra, and Ritesh Kumar.
+
+</span>
+<span class="ltx_bibblock">SemEval-2019 task 6: Identifying and categorizing offensive language in social media (OffensEval).
+
+</span>
+<span class="ltx_bibblock">In Jonathan May, Ekaterina Shutova, Aurelie Herbelot, Xiaodan Zhu, Marianna Apidianaki, and Saif M. Mohammad, editors, <em id="bib.bib28.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 13th International Workshop on Semantic Evaluation</em>, pages 75–86, Minneapolis, Minnesota, USA, June 2019. Association for Computational Linguistics.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https:/doi.org/10.18653/v1/S19-2010" title="" class="ltx_ref">10.18653/v1/S19-2010</a>.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://aclanthology.org/S19-2010" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://aclanthology.org/S19-2010</a>.
+
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhou et al. (2023)</span>
+<span class="ltx_bibblock">
+Chunting Zhou, Pengfei Liu, Puxin Xu, Srini Iyer, Jiao Sun, Yuning Mao, Xuezhe Ma, Avia Efrat, Ping Yu, Lili Yu, Susan Zhang, Gargi Ghosh, Mike Lewis, Luke Zettlemoyer, and Omer Levy.
+
+</span>
+<span class="ltx_bibblock">Lima: Less is more for alignment, 2023.
+
+</span>
+</li>
+</ul>
+</section>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<section id="Ax1" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">Appendix</h2>
+
+</section>
+<section id="A1" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix A </span>Acknowledgments</h2>
+
+<div id="A1.p1" class="ltx_para">
+<p id="A1.p1.1" class="ltx_p">This work was made possible by a large group of contributors. We extend our gratitude to the following people (<span id="A1.p1.1.1" class="ltx_text ltx_font_italic">sorted alphabetically by last name</span>):</p>
+<ul id="A1.I1" class="ltx_itemize">
+<li id="A1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i1.p1" class="ltx_para">
+<p id="A1.I1.i1.p1.1" class="ltx_p">Zacharie Delpierre Coudert, Sarin Deshpande, Edward Dowling, Angela Fan, Cristian Canton Ferrer, Vincent Gonguet, Chaya Nayak, Eleonora Presani, Joe Spisak, John Shephard who provided helpful product, technical and organization support.</p>
+</div>
+</li>
+<li id="A1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i2.p1" class="ltx_para">
+<p id="A1.I1.i2.p1.1" class="ltx_p">Our closest legal, policy, comms, marketing, and privacy partners, including Ashley Gabriel, Chirag Gala, Ahuva Goldstand, Ndidi Elue, Kelechi Ebi Kamanu, Alex Kessler, Dónal O’Connell, Raghu Nayani, Tamara Piksa, Helen Suk, Allie Vieth.</p>
+</div>
+</li>
+<li id="A1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i3.p1" class="ltx_para">
+<p id="A1.I1.i3.p1.1" class="ltx_p">Our technical partners, including Amjad Almahairi, Beto de Paola, Rui Hou, Andrew Schroeder, Amit Sangani, Samuel Selvan, Varun Vontimitta, Matt Wilde.</p>
+</div>
+</li>
+<li id="A1.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i4.p1" class="ltx_para">
+<p id="A1.I1.i4.p1.1" class="ltx_p">Our executive sponsors, including Ahmad Al-Dahle, Esteban Arcaute, Jason Gaedtke, Hao Ma, Manohar Paluri, Ragavan Srinivasan.</p>
+</div>
+</li>
+<li id="A1.I1.i5" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A1.I1.i5.p1" class="ltx_para">
+<p id="A1.I1.i5.p1.1" class="ltx_p">Early reviewers of this paper, who helped us improve its quality, including Laurens van der Maaten, Jason Weston.</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+<section id="A2" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix B </span>Further comparisons</h2>
+
+<div id="A2.p1" class="ltx_para">
+<p id="A2.p1.1" class="ltx_p">As mentioned in <a href="#S4.SS3.SSS3" title="4.3.3 Evaluation Metrics ‣ 4.3 Baselines &amp; Evaluation Metrics ‣ 4 Experiments ‣ Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3.3</span></a>, we could not compute AUPRC for baselines that did not offer output probabilities. For the sake of completeness, we compare them here using metrics that do not require access to probabilities. We set every threshold to 0.5 and compute Precision, Recall and F1 Score.</p>
+</div>
+<figure id="A2.T5" class="ltx_table">
+<div id="A2.T5.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:118.9pt;vertical-align:-0.8pt;"><span class="ltx_transformed_inner" style="transform:translate(-47.5pt,12.9pt) scale(0.82026428946049,0.82026428946049) ;">
+<table id="A2.T5.1.1" class="ltx_tabular ltx_align_middle">
+<tr id="A2.T5.1.1.1" class="ltx_tr">
+<td id="A2.T5.1.1.1.1" class="ltx_td ltx_border_tt" style="padding-top:6pt;padding-bottom:6pt;"></td>
+<td id="A2.T5.1.1.1.2" class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T5.1.1.1.2.1" class="ltx_text" style="font-size:120%;">Llama Guard</span></td>
+<td id="A2.T5.1.1.1.3" class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T5.1.1.1.3.1" class="ltx_text" style="font-size:120%;">OpenAI Mod API</span></td>
+<td id="A2.T5.1.1.1.4" class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T5.1.1.1.4.1" class="ltx_text" style="font-size:120%;">Azure API</span></td>
+<td id="A2.T5.1.1.1.5" class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T5.1.1.1.5.1" class="ltx_text" style="font-size:120%;">Perspective API</span></td>
+<td id="A2.T5.1.1.1.6" class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T5.1.1.1.6.1" class="ltx_text" style="font-size:120%;">GPT-4</span></td>
+</tr>
+<tr id="A2.T5.1.1.2" class="ltx_tr">
+<td id="A2.T5.1.1.2.1" class="ltx_td ltx_align_left ltx_border_t" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T5.1.1.2.1.1" class="ltx_text" style="font-size:120%;">Overall</span></td>
+<td id="A2.T5.1.1.2.2" class="ltx_td ltx_align_center ltx_border_t" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T5.1.1.2.2.1" class="ltx_text ltx_font_bold">0.880</span>/0.864/<span id="A2.T5.1.1.2.2.2" class="ltx_text ltx_font_bold">0.872</span>
+</td>
+<td id="A2.T5.1.1.2.3" class="ltx_td ltx_align_center ltx_border_t" style="padding-top:6pt;padding-bottom:6pt;">0.874/0.250/0.389</td>
+<td id="A2.T5.1.1.2.4" class="ltx_td ltx_align_center ltx_border_t" style="padding-top:6pt;padding-bottom:6pt;">0.788/0.515/0.623</td>
+<td id="A2.T5.1.1.2.5" class="ltx_td ltx_align_center ltx_border_t" style="padding-top:6pt;padding-bottom:6pt;">0.817/0.219/0.346</td>
+<td id="A2.T5.1.1.2.6" class="ltx_td ltx_align_center ltx_border_t" style="padding-top:6pt;padding-bottom:6pt;">0.717/<span id="A2.T5.1.1.2.6.1" class="ltx_text ltx_font_bold">0.947</span>/0.816</td>
+</tr>
+<tr id="A2.T5.1.1.3" class="ltx_tr">
+<td id="A2.T5.1.1.3.1" class="ltx_td ltx_align_left" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T5.1.1.3.1.1" class="ltx_text" style="font-size:120%;">VH</span></td>
+<td id="A2.T5.1.1.3.2" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.666/<span id="A2.T5.1.1.3.2.1" class="ltx_text ltx_font_bold">0.868</span>/<span id="A2.T5.1.1.3.2.2" class="ltx_text ltx_font_bold">0.754</span>
+</td>
+<td id="A2.T5.1.1.3.3" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T5.1.1.3.3.1" class="ltx_text ltx_font_bold">0.739</span>/0.388/0.509</td>
+<td id="A2.T5.1.1.3.4" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.596/0.779/0.675</td>
+<td id="A2.T5.1.1.3.5" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.647/0.342/0.448</td>
+<td id="A2.T5.1.1.3.6" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.379/0.865/0.527</td>
+</tr>
+<tr id="A2.T5.1.1.4" class="ltx_tr">
+<td id="A2.T5.1.1.4.1" class="ltx_td ltx_align_left" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T5.1.1.4.1.1" class="ltx_text" style="font-size:120%;">SC</span></td>
+<td id="A2.T5.1.1.4.2" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T5.1.1.4.2.1" class="ltx_text ltx_font_bold">0.638</span>/0.811/<span id="A2.T5.1.1.4.2.2" class="ltx_text ltx_font_bold">0.714</span>
+</td>
+<td id="A2.T5.1.1.4.3" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.268/0.324/0.293</td>
+<td id="A2.T5.1.1.4.4" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.195/0.824/0.315</td>
+<td id="A2.T5.1.1.4.5" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.241/0.382/0.295</td>
+<td id="A2.T5.1.1.4.6" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.093/<span id="A2.T5.1.1.4.6.1" class="ltx_text ltx_font_bold">0.941</span>/0.170</td>
+</tr>
+<tr id="A2.T5.1.1.5" class="ltx_tr">
+<td id="A2.T5.1.1.5.1" class="ltx_td ltx_align_left" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T5.1.1.5.1.1" class="ltx_text" style="font-size:120%;">CP</span></td>
+<td id="A2.T5.1.1.5.2" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T5.1.1.5.2.1" class="ltx_text ltx_font_bold">0.814</span>/0.884/<span id="A2.T5.1.1.5.2.2" class="ltx_text ltx_font_bold">0.847</span>
+</td>
+<td id="A2.T5.1.1.5.3" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.763/0.208/0.327</td>
+<td id="A2.T5.1.1.5.4" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.625/0.414/0.498</td>
+<td id="A2.T5.1.1.5.5" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.663/0.173/0.275</td>
+<td id="A2.T5.1.1.5.6" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.595/<span id="A2.T5.1.1.5.6.1" class="ltx_text ltx_font_bold">0.983</span>/0.741</td>
+</tr>
+<tr id="A2.T5.1.1.6" class="ltx_tr">
+<td id="A2.T5.1.1.6.1" class="ltx_td ltx_align_left" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T5.1.1.6.1.1" class="ltx_text" style="font-size:120%;">GIW</span></td>
+<td id="A2.T5.1.1.6.2" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T5.1.1.6.2.1" class="ltx_text ltx_font_bold">0.611</span>/0.943/<span id="A2.T5.1.1.6.2.2" class="ltx_text ltx_font_bold">0.742</span>
+</td>
+<td id="A2.T5.1.1.6.3" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.032/0.057/0.041</td>
+<td id="A2.T5.1.1.6.4" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.091/0.657/0.159</td>
+<td id="A2.T5.1.1.6.5" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.047/0.114/0.066</td>
+<td id="A2.T5.1.1.6.6" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.052/<span id="A2.T5.1.1.6.6.1" class="ltx_text ltx_font_bold">0.971</span>/0.099</td>
+</tr>
+<tr id="A2.T5.1.1.7" class="ltx_tr">
+<td id="A2.T5.1.1.7.1" class="ltx_td ltx_align_left" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T5.1.1.7.1.1" class="ltx_text" style="font-size:120%;">RCS</span></td>
+<td id="A2.T5.1.1.7.2" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T5.1.1.7.2.1" class="ltx_text ltx_font_bold">0.772</span>/0.910/<span id="A2.T5.1.1.7.2.2" class="ltx_text ltx_font_bold">0.836</span>
+</td>
+<td id="A2.T5.1.1.7.3" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.016/0.008/0.010</td>
+<td id="A2.T5.1.1.7.4" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.057/0.105/0.074</td>
+<td id="A2.T5.1.1.7.5" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.012/0.008/0.009</td>
+<td id="A2.T5.1.1.7.6" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.176/<span id="A2.T5.1.1.7.6.1" class="ltx_text ltx_font_bold">1.000</span>/0.300</td>
+</tr>
+<tr id="A2.T5.1.1.8" class="ltx_tr">
+<td id="A2.T5.1.1.8.1" class="ltx_td ltx_align_left ltx_border_bb" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T5.1.1.8.1.1" class="ltx_text" style="font-size:120%;">SH</span></td>
+<td id="A2.T5.1.1.8.2" class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T5.1.1.8.2.1" class="ltx_text ltx_font_bold">0.821</span>/0.885/<span id="A2.T5.1.1.8.2.2" class="ltx_text ltx_font_bold">0.852</span>
+</td>
+<td id="A2.T5.1.1.8.3" class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:6pt;padding-bottom:6pt;">0.250/0.800/0.381</td>
+<td id="A2.T5.1.1.8.4" class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:6pt;padding-bottom:6pt;">0.094/0.960/0.171</td>
+<td id="A2.T5.1.1.8.5" class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:6pt;padding-bottom:6pt;">0.155/0.600/0.246</td>
+<td id="A2.T5.1.1.8.6" class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:6pt;padding-bottom:6pt;">0.039/<span id="A2.T5.1.1.8.6.1" class="ltx_text ltx_font_bold">1.000</span>/0.075</td>
+</tr>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 5: </span>Prompt classification performance breakdown for each safety category in our dataset. The numbers in the table indicate precision, recall and F1 (i.e., P/R/F1), where the threshold is set to be 0.5. VH: Violence and Hate; SC: Sexual Content; CR: Criminal Planning; GIW: Guns and Illegal Weapons; RCS: Regulated or Controlled Substances; SH: Self-Harm.</figcaption>
+</figure>
+<figure id="A2.T6" class="ltx_table">
+<div id="A2.T6.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:118.9pt;vertical-align:-0.8pt;"><span class="ltx_transformed_inner" style="transform:translate(-47.5pt,12.9pt) scale(0.82026428946049,0.82026428946049) ;">
+<table id="A2.T6.1.1" class="ltx_tabular ltx_align_middle">
+<tr id="A2.T6.1.1.1" class="ltx_tr">
+<td id="A2.T6.1.1.1.1" class="ltx_td ltx_border_tt" style="padding-top:6pt;padding-bottom:6pt;"></td>
+<td id="A2.T6.1.1.1.2" class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T6.1.1.1.2.1" class="ltx_text" style="font-size:120%;">Llama Guard</span></td>
+<td id="A2.T6.1.1.1.3" class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T6.1.1.1.3.1" class="ltx_text" style="font-size:120%;">OpenAI Mod API</span></td>
+<td id="A2.T6.1.1.1.4" class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T6.1.1.1.4.1" class="ltx_text" style="font-size:120%;">Azure API</span></td>
+<td id="A2.T6.1.1.1.5" class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T6.1.1.1.5.1" class="ltx_text" style="font-size:120%;">Perspective API</span></td>
+<td id="A2.T6.1.1.1.6" class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T6.1.1.1.6.1" class="ltx_text" style="font-size:120%;">GPT-4</span></td>
+</tr>
+<tr id="A2.T6.1.1.2" class="ltx_tr">
+<td id="A2.T6.1.1.2.1" class="ltx_td ltx_align_left ltx_border_t" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T6.1.1.2.1.1" class="ltx_text" style="font-size:120%;">Overall</span></td>
+<td id="A2.T6.1.1.2.2" class="ltx_td ltx_align_center ltx_border_t" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T6.1.1.2.2.1" class="ltx_text ltx_font_bold">0.900</span>/<span id="A2.T6.1.1.2.2.2" class="ltx_text ltx_font_bold">0.867</span>/<span id="A2.T6.1.1.2.2.3" class="ltx_text ltx_font_bold">0.884</span>
+</td>
+<td id="A2.T6.1.1.2.3" class="ltx_td ltx_align_center ltx_border_t" style="padding-top:6pt;padding-bottom:6pt;">0.874/0.329/0.478</td>
+<td id="A2.T6.1.1.2.4" class="ltx_td ltx_align_center ltx_border_t" style="padding-top:6pt;padding-bottom:6pt;">0.749/0.564/0.644</td>
+<td id="A2.T6.1.1.2.5" class="ltx_td ltx_align_center ltx_border_t" style="padding-top:6pt;padding-bottom:6pt;">0.751/0.248/0.373</td>
+<td id="A2.T6.1.1.2.6" class="ltx_td ltx_align_center ltx_border_t" style="padding-top:6pt;padding-bottom:6pt;">0.813/0.788/0.801</td>
+</tr>
+<tr id="A2.T6.1.1.3" class="ltx_tr">
+<td id="A2.T6.1.1.3.1" class="ltx_td ltx_align_left" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T6.1.1.3.1.1" class="ltx_text" style="font-size:120%;">VH</span></td>
+<td id="A2.T6.1.1.3.2" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.713/<span id="A2.T6.1.1.3.2.1" class="ltx_text ltx_font_bold">0.761</span>/<span id="A2.T6.1.1.3.2.2" class="ltx_text ltx_font_bold">0.736</span>
+</td>
+<td id="A2.T6.1.1.3.3" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T6.1.1.3.3.1" class="ltx_text ltx_font_bold">0.733</span>/0.560/0.635</td>
+<td id="A2.T6.1.1.3.4" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.673/0.372/0.479</td>
+<td id="A2.T6.1.1.3.5" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.581/0.491/0.532</td>
+<td id="A2.T6.1.1.3.6" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.456/0.651/0.536</td>
+</tr>
+<tr id="A2.T6.1.1.4" class="ltx_tr">
+<td id="A2.T6.1.1.4.1" class="ltx_td ltx_align_left" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T6.1.1.4.1.1" class="ltx_text" style="font-size:120%;">SC</span></td>
+<td id="A2.T6.1.1.4.2" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T6.1.1.4.2.1" class="ltx_text ltx_font_bold">0.681</span>/0.753/<span id="A2.T6.1.1.4.2.2" class="ltx_text ltx_font_bold">0.715</span>
+</td>
+<td id="A2.T6.1.1.4.3" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.216/0.328/0.260</td>
+<td id="A2.T6.1.1.4.4" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.432/<span id="A2.T6.1.1.4.4.1" class="ltx_text ltx_font_bold">0.806</span>/0.562</td>
+<td id="A2.T6.1.1.4.5" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.131/0.313/0.185</td>
+<td id="A2.T6.1.1.4.6" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.138/0.731/0.232</td>
+</tr>
+<tr id="A2.T6.1.1.5" class="ltx_tr">
+<td id="A2.T6.1.1.5.1" class="ltx_td ltx_align_left" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T6.1.1.5.1.1" class="ltx_text" style="font-size:120%;">CP</span></td>
+<td id="A2.T6.1.1.5.2" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T6.1.1.5.2.1" class="ltx_text ltx_font_bold">0.829</span>/<span id="A2.T6.1.1.5.2.2" class="ltx_text ltx_font_bold">0.880</span>/<span id="A2.T6.1.1.5.2.3" class="ltx_text ltx_font_bold">0.854</span>
+</td>
+<td id="A2.T6.1.1.5.3" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.776/0.284/0.416</td>
+<td id="A2.T6.1.1.5.4" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.777/0.254/0.383</td>
+<td id="A2.T6.1.1.5.5" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.550/0.174/0.265</td>
+<td id="A2.T6.1.1.5.6" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.731/0.853/0.788</td>
+</tr>
+<tr id="A2.T6.1.1.6" class="ltx_tr">
+<td id="A2.T6.1.1.6.1" class="ltx_td ltx_align_left" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T6.1.1.6.1.1" class="ltx_text" style="font-size:120%;">GIW</span></td>
+<td id="A2.T6.1.1.6.2" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T6.1.1.6.2.1" class="ltx_text ltx_font_bold">0.594</span>/0.776/<span id="A2.T6.1.1.6.2.2" class="ltx_text ltx_font_bold">0.673</span>
+</td>
+<td id="A2.T6.1.1.6.3" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.059/0.111/0.077</td>
+<td id="A2.T6.1.1.6.4" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.228/0.467/0.307</td>
+<td id="A2.T6.1.1.6.5" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.021/0.067/0.032</td>
+<td id="A2.T6.1.1.6.6" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.123/<span id="A2.T6.1.1.6.6.1" class="ltx_text ltx_font_bold">0.956</span>/0.218</td>
+</tr>
+<tr id="A2.T6.1.1.7" class="ltx_tr">
+<td id="A2.T6.1.1.7.1" class="ltx_td ltx_align_left" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T6.1.1.7.1.1" class="ltx_text" style="font-size:120%;">RCS</span></td>
+<td id="A2.T6.1.1.7.2" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T6.1.1.7.2.1" class="ltx_text ltx_font_bold">0.784</span>/<span id="A2.T6.1.1.7.2.2" class="ltx_text ltx_font_bold">0.876</span>/<span id="A2.T6.1.1.7.2.3" class="ltx_text ltx_font_bold">0.828</span>
+</td>
+<td id="A2.T6.1.1.7.3" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.036/0.023/0.028</td>
+<td id="A2.T6.1.1.7.4" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.101/0.062/0.077</td>
+<td id="A2.T6.1.1.7.5" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.014/0.015/0.015</td>
+<td id="A2.T6.1.1.7.6" class="ltx_td ltx_align_center" style="padding-top:6pt;padding-bottom:6pt;">0.254/0.800/0.385</td>
+</tr>
+<tr id="A2.T6.1.1.8" class="ltx_tr">
+<td id="A2.T6.1.1.8.1" class="ltx_td ltx_align_left ltx_border_bb" style="padding-top:6pt;padding-bottom:6pt;"><span id="A2.T6.1.1.8.1.1" class="ltx_text" style="font-size:120%;">SH</span></td>
+<td id="A2.T6.1.1.8.2" class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:6pt;padding-bottom:6pt;">
+<span id="A2.T6.1.1.8.2.1" class="ltx_text ltx_font_bold">0.913</span>/0.750/<span id="A2.T6.1.1.8.2.2" class="ltx_text ltx_font_bold">0.824</span>
+</td>
+<td id="A2.T6.1.1.8.3" class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:6pt;padding-bottom:6pt;">0.208/<span id="A2.T6.1.1.8.3.1" class="ltx_text ltx_font_bold">0.875</span>/0.336</td>
+<td id="A2.T6.1.1.8.4" class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:6pt;padding-bottom:6pt;">0.220/0.833/0.348</td>
+<td id="A2.T6.1.1.8.5" class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:6pt;padding-bottom:6pt;">0.115/0.750/0.199</td>
+<td id="A2.T6.1.1.8.6" class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:6pt;padding-bottom:6pt;">0.064/<span id="A2.T6.1.1.8.6.1" class="ltx_text ltx_font_bold">0.875</span>/0.120</td>
+</tr>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 6: </span>Response classification performance breakdown for each safety category in our dataset. The numbers in the table indicate precision, recall and F1 (i.e., P/R/F1), where the threshold is set to be 0.5. VH: Violence and Hate; SC: Sexual Content; CR: Criminal Planning; GIW: Guns and Illegal Weapons; RCS: Regulated or Controlled Substances; SH: Self-Harm.</figcaption>
+</figure>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2312.06672" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2312.06674" class="ar5iv-text-button ar5iv-severity-error">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2312.06674">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2312.06674" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2312.06675" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Tue Feb 27 14:30:41 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

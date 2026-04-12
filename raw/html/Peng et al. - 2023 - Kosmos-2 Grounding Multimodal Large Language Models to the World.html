@@ -1,0 +1,1822 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2306.14824] Kosmos-2: Grounding Multimodal Large Language Models to the World</title><meta property="og:description" content="We introduce Kosmos-2, a Multimodal Large Language Model (MLLM), enabling new capabilities of perceiving object descriptions (e.g., bounding boxes) and grounding text to the visual world.
+Specifically, we represent ref…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Kosmos-2: Grounding Multimodal Large Language Models to the World">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="Kosmos-2: Grounding Multimodal Large Language Models to the World">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2306.14824">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2306.14824">
+
+<!--Generated on Wed Feb 28 22:04:13 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_title_document">
+<span id="id3.id1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>: Grounding Multimodal Large Language Models to the World</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+ 
+<br class="ltx_break">Zhiliang Peng,  Wenhui Wang<span id="footnotex1" class="ltx_note ltx_role_footnotemark"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_note_type">footnotemark: </span><span class="ltx_tag ltx_tag_note">1</span></span></span></span>,  Li Dong<span id="footnotex2" class="ltx_note ltx_role_footnotemark"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_note_type">footnotemark: </span><span class="ltx_tag ltx_tag_note">1</span></span></span></span>,  Yaru Hao,  Shaohan Huang,  Shuming Ma,  Furu Wei<sup id="id4.3.id1" class="ltx_sup">†</sup> 
+<br class="ltx_break">Microsoft Research 
+<br class="ltx_break"><a target="_blank" href="https://aka.ms/GeneralAI" title="" class="ltx_ref ltx_href">https://aka.ms/GeneralAI</a>
+
+
+<br class="ltx_break">
+</span><span class="ltx_author_notes"> Equal contribution. <math id="id1.1.m1.1" class="ltx_Math" alttext="\dagger" display="inline"><semantics id="id1.1.m1.1a"><mo id="id1.1.m1.1.1" xref="id1.1.m1.1.1.cmml">†</mo><annotation-xml encoding="MathML-Content" id="id1.1.m1.1b"><ci id="id1.1.m1.1.1.cmml" xref="id1.1.m1.1.1">†</ci></annotation-xml><annotation encoding="application/x-tex" id="id1.1.m1.1c">\dagger</annotation></semantics></math> Corresponding author.</span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id5.id1" class="ltx_p">We introduce <span id="id5.id1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>, a Multimodal Large Language Model (MLLM), enabling new capabilities of perceiving object descriptions (<span id="id5.id1.2" class="ltx_text ltx_font_italic">e.g.</span>, bounding boxes) and grounding text to the visual world.
+Specifically, we represent refer expressions as links in Markdown, <span id="id5.id1.3" class="ltx_text ltx_font_italic">i.e.</span>, “<span id="id5.id1.4" class="ltx_text ltx_font_typewriter">[text span](bounding boxes)</span>”, where object descriptions are sequences of location tokens.
+Together with multimodal corpora, we construct large-scale data of grounded image-text pairs (called <span id="id5.id1.5" class="ltx_text ltx_font_smallcaps">GrIT</span>) to train the model.
+In addition to the existing capabilities of MLLMs (<span id="id5.id1.6" class="ltx_text ltx_font_italic">e.g.</span>, perceiving general modalities, following instructions, and performing in-context learning), <span id="id5.id1.7" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> integrates the grounding capability into downstream applications.
+We evaluate <span id="id5.id1.8" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> on a wide range of tasks, including (i) multimodal grounding, such as referring expression comprehension, and phrase grounding, (ii) multimodal referring, such as referring expression generation, (iii) perception-language tasks, and (iv) language understanding and generation.
+This work lays out the foundation for the development of Embodiment AI and sheds light on the big convergence of language, multimodal perception, action, and world modeling, which is a key step toward artificial general intelligence.
+Code and pretrained models are available at <a target="_blank" href="https://aka.ms/kosmos-2" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://aka.ms/kosmos-2</a>.</p>
+</div>
+<figure id="S0.F1" class="ltx_figure"><img src="/html/2306.14824/assets/x1.png" id="S0.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="415" height="259" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S0.F1.5.1.1" class="ltx_text" style="font-size:90%;">Figure 1</span>: </span><span id="S0.F1.6.2" class="ltx_text" style="font-size:90%;">
+<span id="S0.F1.6.2.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> is a multimodal large language model that has new capabilities of multimodal grounding and referring. <span id="S0.F1.6.2.2" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> can understand multimodal input, follow instructions, perceive object descriptions (<span id="S0.F1.6.2.3" class="ltx_text ltx_font_italic">e.g.</span>, bounding boxes), and ground language to the visual world.
+</span></figcaption>
+</figure>
+<figure id="S0.F2" class="ltx_figure"><img src="/html/2306.14824/assets/x2.png" id="S0.F2.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="461" height="637" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S0.F2.3.1.1" class="ltx_text" style="font-size:90%;">Figure 2</span>: </span><span id="S0.F2.4.2" class="ltx_text" style="font-size:90%;">
+Selected examples generated from <span id="S0.F2.4.2.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>.
+The examples include (1) visual grounding, (2)-(3) grounded question answering, (4)-(6) multimodal referring via bounding boxes, and (7) grounded image captioning.
+</span></figcaption>
+</figure>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">Multimodal Large Language Models (MLLMs) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib11" title="" class="ltx_ref">11</a>, <a href="#bib.bib1" title="" class="ltx_ref">1</a>, <a href="#bib.bib9" title="" class="ltx_ref">9</a>, <a href="#bib.bib8" title="" class="ltx_ref">8</a>, <a href="#bib.bib24" title="" class="ltx_ref">24</a>]</cite> have successfully played a role as a general-purpose interface across a wide range of tasks, such as language, vision, and vision-language tasks.
+MLLMs can perceive general modalities, including texts, images, and audio, and generate responses using free-form texts under zero-shot and few-shot settings.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">In this work, we unlock the grounding capability for multimodal large language models.
+Grounding capability can provide a more convenient and efficient human-AI interaction for vision-language tasks.
+It enables the user to point to the object or region in the image directly rather than input detailed text descriptions to refer to it, the model can understand that image region with its spatial locations.
+Grounding capability also enables the model to respond with visual answers (<span id="S1.p2.1.1" class="ltx_text ltx_font_italic">i.e.</span>, bounding boxes), which can support more vision-language tasks such as referring expression comprehension.
+Visual answers are more accurate and resolve the coreference ambiguity compared with text-only responses.
+In addition, grounding capability can link noun phrases and referring expressions in the generated free-form text response to the image regions, providing more accurate, informational, and comprehensive answers.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p">We introduce <span id="S1.p3.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>, a multimodal large language model with grounding capability built upon <span id="S1.p3.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>.
+<span id="S1.p3.1.3" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> is a Transformer-based causal language model and is trained using the next-word prediction task.
+In order to unlock the grounding capability, we construct a web-scale dataset of grounded image-text pairs, and combine it with the multimodal corpora in <span id="S1.p3.1.4" class="ltx_text ltx_font_smallcaps">Kosmos-1</span> to train the model.
+The grounded image-text pairs are built upon a subset of image-text pairs from LAION-2B <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="" class="ltx_ref">26</a>]</cite> and COYO-700M <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib4" title="" class="ltx_ref">4</a>]</cite>.
+We construct a pipeline to extract and link the text spans (<span id="S1.p3.1.5" class="ltx_text ltx_font_italic">i.e.</span>, noun phrases and referring expressions) in the caption to the spatial locations (<span id="S1.p3.1.6" class="ltx_text ltx_font_italic">e.g.</span>, bounding boxes) of its corresponding objects or regions in the image.
+We convert the spatial coordinates of the bounding boxes to a sequence of location tokens, which is then appended after its respective text spans.
+The data format serves as a “<span id="S1.p3.1.7" class="ltx_text ltx_font_italic">hyperlink</span>” to connect the objects or regions of the image to the caption.</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p id="S1.p4.1" class="ltx_p">Experimental results demonstrate that <span id="S1.p4.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> not only achieves competitive performance on language and vision-language tasks evaluated in <span id="S1.p4.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>, but also achieves impressive performance on grounding tasks (phrase grounding and referring expression comprehension) and referring tasks (referring expression generation).
+As shown in Figure <a href="#S0.F2" title="Figure 2 ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, integrating the grounding capability enables <span id="S1.p4.1.3" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> to be used for more downstream tasks, such as grounded image captioning, and grounded visual question answering.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Construction of Web-Scale Grounded Image-Text Pairs (<span id="S2.1.1" class="ltx_text ltx_font_smallcaps">GrIT</span>)</h2>
+
+<div id="S2.p1" class="ltx_para">
+<p id="S2.p1.1" class="ltx_p">We introduce <span id="S2.p1.1.1" class="ltx_text ltx_font_smallcaps">GrIT<span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note"><span id="footnote1.1.1.1" class="ltx_text ltx_font_upright">1</span></span><span id="footnote1.9" class="ltx_text ltx_font_upright">A subset of </span><span id="footnote1.10" class="ltx_text">GrIT</span><span id="footnote1.11" class="ltx_text ltx_font_upright"> can be downloaded at </span><a target="_blank" href="https://aka.ms/kosmos-2" title="" class="ltx_ref ltx_url ltx_font_typewriter ltx_font_upright">https://aka.ms/kosmos-2</a><span id="footnote1.12" class="ltx_text ltx_font_upright">.</span></span></span></span></span>, a large-scale dataset of <span id="S2.p1.1.2" class="ltx_text ltx_font_bold">Gr</span>ounded <span id="S2.p1.1.3" class="ltx_text ltx_font_bold">I</span>mage-<span id="S2.p1.1.4" class="ltx_text ltx_font_bold">T</span>ext pairs, which is created based on image-text pairs from a subset of COYO-700M <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib4" title="" class="ltx_ref">4</a>]</cite> and LAION-2B <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="" class="ltx_ref">26</a>]</cite>).
+We construct a pipeline to extract and link text spans (<span id="S2.p1.1.5" class="ltx_text ltx_font_italic">i.e.</span>, noun phrases and referring expressions) in the caption to their corresponding image regions.
+The pipeline mainly consists of two steps: generating noun-chunk-bounding-box pairs and producing referring-expression-bounding-box pairs.
+We describe these steps in detail below:</p>
+</div>
+<section id="S2.SS0.SSS0.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Step-1: Generating noun-chunk-bounding-box pairs</h5>
+
+<div id="S2.SS0.SSS0.Px1.p1" class="ltx_para">
+<p id="S2.SS0.SSS0.Px1.p1.1" class="ltx_p">Given an image-text pair, we first extract noun chunks from the caption and associate them with image regions using a pretrained detector.
+As illustrated in Figure <a href="#S2.F3" title="Figure 3 ‣ Step-2: Producing referring-expression-bounding-box pairs ‣ 2 Construction of Web-Scale Grounded Image-Text Pairs (GrIT) ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, we use spaCy <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib10" title="" class="ltx_ref">10</a>]</cite> to parse the caption (“<span id="S2.SS0.SSS0.Px1.p1.1.1" class="ltx_text ltx_font_italic">a dog in a field of flowers</span>") and extract all noun chunks (“<span id="S2.SS0.SSS0.Px1.p1.1.2" class="ltx_text ltx_font_italic">a dog</span>”, “<span id="S2.SS0.SSS0.Px1.p1.1.3" class="ltx_text ltx_font_italic">a field</span>” and “<span id="S2.SS0.SSS0.Px1.p1.1.4" class="ltx_text ltx_font_italic">flowers</span>”).
+We eliminate certain abstract noun phrases that are challenging to recognize in the image, such as “<span id="S2.SS0.SSS0.Px1.p1.1.5" class="ltx_text ltx_font_italic">time</span>”, “<span id="S2.SS0.SSS0.Px1.p1.1.6" class="ltx_text ltx_font_italic">love</span>”, and “<span id="S2.SS0.SSS0.Px1.p1.1.7" class="ltx_text ltx_font_italic">freedom</span>”, to reduce potential noise.
+Subsequently, we input the image and noun chunks extracted from the caption into a pretrained grounding model (<span id="S2.SS0.SSS0.Px1.p1.1.8" class="ltx_text ltx_font_italic">e.g.</span>, GLIP <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib21" title="" class="ltx_ref">21</a>]</cite>) to obtain the associated bounding boxes.
+Non-maximum suppression algorithm is applied to remove bounding boxes that have a high overlap with others, even if they are not for the same noun chunk.
+We keep noun-chunk-bounding-box pairs with predicted confidence scores higher than 0.65.
+If no bounding boxes are retained, we discard the corresponding image-caption pair.</p>
+</div>
+</section>
+<section id="S2.SS0.SSS0.Px2" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Step-2: Producing referring-expression-bounding-box pairs</h5>
+
+<div id="S2.SS0.SSS0.Px2.p1" class="ltx_para">
+<p id="S2.SS0.SSS0.Px2.p1.1" class="ltx_p">In order to endow the model with the ability to ground complex linguistic descriptions, we expand noun chunks to referring expressions.
+Specifically, we use spaCy to obtain dependency relations of the sentence.
+We then expand a noun chunk into a referring expression by recursively traversing its children in the dependency tree and concatenating children tokens with the noun chunk.
+We do not expand noun chunks with conjuncts.
+For noun chunks without children tokens, we keep them for the next process.
+In the example shown in Figure <a href="#S2.F3" title="Figure 3 ‣ Step-2: Producing referring-expression-bounding-box pairs ‣ 2 Construction of Web-Scale Grounded Image-Text Pairs (GrIT) ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, the noun chunk ‘<span id="S2.SS0.SSS0.Px2.p1.1.1" class="ltx_text ltx_font_italic">a dog</span>’ can be expanded to “<span id="S2.SS0.SSS0.Px2.p1.1.2" class="ltx_text ltx_font_italic">a dog in a field of flowers</span>”, and the noun chunk ‘<span id="S2.SS0.SSS0.Px2.p1.1.3" class="ltx_text ltx_font_italic">a field</span>’ can be expanded to “<span id="S2.SS0.SSS0.Px2.p1.1.4" class="ltx_text ltx_font_italic">a field of flowers</span>”.</p>
+</div>
+<div id="S2.SS0.SSS0.Px2.p2" class="ltx_para">
+<p id="S2.SS0.SSS0.Px2.p2.1" class="ltx_p">Furthermore, we only retain referring expressions or noun chunks that are not contained by others.
+As shown in Figure <a href="#S2.F3" title="Figure 3 ‣ Step-2: Producing referring-expression-bounding-box pairs ‣ 2 Construction of Web-Scale Grounded Image-Text Pairs (GrIT) ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, we keep the referring expression “<span id="S2.SS0.SSS0.Px2.p2.1.1" class="ltx_text ltx_font_italic">a dog in a field of flowers</span>” and drop “<span id="S2.SS0.SSS0.Px2.p2.1.2" class="ltx_text ltx_font_italic">a field of flowers</span>” (as it is entailed by “<span id="S2.SS0.SSS0.Px2.p2.1.3" class="ltx_text ltx_font_italic">a dog in a field of flowers</span>”) and ‘<span id="S2.SS0.SSS0.Px2.p2.1.4" class="ltx_text ltx_font_italic">flowers</span>’.
+We assign the bounding box of the noun chunk (‘<span id="S2.SS0.SSS0.Px2.p2.1.5" class="ltx_text ltx_font_italic">a dog</span>’) to the corresponding generated referring expression (“<span id="S2.SS0.SSS0.Px2.p2.1.6" class="ltx_text ltx_font_italic">a dog in a field of flowers</span>”).</p>
+</div>
+<figure id="S2.F3" class="ltx_figure"><img src="/html/2306.14824/assets/x3.png" id="S2.F3.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="461" height="185" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S2.F3.2.1.1" class="ltx_text" style="font-size:90%;">Figure 3</span>: </span><span id="S2.F3.3.2" class="ltx_text" style="font-size:90%;">
+The pipeline of constructing web-scale grounded image-text pairs.
+</span></figcaption>
+</figure>
+<figure id="S2.T1" class="ltx_table">
+<div id="S2.T1.2" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:112.5pt;vertical-align:-0.9pt;"><span class="ltx_transformed_inner" style="transform:translate(-27.9pt,7.2pt) scale(0.885947603374017,0.885947603374017) ;">
+<table id="S2.T1.2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.2.1.1" class="ltx_tr">
+<td id="S2.T1.2.1.1.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="S2.T1.2.1.1.1.1" class="ltx_text ltx_font_bold">Dataset</span></td>
+<td id="S2.T1.2.1.1.2" class="ltx_td ltx_align_right ltx_border_tt"><span id="S2.T1.2.1.1.2.1" class="ltx_text ltx_font_bold">Images</span></td>
+<td id="S2.T1.2.1.1.3" class="ltx_td ltx_align_right ltx_border_tt"><span id="S2.T1.2.1.1.3.1" class="ltx_text ltx_font_bold">Objects</span></td>
+<td id="S2.T1.2.1.1.4" class="ltx_td ltx_align_right ltx_border_tt"><span id="S2.T1.2.1.1.4.1" class="ltx_text ltx_font_bold">Text Spans</span></td>
+<td id="S2.T1.2.1.1.5" class="ltx_td ltx_align_center ltx_border_tt"><span id="S2.T1.2.1.1.5.1" class="ltx_text ltx_font_bold">Avg Expression Length</span></td>
+</tr>
+<tr id="S2.T1.2.1.2" class="ltx_tr">
+<td id="S2.T1.2.1.2.1" class="ltx_td ltx_align_left ltx_border_t">Flickr Entities <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib25" title="" class="ltx_ref">25</a>]</cite>
+</td>
+<td id="S2.T1.2.1.2.2" class="ltx_td ltx_align_right ltx_border_t">31,783</td>
+<td id="S2.T1.2.1.2.3" class="ltx_td ltx_align_right ltx_border_t">275,775</td>
+<td id="S2.T1.2.1.2.4" class="ltx_td ltx_align_right ltx_border_t">513,644</td>
+<td id="S2.T1.2.1.2.5" class="ltx_td ltx_align_center ltx_border_t">-</td>
+</tr>
+<tr id="S2.T1.2.1.3" class="ltx_tr">
+<td id="S2.T1.2.1.3.1" class="ltx_td ltx_align_left">RefCOCOg <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite>
+</td>
+<td id="S2.T1.2.1.3.2" class="ltx_td ltx_align_right">26,711</td>
+<td id="S2.T1.2.1.3.3" class="ltx_td ltx_align_right">54,822</td>
+<td id="S2.T1.2.1.3.4" class="ltx_td ltx_align_right">85,474</td>
+<td id="S2.T1.2.1.3.5" class="ltx_td ltx_align_center">8.43</td>
+</tr>
+<tr id="S2.T1.2.1.4" class="ltx_tr">
+<td id="S2.T1.2.1.4.1" class="ltx_td ltx_align_left">RefCOCO <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib32" title="" class="ltx_ref">32</a>]</cite>
+</td>
+<td id="S2.T1.2.1.4.2" class="ltx_td ltx_align_right">19,994</td>
+<td id="S2.T1.2.1.4.3" class="ltx_td ltx_align_right">50,000</td>
+<td id="S2.T1.2.1.4.4" class="ltx_td ltx_align_right">142,209</td>
+<td id="S2.T1.2.1.4.5" class="ltx_td ltx_align_center">3.61</td>
+</tr>
+<tr id="S2.T1.2.1.5" class="ltx_tr">
+<td id="S2.T1.2.1.5.1" class="ltx_td ltx_align_left">RefCOCO+ <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib32" title="" class="ltx_ref">32</a>]</cite>
+</td>
+<td id="S2.T1.2.1.5.2" class="ltx_td ltx_align_right">19,992</td>
+<td id="S2.T1.2.1.5.3" class="ltx_td ltx_align_right">49,856</td>
+<td id="S2.T1.2.1.5.4" class="ltx_td ltx_align_right">141,564</td>
+<td id="S2.T1.2.1.5.5" class="ltx_td ltx_align_center">3.53</td>
+</tr>
+<tr id="S2.T1.2.1.6" class="ltx_tr">
+<td id="S2.T1.2.1.6.1" class="ltx_td ltx_align_left">Visual Genome <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib16" title="" class="ltx_ref">16</a>]</cite>
+</td>
+<td id="S2.T1.2.1.6.2" class="ltx_td ltx_align_right">108,077</td>
+<td id="S2.T1.2.1.6.3" class="ltx_td ltx_align_right">4,102,818</td>
+<td id="S2.T1.2.1.6.4" class="ltx_td ltx_align_right">-</td>
+<td id="S2.T1.2.1.6.5" class="ltx_td ltx_align_center">-</td>
+</tr>
+<tr id="S2.T1.2.1.7" class="ltx_tr">
+<td id="S2.T1.2.1.7.1" class="ltx_td ltx_align_left ltx_border_bb ltx_border_t">
+<span id="S2.T1.2.1.7.1.1" class="ltx_text ltx_font_smallcaps">GrIT</span><span id="S2.T1.2.1.7.1.2" class="ltx_text ltx_font_bold"> (Ours)</span>
+</td>
+<td id="S2.T1.2.1.7.2" class="ltx_td ltx_align_right ltx_border_bb ltx_border_t">90,614,680</td>
+<td id="S2.T1.2.1.7.3" class="ltx_td ltx_align_right ltx_border_bb ltx_border_t">137,349,210</td>
+<td id="S2.T1.2.1.7.4" class="ltx_td ltx_align_right ltx_border_bb ltx_border_t">114,978,233</td>
+<td id="S2.T1.2.1.7.5" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">4.7</td>
+</tr>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S2.T1.4.1.1" class="ltx_text" style="font-size:90%;">Table 1</span>: </span><span id="S2.T1.5.2" class="ltx_text" style="font-size:90%;">Comparison <span id="S2.T1.5.2.1" class="ltx_text ltx_font_smallcaps">GrIT</span> with existing visual grounding datasets.</span></figcaption>
+</figure>
+<div id="S2.SS0.SSS0.Px2.p3" class="ltx_para">
+<p id="S2.SS0.SSS0.Px2.p3.1" class="ltx_p">In the end, we obtain approximately 91M images, 115M text spans, and 137M associated bounding boxes.
+We compare <span id="S2.SS0.SSS0.Px2.p3.1.1" class="ltx_text ltx_font_smallcaps">GrIT</span> with existing publicly accessible visual grounding datasets in Table <a href="#S2.T1" title="Table 1 ‣ Step-2: Producing referring-expression-bounding-box pairs ‣ 2 Construction of Web-Scale Grounded Image-Text Pairs (GrIT) ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>.
+Data samples of <span id="S2.SS0.SSS0.Px2.p3.1.2" class="ltx_text ltx_font_smallcaps">GrIT</span> are shown in the Appendix.</p>
+</div>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span><span id="S3.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>: A Grounded Multimodal Large Language Model</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.1" class="ltx_p"><span id="S3.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> is a grounded multimodal large language model, which integrates grounding and referring capabilities compared with <span id="S3.p1.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>.
+The model can accept image regions selected by the user using bounding boxes as input, provide visual answers (<span id="S3.p1.1.3" class="ltx_text ltx_font_italic">i.e.</span>, bounding boxes), and ground the text output to the visual world.
+<span id="S3.p1.1.4" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> adopts the same model architecture and training objective as <span id="S3.p1.1.5" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>.
+We add grounded image-text pairs into the training data to endow the model with grounding and referring capabilities.
+For a text span (such as noun phrase and referring expression) and its corresponding bounding boxes in a grounded image-text pair, We discretize continuous coordinates of bounding boxes into a sequence of location tokens to encode with text tokens in a unified way.
+Then we link the location tokens and their corresponding text span via a “<span id="S3.p1.1.6" class="ltx_text ltx_font_italic">hyperlink</span>” data format.
+The model is trained to establish a mapping between image regions and their corresponding location tokens and connect the image regions with their associated text spans.</p>
+</div>
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1 </span>Grounded Input Representations</h3>
+
+<div id="S3.SS1.p1" class="ltx_para">
+<p id="S3.SS1.p1.8" class="ltx_p">Given a text span and its associated bounding boxes in a grounded image-text pair, we first convert the continuous coordinates of bounding boxes into a sequence of discrete location tokens <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib6" title="" class="ltx_ref">6</a>]</cite>.
+For an image with width <math id="S3.SS1.p1.1.m1.1" class="ltx_Math" alttext="W" display="inline"><semantics id="S3.SS1.p1.1.m1.1a"><mi id="S3.SS1.p1.1.m1.1.1" xref="S3.SS1.p1.1.m1.1.1.cmml">W</mi><annotation-xml encoding="MathML-Content" id="S3.SS1.p1.1.m1.1b"><ci id="S3.SS1.p1.1.m1.1.1.cmml" xref="S3.SS1.p1.1.m1.1.1">𝑊</ci></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p1.1.m1.1c">W</annotation></semantics></math> and height <math id="S3.SS1.p1.2.m2.1" class="ltx_Math" alttext="H" display="inline"><semantics id="S3.SS1.p1.2.m2.1a"><mi id="S3.SS1.p1.2.m2.1.1" xref="S3.SS1.p1.2.m2.1.1.cmml">H</mi><annotation-xml encoding="MathML-Content" id="S3.SS1.p1.2.m2.1b"><ci id="S3.SS1.p1.2.m2.1.1.cmml" xref="S3.SS1.p1.2.m2.1.1">𝐻</ci></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p1.2.m2.1c">H</annotation></semantics></math>, we evenly divide both the width and height into <math id="S3.SS1.p1.3.m3.1" class="ltx_Math" alttext="P" display="inline"><semantics id="S3.SS1.p1.3.m3.1a"><mi id="S3.SS1.p1.3.m3.1.1" xref="S3.SS1.p1.3.m3.1.1.cmml">P</mi><annotation-xml encoding="MathML-Content" id="S3.SS1.p1.3.m3.1b"><ci id="S3.SS1.p1.3.m3.1.1.cmml" xref="S3.SS1.p1.3.m3.1.1">𝑃</ci></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p1.3.m3.1c">P</annotation></semantics></math> segments each.
+<math id="S3.SS1.p1.4.m4.1" class="ltx_Math" alttext="P\times P" display="inline"><semantics id="S3.SS1.p1.4.m4.1a"><mrow id="S3.SS1.p1.4.m4.1.1" xref="S3.SS1.p1.4.m4.1.1.cmml"><mi id="S3.SS1.p1.4.m4.1.1.2" xref="S3.SS1.p1.4.m4.1.1.2.cmml">P</mi><mo lspace="0.222em" rspace="0.222em" id="S3.SS1.p1.4.m4.1.1.1" xref="S3.SS1.p1.4.m4.1.1.1.cmml">×</mo><mi id="S3.SS1.p1.4.m4.1.1.3" xref="S3.SS1.p1.4.m4.1.1.3.cmml">P</mi></mrow><annotation-xml encoding="MathML-Content" id="S3.SS1.p1.4.m4.1b"><apply id="S3.SS1.p1.4.m4.1.1.cmml" xref="S3.SS1.p1.4.m4.1.1"><times id="S3.SS1.p1.4.m4.1.1.1.cmml" xref="S3.SS1.p1.4.m4.1.1.1"></times><ci id="S3.SS1.p1.4.m4.1.1.2.cmml" xref="S3.SS1.p1.4.m4.1.1.2">𝑃</ci><ci id="S3.SS1.p1.4.m4.1.1.3.cmml" xref="S3.SS1.p1.4.m4.1.1.3">𝑃</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p1.4.m4.1c">P\times P</annotation></semantics></math> bins are obtained and each bin consists of (<math id="S3.SS1.p1.5.m5.1" class="ltx_Math" alttext="\nicefrac{{W}}{{P}}" display="inline"><semantics id="S3.SS1.p1.5.m5.1a"><mrow id="S3.SS1.p1.5.m5.1.1" xref="S3.SS1.p1.5.m5.1.1.cmml"><mpadded voffset="0.3em" id="S3.SS1.p1.5.m5.1.1.2" xref="S3.SS1.p1.5.m5.1.1.2.cmml"><mi mathsize="70%" id="S3.SS1.p1.5.m5.1.1.2a" xref="S3.SS1.p1.5.m5.1.1.2.cmml">W</mi></mpadded><mpadded lspace="-0.1em" width="-0.15em" id="S3.SS1.p1.5.m5.1.1.1" xref="S3.SS1.p1.5.m5.1.1.1.cmml"><mo stretchy="true" symmetric="true" id="S3.SS1.p1.5.m5.1.1.1a" xref="S3.SS1.p1.5.m5.1.1.1.cmml">/</mo></mpadded><mi mathsize="70%" id="S3.SS1.p1.5.m5.1.1.3" xref="S3.SS1.p1.5.m5.1.1.3.cmml">P</mi></mrow><annotation-xml encoding="MathML-Content" id="S3.SS1.p1.5.m5.1b"><apply id="S3.SS1.p1.5.m5.1.1.cmml" xref="S3.SS1.p1.5.m5.1.1"><divide id="S3.SS1.p1.5.m5.1.1.1.cmml" xref="S3.SS1.p1.5.m5.1.1.1"></divide><ci id="S3.SS1.p1.5.m5.1.1.2.cmml" xref="S3.SS1.p1.5.m5.1.1.2">𝑊</ci><ci id="S3.SS1.p1.5.m5.1.1.3.cmml" xref="S3.SS1.p1.5.m5.1.1.3">𝑃</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p1.5.m5.1c">\nicefrac{{W}}{{P}}</annotation></semantics></math>) <math id="S3.SS1.p1.6.m6.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.SS1.p1.6.m6.1a"><mo id="S3.SS1.p1.6.m6.1.1" xref="S3.SS1.p1.6.m6.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.SS1.p1.6.m6.1b"><times id="S3.SS1.p1.6.m6.1.1.cmml" xref="S3.SS1.p1.6.m6.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p1.6.m6.1c">\times</annotation></semantics></math> (<math id="S3.SS1.p1.7.m7.1" class="ltx_Math" alttext="\nicefrac{{H}}{{P}}" display="inline"><semantics id="S3.SS1.p1.7.m7.1a"><mrow id="S3.SS1.p1.7.m7.1.1" xref="S3.SS1.p1.7.m7.1.1.cmml"><mpadded voffset="0.3em" id="S3.SS1.p1.7.m7.1.1.2" xref="S3.SS1.p1.7.m7.1.1.2.cmml"><mi mathsize="70%" id="S3.SS1.p1.7.m7.1.1.2a" xref="S3.SS1.p1.7.m7.1.1.2.cmml">H</mi></mpadded><mpadded lspace="-0.1em" width="-0.15em" id="S3.SS1.p1.7.m7.1.1.1" xref="S3.SS1.p1.7.m7.1.1.1.cmml"><mo stretchy="true" symmetric="true" id="S3.SS1.p1.7.m7.1.1.1a" xref="S3.SS1.p1.7.m7.1.1.1.cmml">/</mo></mpadded><mi mathsize="70%" id="S3.SS1.p1.7.m7.1.1.3" xref="S3.SS1.p1.7.m7.1.1.3.cmml">P</mi></mrow><annotation-xml encoding="MathML-Content" id="S3.SS1.p1.7.m7.1b"><apply id="S3.SS1.p1.7.m7.1.1.cmml" xref="S3.SS1.p1.7.m7.1.1"><divide id="S3.SS1.p1.7.m7.1.1.1.cmml" xref="S3.SS1.p1.7.m7.1.1.1"></divide><ci id="S3.SS1.p1.7.m7.1.1.2.cmml" xref="S3.SS1.p1.7.m7.1.1.2">𝐻</ci><ci id="S3.SS1.p1.7.m7.1.1.3.cmml" xref="S3.SS1.p1.7.m7.1.1.3">𝑃</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p1.7.m7.1c">\nicefrac{{H}}{{P}}</annotation></semantics></math>) pixels.
+For each bin, we use a location token to represent the coordinates within that bin.
+We use the coordinates of the center pixel of each bin to determine bounding boxes on the image.
+In total, <math id="S3.SS1.p1.8.m8.1" class="ltx_Math" alttext="P\times P" display="inline"><semantics id="S3.SS1.p1.8.m8.1a"><mrow id="S3.SS1.p1.8.m8.1.1" xref="S3.SS1.p1.8.m8.1.1.cmml"><mi id="S3.SS1.p1.8.m8.1.1.2" xref="S3.SS1.p1.8.m8.1.1.2.cmml">P</mi><mo lspace="0.222em" rspace="0.222em" id="S3.SS1.p1.8.m8.1.1.1" xref="S3.SS1.p1.8.m8.1.1.1.cmml">×</mo><mi id="S3.SS1.p1.8.m8.1.1.3" xref="S3.SS1.p1.8.m8.1.1.3.cmml">P</mi></mrow><annotation-xml encoding="MathML-Content" id="S3.SS1.p1.8.m8.1b"><apply id="S3.SS1.p1.8.m8.1.1.cmml" xref="S3.SS1.p1.8.m8.1.1"><times id="S3.SS1.p1.8.m8.1.1.1.cmml" xref="S3.SS1.p1.8.m8.1.1.1"></times><ci id="S3.SS1.p1.8.m8.1.1.2.cmml" xref="S3.SS1.p1.8.m8.1.1.2">𝑃</ci><ci id="S3.SS1.p1.8.m8.1.1.3.cmml" xref="S3.SS1.p1.8.m8.1.1.3">𝑃</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p1.8.m8.1c">P\times P</annotation></semantics></math> location tokens are introduced, and these tokens are added to word vocabulary to enable unified modeling with texts.</p>
+</div>
+<div id="S3.SS1.p2" class="ltx_para">
+<p id="S3.SS1.p2.12" class="ltx_p">The bounding box can be represented using its top-left point (<math id="S3.SS1.p2.1.m1.1" class="ltx_Math" alttext="x_{1}" display="inline"><semantics id="S3.SS1.p2.1.m1.1a"><msub id="S3.SS1.p2.1.m1.1.1" xref="S3.SS1.p2.1.m1.1.1.cmml"><mi id="S3.SS1.p2.1.m1.1.1.2" xref="S3.SS1.p2.1.m1.1.1.2.cmml">x</mi><mn id="S3.SS1.p2.1.m1.1.1.3" xref="S3.SS1.p2.1.m1.1.1.3.cmml">1</mn></msub><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.1.m1.1b"><apply id="S3.SS1.p2.1.m1.1.1.cmml" xref="S3.SS1.p2.1.m1.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.1.m1.1.1.1.cmml" xref="S3.SS1.p2.1.m1.1.1">subscript</csymbol><ci id="S3.SS1.p2.1.m1.1.1.2.cmml" xref="S3.SS1.p2.1.m1.1.1.2">𝑥</ci><cn type="integer" id="S3.SS1.p2.1.m1.1.1.3.cmml" xref="S3.SS1.p2.1.m1.1.1.3">1</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.1.m1.1c">x_{1}</annotation></semantics></math>, <math id="S3.SS1.p2.2.m2.1" class="ltx_Math" alttext="y_{1}" display="inline"><semantics id="S3.SS1.p2.2.m2.1a"><msub id="S3.SS1.p2.2.m2.1.1" xref="S3.SS1.p2.2.m2.1.1.cmml"><mi id="S3.SS1.p2.2.m2.1.1.2" xref="S3.SS1.p2.2.m2.1.1.2.cmml">y</mi><mn id="S3.SS1.p2.2.m2.1.1.3" xref="S3.SS1.p2.2.m2.1.1.3.cmml">1</mn></msub><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.2.m2.1b"><apply id="S3.SS1.p2.2.m2.1.1.cmml" xref="S3.SS1.p2.2.m2.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.2.m2.1.1.1.cmml" xref="S3.SS1.p2.2.m2.1.1">subscript</csymbol><ci id="S3.SS1.p2.2.m2.1.1.2.cmml" xref="S3.SS1.p2.2.m2.1.1.2">𝑦</ci><cn type="integer" id="S3.SS1.p2.2.m2.1.1.3.cmml" xref="S3.SS1.p2.2.m2.1.1.3">1</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.2.m2.1c">y_{1}</annotation></semantics></math>) and bottom-right point (<math id="S3.SS1.p2.3.m3.1" class="ltx_Math" alttext="x_{2}" display="inline"><semantics id="S3.SS1.p2.3.m3.1a"><msub id="S3.SS1.p2.3.m3.1.1" xref="S3.SS1.p2.3.m3.1.1.cmml"><mi id="S3.SS1.p2.3.m3.1.1.2" xref="S3.SS1.p2.3.m3.1.1.2.cmml">x</mi><mn id="S3.SS1.p2.3.m3.1.1.3" xref="S3.SS1.p2.3.m3.1.1.3.cmml">2</mn></msub><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.3.m3.1b"><apply id="S3.SS1.p2.3.m3.1.1.cmml" xref="S3.SS1.p2.3.m3.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.3.m3.1.1.1.cmml" xref="S3.SS1.p2.3.m3.1.1">subscript</csymbol><ci id="S3.SS1.p2.3.m3.1.1.2.cmml" xref="S3.SS1.p2.3.m3.1.1.2">𝑥</ci><cn type="integer" id="S3.SS1.p2.3.m3.1.1.3.cmml" xref="S3.SS1.p2.3.m3.1.1.3">2</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.3.m3.1c">x_{2}</annotation></semantics></math>, <math id="S3.SS1.p2.4.m4.1" class="ltx_Math" alttext="y_{2}" display="inline"><semantics id="S3.SS1.p2.4.m4.1a"><msub id="S3.SS1.p2.4.m4.1.1" xref="S3.SS1.p2.4.m4.1.1.cmml"><mi id="S3.SS1.p2.4.m4.1.1.2" xref="S3.SS1.p2.4.m4.1.1.2.cmml">y</mi><mn id="S3.SS1.p2.4.m4.1.1.3" xref="S3.SS1.p2.4.m4.1.1.3.cmml">2</mn></msub><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.4.m4.1b"><apply id="S3.SS1.p2.4.m4.1.1.cmml" xref="S3.SS1.p2.4.m4.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.4.m4.1.1.1.cmml" xref="S3.SS1.p2.4.m4.1.1">subscript</csymbol><ci id="S3.SS1.p2.4.m4.1.1.2.cmml" xref="S3.SS1.p2.4.m4.1.1.2">𝑦</ci><cn type="integer" id="S3.SS1.p2.4.m4.1.1.3.cmml" xref="S3.SS1.p2.4.m4.1.1.3">2</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.4.m4.1c">y_{2}</annotation></semantics></math>).
+We discretize the top-left and bottom-right corner points to location tokens, respectively.
+We concatenate the top-left location token <span id="S3.SS1.p2.5.1" class="ltx_text ltx_font_typewriter">&lt;loc<sub id="S3.SS1.p2.5.1.1" class="ltx_sub"><span id="S3.SS1.p2.5.1.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;</span>, the bottom-right location token <span id="S3.SS1.p2.6.2" class="ltx_text ltx_font_typewriter">&lt;loc<sub id="S3.SS1.p2.6.2.1" class="ltx_sub"><span id="S3.SS1.p2.6.2.1.1" class="ltx_text ltx_font_serif">2</span></sub>&gt;</span>, and special boundary tokens <span id="S3.SS1.p2.12.9" class="ltx_text ltx_font_typewriter">&lt;box&gt;</span> and <span id="S3.SS1.p2.12.10" class="ltx_text ltx_font_typewriter">&lt;/box&gt;</span>, to represent a single bounding box: “<span id="S3.SS1.p2.8.4" class="ltx_text ltx_font_typewriter">&lt;box&gt;&lt;loc<sub id="S3.SS1.p2.8.4.1" class="ltx_sub"><span id="S3.SS1.p2.8.4.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;&lt;loc<sub id="S3.SS1.p2.8.4.2" class="ltx_sub"><span id="S3.SS1.p2.8.4.2.1" class="ltx_text ltx_font_serif">2</span></sub>&gt;&lt;/box&gt;</span>”.
+If the text span is associated with multiple bounding boxes, we use a special token <span id="S3.SS1.p2.12.11" class="ltx_text ltx_font_typewriter">&lt;delim&gt;</span> to concatenate the location tokens of these bounding boxes: “<span id="S3.SS1.p2.12.8" class="ltx_text ltx_font_typewriter">&lt;box&gt;&lt;loc<math id="S3.SS1.p2.9.5.m1.1" class="ltx_Math" alttext="{}_{1}^{i}" display="inline"><semantics id="S3.SS1.p2.9.5.m1.1a"><mmultiscripts id="S3.SS1.p2.9.5.m1.1.1" xref="S3.SS1.p2.9.5.m1.1.1.cmml"><mi id="S3.SS1.p2.9.5.m1.1.1.2.2" xref="S3.SS1.p2.9.5.m1.1.1.2.2.cmml"></mi><mprescripts id="S3.SS1.p2.9.5.m1.1.1a" xref="S3.SS1.p2.9.5.m1.1.1.cmml"></mprescripts><mrow id="S3.SS1.p2.9.5.m1.1.1b" xref="S3.SS1.p2.9.5.m1.1.1.cmml"></mrow><mi id="S3.SS1.p2.9.5.m1.1.1.3" xref="S3.SS1.p2.9.5.m1.1.1.3.cmml">i</mi><mn id="S3.SS1.p2.9.5.m1.1.1.2.3" xref="S3.SS1.p2.9.5.m1.1.1.2.3.cmml">1</mn><mrow id="S3.SS1.p2.9.5.m1.1.1c" xref="S3.SS1.p2.9.5.m1.1.1.cmml"></mrow></mmultiscripts><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.9.5.m1.1b"><apply id="S3.SS1.p2.9.5.m1.1.1.cmml" xref="S3.SS1.p2.9.5.m1.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.9.5.m1.1.1.1.cmml" xref="S3.SS1.p2.9.5.m1.1.1">superscript</csymbol><apply id="S3.SS1.p2.9.5.m1.1.1.2.cmml" xref="S3.SS1.p2.9.5.m1.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.9.5.m1.1.1.2.1.cmml" xref="S3.SS1.p2.9.5.m1.1.1">subscript</csymbol><csymbol cd="latexml" id="S3.SS1.p2.9.5.m1.1.1.2.2.cmml" xref="S3.SS1.p2.9.5.m1.1.1.2.2">absent</csymbol><cn type="integer" id="S3.SS1.p2.9.5.m1.1.1.2.3.cmml" xref="S3.SS1.p2.9.5.m1.1.1.2.3">1</cn></apply><ci id="S3.SS1.p2.9.5.m1.1.1.3.cmml" xref="S3.SS1.p2.9.5.m1.1.1.3">𝑖</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.9.5.m1.1c">{}_{1}^{i}</annotation></semantics></math>&gt;&lt;loc<math id="S3.SS1.p2.10.6.m2.1" class="ltx_Math" alttext="{}_{2}^{i}" display="inline"><semantics id="S3.SS1.p2.10.6.m2.1a"><mmultiscripts id="S3.SS1.p2.10.6.m2.1.1" xref="S3.SS1.p2.10.6.m2.1.1.cmml"><mi id="S3.SS1.p2.10.6.m2.1.1.2.2" xref="S3.SS1.p2.10.6.m2.1.1.2.2.cmml"></mi><mprescripts id="S3.SS1.p2.10.6.m2.1.1a" xref="S3.SS1.p2.10.6.m2.1.1.cmml"></mprescripts><mrow id="S3.SS1.p2.10.6.m2.1.1b" xref="S3.SS1.p2.10.6.m2.1.1.cmml"></mrow><mi id="S3.SS1.p2.10.6.m2.1.1.3" xref="S3.SS1.p2.10.6.m2.1.1.3.cmml">i</mi><mn id="S3.SS1.p2.10.6.m2.1.1.2.3" xref="S3.SS1.p2.10.6.m2.1.1.2.3.cmml">2</mn><mrow id="S3.SS1.p2.10.6.m2.1.1c" xref="S3.SS1.p2.10.6.m2.1.1.cmml"></mrow></mmultiscripts><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.10.6.m2.1b"><apply id="S3.SS1.p2.10.6.m2.1.1.cmml" xref="S3.SS1.p2.10.6.m2.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.10.6.m2.1.1.1.cmml" xref="S3.SS1.p2.10.6.m2.1.1">superscript</csymbol><apply id="S3.SS1.p2.10.6.m2.1.1.2.cmml" xref="S3.SS1.p2.10.6.m2.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.10.6.m2.1.1.2.1.cmml" xref="S3.SS1.p2.10.6.m2.1.1">subscript</csymbol><csymbol cd="latexml" id="S3.SS1.p2.10.6.m2.1.1.2.2.cmml" xref="S3.SS1.p2.10.6.m2.1.1.2.2">absent</csymbol><cn type="integer" id="S3.SS1.p2.10.6.m2.1.1.2.3.cmml" xref="S3.SS1.p2.10.6.m2.1.1.2.3">2</cn></apply><ci id="S3.SS1.p2.10.6.m2.1.1.3.cmml" xref="S3.SS1.p2.10.6.m2.1.1.3">𝑖</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.10.6.m2.1c">{}_{2}^{i}</annotation></semantics></math>&gt;&lt;delim&gt;...&lt;loc<math id="S3.SS1.p2.11.7.m3.1" class="ltx_Math" alttext="{}_{1}^{j}" display="inline"><semantics id="S3.SS1.p2.11.7.m3.1a"><mmultiscripts id="S3.SS1.p2.11.7.m3.1.1" xref="S3.SS1.p2.11.7.m3.1.1.cmml"><mi id="S3.SS1.p2.11.7.m3.1.1.2.2" xref="S3.SS1.p2.11.7.m3.1.1.2.2.cmml"></mi><mprescripts id="S3.SS1.p2.11.7.m3.1.1a" xref="S3.SS1.p2.11.7.m3.1.1.cmml"></mprescripts><mrow id="S3.SS1.p2.11.7.m3.1.1b" xref="S3.SS1.p2.11.7.m3.1.1.cmml"></mrow><mi id="S3.SS1.p2.11.7.m3.1.1.3" xref="S3.SS1.p2.11.7.m3.1.1.3.cmml">j</mi><mn id="S3.SS1.p2.11.7.m3.1.1.2.3" xref="S3.SS1.p2.11.7.m3.1.1.2.3.cmml">1</mn><mrow id="S3.SS1.p2.11.7.m3.1.1c" xref="S3.SS1.p2.11.7.m3.1.1.cmml"></mrow></mmultiscripts><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.11.7.m3.1b"><apply id="S3.SS1.p2.11.7.m3.1.1.cmml" xref="S3.SS1.p2.11.7.m3.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.11.7.m3.1.1.1.cmml" xref="S3.SS1.p2.11.7.m3.1.1">superscript</csymbol><apply id="S3.SS1.p2.11.7.m3.1.1.2.cmml" xref="S3.SS1.p2.11.7.m3.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.11.7.m3.1.1.2.1.cmml" xref="S3.SS1.p2.11.7.m3.1.1">subscript</csymbol><csymbol cd="latexml" id="S3.SS1.p2.11.7.m3.1.1.2.2.cmml" xref="S3.SS1.p2.11.7.m3.1.1.2.2">absent</csymbol><cn type="integer" id="S3.SS1.p2.11.7.m3.1.1.2.3.cmml" xref="S3.SS1.p2.11.7.m3.1.1.2.3">1</cn></apply><ci id="S3.SS1.p2.11.7.m3.1.1.3.cmml" xref="S3.SS1.p2.11.7.m3.1.1.3">𝑗</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.11.7.m3.1c">{}_{1}^{j}</annotation></semantics></math>&gt;&lt;loc<math id="S3.SS1.p2.12.8.m4.1" class="ltx_Math" alttext="{}_{2}^{j}" display="inline"><semantics id="S3.SS1.p2.12.8.m4.1a"><mmultiscripts id="S3.SS1.p2.12.8.m4.1.1" xref="S3.SS1.p2.12.8.m4.1.1.cmml"><mi id="S3.SS1.p2.12.8.m4.1.1.2.2" xref="S3.SS1.p2.12.8.m4.1.1.2.2.cmml"></mi><mprescripts id="S3.SS1.p2.12.8.m4.1.1a" xref="S3.SS1.p2.12.8.m4.1.1.cmml"></mprescripts><mrow id="S3.SS1.p2.12.8.m4.1.1b" xref="S3.SS1.p2.12.8.m4.1.1.cmml"></mrow><mi id="S3.SS1.p2.12.8.m4.1.1.3" xref="S3.SS1.p2.12.8.m4.1.1.3.cmml">j</mi><mn id="S3.SS1.p2.12.8.m4.1.1.2.3" xref="S3.SS1.p2.12.8.m4.1.1.2.3.cmml">2</mn><mrow id="S3.SS1.p2.12.8.m4.1.1c" xref="S3.SS1.p2.12.8.m4.1.1.cmml"></mrow></mmultiscripts><annotation-xml encoding="MathML-Content" id="S3.SS1.p2.12.8.m4.1b"><apply id="S3.SS1.p2.12.8.m4.1.1.cmml" xref="S3.SS1.p2.12.8.m4.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.12.8.m4.1.1.1.cmml" xref="S3.SS1.p2.12.8.m4.1.1">superscript</csymbol><apply id="S3.SS1.p2.12.8.m4.1.1.2.cmml" xref="S3.SS1.p2.12.8.m4.1.1"><csymbol cd="ambiguous" id="S3.SS1.p2.12.8.m4.1.1.2.1.cmml" xref="S3.SS1.p2.12.8.m4.1.1">subscript</csymbol><csymbol cd="latexml" id="S3.SS1.p2.12.8.m4.1.1.2.2.cmml" xref="S3.SS1.p2.12.8.m4.1.1.2.2">absent</csymbol><cn type="integer" id="S3.SS1.p2.12.8.m4.1.1.2.3.cmml" xref="S3.SS1.p2.12.8.m4.1.1.2.3">2</cn></apply><ci id="S3.SS1.p2.12.8.m4.1.1.3.cmml" xref="S3.SS1.p2.12.8.m4.1.1.3">𝑗</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p2.12.8.m4.1c">{}_{2}^{j}</annotation></semantics></math>&gt;&lt;/box&gt;</span>”.</p>
+</div>
+<div id="S3.SS1.p3" class="ltx_para">
+<p id="S3.SS1.p3.2" class="ltx_p">Then we arrange the text span and its associated location tokens in a format resembling a “<span id="S3.SS1.p3.2.3" class="ltx_text ltx_font_italic">hyperlink</span>” in markdown.
+For the text span with a single bounding box, the resulted sequence is “<span id="S3.SS1.p3.2.4" class="ltx_text ltx_font_typewriter">&lt;p&gt;</span> <span id="S3.SS1.p3.2.5" class="ltx_text ltx_font_italic">text span</span> <span id="S3.SS1.p3.2.2" class="ltx_text ltx_font_typewriter">&lt;/p&gt;&lt;box&gt;&lt;loc<sub id="S3.SS1.p3.2.2.1" class="ltx_sub"><span id="S3.SS1.p3.2.2.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;&lt;loc<sub id="S3.SS1.p3.2.2.2" class="ltx_sub"><span id="S3.SS1.p3.2.2.2.1" class="ltx_text ltx_font_serif">2</span></sub>&gt;&lt;/box&gt;</span>”, where <span id="S3.SS1.p3.2.6" class="ltx_text ltx_font_typewriter">&lt;p&gt;</span> and <span id="S3.SS1.p3.2.7" class="ltx_text ltx_font_typewriter">&lt;/p&gt;</span> are special tokens indicating the beginning and end of the text span.
+The data format tells the model that image regions within the bounding box are associated with the text span.</p>
+</div>
+<div id="S3.SS1.p4" class="ltx_para">
+<p id="S3.SS1.p4.1" class="ltx_p">For the example shown in Figure <a href="#S0.F1" title="Figure 1 ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>, the input representation is:</p>
+</div>
+<div id="S3.SS1.1.p1" class="ltx_para ltx_minipage ltx_align_middle" style="width:429.3pt;">
+<svg id="S3.SS1.1.p1.pic1" class="ltx_picture" height="56.62" overflow="visible" version="1.1" width="600"><g transform="translate(0,56.62) matrix(1 0 0 -1 0 0)" fill="#000000" stroke="#000000" stroke-width="0.4pt"><g fill="#404040" fill-opacity="1.0"><path d="M 0 5.91 L 0 50.71 C 0 53.97 2.64 56.62 5.91 56.62 L 594.09 56.62 C 597.36 56.62 600 53.97 600 50.71 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none"></path></g><g fill="#F2F2F2" fill-opacity="1.0"><path d="M 1.97 5.91 L 1.97 50.71 C 1.97 52.89 3.73 54.65 5.91 54.65 L 594.09 54.65 C 596.27 54.65 598.03 52.89 598.03 50.71 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none"></path></g><g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 13.78)"><foreignObject width="556.69" height="29.06" transform="matrix(1 0 0 -1 0 16.6)" overflow="visible" color="#000000">
+<span id="S3.SS1.1.p1.pic1.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4" class="ltx_inline-block ltx_minipage ltx_align_bottom" style="width:402.3pt;">
+<span id="S3.SS1.1.p1.pic1.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4" class="ltx_p"><span id="S3.SS1.1.p1.pic1.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4" class="ltx_text" style="font-size:90%;">&lt;s&gt; &lt;image&gt; Image Embedding &lt;/image&gt; &lt;grounding&gt; <span id="S3.SS1.1.p1.pic1.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.5" class="ltx_text ltx_font_typewriter">&lt;p&gt;</span> It <span id="S3.SS1.1.p1.pic1.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2" class="ltx_text ltx_font_typewriter">&lt;/p&gt;&lt;box&gt;&lt;loc<sub id="S3.SS1.1.p1.pic1.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1" class="ltx_sub"><span id="S3.SS1.1.p1.pic1.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1.1" class="ltx_text ltx_font_serif ltx_font_italic">44</span></sub>&gt;&lt;loc<sub id="S3.SS1.1.p1.pic1.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2" class="ltx_sub"><span id="S3.SS1.1.p1.pic1.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.2.1" class="ltx_text ltx_font_serif ltx_font_italic">863</span></sub>&gt;&lt;/box&gt;</span> seats next to <span id="S3.SS1.1.p1.pic1.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.6" class="ltx_text ltx_font_typewriter">&lt;p&gt;</span> a campfire <span id="S3.SS1.1.p1.pic1.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4" class="ltx_text ltx_font_typewriter">&lt;/p&gt;&lt;box&gt;&lt;loc<sub id="S3.SS1.1.p1.pic1.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.1" class="ltx_sub"><span id="S3.SS1.1.p1.pic1.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.1.1" class="ltx_text ltx_font_serif">4</span></sub>&gt;&lt;loc<sub id="S3.SS1.1.p1.pic1.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.2" class="ltx_sub"><span id="S3.SS1.1.p1.pic1.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.4.2.1" class="ltx_text ltx_font_serif ltx_font_italic">1007</span></sub>&gt;&lt;/box&gt;</span> &lt;/s&gt;</span></span>
+</span></foreignObject></g></g></svg>
+</div>
+<div id="S3.SS1.p5" class="ltx_para">
+<p id="S3.SS1.p5.1" class="ltx_p">where <span id="S3.SS1.p5.1.1" class="ltx_text ltx_font_typewriter">&lt;s&gt;</span> and <span id="S3.SS1.p5.1.2" class="ltx_text ltx_font_typewriter">&lt;/s&gt;</span> indicate start- and end-of-sequence, and <span id="S3.SS1.p5.1.3" class="ltx_text ltx_font_typewriter">&lt;image&gt;</span> and <span id="S3.SS1.p5.1.4" class="ltx_text ltx_font_typewriter">&lt;/image&gt;</span> represent the beginning and end of encoded image embeddings.
+<span id="S3.SS1.p5.1.5" class="ltx_text ltx_font_typewriter">&lt;grounding&gt;</span> is a special token to tell the model ground the text output to the visual world.
+We map input text tokens and location tokens to embeddings via a lookup table.
+Following <span id="S3.SS1.p5.1.6" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>, a vision encoder and a resampler module are used to obtain image embeddings for input images.</p>
+</div>
+<div id="S3.SS1.p6" class="ltx_para">
+<p id="S3.SS1.p6.1" class="ltx_p">For language-only data, cross-modal paired data (<span id="S3.SS1.p6.1.1" class="ltx_text ltx_font_italic">i.e.</span>, image-text pairs), and interleaved multimodal data, we use the same input representations as of <span id="S3.SS1.p6.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>.</p>
+</div>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.2 </span>Grounded Multimodal Large Language Models</h3>
+
+<div id="S3.SS2.p1" class="ltx_para">
+<p id="S3.SS2.p1.1" class="ltx_p">Based on <span id="S3.SS2.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>, <span id="S3.SS2.p1.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> enhances multimodal large language models by incorporating grounding and referring capabilities.
+<span id="S3.SS2.p1.1.3" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> also uses a Transformer-based causal language model as the backbone and is trained with the next-token prediction task.</p>
+</div>
+<div id="S3.SS2.p2" class="ltx_para">
+<p id="S3.SS2.p2.1" class="ltx_p">In addition to multimodal corpora used in <span id="S3.SS2.p2.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-1</span> (including text corpora, image-caption pairs, and interleaved image-text data), we add grounded image-text pairs into training.
+The training loss only considers discrete tokens, such as text tokens and location tokens.
+The model can learn to locate and understand image regions by their location tokens and the whole image, associate text spans to image regions, and output bounding boxes of the image region using location tokens.</p>
+</div>
+<div id="S3.SS2.p3" class="ltx_para">
+<p id="S3.SS2.p3.1" class="ltx_p"><span id="S3.SS2.p3.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> shows new capabilities of grounding and referring.
+The referring capability enables us to point out image regions with bounding boxes.
+<span id="S3.SS2.p3.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> can understand the image regions users refer to by the coordinates of bounding boxes.
+The referring capability provides a new interaction method.
+Different from previous MLLMs <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref">1</a>, <a href="#bib.bib11" title="" class="ltx_ref">11</a>, <a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite>, which can only provide text output, <span id="S3.SS2.p3.1.3" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> can provide visual answers (<span id="S3.SS2.p3.1.4" class="ltx_text ltx_font_italic">i.e.</span>, bounding boxes) and ground text output to the image.
+The grounding capability enables the model to provide more accurate, informative, and comprehensive responses.
+In addition to vision, language, and vision-language tasks evaluated in <span id="S3.SS2.p3.1.5" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>, the model can be used for more downstream tasks, such as grounded image-captioning, grounded VQA, referring expression comprehension and generation.</p>
+</div>
+</section>
+<section id="S3.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.3 </span>Model Training</h3>
+
+<section id="S3.SS3.SSS0.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Training Setup</h5>
+
+<div id="S3.SS3.SSS0.Px1.p1" class="ltx_para">
+<p id="S3.SS3.SSS0.Px1.p1.1" class="ltx_p">We train the model on newly added grounded image-text pairs, monomodal text corpora, image-caption pairs, and interleaved image-text data.
+Our training process involves a batch size of 419K tokens, consisting of 185K tokens from text corpora, 215K tokens from original and grounded image-caption pairs, and 19K tokens from interleaved data.
+We train <span id="S3.SS3.SSS0.Px1.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> for 60k steps, equivalent to around 25 billion tokens. The AdamW optimizer is employed with <math id="S3.SS3.SSS0.Px1.p1.1.m1.2" class="ltx_Math" alttext="\beta=(0.9,0.98)" display="inline"><semantics id="S3.SS3.SSS0.Px1.p1.1.m1.2a"><mrow id="S3.SS3.SSS0.Px1.p1.1.m1.2.3" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.3.cmml"><mi id="S3.SS3.SSS0.Px1.p1.1.m1.2.3.2" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.3.2.cmml">β</mi><mo id="S3.SS3.SSS0.Px1.p1.1.m1.2.3.1" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.3.1.cmml">=</mo><mrow id="S3.SS3.SSS0.Px1.p1.1.m1.2.3.3.2" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.3.3.1.cmml"><mo stretchy="false" id="S3.SS3.SSS0.Px1.p1.1.m1.2.3.3.2.1" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.3.3.1.cmml">(</mo><mn id="S3.SS3.SSS0.Px1.p1.1.m1.1.1" xref="S3.SS3.SSS0.Px1.p1.1.m1.1.1.cmml">0.9</mn><mo id="S3.SS3.SSS0.Px1.p1.1.m1.2.3.3.2.2" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.3.3.1.cmml">,</mo><mn id="S3.SS3.SSS0.Px1.p1.1.m1.2.2" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.2.cmml">0.98</mn><mo stretchy="false" id="S3.SS3.SSS0.Px1.p1.1.m1.2.3.3.2.3" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.3.3.1.cmml">)</mo></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px1.p1.1.m1.2b"><apply id="S3.SS3.SSS0.Px1.p1.1.m1.2.3.cmml" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.3"><eq id="S3.SS3.SSS0.Px1.p1.1.m1.2.3.1.cmml" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.3.1"></eq><ci id="S3.SS3.SSS0.Px1.p1.1.m1.2.3.2.cmml" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.3.2">𝛽</ci><interval closure="open" id="S3.SS3.SSS0.Px1.p1.1.m1.2.3.3.1.cmml" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.3.3.2"><cn type="float" id="S3.SS3.SSS0.Px1.p1.1.m1.1.1.cmml" xref="S3.SS3.SSS0.Px1.p1.1.m1.1.1">0.9</cn><cn type="float" id="S3.SS3.SSS0.Px1.p1.1.m1.2.2.cmml" xref="S3.SS3.SSS0.Px1.p1.1.m1.2.2">0.98</cn></interval></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px1.p1.1.m1.2c">\beta=(0.9,0.98)</annotation></semantics></math>.
+We set the weight decay to 0.01 and the dropout rate to 0.1.
+The learning rate increases to 2e-4 during the first 375 warm-up steps and linearly decays to zero.
+We train the model on 256 V100 GPUs and the training takes approximately one day to complete.
+In order to tell the model when to ground text output to the visual world, we prepend the ‘<span id="S3.SS3.SSS0.Px1.p1.1.2" class="ltx_text ltx_font_typewriter">&lt;grounding&gt;</span>’ token to the grounded caption during training.</p>
+</div>
+<div id="S3.SS3.SSS0.Px1.p2" class="ltx_para">
+<p id="S3.SS3.SSS0.Px1.p2.4" class="ltx_p">Following <span id="S3.SS3.SSS0.Px1.p2.4.1" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>, the vision encoder has 24 layers with 1,024 hidden size and 4,096 FFN intermediate size.
+The multimodal large language model component is a 24-layer <span id="S3.SS3.SSS0.Px1.p2.4.2" class="ltx_text ltx_font_smallcaps">Magneto</span> Transformer <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib29" title="" class="ltx_ref">29</a>, <a href="#bib.bib23" title="" class="ltx_ref">23</a>]</cite> with 2,048 hidden dimensions, 32 attention heads, and 8,192 FFN intermediate size.
+The total number of trainable parameters amounts to approximately 1.6B.
+The image resolution is set to 224<math id="S3.SS3.SSS0.Px1.p2.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.SS3.SSS0.Px1.p2.1.m1.1a"><mo id="S3.SS3.SSS0.Px1.p2.1.m1.1.1" xref="S3.SS3.SSS0.Px1.p2.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px1.p2.1.m1.1b"><times id="S3.SS3.SSS0.Px1.p2.1.m1.1.1.cmml" xref="S3.SS3.SSS0.Px1.p2.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px1.p2.1.m1.1c">\times</annotation></semantics></math>224 and the patch size is 14<math id="S3.SS3.SSS0.Px1.p2.2.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.SS3.SSS0.Px1.p2.2.m2.1a"><mo id="S3.SS3.SSS0.Px1.p2.2.m2.1.1" xref="S3.SS3.SSS0.Px1.p2.2.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px1.p2.2.m2.1b"><times id="S3.SS3.SSS0.Px1.p2.2.m2.1.1.cmml" xref="S3.SS3.SSS0.Px1.p2.2.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px1.p2.2.m2.1c">\times</annotation></semantics></math>14.
+We divide the width and height of the image into 32 bins, with each bin consisting of 7<math id="S3.SS3.SSS0.Px1.p2.3.m3.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.SS3.SSS0.Px1.p2.3.m3.1a"><mo id="S3.SS3.SSS0.Px1.p2.3.m3.1.1" xref="S3.SS3.SSS0.Px1.p2.3.m3.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px1.p2.3.m3.1b"><times id="S3.SS3.SSS0.Px1.p2.3.m3.1.1.cmml" xref="S3.SS3.SSS0.Px1.p2.3.m3.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px1.p2.3.m3.1c">\times</annotation></semantics></math>7 pixels.
+A total of 32<math id="S3.SS3.SSS0.Px1.p2.4.m4.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.SS3.SSS0.Px1.p2.4.m4.1a"><mo id="S3.SS3.SSS0.Px1.p2.4.m4.1.1" xref="S3.SS3.SSS0.Px1.p2.4.m4.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.SS3.SSS0.Px1.p2.4.m4.1b"><times id="S3.SS3.SSS0.Px1.p2.4.m4.1.1.cmml" xref="S3.SS3.SSS0.Px1.p2.4.m4.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.SS3.SSS0.Px1.p2.4.m4.1c">\times</annotation></semantics></math>32 location tokens are added to the vocabulary.
+<span id="S3.SS3.SSS0.Px1.p2.4.3" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> uses the weights of <span id="S3.SS3.SSS0.Px1.p2.4.4" class="ltx_text ltx_font_smallcaps">Kosmos-1</span> for initialization, the newly added word embeddings of location tokens are initialized randomly.
+We update all the parameters during training and instruction tuning.</p>
+</div>
+</section>
+<section id="S3.SS3.SSS0.Px2" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Instruction Tuning</h5>
+
+<div id="S3.SS3.SSS0.Px2.p1" class="ltx_para">
+<p id="S3.SS3.SSS0.Px2.p1.2" class="ltx_p">After the model is trained, we perform instruct tuning to better align <span id="S3.SS3.SSS0.Px2.p1.2.3" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> with human instructions.
+we combine vision-language instruction dataset (<span id="S3.SS3.SSS0.Px2.p1.2.4" class="ltx_text ltx_font_italic">i.e.</span>, LLaVA-Instruct <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib19" title="" class="ltx_ref">19</a>]</cite>) and language-only instruction datasets (<span id="S3.SS3.SSS0.Px2.p1.2.5" class="ltx_text ltx_font_italic">i.e.</span>, Unnatural Instructions <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref">12</a>]</cite> and FLANv2 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib17" title="" class="ltx_ref">17</a>]</cite>) with the training data to tune the model.
+In addition, we construct grounded instruction data by utilizing the pairs of bounding boxes and expressions (<span id="S3.SS3.SSS0.Px2.p1.2.6" class="ltx_text ltx_font_italic">i.e.</span>, noun phrases, and referring expressions) in <span id="S3.SS3.SSS0.Px2.p1.2.7" class="ltx_text ltx_font_smallcaps">GrIT</span>.
+Given an expression-bounding-box pair, we use “&lt;p&gt; <span id="S3.SS3.SSS0.Px2.p1.2.8" class="ltx_text ltx_font_italic">expression</span> &lt;/p&gt;” as the input instruction, and prompt the model to generate the corresponding location tokens of the bounding boxes.
+We also use the prompt like “<span id="S3.SS3.SSS0.Px2.p1.2.9" class="ltx_text ltx_font_typewriter">&lt;p&gt;</span> <span id="S3.SS3.SSS0.Px2.p1.2.10" class="ltx_text ltx_font_italic">It</span> <span id="S3.SS3.SSS0.Px2.p1.2.2" class="ltx_text ltx_font_typewriter">&lt;/p&gt;&lt;box&gt;&lt;loc<sub id="S3.SS3.SSS0.Px2.p1.2.2.1" class="ltx_sub"><span id="S3.SS3.SSS0.Px2.p1.2.2.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;&lt;loc<sub id="S3.SS3.SSS0.Px2.p1.2.2.2" class="ltx_sub"><span id="S3.SS3.SSS0.Px2.p1.2.2.2.1" class="ltx_text ltx_font_serif">2</span></sub>&gt;&lt;/box&gt;</span> <span id="S3.SS3.SSS0.Px2.p1.2.11" class="ltx_text ltx_font_italic">is</span>” to ask the model to generate expressions according to its bounding boxes.
+Table <a href="#A2" title="Appendix B Templates for Grounded Instruction Data ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">B</span></a> in Appendix presents more templates.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Evaluation</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p">We first evaluate <span id="S4.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> on multimodal grounding and multimodal referring tasks to assess the new capabilities, and then test the model on language and perception-language tasks evaluated in <span id="S4.p1.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>.</p>
+</div>
+<div id="S4.p2" class="ltx_para">
+<ul id="S4.I1" class="ltx_itemize">
+<li id="S4.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i1.p1" class="ltx_para">
+<p id="S4.I1.i1.p1.1" class="ltx_p">Multimodal grounding</p>
+<ul id="S4.I1.i1.I1" class="ltx_itemize">
+<li id="S4.I1.i1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item"><span id="S4.I1.i1.I1.i1.1.1.1" class="ltx_text ltx_font_bold">–</span></span> 
+<div id="S4.I1.i1.I1.i1.p1" class="ltx_para">
+<p id="S4.I1.i1.I1.i1.p1.1" class="ltx_p">Phrase grounding</p>
+</div>
+</li>
+<li id="S4.I1.i1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item"><span id="S4.I1.i1.I1.i2.1.1.1" class="ltx_text ltx_font_bold">–</span></span> 
+<div id="S4.I1.i1.I1.i2.p1" class="ltx_para">
+<p id="S4.I1.i1.I1.i2.p1.1" class="ltx_p">Referring expression comprehension</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li id="S4.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i2.p1" class="ltx_para">
+<p id="S4.I1.i2.p1.1" class="ltx_p">Multimodal referring</p>
+<ul id="S4.I1.i2.I1" class="ltx_itemize">
+<li id="S4.I1.i2.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item"><span id="S4.I1.i2.I1.i1.1.1.1" class="ltx_text ltx_font_bold">–</span></span> 
+<div id="S4.I1.i2.I1.i1.p1" class="ltx_para">
+<p id="S4.I1.i2.I1.i1.p1.1" class="ltx_p">Referring expression generation</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li id="S4.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i3.p1" class="ltx_para">
+<p id="S4.I1.i3.p1.1" class="ltx_p">Perception-language tasks</p>
+<ul id="S4.I1.i3.I1" class="ltx_itemize">
+<li id="S4.I1.i3.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item"><span id="S4.I1.i3.I1.i1.1.1.1" class="ltx_text ltx_font_bold">–</span></span> 
+<div id="S4.I1.i3.I1.i1.p1" class="ltx_para">
+<p id="S4.I1.i3.I1.i1.p1.1" class="ltx_p">Image captioning</p>
+</div>
+</li>
+<li id="S4.I1.i3.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item"><span id="S4.I1.i3.I1.i2.1.1.1" class="ltx_text ltx_font_bold">–</span></span> 
+<div id="S4.I1.i3.I1.i2.p1" class="ltx_para">
+<p id="S4.I1.i3.I1.i2.p1.1" class="ltx_p">Visual question answering</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li id="S4.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S4.I1.i4.p1" class="ltx_para">
+<p id="S4.I1.i4.p1.1" class="ltx_p">Language tasks</p>
+<ul id="S4.I1.i4.I1" class="ltx_itemize">
+<li id="S4.I1.i4.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item"><span id="S4.I1.i4.I1.i1.1.1.1" class="ltx_text ltx_font_bold">–</span></span> 
+<div id="S4.I1.i4.I1.i1.p1" class="ltx_para">
+<p id="S4.I1.i4.I1.i1.p1.1" class="ltx_p">Language understanding</p>
+</div>
+</li>
+<li id="S4.I1.i4.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item"><span id="S4.I1.i4.I1.i2.1.1.1" class="ltx_text ltx_font_bold">–</span></span> 
+<div id="S4.I1.i4.I1.i2.p1" class="ltx_para">
+<p id="S4.I1.i4.I1.i2.p1.1" class="ltx_p">Language generation</p>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Multimodal Grounding</h3>
+
+<div id="S4.SS1.p1" class="ltx_para">
+<p id="S4.SS1.p1.1" class="ltx_p">In order to evaluate the ability of multimodal grounding, we test <span id="S4.SS1.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> on widely used phrase grounding and referring expression comprehension tasks in a generation manner.
+Phrase grounding task requires the model to predict a set of bounding boxes based on one or more given phrases that maybe interrelated within a single caption.
+Referring expression comprehension task encourages the model to locate the object described in a text referring expression within a given image.</p>
+</div>
+<div id="S4.SS1.p2" class="ltx_para">
+<p id="S4.SS1.p2.1" class="ltx_p">By testing <span id="S4.SS1.p2.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> on these two tasks, we can assess how well the model performs in grounding text descriptions to the visual world, which is crucial for developing advanced AI systems capable of handling complex multimodal tasks.</p>
+</div>
+<figure id="S4.F4" class="ltx_figure"><img src="/html/2306.14824/assets/x4.png" id="S4.F4.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="452" height="183" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S4.F4.2.1.1" class="ltx_text" style="font-size:90%;">Figure 4</span>: </span><span id="S4.F4.3.2" class="ltx_text" style="font-size:90%;">
+Input format of evaluation on (1) phrase grounding and (2) referring expression comprehension.
+</span></figcaption>
+</figure>
+<div id="S4.SS1.p3" class="ltx_para">
+<p id="S4.SS1.p3.1" class="ltx_p">For both phrase grounding and referring expression comprehension tasks, <span id="S4.SS1.p3.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> is required to generate location tokens which are then converted to bounding boxes for evaluation.
+The input format is “<span id="S4.SS1.p3.1.2" class="ltx_text ltx_font_typewriter">&lt;s&gt;&lt;image&gt;</span> Image Embedding <span id="S4.SS1.p3.1.3" class="ltx_text ltx_font_typewriter">&lt;/image&gt;&lt;grounding&gt;</span>…”, where “<span id="S4.SS1.p3.1.4" class="ltx_text ltx_font_typewriter">&lt;grounding&gt;</span>” is used to prompt the model to generate locations tokens.</p>
+</div>
+<section id="S4.SS1.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.1.1 </span>Phrase Grounding</h4>
+
+<div id="S4.SS1.SSS1.p1" class="ltx_para">
+<p id="S4.SS1.SSS1.p1.1" class="ltx_p">We evaluate phrase grounding task on Flickr30k Entities <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib25" title="" class="ltx_ref">25</a>]</cite> val and test splits.
+In order to reduce ambiguity, we do not prompt the model with individual phrases; instead, we use the current phrase along with the preceding words as input where preceding words serve as context:
+“ … <span id="S4.SS1.SSS1.p1.1.1" class="ltx_text ltx_font_typewriter">&lt;p&gt;</span> {<span id="S4.SS1.SSS1.p1.1.2" class="ltx_text ltx_font_italic">phrase</span>} <span id="S4.SS1.SSS1.p1.1.3" class="ltx_text ltx_font_typewriter">&lt;/p&gt;</span>”.
+For the example shown in Figure <a href="#S4.F4" title="Figure 4 ‣ 4.1 Multimodal Grounding ‣ 4 Evaluation ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>(1), the model needs to predict the locations of phrases “<span id="S4.SS1.SSS1.p1.1.4" class="ltx_text ltx_font_italic">A man</span>”, “<span id="S4.SS1.SSS1.p1.1.5" class="ltx_text ltx_font_italic">a blue hard hat</span>”, “<span id="S4.SS1.SSS1.p1.1.6" class="ltx_text ltx_font_italic">orange safety vest</span>” and “<span id="S4.SS1.SSS1.p1.1.7" class="ltx_text ltx_font_italic">an intersection</span>” in the caption “<span id="S4.SS1.SSS1.p1.1.8" class="ltx_text ltx_font_italic">A man in a blue hard hat and orange safety vest stands in an intersection.</span>”.
+To generate the location tokens for the phrase “<span id="S4.SS1.SSS1.p1.1.9" class="ltx_text ltx_font_italic">A man</span>” that is the beginning of the caption, the prompt is “<span id="S4.SS1.SSS1.p1.1.10" class="ltx_text ltx_font_typewriter">&lt;p&gt;</span><span id="S4.SS1.SSS1.p1.1.11" class="ltx_text ltx_font_italic">A man</span><span id="S4.SS1.SSS1.p1.1.12" class="ltx_text ltx_font_typewriter">&lt;/p&gt;</span>”.
+For the phrase “<span id="S4.SS1.SSS1.p1.1.13" class="ltx_text ltx_font_italic">orange safety vest</span>”, the prompt is “<span id="S4.SS1.SSS1.p1.1.14" class="ltx_text ltx_font_italic">A man in a blue hard hat and</span> <span id="S4.SS1.SSS1.p1.1.15" class="ltx_text ltx_font_typewriter">&lt;p&gt;</span><span id="S4.SS1.SSS1.p1.1.16" class="ltx_text ltx_font_italic">orange safety vest</span><span id="S4.SS1.SSS1.p1.1.17" class="ltx_text ltx_font_typewriter">&lt;/p&gt;</span>”.
+When multiple men are in the image, the context “<span id="S4.SS1.SSS1.p1.1.18" class="ltx_text ltx_font_italic">A man in a blue hard hat and</span>” explicitly helps the model locate the object to reduce ambiguity.</p>
+</div>
+<div id="S4.SS1.SSS1.p2" class="ltx_para">
+<p id="S4.SS1.SSS1.p2.1" class="ltx_p">We obtain the location tokens in “<span id="S4.SS1.SSS1.p2.1.2" class="ltx_text ltx_font_typewriter">&lt;box&gt;...&lt;/box&gt;</span>” from the model response and then covert it into bounding boxes.
+The generated bounding box is correct if its intersection over union (IoU) with the ground-truth bounding box is greater than 0.5.
+If <span id="S4.SS1.SSS1.p2.1.3" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> generates a location sequence that can not be converted correctly (<span id="S4.SS1.SSS1.p2.1.4" class="ltx_text ltx_font_italic">e.g.</span>, “<span id="S4.SS1.SSS1.p2.1.1" class="ltx_text ltx_font_typewriter">&lt;box&gt;&lt;loc<sub id="S4.SS1.SSS1.p2.1.1.1" class="ltx_sub"><span id="S4.SS1.SSS1.p2.1.1.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;&lt;/box&gt;</span>”), we treat it as a negative sample.
+We use <span id="S4.SS1.SSS1.p2.1.5" class="ltx_text ltx_font_smallcaps">ANY-BOX</span> protocol in MDETR <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib15" title="" class="ltx_ref">15</a>]</cite>.
+We report the R@1, R@5, and R@10 metrics, where R@1/5/10 means calculating the recall using the top 1/5/10 generated bounding boxes.
+If there are fewer than 5 or 10 bounding boxes generated by <span id="S4.SS1.SSS1.p2.1.6" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>, we use all available bounding boxes for the calculation.</p>
+</div>
+<figure id="S4.T2" class="ltx_table">
+<table id="S4.T2.2" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S4.T2.2.1" class="ltx_tr">
+<td id="S4.T2.2.1.1" class="ltx_td ltx_align_left ltx_border_tt" rowspan="2"><span id="S4.T2.2.1.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S4.T2.2.1.2" class="ltx_td ltx_align_center ltx_border_tt" rowspan="2"><span id="S4.T2.2.1.2.1" class="ltx_text ltx_font_bold">Zero-shot</span></td>
+<td id="S4.T2.2.1.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" colspan="3"><span id="S4.T2.2.1.3.1" class="ltx_text ltx_font_bold">Val Split</span></td>
+<td id="S4.T2.2.1.4" class="ltx_td ltx_align_center ltx_border_tt" colspan="3"><span id="S4.T2.2.1.4.1" class="ltx_text ltx_font_bold">Test Split</span></td>
+</tr>
+<tr id="S4.T2.2.2" class="ltx_tr">
+<td id="S4.T2.2.2.1" class="ltx_td ltx_align_center ltx_border_t">R@1</td>
+<td id="S4.T2.2.2.2" class="ltx_td ltx_align_center ltx_border_t">R@5</td>
+<td id="S4.T2.2.2.3" class="ltx_td ltx_align_center ltx_border_t">R@10</td>
+<td id="S4.T2.2.2.4" class="ltx_td ltx_align_center ltx_border_t">R@1</td>
+<td id="S4.T2.2.2.5" class="ltx_td ltx_align_center ltx_border_t">R@5</td>
+<td id="S4.T2.2.2.6" class="ltx_td ltx_align_center ltx_border_t">R@10</td>
+</tr>
+<tr id="S4.T2.2.3" class="ltx_tr">
+<td id="S4.T2.2.3.1" class="ltx_td ltx_align_left ltx_border_t">VisualBert <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref">20</a>]</cite>
+</td>
+<td id="S4.T2.2.3.2" class="ltx_td ltx_align_center ltx_border_t"><span id="S4.T2.2.3.2.1" class="ltx_text" style="color:#000000;">✗</span></td>
+<td id="S4.T2.2.3.3" class="ltx_td ltx_align_center ltx_border_t">70.4</td>
+<td id="S4.T2.2.3.4" class="ltx_td ltx_align_center ltx_border_t">84.5</td>
+<td id="S4.T2.2.3.5" class="ltx_td ltx_align_center ltx_border_t">86.3</td>
+<td id="S4.T2.2.3.6" class="ltx_td ltx_align_center ltx_border_t">71.3</td>
+<td id="S4.T2.2.3.7" class="ltx_td ltx_align_center ltx_border_t">85.0</td>
+<td id="S4.T2.2.3.8" class="ltx_td ltx_align_center ltx_border_t">86.5</td>
+</tr>
+<tr id="S4.T2.2.4" class="ltx_tr">
+<td id="S4.T2.2.4.1" class="ltx_td ltx_align_left">MDETR <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib15" title="" class="ltx_ref">15</a>]</cite>
+</td>
+<td id="S4.T2.2.4.2" class="ltx_td ltx_align_center"><span id="S4.T2.2.4.2.1" class="ltx_text" style="color:#000000;">✗</span></td>
+<td id="S4.T2.2.4.3" class="ltx_td ltx_align_center">83.6</td>
+<td id="S4.T2.2.4.4" class="ltx_td ltx_align_center">93.4</td>
+<td id="S4.T2.2.4.5" class="ltx_td ltx_align_center">95.1</td>
+<td id="S4.T2.2.4.6" class="ltx_td ltx_align_center">84.3</td>
+<td id="S4.T2.2.4.7" class="ltx_td ltx_align_center">93.9</td>
+<td id="S4.T2.2.4.8" class="ltx_td ltx_align_center">95.8</td>
+</tr>
+<tr id="S4.T2.2.5" class="ltx_tr">
+<td id="S4.T2.2.5.1" class="ltx_td ltx_align_left">GLIP <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib21" title="" class="ltx_ref">21</a>]</cite>
+</td>
+<td id="S4.T2.2.5.2" class="ltx_td ltx_align_center"><span id="S4.T2.2.5.2.1" class="ltx_text" style="color:#000000;">✗</span></td>
+<td id="S4.T2.2.5.3" class="ltx_td ltx_align_center">86.7</td>
+<td id="S4.T2.2.5.4" class="ltx_td ltx_align_center">96.4</td>
+<td id="S4.T2.2.5.5" class="ltx_td ltx_align_center">97.9</td>
+<td id="S4.T2.2.5.6" class="ltx_td ltx_align_center">87.1</td>
+<td id="S4.T2.2.5.7" class="ltx_td ltx_align_center">96.9</td>
+<td id="S4.T2.2.5.8" class="ltx_td ltx_align_center">98.1</td>
+</tr>
+<tr id="S4.T2.2.6" class="ltx_tr">
+<td id="S4.T2.2.6.1" class="ltx_td ltx_align_left">FIBER <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib7" title="" class="ltx_ref">7</a>]</cite>
+</td>
+<td id="S4.T2.2.6.2" class="ltx_td ltx_align_center"><span id="S4.T2.2.6.2.1" class="ltx_text" style="color:#000000;">✗</span></td>
+<td id="S4.T2.2.6.3" class="ltx_td ltx_align_center">87.1</td>
+<td id="S4.T2.2.6.4" class="ltx_td ltx_align_center">96.1</td>
+<td id="S4.T2.2.6.5" class="ltx_td ltx_align_center">97.4</td>
+<td id="S4.T2.2.6.6" class="ltx_td ltx_align_center">87.4</td>
+<td id="S4.T2.2.6.7" class="ltx_td ltx_align_center">96.4</td>
+<td id="S4.T2.2.6.8" class="ltx_td ltx_align_center">97.6</td>
+</tr>
+<tr id="S4.T2.2.7" class="ltx_tr">
+<td id="S4.T2.2.7.1" class="ltx_td ltx_align_left">GRILL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref">14</a>]</cite>
+</td>
+<td id="S4.T2.2.7.2" class="ltx_td ltx_align_center"><span id="S4.T2.2.7.2.1" class="ltx_text" style="color:#0000FF;">✓</span></td>
+<td id="S4.T2.2.7.3" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T2.2.7.4" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T2.2.7.5" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T2.2.7.6" class="ltx_td ltx_align_center">18.9</td>
+<td id="S4.T2.2.7.7" class="ltx_td ltx_align_center">53.4</td>
+<td id="S4.T2.2.7.8" class="ltx_td ltx_align_center">70.3</td>
+</tr>
+<tr id="S4.T2.2.8" class="ltx_tr">
+<td id="S4.T2.2.8.1" class="ltx_td ltx_align_left ltx_border_bb ltx_border_t"><span id="S4.T2.2.8.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span></td>
+<td id="S4.T2.2.8.2" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t"><span id="S4.T2.2.8.2.1" class="ltx_text" style="color:#0000FF;">✓</span></td>
+<td id="S4.T2.2.8.3" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">77.8</td>
+<td id="S4.T2.2.8.4" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">79.2</td>
+<td id="S4.T2.2.8.5" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">79.3</td>
+<td id="S4.T2.2.8.6" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">78.7</td>
+<td id="S4.T2.2.8.7" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">80.1</td>
+<td id="S4.T2.2.8.8" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">80.1</td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T2.3.1.1" class="ltx_text" style="font-size:90%;">Table 2</span>: </span><span id="S4.T2.4.2" class="ltx_text" style="font-size:90%;">Phrase grounding results on Flickr30k Entities.
+We report the R@1, R@5, and R@10 metrics, where R@1/5/10 means calculating the recall using the top 1/5/10 generated bounding boxes.
+</span></figcaption>
+</figure>
+<section id="S4.SS1.SSS1.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Results</h5>
+
+<div id="S4.SS1.SSS1.Px1.p1" class="ltx_para">
+<p id="S4.SS1.SSS1.Px1.p1.1" class="ltx_p">Table <a href="#S4.T2" title="Table 2 ‣ 4.1.1 Phrase Grounding ‣ 4.1 Multimodal Grounding ‣ 4 Evaluation ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> presents results on Flickr30k Entities <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib25" title="" class="ltx_ref">25</a>]</cite> val and test splits.
+<span id="S4.SS1.SSS1.Px1.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> achieves impressive zero-shot performance and outperforms GRILL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref">14</a>]</cite>, which relies on an attached detector, by a large margin.
+Moreover, our model outperforms traditional finetuned VisualBert <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref">20</a>]</cite> model by 7.4% R@1 on both val and test splits.
+In contrast to other models, <span id="S4.SS1.SSS1.Px1.p1.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> does not involve prior designs (<span id="S4.SS1.SSS1.Px1.p1.1.3" class="ltx_text ltx_font_italic">e.g.</span>, object queries or proposals), leading to similar results among R@1, R@5, and R@10.
+These results demonstrate that <span id="S4.SS1.SSS1.Px1.p1.1.4" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> can generate high-quality locations without the need for post-processing redundant locations.
+This capability highlights the effectiveness of our model in handling phrase grounding tasks.</p>
+</div>
+</section>
+</section>
+<section id="S4.SS1.SSS2" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.1.2 </span>Referring Expression Comprehension</h4>
+
+<div id="S4.SS1.SSS2.p1" class="ltx_para">
+<p id="S4.SS1.SSS2.p1.1" class="ltx_p">We assess the referring expression comprehension task using three well-established datasets: RefCOCO <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib32" title="" class="ltx_ref">32</a>]</cite>, RefCOCO+ <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib32" title="" class="ltx_ref">32</a>]</cite> and RefCOCOg <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite>.
+Both RefCOCO and RefCOCO+ were generated through a two-player game, with RefCOCO+ specifically designed to exclude spatial relations, such as “on the left”. RefCOCOg incorporates spatial relations and features longer expressions on average.
+Different from phrase grounding on Flickr30k entities, we measure this task by using referring expression as the input: “<span id="S4.SS1.SSS2.p1.1.1" class="ltx_text ltx_font_typewriter">&lt;p&gt;</span> <span id="S4.SS1.SSS2.p1.1.2" class="ltx_text ltx_font_italic"> referring expression</span> <span id="S4.SS1.SSS2.p1.1.3" class="ltx_text ltx_font_typewriter">&lt;/p&gt;</span>”. For the example shown in Figure <a href="#S4.F4" title="Figure 4 ‣ 4.1 Multimodal Grounding ‣ 4 Evaluation ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>(2), the input sequence is “<span id="S4.SS1.SSS2.p1.1.4" class="ltx_text ltx_font_typewriter">&lt;p&gt;</span><span id="S4.SS1.SSS2.p1.1.5" class="ltx_text ltx_font_italic">A man in a blue hard hat and orange safety vest</span><span id="S4.SS1.SSS2.p1.1.6" class="ltx_text ltx_font_typewriter">&lt;/p&gt;</span>”.
+Similarly, the predicted bounding box is considered correct only if its IOU with the ground-truth bounding box is greater than 0.5.
+The failed decoded sequence is also treated as a negative sample.
+We use the first generated bounding box for the query expression to measure the accuracy.</p>
+</div>
+<figure id="S4.T3" class="ltx_table">
+<div id="S4.T3.2" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:140.8pt;vertical-align:-0.9pt;"><span class="ltx_transformed_inner" style="transform:translate(-34.3pt,11.1pt) scale(0.863287803450111,0.863287803450111) ;">
+<table id="S4.T3.2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S4.T3.2.1.1" class="ltx_tr">
+<td id="S4.T3.2.1.1.1" class="ltx_td ltx_align_left ltx_border_tt" rowspan="2"><span id="S4.T3.2.1.1.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S4.T3.2.1.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T3.2.1.1.2.1" class="ltx_text ltx_font_bold">Zero-</span></td>
+<td id="S4.T3.2.1.1.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" colspan="3"><span id="S4.T3.2.1.1.3.1" class="ltx_text ltx_font_bold">RefCOCO</span></td>
+<td id="S4.T3.2.1.1.4" class="ltx_td ltx_align_center ltx_border_r ltx_border_tt" colspan="3"><span id="S4.T3.2.1.1.4.1" class="ltx_text ltx_font_bold">RefCOCO+</span></td>
+<td id="S4.T3.2.1.1.5" class="ltx_td ltx_align_center ltx_border_tt" colspan="2"><span id="S4.T3.2.1.1.5.1" class="ltx_text ltx_font_bold">RefCOCOg</span></td>
+</tr>
+<tr id="S4.T3.2.1.2" class="ltx_tr">
+<td id="S4.T3.2.1.2.1" class="ltx_td ltx_align_center"><span id="S4.T3.2.1.2.1.1" class="ltx_text ltx_font_bold">shot</span></td>
+<td id="S4.T3.2.1.2.2" class="ltx_td ltx_align_center ltx_border_t">val</td>
+<td id="S4.T3.2.1.2.3" class="ltx_td ltx_align_center ltx_border_t">testA</td>
+<td id="S4.T3.2.1.2.4" class="ltx_td ltx_align_center ltx_border_t">testB</td>
+<td id="S4.T3.2.1.2.5" class="ltx_td ltx_align_center ltx_border_t">val</td>
+<td id="S4.T3.2.1.2.6" class="ltx_td ltx_align_center ltx_border_t">testA</td>
+<td id="S4.T3.2.1.2.7" class="ltx_td ltx_align_center ltx_border_t">testB</td>
+<td id="S4.T3.2.1.2.8" class="ltx_td ltx_align_center ltx_border_t">val</td>
+<td id="S4.T3.2.1.2.9" class="ltx_td ltx_align_center ltx_border_t">test</td>
+</tr>
+<tr id="S4.T3.2.1.3" class="ltx_tr">
+<td id="S4.T3.2.1.3.1" class="ltx_td ltx_align_left ltx_border_t">UNITER <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib5" title="" class="ltx_ref">5</a>]</cite>
+</td>
+<td id="S4.T3.2.1.3.2" class="ltx_td ltx_align_center ltx_border_t"><span id="S4.T3.2.1.3.2.1" class="ltx_text" style="color:#000000;">✗</span></td>
+<td id="S4.T3.2.1.3.3" class="ltx_td ltx_align_center ltx_border_t">81.41</td>
+<td id="S4.T3.2.1.3.4" class="ltx_td ltx_align_center ltx_border_t">87.04</td>
+<td id="S4.T3.2.1.3.5" class="ltx_td ltx_align_center ltx_border_t">74.17</td>
+<td id="S4.T3.2.1.3.6" class="ltx_td ltx_align_center ltx_border_t">75.90</td>
+<td id="S4.T3.2.1.3.7" class="ltx_td ltx_align_center ltx_border_t">81.45</td>
+<td id="S4.T3.2.1.3.8" class="ltx_td ltx_align_center ltx_border_t">66.70</td>
+<td id="S4.T3.2.1.3.9" class="ltx_td ltx_align_center ltx_border_t">74.86</td>
+<td id="S4.T3.2.1.3.10" class="ltx_td ltx_align_center ltx_border_t">75.77</td>
+</tr>
+<tr id="S4.T3.2.1.4" class="ltx_tr">
+<td id="S4.T3.2.1.4.1" class="ltx_td ltx_align_left">MDETR <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib15" title="" class="ltx_ref">15</a>]</cite>
+</td>
+<td id="S4.T3.2.1.4.2" class="ltx_td ltx_align_center"><span id="S4.T3.2.1.4.2.1" class="ltx_text" style="color:#000000;">✗</span></td>
+<td id="S4.T3.2.1.4.3" class="ltx_td ltx_align_center">87.51</td>
+<td id="S4.T3.2.1.4.4" class="ltx_td ltx_align_center">90.40</td>
+<td id="S4.T3.2.1.4.5" class="ltx_td ltx_align_center">82.67</td>
+<td id="S4.T3.2.1.4.6" class="ltx_td ltx_align_center">81.13</td>
+<td id="S4.T3.2.1.4.7" class="ltx_td ltx_align_center">85.52</td>
+<td id="S4.T3.2.1.4.8" class="ltx_td ltx_align_center">72.96</td>
+<td id="S4.T3.2.1.4.9" class="ltx_td ltx_align_center">83.35</td>
+<td id="S4.T3.2.1.4.10" class="ltx_td ltx_align_center">83.31</td>
+</tr>
+<tr id="S4.T3.2.1.5" class="ltx_tr">
+<td id="S4.T3.2.1.5.1" class="ltx_td ltx_align_left">OFA <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib31" title="" class="ltx_ref">31</a>]</cite>
+</td>
+<td id="S4.T3.2.1.5.2" class="ltx_td ltx_align_center"><span id="S4.T3.2.1.5.2.1" class="ltx_text" style="color:#000000;">✗</span></td>
+<td id="S4.T3.2.1.5.3" class="ltx_td ltx_align_center">90.05</td>
+<td id="S4.T3.2.1.5.4" class="ltx_td ltx_align_center">92.93</td>
+<td id="S4.T3.2.1.5.5" class="ltx_td ltx_align_center">85.26</td>
+<td id="S4.T3.2.1.5.6" class="ltx_td ltx_align_center">84.49</td>
+<td id="S4.T3.2.1.5.7" class="ltx_td ltx_align_center">90.10</td>
+<td id="S4.T3.2.1.5.8" class="ltx_td ltx_align_center">77.77</td>
+<td id="S4.T3.2.1.5.9" class="ltx_td ltx_align_center">84.54</td>
+<td id="S4.T3.2.1.5.10" class="ltx_td ltx_align_center">85.20</td>
+</tr>
+<tr id="S4.T3.2.1.6" class="ltx_tr">
+<td id="S4.T3.2.1.6.1" class="ltx_td ltx_align_left">FIBER <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib7" title="" class="ltx_ref">7</a>]</cite>
+</td>
+<td id="S4.T3.2.1.6.2" class="ltx_td ltx_align_center"><span id="S4.T3.2.1.6.2.1" class="ltx_text" style="color:#000000;">✗</span></td>
+<td id="S4.T3.2.1.6.3" class="ltx_td ltx_align_center">90.68</td>
+<td id="S4.T3.2.1.6.4" class="ltx_td ltx_align_center">92.59</td>
+<td id="S4.T3.2.1.6.5" class="ltx_td ltx_align_center">87.26</td>
+<td id="S4.T3.2.1.6.6" class="ltx_td ltx_align_center">85.74</td>
+<td id="S4.T3.2.1.6.7" class="ltx_td ltx_align_center">90.13</td>
+<td id="S4.T3.2.1.6.8" class="ltx_td ltx_align_center">79.38</td>
+<td id="S4.T3.2.1.6.9" class="ltx_td ltx_align_center">87.11</td>
+<td id="S4.T3.2.1.6.10" class="ltx_td ltx_align_center">87.32</td>
+</tr>
+<tr id="S4.T3.2.1.7" class="ltx_tr">
+<td id="S4.T3.2.1.7.1" class="ltx_td ltx_align_left">VisionLLM <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib28" title="" class="ltx_ref">28</a>]</cite>
+</td>
+<td id="S4.T3.2.1.7.2" class="ltx_td ltx_align_center"><span id="S4.T3.2.1.7.2.1" class="ltx_text" style="color:#000000;">✗</span></td>
+<td id="S4.T3.2.1.7.3" class="ltx_td ltx_align_center">86.7</td>
+<td id="S4.T3.2.1.7.4" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.7.5" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.7.6" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.7.7" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.7.8" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.7.9" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.7.10" class="ltx_td ltx_align_center">-</td>
+</tr>
+<tr id="S4.T3.2.1.8" class="ltx_tr">
+<td id="S4.T3.2.1.8.1" class="ltx_td ltx_align_left">GRILL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref">14</a>]</cite>
+</td>
+<td id="S4.T3.2.1.8.2" class="ltx_td ltx_align_center"><span id="S4.T3.2.1.8.2.1" class="ltx_text" style="color:#0000FF;">✓</span></td>
+<td id="S4.T3.2.1.8.3" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.8.4" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.8.5" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.8.6" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.8.7" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.8.8" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.8.9" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T3.2.1.8.10" class="ltx_td ltx_align_center">47.5</td>
+</tr>
+<tr id="S4.T3.2.1.9" class="ltx_tr">
+<td id="S4.T3.2.1.9.1" class="ltx_td ltx_align_left ltx_border_bb ltx_border_t"><span id="S4.T3.2.1.9.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span></td>
+<td id="S4.T3.2.1.9.2" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t"><span id="S4.T3.2.1.9.2.1" class="ltx_text" style="color:#0000FF;">✓</span></td>
+<td id="S4.T3.2.1.9.3" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">52.32</td>
+<td id="S4.T3.2.1.9.4" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">57.42</td>
+<td id="S4.T3.2.1.9.5" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">47.26</td>
+<td id="S4.T3.2.1.9.6" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">45.48</td>
+<td id="S4.T3.2.1.9.7" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">50.73</td>
+<td id="S4.T3.2.1.9.8" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">42.24</td>
+<td id="S4.T3.2.1.9.9" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">60.57</td>
+<td id="S4.T3.2.1.9.10" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">61.65</td>
+</tr>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T3.3.1.1" class="ltx_text" style="font-size:90%;">Table 3</span>: </span><span id="S4.T3.4.2" class="ltx_text" style="font-size:90%;">Referring expression comprehension results on RefCOCO, RefCOCO+ and RefCOCOg.
+We report the accuracy metric for all methods.
+</span></figcaption>
+</figure>
+<section id="S4.SS1.SSS2.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Results</h5>
+
+<div id="S4.SS1.SSS2.Px1.p1" class="ltx_para">
+<p id="S4.SS1.SSS2.Px1.p1.1" class="ltx_p">Table <a href="#S4.T3" title="Table 3 ‣ 4.1.2 Referring Expression Comprehension ‣ 4.1 Multimodal Grounding ‣ 4 Evaluation ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> reports referring comprehension results on RefCOCO <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib32" title="" class="ltx_ref">32</a>]</cite>, RefCOCO+ <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib32" title="" class="ltx_ref">32</a>]</cite> and RefCOCOg <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite>.
+<span id="S4.SS1.SSS2.Px1.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> also obtains promising zero-shot performance on the comprehension task, significantly outperforming previous zero-shot models on RefCOCOg benchmark.
+However, compared to previous finetuned works, <span id="S4.SS1.SSS2.Px1.p1.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> achieves slightly lower performance on RefCOCO and RefCOCO+ than on RefCOCOg.
+This discrepancy can be attributed to the data distribution present in RefCOCO and RefCOCO+, where they tend to use a shorter referring expression (<span id="S4.SS1.SSS2.Px1.p1.1.3" class="ltx_text ltx_font_italic">e.g.</span>, “left bottom”) during the two-player game.
+Hence, one of our future goals is to enhance MLLMs’ ability to accurately understand more types of human expressions.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Multimodal Referring</h3>
+
+<div id="S4.SS2.p1" class="ltx_para">
+<p id="S4.SS2.p1.1" class="ltx_p">In addition to multimodal grounding tasks, we evaluate the model’s ability to understand image regions or objects users refer to via inputting bounding boxes.
+Compared with previous multimodal LLMs that can only refer image regions or objects to the model via detailed text descriptions, directly referring to image regions using its bounding boxes is more effective and reduces ambiguity.</p>
+</div>
+<div id="S4.SS2.p2" class="ltx_para">
+<p id="S4.SS2.p2.1" class="ltx_p">We evaluate the model on the referring expression generation task, which aims to generate unambiguous text descriptions of specific objects or regions within the bounding box.
+We employ the widely used RefCOCOg dataset <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite> to evaluate the model’s performance under both zero-shot and few-shot settings, showcasing its adaptability in different scenarios.</p>
+</div>
+<figure id="S4.F5" class="ltx_figure"><img src="/html/2306.14824/assets/x5.png" id="S4.F5.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="452" height="156" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="S4.F5.2.1.1" class="ltx_text" style="font-size:90%;">Figure 5</span>: </span><span id="S4.F5.3.2" class="ltx_text" style="font-size:90%;">
+The input format of referring expression generation evaluation under (1) zero-shot and (2) few-shot settings.
+The bounding boxes shown in the image are for visualization purposes.
+</span></figcaption>
+</figure>
+<section id="S4.SS2.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.2.1 </span>Evaluation Setup</h4>
+
+<div id="S4.SS2.SSS1.p1" class="ltx_para">
+<p id="S4.SS2.SSS1.p1.5" class="ltx_p">The model is tasked with generating an associated text description for an object or region given its location tokens of the bounding boxes (<span id="S4.SS2.SSS1.p1.5.5" class="ltx_text ltx_font_italic">e.g.</span>, “<span id="S4.SS2.SSS1.p1.2.2" class="ltx_text ltx_font_typewriter">&lt;box&gt;&lt;loc<sub id="S4.SS2.SSS1.p1.2.2.1" class="ltx_sub"><span id="S4.SS2.SSS1.p1.2.2.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;&lt;loc<sub id="S4.SS2.SSS1.p1.2.2.2" class="ltx_sub"><span id="S4.SS2.SSS1.p1.2.2.2.1" class="ltx_text ltx_font_serif">2</span></sub>&gt;&lt;/box&gt;</span>”).
+Benefiting from the unified input format, we use “<span id="S4.SS2.SSS1.p1.5.6" class="ltx_text ltx_font_typewriter">&lt;p&gt;</span> <span id="S4.SS2.SSS1.p1.5.7" class="ltx_text ltx_font_italic">It</span> <span id="S4.SS2.SSS1.p1.4.4" class="ltx_text ltx_font_typewriter">&lt;/p&gt;&lt;box&gt;&lt;loc<sub id="S4.SS2.SSS1.p1.4.4.1" class="ltx_sub"><span id="S4.SS2.SSS1.p1.4.4.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;&lt;loc<sub id="S4.SS2.SSS1.p1.4.4.2" class="ltx_sub"><span id="S4.SS2.SSS1.p1.4.4.2.1" class="ltx_text ltx_font_serif">2</span></sub>&gt;&lt;/box&gt;</span> <span id="S4.SS2.SSS1.p1.5.8" class="ltx_text ltx_font_italic">is</span>” as prompt to encourage the model to predict its text description.
+Figure <a href="#S4.F5" title="Figure 5 ‣ 4.2 Multimodal Referring ‣ 4 Evaluation ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a> (1) and (2) demonstrate the input format for zero-shot and few-shot referring expression generation, respectively.
+Following previous works, we report results using METEOR and CIDEr metrics.
+The image resolution is 224<math id="S4.SS2.SSS1.p1.5.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS2.SSS1.p1.5.m1.1a"><mo id="S4.SS2.SSS1.p1.5.m1.1.1" xref="S4.SS2.SSS1.p1.5.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS1.p1.5.m1.1b"><times id="S4.SS2.SSS1.p1.5.m1.1.1.cmml" xref="S4.SS2.SSS1.p1.5.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS1.p1.5.m1.1c">\times</annotation></semantics></math>224. Greedy search is used for decoding.</p>
+</div>
+</section>
+<section id="S4.SS2.SSS2" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.2.2 </span>Results</h4>
+
+<div id="S4.SS2.SSS2.p1" class="ltx_para">
+<p id="S4.SS2.SSS2.p1.1" class="ltx_p">Table <a href="#S4.T4" title="Table 4 ‣ 4.2.2 Results ‣ 4.2 Multimodal Referring ‣ 4 Evaluation ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a> presents the zero-shot and few-shot results of referring expression generation on RefCOCOg.
+We compare <span id="S4.SS2.SSS2.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> with a finetuned listener-speaker model, which introduces an added reward-based module (SLR).
+Our model obtains impressive zero-shot performance on referring expression generation, and even outperforms finetuned SLR by 1.1 CIDEr scores.
+Moreover, when prompted with fewshot demonstrations, <span id="S4.SS2.SSS2.p1.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> shows further improvements, highlighting its in-context learning ability.</p>
+</div>
+<figure id="S4.T4" class="ltx_table">
+<table id="S4.T4.2" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S4.T4.2.3" class="ltx_tr">
+<td id="S4.T4.2.3.1" class="ltx_td ltx_align_left ltx_border_tt" rowspan="2"><span id="S4.T4.2.3.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S4.T4.2.3.2" class="ltx_td ltx_align_left ltx_border_tt" rowspan="2"><span id="S4.T4.2.3.2.1" class="ltx_text ltx_font_bold">Setting</span></td>
+<td id="S4.T4.2.3.3" class="ltx_td ltx_align_center ltx_border_tt" colspan="2"><span id="S4.T4.2.3.3.1" class="ltx_text ltx_font_bold">RefCOCOg</span></td>
+</tr>
+<tr id="S4.T4.2.4" class="ltx_tr">
+<td id="S4.T4.2.4.1" class="ltx_td ltx_align_center">Meteor</td>
+<td id="S4.T4.2.4.2" class="ltx_td ltx_align_center">CIDEr</td>
+</tr>
+<tr id="S4.T4.2.5" class="ltx_tr">
+<td id="S4.T4.2.5.1" class="ltx_td ltx_align_left ltx_border_t">SLR<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib33" title="" class="ltx_ref">33</a>]</cite>
+</td>
+<td id="S4.T4.2.5.2" class="ltx_td ltx_align_left ltx_border_t">Finetuning</td>
+<td id="S4.T4.2.5.3" class="ltx_td ltx_align_center ltx_border_t">15.4</td>
+<td id="S4.T4.2.5.4" class="ltx_td ltx_align_center ltx_border_t">59.2</td>
+</tr>
+<tr id="S4.T4.2.6" class="ltx_tr">
+<td id="S4.T4.2.6.1" class="ltx_td ltx_align_left">SLR+Rerank<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib33" title="" class="ltx_ref">33</a>]</cite>
+</td>
+<td id="S4.T4.2.6.2" class="ltx_td ltx_align_left">Finetuning</td>
+<td id="S4.T4.2.6.3" class="ltx_td ltx_align_center">15.9</td>
+<td id="S4.T4.2.6.4" class="ltx_td ltx_align_center">66.2</td>
+</tr>
+<tr id="S4.T4.2.7" class="ltx_tr">
+<td id="S4.T4.2.7.1" class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" rowspan="3"><span id="S4.T4.2.7.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span></td>
+<td id="S4.T4.2.7.2" class="ltx_td ltx_align_left ltx_border_t">Zero-shot</td>
+<td id="S4.T4.2.7.3" class="ltx_td ltx_align_center ltx_border_t">12.2</td>
+<td id="S4.T4.2.7.4" class="ltx_td ltx_align_center ltx_border_t">60.3</td>
+</tr>
+<tr id="S4.T4.1.1" class="ltx_tr">
+<td id="S4.T4.1.1.1" class="ltx_td ltx_align_left">Few-shot (<math id="S4.T4.1.1.1.m1.1" class="ltx_Math" alttext="k=2" display="inline"><semantics id="S4.T4.1.1.1.m1.1a"><mrow id="S4.T4.1.1.1.m1.1.1" xref="S4.T4.1.1.1.m1.1.1.cmml"><mi id="S4.T4.1.1.1.m1.1.1.2" xref="S4.T4.1.1.1.m1.1.1.2.cmml">k</mi><mo id="S4.T4.1.1.1.m1.1.1.1" xref="S4.T4.1.1.1.m1.1.1.1.cmml">=</mo><mn id="S4.T4.1.1.1.m1.1.1.3" xref="S4.T4.1.1.1.m1.1.1.3.cmml">2</mn></mrow><annotation-xml encoding="MathML-Content" id="S4.T4.1.1.1.m1.1b"><apply id="S4.T4.1.1.1.m1.1.1.cmml" xref="S4.T4.1.1.1.m1.1.1"><eq id="S4.T4.1.1.1.m1.1.1.1.cmml" xref="S4.T4.1.1.1.m1.1.1.1"></eq><ci id="S4.T4.1.1.1.m1.1.1.2.cmml" xref="S4.T4.1.1.1.m1.1.1.2">𝑘</ci><cn type="integer" id="S4.T4.1.1.1.m1.1.1.3.cmml" xref="S4.T4.1.1.1.m1.1.1.3">2</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.T4.1.1.1.m1.1c">k=2</annotation></semantics></math>)</td>
+<td id="S4.T4.1.1.2" class="ltx_td ltx_align_center">13.8</td>
+<td id="S4.T4.1.1.3" class="ltx_td ltx_align_center">62.2</td>
+</tr>
+<tr id="S4.T4.2.2" class="ltx_tr">
+<td id="S4.T4.2.2.1" class="ltx_td ltx_align_left ltx_border_bb">Few-shot (<math id="S4.T4.2.2.1.m1.1" class="ltx_Math" alttext="k=4" display="inline"><semantics id="S4.T4.2.2.1.m1.1a"><mrow id="S4.T4.2.2.1.m1.1.1" xref="S4.T4.2.2.1.m1.1.1.cmml"><mi id="S4.T4.2.2.1.m1.1.1.2" xref="S4.T4.2.2.1.m1.1.1.2.cmml">k</mi><mo id="S4.T4.2.2.1.m1.1.1.1" xref="S4.T4.2.2.1.m1.1.1.1.cmml">=</mo><mn id="S4.T4.2.2.1.m1.1.1.3" xref="S4.T4.2.2.1.m1.1.1.3.cmml">4</mn></mrow><annotation-xml encoding="MathML-Content" id="S4.T4.2.2.1.m1.1b"><apply id="S4.T4.2.2.1.m1.1.1.cmml" xref="S4.T4.2.2.1.m1.1.1"><eq id="S4.T4.2.2.1.m1.1.1.1.cmml" xref="S4.T4.2.2.1.m1.1.1.1"></eq><ci id="S4.T4.2.2.1.m1.1.1.2.cmml" xref="S4.T4.2.2.1.m1.1.1.2">𝑘</ci><cn type="integer" id="S4.T4.2.2.1.m1.1.1.3.cmml" xref="S4.T4.2.2.1.m1.1.1.3">4</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.T4.2.2.1.m1.1c">k=4</annotation></semantics></math>)</td>
+<td id="S4.T4.2.2.2" class="ltx_td ltx_align_center ltx_border_bb">14.1</td>
+<td id="S4.T4.2.2.3" class="ltx_td ltx_align_center ltx_border_bb">62.3</td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T4.4.1.1" class="ltx_text" style="font-size:90%;">Table 4</span>: </span><span id="S4.T4.5.2" class="ltx_text" style="font-size:90%;">Results of referring expression generation on RefCOCOg.
+</span></figcaption>
+</figure>
+</section>
+</section>
+<section id="S4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.3 </span>Perception-Language Tasks</h3>
+
+<div id="S4.SS3.p1" class="ltx_para">
+<p id="S4.SS3.p1.1" class="ltx_p">In addition to multimodal grounding and referring tasks, we also evaluate <span id="S4.SS3.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> on the vision-language tasks following <span id="S4.SS3.p1.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>.
+In particular, we perform zero-shot evaluations on two popular tasks, including image captioning and visual question answering.
+Image captioning requires the model to generate a text description of the given image, whereas visual question answering seeks to answer a natural language question based on an image.
+In order to have a fair comparison with <span id="S4.SS3.p1.1.3" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>, we report results without instruction tuning.</p>
+</div>
+<section id="S4.SS3.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.3.1 </span>Evaluation Setup</h4>
+
+<div id="S4.SS3.SSS1.p1" class="ltx_para">
+<p id="S4.SS3.SSS1.p1.1" class="ltx_p">For image captioning, we evaluate the model on the widely used Flickr30k <span id="S4.SS3.SSS1.p1.1.1" class="ltx_text ltx_font_italic">Karpathy split</span> test set.
+We employ beam search for caption generation, with a beam size of 5.
+We report results using CIDEr <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib27" title="" class="ltx_ref">27</a>]</cite> metrics evaluated by COCOEvalCap<span id="footnote2" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">2</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">2</sup><span class="ltx_tag ltx_tag_note">2</span><a target="_blank" href="https://github.com/salaniz/pycocoevalcap" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/salaniz/pycocoevalcap</a></span></span></span>.
+We use the prompt <span id="S4.SS3.SSS1.p1.1.2" class="ltx_text ltx_font_italic">“An image of”</span> to generate the image description.</p>
+</div>
+<div id="S4.SS3.SSS1.p2" class="ltx_para">
+<p id="S4.SS3.SSS1.p2.1" class="ltx_p">For visual question-answering, we evaluate zero-shot performance on the test-dev set of VQAv2.
+Greedy search is used for decoding.
+We report VQA scores obtained from VQAv2 evaluation server<span id="footnote3" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">3</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">3</sup><span class="ltx_tag ltx_tag_note">3</span><a target="_blank" href="https://eval.ai/challenge/830/overview" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://eval.ai/challenge/830/overview</a></span></span></span>.
+<span id="S4.SS3.SSS1.p2.1.1" class="ltx_text ltx_font_italic">“Question: </span>{<span id="S4.SS3.SSS1.p2.1.2" class="ltx_text ltx_font_italic">question</span>}<span id="S4.SS3.SSS1.p2.1.3" class="ltx_text ltx_font_italic"> Answer: </span>{<span id="S4.SS3.SSS1.p2.1.4" class="ltx_text ltx_font_italic">answer</span>}<span id="S4.SS3.SSS1.p2.1.5" class="ltx_text ltx_font_italic">”</span> is used as the prompt for the dataset.
+The image resolution is 224<math id="S4.SS3.SSS1.p2.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS3.SSS1.p2.1.m1.1a"><mo id="S4.SS3.SSS1.p2.1.m1.1.1" xref="S4.SS3.SSS1.p2.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS3.SSS1.p2.1.m1.1b"><times id="S4.SS3.SSS1.p2.1.m1.1.1.cmml" xref="S4.SS3.SSS1.p2.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS3.SSS1.p2.1.m1.1c">\times</annotation></semantics></math>224 for both two tasks.</p>
+</div>
+</section>
+<section id="S4.SS3.SSS2" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.3.2 </span>Results</h4>
+
+<div id="S4.SS3.SSS2.p1" class="ltx_para">
+<p id="S4.SS3.SSS2.p1.1" class="ltx_p">We present the zero-shot performance on Flickr30k and VQAv2 in Table <a href="#S4.T5" title="Table 5 ‣ 4.3.2 Results ‣ 4.3 Perception-Language Tasks ‣ 4 Evaluation ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>.
+<span id="S4.SS3.SSS2.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> exhibites comparable overall performance to the <span id="S4.SS3.SSS2.p1.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>, showing a slight improvement on Flickr30k while experiencing a marginal decrease on VQA.
+While <span id="S4.SS3.SSS2.p1.1.3" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> introduces new capabilities of grounding and referring, the model still achieves competitive performance on perception-language tasks.</p>
+</div>
+<figure id="S4.T5" class="ltx_table">
+<table id="S4.T5.2" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S4.T5.2.1" class="ltx_tr">
+<td id="S4.T5.2.1.1" class="ltx_td ltx_align_left ltx_border_tt" rowspan="2"><span id="S4.T5.2.1.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S4.T5.2.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T5.2.1.2.1" class="ltx_text ltx_font_bold">Flickr30k</span></td>
+<td id="S4.T5.2.1.3" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T5.2.1.3.1" class="ltx_text ltx_font_bold">VQAv2</span></td>
+</tr>
+<tr id="S4.T5.2.2" class="ltx_tr">
+<td id="S4.T5.2.2.1" class="ltx_td ltx_align_center ltx_border_t">CIDEr</td>
+<td id="S4.T5.2.2.2" class="ltx_td ltx_align_center ltx_border_t">VQA acc.</td>
+</tr>
+<tr id="S4.T5.2.3" class="ltx_tr">
+<td id="S4.T5.2.3.1" class="ltx_td ltx_align_left ltx_border_t">FewVLM <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib13" title="" class="ltx_ref">13</a>]</cite>
+</td>
+<td id="S4.T5.2.3.2" class="ltx_td ltx_align_center ltx_border_t">31.0</td>
+<td id="S4.T5.2.3.3" class="ltx_td ltx_align_center ltx_border_t">-</td>
+</tr>
+<tr id="S4.T5.2.4" class="ltx_tr">
+<td id="S4.T5.2.4.1" class="ltx_td ltx_align_left">
+<span id="S4.T5.2.4.1.1" class="ltx_text ltx_font_smallcaps">MetaLM</span> <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib11" title="" class="ltx_ref">11</a>]</cite>
+</td>
+<td id="S4.T5.2.4.2" class="ltx_td ltx_align_center">43.4</td>
+<td id="S4.T5.2.4.3" class="ltx_td ltx_align_center">41.1</td>
+</tr>
+<tr id="S4.T5.2.5" class="ltx_tr">
+<td id="S4.T5.2.5.1" class="ltx_td ltx_align_left">Flamingo-3B <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref">1</a>]</cite>
+</td>
+<td id="S4.T5.2.5.2" class="ltx_td ltx_align_center">60.6</td>
+<td id="S4.T5.2.5.3" class="ltx_td ltx_align_center">49.2</td>
+</tr>
+<tr id="S4.T5.2.6" class="ltx_tr">
+<td id="S4.T5.2.6.1" class="ltx_td ltx_align_left">Flamingo-9B <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref">1</a>]</cite>
+</td>
+<td id="S4.T5.2.6.2" class="ltx_td ltx_align_center">61.5</td>
+<td id="S4.T5.2.6.3" class="ltx_td ltx_align_center">51.8</td>
+</tr>
+<tr id="S4.T5.2.7" class="ltx_tr">
+<td id="S4.T5.2.7.1" class="ltx_td ltx_align_left"><span id="S4.T5.2.7.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-1</span></td>
+<td id="S4.T5.2.7.2" class="ltx_td ltx_align_center">65.2</td>
+<td id="S4.T5.2.7.3" class="ltx_td ltx_align_center">46.7</td>
+</tr>
+<tr id="S4.T5.2.8" class="ltx_tr">
+<td id="S4.T5.2.8.1" class="ltx_td ltx_align_left ltx_border_bb"><span id="S4.T5.2.8.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span></td>
+<td id="S4.T5.2.8.2" class="ltx_td ltx_align_center ltx_border_bb">66.7</td>
+<td id="S4.T5.2.8.3" class="ltx_td ltx_align_center ltx_border_bb">45.6</td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T5.5.1.1" class="ltx_text" style="font-size:90%;">Table 5</span>: </span><span id="S4.T5.6.2" class="ltx_text" style="font-size:90%;">Zero-shot image captioning results on Flickr30k test set and zero-shot visual question answering results on VQAv2 test-dev set.
+We report results of <span id="S4.T5.6.2.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> and <span id="S4.T5.6.2.2" class="ltx_text ltx_font_smallcaps">Kosmos-1</span> without instruction tuning.
+</span></figcaption>
+</figure>
+</section>
+</section>
+<section id="S4.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.4 </span>Language Tasks</h3>
+
+<div id="S4.SS4.p1" class="ltx_para">
+<p id="S4.SS4.p1.1" class="ltx_p">We evaluate <span id="S4.SS4.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> on eight language tasks, such as cloze and completion tasks (StoryCloze, HellaSwag), Winograd-style tasks (Winograd, Winogrande), commonsense reasoning (PIQA), and three SuperGLUE benchmark <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib30" title="" class="ltx_ref">30</a>]</cite> datasets (BoolQ, CB, and COPA).
+We report the zero-shot results in Table <a href="#S4.T6" title="Table 6 ‣ 4.4 Language Tasks ‣ 4 Evaluation ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>.
+Compared with <span id="S4.SS4.p1.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>, <span id="S4.SS4.p1.1.3" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> achieves similar performance on StoryCloze, HellaSwag, Winograd, Winogrande, and PIQA, experiences a decrease in performance on CB, but shows improvement on BoolQ and COPA.
+In summary, <span id="S4.SS4.p1.1.4" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> demonstrates the acquisition of new capabilities while experiencing comparable performance on language tasks. This illustrates the potential of the model in balancing and expanding its skills across different domains.</p>
+</div>
+<figure id="S4.T6" class="ltx_table">
+<div id="S4.T6.2" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:433.6pt;height:100.5pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="transform:translate(11.1pt,-2.6pt) scale(1.05396629099384,1.05396629099384) ;">
+<table id="S4.T6.2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S4.T6.2.1.1" class="ltx_tr">
+<td id="S4.T6.2.1.1.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="S4.T6.2.1.1.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S4.T6.2.1.1.2" class="ltx_td ltx_align_center ltx_border_tt">
+<table id="S4.T6.2.1.1.2.1" class="ltx_tabular ltx_align_middle">
+<tr id="S4.T6.2.1.1.2.1.1" class="ltx_tr">
+<td id="S4.T6.2.1.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S4.T6.2.1.1.2.1.1.1.1" class="ltx_text ltx_font_bold">Story</span></td>
+</tr>
+<tr id="S4.T6.2.1.1.2.1.2" class="ltx_tr">
+<td id="S4.T6.2.1.1.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S4.T6.2.1.1.2.1.2.1.1" class="ltx_text ltx_font_bold">Cloze</span></td>
+</tr>
+</table>
+</td>
+<td id="S4.T6.2.1.1.3" class="ltx_td ltx_align_center ltx_border_tt">
+<table id="S4.T6.2.1.1.3.1" class="ltx_tabular ltx_align_middle">
+<tr id="S4.T6.2.1.1.3.1.1" class="ltx_tr">
+<td id="S4.T6.2.1.1.3.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S4.T6.2.1.1.3.1.1.1.1" class="ltx_text ltx_font_bold">Hella</span></td>
+</tr>
+<tr id="S4.T6.2.1.1.3.1.2" class="ltx_tr">
+<td id="S4.T6.2.1.1.3.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S4.T6.2.1.1.3.1.2.1.1" class="ltx_text ltx_font_bold">Swag</span></td>
+</tr>
+</table>
+</td>
+<td id="S4.T6.2.1.1.4" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T6.2.1.1.4.1" class="ltx_text ltx_font_bold">Winograd</span></td>
+<td id="S4.T6.2.1.1.5" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T6.2.1.1.5.1" class="ltx_text ltx_font_bold">Winogrande</span></td>
+<td id="S4.T6.2.1.1.6" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T6.2.1.1.6.1" class="ltx_text ltx_font_bold">PIQA</span></td>
+<td id="S4.T6.2.1.1.7" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T6.2.1.1.7.1" class="ltx_text ltx_font_bold">BoolQ</span></td>
+<td id="S4.T6.2.1.1.8" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T6.2.1.1.8.1" class="ltx_text ltx_font_bold">CB</span></td>
+<td id="S4.T6.2.1.1.9" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T6.2.1.1.9.1" class="ltx_text ltx_font_bold">COPA</span></td>
+</tr>
+<tr id="S4.T6.2.1.2" class="ltx_tr">
+<td id="S4.T6.2.1.2.1" class="ltx_td ltx_align_left ltx_border_t">LLM</td>
+<td id="S4.T6.2.1.2.2" class="ltx_td ltx_align_center ltx_border_t">72.9</td>
+<td id="S4.T6.2.1.2.3" class="ltx_td ltx_align_center ltx_border_t">50.4</td>
+<td id="S4.T6.2.1.2.4" class="ltx_td ltx_align_center ltx_border_t">71.6</td>
+<td id="S4.T6.2.1.2.5" class="ltx_td ltx_align_center ltx_border_t">56.7</td>
+<td id="S4.T6.2.1.2.6" class="ltx_td ltx_align_center ltx_border_t">73.2</td>
+<td id="S4.T6.2.1.2.7" class="ltx_td ltx_align_center ltx_border_t">56.4</td>
+<td id="S4.T6.2.1.2.8" class="ltx_td ltx_align_center ltx_border_t">39.3</td>
+<td id="S4.T6.2.1.2.9" class="ltx_td ltx_align_center ltx_border_t">68.0</td>
+</tr>
+<tr id="S4.T6.2.1.3" class="ltx_tr">
+<td id="S4.T6.2.1.3.1" class="ltx_td ltx_align_left"><span id="S4.T6.2.1.3.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-1</span></td>
+<td id="S4.T6.2.1.3.2" class="ltx_td ltx_align_center">72.1</td>
+<td id="S4.T6.2.1.3.3" class="ltx_td ltx_align_center">50.0</td>
+<td id="S4.T6.2.1.3.4" class="ltx_td ltx_align_center">69.8</td>
+<td id="S4.T6.2.1.3.5" class="ltx_td ltx_align_center">54.8</td>
+<td id="S4.T6.2.1.3.6" class="ltx_td ltx_align_center">72.9</td>
+<td id="S4.T6.2.1.3.7" class="ltx_td ltx_align_center">56.4</td>
+<td id="S4.T6.2.1.3.8" class="ltx_td ltx_align_center">44.6</td>
+<td id="S4.T6.2.1.3.9" class="ltx_td ltx_align_center">63.0</td>
+</tr>
+<tr id="S4.T6.2.1.4" class="ltx_tr">
+<td id="S4.T6.2.1.4.1" class="ltx_td ltx_align_left ltx_border_bb"><span id="S4.T6.2.1.4.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span></td>
+<td id="S4.T6.2.1.4.2" class="ltx_td ltx_align_center ltx_border_bb">72.0</td>
+<td id="S4.T6.2.1.4.3" class="ltx_td ltx_align_center ltx_border_bb">49.4</td>
+<td id="S4.T6.2.1.4.4" class="ltx_td ltx_align_center ltx_border_bb">69.1</td>
+<td id="S4.T6.2.1.4.5" class="ltx_td ltx_align_center ltx_border_bb">55.6</td>
+<td id="S4.T6.2.1.4.6" class="ltx_td ltx_align_center ltx_border_bb">72.9</td>
+<td id="S4.T6.2.1.4.7" class="ltx_td ltx_align_center ltx_border_bb">62.0</td>
+<td id="S4.T6.2.1.4.8" class="ltx_td ltx_align_center ltx_border_bb">30.4</td>
+<td id="S4.T6.2.1.4.9" class="ltx_td ltx_align_center ltx_border_bb">67.0</td>
+</tr>
+</table>
+</span></div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table"><span id="S4.T6.9.1.1" class="ltx_text" style="font-size:90%;">Table 6</span>: </span><span id="S4.T6.10.2" class="ltx_text" style="font-size:90%;">Zero-shot performance comparisons of language tasks between <span id="S4.T6.10.2.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>, <span id="S4.T6.10.2.2" class="ltx_text ltx_font_smallcaps">Kosmos-1</span> and LLM.
+LLM uses the same text data and training setup to reimplement a language model as <span id="S4.T6.10.2.3" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>.
+We report results of <span id="S4.T6.10.2.4" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> and <span id="S4.T6.10.2.5" class="ltx_text ltx_font_smallcaps">Kosmos-1</span> without instruction tuning.
+Results of <span id="S4.T6.10.2.6" class="ltx_text ltx_font_smallcaps">Kosmos-1</span> and the LLM baseline are from <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite>.
+</span></figcaption>
+</figure>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Conclusion</h2>
+
+<div id="S5.p1" class="ltx_para">
+<p id="S5.p1.1" class="ltx_p">We present <span id="S5.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>, a multimodal large language modal, that can ground to the visual world. Specifically, we pre-train <span id="S5.p1.1.2" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> by augmenting the multimodal corpora used in <span id="S5.p1.1.3" class="ltx_text ltx_font_smallcaps">Kosmos-1</span> with <span id="S5.p1.1.4" class="ltx_text ltx_font_smallcaps">GrIT</span>, a large-scale dataset of Grounded Image-Text pairs, which is created by extracting and associating noun phrases and referring expressions in the caption to the objects or regions in the scene.
+<span id="S5.p1.1.5" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> enables new capabilities of perceiving image regions and grounding text output to the visual world, which makes grounding as a foundation capability of MLLMs in many downstream applications.
+Experimental results demonstrate that <span id="S5.p1.1.6" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> achieves impressive results on language and vision-language tasks evaluated in <span id="S5.p1.1.7" class="ltx_text ltx_font_smallcaps">Kosmos-1</span>, grounding tasks including phrase grounding and referring expression comprehension, and referring tasks such as referring expression generation.</p>
+</div>
+</section>
+<section id="Sx1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">Acknowledgement</h2>
+
+<div id="Sx1.p1" class="ltx_para">
+<p id="Sx1.p1.1" class="ltx_p">Some examples (such as Figure <a href="#S0.F1" title="Figure 1 ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>) are taken from the WHOOPS corpus <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib3" title="" class="ltx_ref">3</a>]</cite>.</p>
+</div>
+</section>
+<section id="Sx2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">Ethics Statement</h2>
+
+<div id="Sx2.p1" class="ltx_para">
+<p id="Sx2.p1.1" class="ltx_p">The model presented in this paper is intended for academic and research purposes.
+The utilization of the model to create unsuitable material is strictly forbidden and not endorsed by this work.
+The accountability for any improper or unacceptable application of the model rests exclusively with the individuals who generated such content.
+We also put Microsoft AI Principles<span id="footnote4" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">4</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">4</sup><span class="ltx_tag ltx_tag_note">4</span><a target="_blank" href="https://www.microsoft.com/ai/responsible-ai" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.microsoft.com/ai/responsible-ai</a></span></span></span> into practice when developing the models.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">ADL<sup id="bib.bib1.4.4.1" class="ltx_sup"><span id="bib.bib1.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [22]</span>
+<span class="ltx_bibblock">
+Jean-Baptiste Alayrac, Jeff Donahue, Pauline Luc, Antoine Miech, Iain Barr,
+Yana Hasson, Karel Lenc, Arthur Mensch, Katherine Millican, Malcolm Reynolds,
+Roman Ring, Eliza Rutherford, Serkan Cabi, Tengda Han, Zhitao Gong, Sina
+Samangooei, Marianne Monteiro, Jacob Menick, Sebastian Borgeaud, Andrew
+Brock, Aida Nematzadeh, Sahand Sharifzadeh, Mikolaj Binkowski, Ricardo
+Barreira, Oriol Vinyals, Andrew Zisserman, and Karen Simonyan.
+
+</span>
+<span class="ltx_bibblock">Flamingo: a visual language model for few-shot learning.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib1.5.1" class="ltx_text ltx_font_italic">Advances in Neural Information Processing Systems</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">AHR<sup id="bib.bib2.4.4.1" class="ltx_sup"><span id="bib.bib2.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [22]</span>
+<span class="ltx_bibblock">
+Armen Aghajanyan, Bernie Huang, Candace Ross, Vladimir Karpukhin, Hu Xu, Naman
+Goyal, Dmytro Okhonko, Mandar Joshi, Gargi Ghosh, Mike Lewis, and Luke
+Zettlemoyer.
+
+</span>
+<span class="ltx_bibblock">CM3: A causal masked multimodal model of the Internet.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib2.5.1" class="ltx_text ltx_font_italic">ArXiv</span>, abs/2201.07520, 2022.
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">BGBH<sup id="bib.bib3.4.4.1" class="ltx_sup"><span id="bib.bib3.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [23]</span>
+<span class="ltx_bibblock">
+Nitzan Bitton-Guetta, Yonatan Bitton, Jack Hessel, Ludwig Schmidt, Yuval
+Elovici, Gabriel Stanovsky, and Roy Schwartz.
+
+</span>
+<span class="ltx_bibblock">Breaking common sense: WHOOPS! a vision-and-language benchmark of
+synthetic and compositional images.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib3.5.1" class="ltx_text ltx_font_italic">ArXiv</span>, abs/2303.07274, 2023.
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">BPK<sup id="bib.bib4.4.4.1" class="ltx_sup"><span id="bib.bib4.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [22]</span>
+<span class="ltx_bibblock">
+Minwoo Byeon, Beomhee Park, Haecheon Kim, Sungjun Lee, Woonhyuk Baek, and
+Saehoon Kim.
+
+</span>
+<span class="ltx_bibblock">Coyo-700m: Image-text pair dataset, 2022.
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">CLY<sup id="bib.bib5.4.4.1" class="ltx_sup"><span id="bib.bib5.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [19]</span>
+<span class="ltx_bibblock">
+Yen-Chun Chen, Linjie Li, Licheng Yu, Ahmed El Kholy, Faisal Ahmed, Zhe Gan,
+Yu Cheng, and Jingjing Liu.
+
+</span>
+<span class="ltx_bibblock">Uniter: Universal image-text representation learning.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib5.5.1" class="ltx_text ltx_font_italic">European Conference on Computer Vision</span>, 2019.
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">CSL<sup id="bib.bib6.4.4.1" class="ltx_sup"><span id="bib.bib6.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [21]</span>
+<span class="ltx_bibblock">
+Ting Chen, Saurabh Saxena, Lala Li, David J. Fleet, and Geo rey E. Hinton.
+
+</span>
+<span class="ltx_bibblock">Pix2seq: A language modeling framework for object detection.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib6.5.1" class="ltx_text ltx_font_italic">ArXiv</span>, abs/2109.10852, 2021.
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">DKG<sup id="bib.bib7.4.4.1" class="ltx_sup"><span id="bib.bib7.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [22]</span>
+<span class="ltx_bibblock">
+Zi-Yi Dou, Aishwarya Kamath, Zhe Gan, Pengchuan Zhang, Jianfeng Wang, Linjie
+Li, Zicheng Liu, Ce Liu, Yann LeCun, Nanyun Peng, Jianfeng Gao, and Lijuan
+Wang.
+
+</span>
+<span class="ltx_bibblock">Coarse-to-fine vision-language pre-training with fusion in the
+backbone.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib7.5.1" class="ltx_text ltx_font_italic">ArXiv</span>, abs/2206.07643, 2022.
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">DXS<sup id="bib.bib8.4.4.1" class="ltx_sup"><span id="bib.bib8.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [23]</span>
+<span class="ltx_bibblock">
+Danny Driess, F. Xia, Mehdi S. M. Sajjadi, Corey Lynch, Aakanksha Chowdhery,
+Brian Ichter, Ayzaan Wahid, Jonathan Tompson, Quan Ho Vuong, Tianhe Yu,
+Wenlong Huang, Yevgen Chebotar, Pierre Sermanet, Daniel Duckworth, Sergey
+Levine, Vincent Vanhoucke, Karol Hausman, Marc Toussaint, Klaus Greff, Andy
+Zeng, Igor Mordatch, and Peter R. Florence.
+
+</span>
+<span class="ltx_bibblock">Palm-e: An embodied multimodal language model.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib8.5.1" class="ltx_text ltx_font_italic">ArXiv</span>, abs/2303.03378, 2023.
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">HDW<sup id="bib.bib9.4.4.1" class="ltx_sup"><span id="bib.bib9.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [23]</span>
+<span class="ltx_bibblock">
+Shaohan Huang, Li Dong, Wenhui Wang, Yaru Hao, Saksham Singhal, Shuming Ma,
+Tengchao Lv, Lei Cui, Owais Khan Mohammed, Qiang Liu, Kriti Aggarwal, Zewen
+Chi, Johan Bjorck, Vishrav Chaudhary, Subhojit Som, Xia Song, and Furu Wei.
+
+</span>
+<span class="ltx_bibblock">Language is not all you need: Aligning perception with language
+models.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib9.5.1" class="ltx_text ltx_font_italic">ArXiv</span>, abs/2302.14045, 2023.
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">HMVLB [20]</span>
+<span class="ltx_bibblock">
+Matthew Honnibal, Ines Montani, Sofie Van Landeghem, and Adriane Boyd.
+
+</span>
+<span class="ltx_bibblock">spaCy: Industrial-strength Natural Language Processing in Python.
+
+</span>
+<span class="ltx_bibblock">2020.
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">HSD<sup id="bib.bib11.4.4.1" class="ltx_sup"><span id="bib.bib11.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [22]</span>
+<span class="ltx_bibblock">
+Yaru Hao, Haoyu Song, Li Dong, Shaohan Huang, Zewen Chi, Wenhui Wang, Shuming
+Ma, and Furu Wei.
+
+</span>
+<span class="ltx_bibblock">Language models are general-purpose interfaces.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib11.5.1" class="ltx_text ltx_font_italic">ArXiv</span>, abs/2206.06336, 2022.
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">HSLS [22]</span>
+<span class="ltx_bibblock">
+Or Honovich, Thomas Scialom, Omer Levy, and Timo Schick.
+
+</span>
+<span class="ltx_bibblock">Unnatural instructions: Tuning language models with (almost) no human
+labor, 2022.
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">JCS<sup id="bib.bib13.4.4.1" class="ltx_sup"><span id="bib.bib13.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [22]</span>
+<span class="ltx_bibblock">
+Woojeong Jin, Yu Cheng, Yelong Shen, Weizhu Chen, and Xiang Ren.
+
+</span>
+<span class="ltx_bibblock">A good prompt is worth millions of parameters: Low-resource
+prompt-based learning for vision-language models.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib13.5.1" class="ltx_text ltx_font_italic">Proceedings of the 60th Annual Meeting of the Association for
+Computational Linguistics (Volume 1: Long Papers)</span>, pages 2763–2775, Dublin,
+Ireland, May 2022. Association for Computational Linguistics.
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">JMC<sup id="bib.bib14.4.4.1" class="ltx_sup"><span id="bib.bib14.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [23]</span>
+<span class="ltx_bibblock">
+Woojeong Jin, Subhabrata Mukherjee, Yu Cheng, Yelong Shen, Weizhu Chen,
+Ahmed Hassan Awadallah, Damien Jose, and Xiang Ren.
+
+</span>
+<span class="ltx_bibblock">Grill: Grounded vision-language pre-training via aligning text and
+image regions.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib14.5.1" class="ltx_text ltx_font_italic">ArXiv</span>, abs/2305.14676, 2023.
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">KSL<sup id="bib.bib15.4.4.1" class="ltx_sup"><span id="bib.bib15.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [21]</span>
+<span class="ltx_bibblock">
+Aishwarya Kamath, Mannat Singh, Yann LeCun, Ishan Misra, Gabriel Synnaeve, and
+Nicolas Carion.
+
+</span>
+<span class="ltx_bibblock">Mdetr - modulated detection for end-to-end multi-modal understanding.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib15.5.1" class="ltx_text ltx_font_italic">2021 IEEE/CVF International Conference on Computer Vision
+(ICCV)</span>, pages 1760–1770, 2021.
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">KZG<sup id="bib.bib16.4.4.1" class="ltx_sup"><span id="bib.bib16.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [16]</span>
+<span class="ltx_bibblock">
+Ranjay Krishna, Yuke Zhu, Oliver Groth, Justin Johnson, Kenji Hata, Joshua
+Kravitz, Stephanie Chen, Yannis Kalantidis, Li-Jia Li, David A. Shamma,
+Michael S. Bernstein, and Li Fei-Fei.
+
+</span>
+<span class="ltx_bibblock">Visual genome: Connecting language and vision using crowdsourced
+dense image annotations.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib16.5.1" class="ltx_text ltx_font_italic">International Journal of Computer Vision</span>, 123:32–73, 2016.
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">LHV<sup id="bib.bib17.4.4.1" class="ltx_sup"><span id="bib.bib17.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [23]</span>
+<span class="ltx_bibblock">
+Shayne Longpre, Le Hou, Tu Vu, Albert Webson, Hyung Won Chung, Yi Tay, Denny
+Zhou, Quoc V Le, Barret Zoph, Jason Wei, et al.
+
+</span>
+<span class="ltx_bibblock">The flan collection: Designing data and methods for effective
+instruction tuning.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib17.5.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2301.13688</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">LLSH [23]</span>
+<span class="ltx_bibblock">
+Junnan Li, Dongxu Li, Silvio Savarese, and Steven Hoi.
+
+</span>
+<span class="ltx_bibblock">BLIP-2: Bootstrapping language-image pre-training with frozen image
+encoders and large language models.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib18.1.1" class="ltx_text ltx_font_italic">ArXiv</span>, abs/2301.12597, 2023.
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">LLWL [23]</span>
+<span class="ltx_bibblock">
+Haotian Liu, Chunyuan Li, Qingyang Wu, and Yong Jae Lee.
+
+</span>
+<span class="ltx_bibblock">Visual instruction tuning.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib19.1.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2304.08485</span>, 2023.
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">LYY<sup id="bib.bib20.4.4.1" class="ltx_sup"><span id="bib.bib20.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [19]</span>
+<span class="ltx_bibblock">
+Liunian Harold Li, Mark Yatskar, Da Yin, Cho-Jui Hsieh, and Kai-Wei Chang.
+
+</span>
+<span class="ltx_bibblock">Visualbert: A simple and performant baseline for vision and language.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib20.5.1" class="ltx_text ltx_font_italic">ArXiv</span>, abs/1908.03557, 2019.
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">LZZ<sup id="bib.bib21.4.4.1" class="ltx_sup"><span id="bib.bib21.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [22]</span>
+<span class="ltx_bibblock">
+Liunian Harold Li*, Pengchuan Zhang*, Haotian Zhang*, Jianwei Yang, Chunyuan
+Li, Yiwu Zhong, Lijuan Wang, Lu Yuan, Lei Zhang, Jenq-Neng Hwang, Kai-Wei
+Chang, and Jianfeng Gao.
+
+</span>
+<span class="ltx_bibblock">Grounded language-image pre-training.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib21.5.1" class="ltx_text ltx_font_italic">CVPR</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">MHT<sup id="bib.bib22.4.4.1" class="ltx_sup"><span id="bib.bib22.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [15]</span>
+<span class="ltx_bibblock">
+Junhua Mao, Jonathan Huang, Alexander Toshev, Oana-Maria Camburu, Alan Loddon
+Yuille, and Kevin P. Murphy.
+
+</span>
+<span class="ltx_bibblock">Generation and comprehension of unambiguous object descriptions.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib22.5.1" class="ltx_text ltx_font_italic">2016 IEEE Conference on Computer Vision and Pattern Recognition
+(CVPR)</span>, pages 11–20, 2015.
+
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">MWH<sup id="bib.bib23.4.4.1" class="ltx_sup"><span id="bib.bib23.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [22]</span>
+<span class="ltx_bibblock">
+Shuming Ma, Hongyu Wang, Shaohan Huang, Wenhui Wang, Zewen Chi, Li Dong, Alon
+Benhaim, Barun Patra, Vishrav Chaudhary, Xia Song, and Furu Wei.
+
+</span>
+<span class="ltx_bibblock">TorchScale: Transformers at scale.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib23.5.1" class="ltx_text ltx_font_italic">CoRR</span>, abs/2211.13184, 2022.
+
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Ope [23]</span>
+<span class="ltx_bibblock">
+OpenAI.
+
+</span>
+<span class="ltx_bibblock">Gpt-4 technical report.
+
+</span>
+<span class="ltx_bibblock">2023.
+
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">PWC<sup id="bib.bib25.4.4.1" class="ltx_sup"><span id="bib.bib25.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [15]</span>
+<span class="ltx_bibblock">
+Bryan A. Plummer, Liwei Wang, Christopher M. Cervantes, Juan C. Caicedo,
+J. Hockenmaier, and Svetlana Lazebnik.
+
+</span>
+<span class="ltx_bibblock">Flickr30k entities: Collecting region-to-phrase correspondences for
+richer image-to-sentence models.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib25.5.1" class="ltx_text ltx_font_italic">International Journal of Computer Vision</span>, 123:74–93, 2015.
+
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">SBV<sup id="bib.bib26.4.4.1" class="ltx_sup"><span id="bib.bib26.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [22]</span>
+<span class="ltx_bibblock">
+Christoph Schuhmann, Romain Beaumont, Richard Vencu, Cade Gordon, Ross
+Wightman, Mehdi Cherti, Theo Coombes, Aarush Katta, Clayton Mullis, Mitchell
+Wortsman, et al.
+
+</span>
+<span class="ltx_bibblock">Laion-5b: An open large-scale dataset for training next generation
+image-text models.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib26.5.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2210.08402</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">VLZP [15]</span>
+<span class="ltx_bibblock">
+Ramakrishna Vedantam, C Lawrence Zitnick, and Devi Parikh.
+
+</span>
+<span class="ltx_bibblock">Cider: Consensus-based image description evaluation.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib27.1.1" class="ltx_text ltx_font_italic">CVPR</span>, pages 4566–4575, 2015.
+
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">WCC<sup id="bib.bib28.4.4.1" class="ltx_sup"><span id="bib.bib28.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [23]</span>
+<span class="ltx_bibblock">
+Wen Wang, Zhe Chen, Xiaokang Chen, Jiannan Wu, Xizhou Zhu, Gang Zeng, Ping Luo,
+Tong Lu, Jie Zhou, Y. Qiao, and Jifeng Dai.
+
+</span>
+<span class="ltx_bibblock">Visionllm: Large language model is also an open-ended decoder for
+vision-centric tasks.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib28.5.1" class="ltx_text ltx_font_italic">ArXiv</span>, abs/2305.11175, 2023.
+
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">WMH<sup id="bib.bib29.4.4.1" class="ltx_sup"><span id="bib.bib29.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [22]</span>
+<span class="ltx_bibblock">
+Hongyu Wang, Shuming Ma, Shaohan Huang, Li Dong, Wenhui Wang, Zhiliang Peng,
+Yu Wu, Payal Bajaj, Saksham Singhal, Alon Benhaim, Barun Patra, Zhun Liu,
+Vishrav Chaudhary, Xia Song, and Furu Wei.
+
+</span>
+<span class="ltx_bibblock">Foundation transformers.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib29.5.1" class="ltx_text ltx_font_italic">CoRR</span>, abs/2210.06423, 2022.
+
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">WPN<sup id="bib.bib30.4.4.1" class="ltx_sup"><span id="bib.bib30.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [19]</span>
+<span class="ltx_bibblock">
+Alex Wang, Yada Pruksachatkun, Nikita Nangia, Amanpreet Singh, Julian Michael,
+Felix Hill, Omer Levy, and Samuel R Bowman.
+
+</span>
+<span class="ltx_bibblock">SuperGLUE: A stickier benchmark for general-purpose language
+understanding systems.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib30.5.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:1905.00537</span>, 2019.
+
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">WYM<sup id="bib.bib31.4.4.1" class="ltx_sup"><span id="bib.bib31.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [22]</span>
+<span class="ltx_bibblock">
+Peng Wang, An Yang, Rui Men, Junyang Lin, Shuai Bai, Zhikang Li, Jianxin Ma,
+Chang Zhou, Jingren Zhou, and Hongxia Yang.
+
+</span>
+<span class="ltx_bibblock">Unifying architectures, tasks, and modalities through a simple
+sequence-to-sequence learning framework.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib31.5.1" class="ltx_text ltx_font_italic">International Conference on Machine Learning</span>, 2022.
+
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">YPY<sup id="bib.bib32.4.4.1" class="ltx_sup"><span id="bib.bib32.4.4.1.1" class="ltx_text ltx_font_italic">+</span></sup> [16]</span>
+<span class="ltx_bibblock">
+Licheng Yu, Patrick Poirson, Shan Yang, Alexander C. Berg, and Tamara L. Berg.
+
+</span>
+<span class="ltx_bibblock">Modeling context in referring expressions.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bib32.5.1" class="ltx_text ltx_font_italic">ArXiv</span>, abs/1608.00272, 2016.
+
+</span>
+</li>
+<li id="bib.bib33" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">YTBB [17]</span>
+<span class="ltx_bibblock">
+Licheng Yu, Hao Tan, Mohit Bansal, and Tamara L. Berg.
+
+</span>
+<span class="ltx_bibblock">A joint speaker-listener-reinforcer model for referring expressions.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bib33.1.1" class="ltx_text ltx_font_italic">2017 IEEE Conference on Computer Vision and Pattern
+Recognition, CVPR 2017, Honolulu, HI, USA, July 21-26, 2017</span>, pages
+3521–3529. IEEE Computer Society, 2017.
+
+</span>
+</li>
+</ul>
+</section>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<section id="A1" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix A </span>Hyperparameters</h2>
+
+<div id="A1.p1" class="ltx_para">
+<p id="A1.p1.1" class="ltx_p">The training hyperparameters of <span id="A1.p1.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span> are listed in Table <a href="#A1.T7" title="Table 7 ‣ Appendix A Hyperparameters ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a>.</p>
+</div>
+<figure id="A1.T7" class="ltx_table">
+<table id="A1.T7.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="A1.T7.1.2" class="ltx_tr">
+<td id="A1.T7.1.2.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="A1.T7.1.2.1.1" class="ltx_text ltx_font_bold" style="font-size:90%;">Hyperparameters</span></td>
+<td id="A1.T7.1.2.2" class="ltx_td ltx_border_tt"></td>
+</tr>
+<tr id="A1.T7.1.3" class="ltx_tr">
+<td id="A1.T7.1.3.1" class="ltx_td ltx_align_left ltx_border_t"><span id="A1.T7.1.3.1.1" class="ltx_text" style="font-size:90%;">Image embedding number</span></td>
+<td id="A1.T7.1.3.2" class="ltx_td ltx_align_center ltx_border_t"><span id="A1.T7.1.3.2.1" class="ltx_text" style="font-size:90%;">64</span></td>
+</tr>
+<tr id="A1.T7.1.4" class="ltx_tr">
+<td id="A1.T7.1.4.1" class="ltx_td ltx_align_left"><span id="A1.T7.1.4.1.1" class="ltx_text" style="font-size:90%;">Location tokens</span></td>
+<td id="A1.T7.1.4.2" class="ltx_td ltx_align_center"><span id="A1.T7.1.4.2.1" class="ltx_text" style="font-size:90%;">1,024</span></td>
+</tr>
+<tr id="A1.T7.1.5" class="ltx_tr">
+<td id="A1.T7.1.5.1" class="ltx_td ltx_align_left ltx_border_t"><span id="A1.T7.1.5.1.1" class="ltx_text" style="font-size:90%;">Training steps</span></td>
+<td id="A1.T7.1.5.2" class="ltx_td ltx_align_center ltx_border_t"><span id="A1.T7.1.5.2.1" class="ltx_text" style="font-size:90%;">60,000</span></td>
+</tr>
+<tr id="A1.T7.1.6" class="ltx_tr">
+<td id="A1.T7.1.6.1" class="ltx_td ltx_align_left"><span id="A1.T7.1.6.1.1" class="ltx_text" style="font-size:90%;">Warmup steps</span></td>
+<td id="A1.T7.1.6.2" class="ltx_td ltx_align_center"><span id="A1.T7.1.6.2.1" class="ltx_text" style="font-size:90%;">375</span></td>
+</tr>
+<tr id="A1.T7.1.7" class="ltx_tr">
+<td id="A1.T7.1.7.1" class="ltx_td ltx_align_left"><span id="A1.T7.1.7.1.1" class="ltx_text" style="font-size:90%;">Optimizer</span></td>
+<td id="A1.T7.1.7.2" class="ltx_td ltx_align_center"><span id="A1.T7.1.7.2.1" class="ltx_text" style="font-size:90%;">AdamW</span></td>
+</tr>
+<tr id="A1.T7.1.8" class="ltx_tr">
+<td id="A1.T7.1.8.1" class="ltx_td ltx_align_left"><span id="A1.T7.1.8.1.1" class="ltx_text" style="font-size:90%;">Learning rate</span></td>
+<td id="A1.T7.1.8.2" class="ltx_td ltx_align_center"><span id="A1.T7.1.8.2.1" class="ltx_text" style="font-size:90%;">2e-4</span></td>
+</tr>
+<tr id="A1.T7.1.9" class="ltx_tr">
+<td id="A1.T7.1.9.1" class="ltx_td ltx_align_left"><span id="A1.T7.1.9.1.1" class="ltx_text" style="font-size:90%;">Learning rate decay</span></td>
+<td id="A1.T7.1.9.2" class="ltx_td ltx_align_center"><span id="A1.T7.1.9.2.1" class="ltx_text" style="font-size:90%;">Linear</span></td>
+</tr>
+<tr id="A1.T7.1.1" class="ltx_tr">
+<td id="A1.T7.1.1.1" class="ltx_td ltx_align_left">
+<span id="A1.T7.1.1.1.1" class="ltx_text" style="font-size:90%;">Adam </span><math id="A1.T7.1.1.1.m1.1" class="ltx_Math" alttext="\beta" display="inline"><semantics id="A1.T7.1.1.1.m1.1a"><mi mathsize="90%" id="A1.T7.1.1.1.m1.1.1" xref="A1.T7.1.1.1.m1.1.1.cmml">β</mi><annotation-xml encoding="MathML-Content" id="A1.T7.1.1.1.m1.1b"><ci id="A1.T7.1.1.1.m1.1.1.cmml" xref="A1.T7.1.1.1.m1.1.1">𝛽</ci></annotation-xml><annotation encoding="application/x-tex" id="A1.T7.1.1.1.m1.1c">\beta</annotation></semantics></math>
+</td>
+<td id="A1.T7.1.1.2" class="ltx_td ltx_align_center"><span id="A1.T7.1.1.2.1" class="ltx_text" style="font-size:90%;">(0.9, 0.98)</span></td>
+</tr>
+<tr id="A1.T7.1.10" class="ltx_tr">
+<td id="A1.T7.1.10.1" class="ltx_td ltx_align_left"><span id="A1.T7.1.10.1.1" class="ltx_text" style="font-size:90%;">Weight decay</span></td>
+<td id="A1.T7.1.10.2" class="ltx_td ltx_align_center"><span id="A1.T7.1.10.2.1" class="ltx_text" style="font-size:90%;">0.01</span></td>
+</tr>
+<tr id="A1.T7.1.11" class="ltx_tr">
+<td id="A1.T7.1.11.1" class="ltx_td ltx_align_left ltx_border_t"><span id="A1.T7.1.11.1.1" class="ltx_text" style="font-size:90%;">Batch size of text corpora</span></td>
+<td id="A1.T7.1.11.2" class="ltx_td ltx_align_center ltx_border_t"><span id="A1.T7.1.11.2.1" class="ltx_text" style="font-size:90%;">93</span></td>
+</tr>
+<tr id="A1.T7.1.12" class="ltx_tr">
+<td id="A1.T7.1.12.1" class="ltx_td ltx_align_left"><span id="A1.T7.1.12.1.1" class="ltx_text" style="font-size:90%;">Batch size of original image-caption pairs</span></td>
+<td id="A1.T7.1.12.2" class="ltx_td ltx_align_center"><span id="A1.T7.1.12.2.1" class="ltx_text" style="font-size:90%;">1,117</span></td>
+</tr>
+<tr id="A1.T7.1.13" class="ltx_tr">
+<td id="A1.T7.1.13.1" class="ltx_td ltx_align_left"><span id="A1.T7.1.13.1.1" class="ltx_text" style="font-size:90%;">Batch size of grounded image-text pairs</span></td>
+<td id="A1.T7.1.13.2" class="ltx_td ltx_align_center"><span id="A1.T7.1.13.2.1" class="ltx_text" style="font-size:90%;">1,117</span></td>
+</tr>
+<tr id="A1.T7.1.14" class="ltx_tr">
+<td id="A1.T7.1.14.1" class="ltx_td ltx_align_left ltx_border_bb"><span id="A1.T7.1.14.1.1" class="ltx_text" style="font-size:90%;">Batch size of interleaved data</span></td>
+<td id="A1.T7.1.14.2" class="ltx_td ltx_align_center ltx_border_bb"><span id="A1.T7.1.14.2.1" class="ltx_text" style="font-size:90%;">47</span></td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_table">Table 7: </span>Training hyperparameters of <span id="A1.T7.6.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span></figcaption>
+</figure>
+<div id="A1.p2" class="ltx_para">
+<p id="A1.p2.1" class="ltx_p">The instruction tuning hyperparameters are listed in Table <a href="#A1.T8" title="Table 8 ‣ Appendix A Hyperparameters ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8</span></a>.</p>
+</div>
+<figure id="A1.T8" class="ltx_table">
+<table id="A1.T8.2" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="A1.T8.2.1" class="ltx_tr">
+<td id="A1.T8.2.1.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="A1.T8.2.1.1.1" class="ltx_text ltx_font_bold" style="font-size:90%;">Hyperparameters</span></td>
+<td id="A1.T8.2.1.2" class="ltx_td ltx_border_tt"></td>
+</tr>
+<tr id="A1.T8.2.2" class="ltx_tr">
+<td id="A1.T8.2.2.1" class="ltx_td ltx_align_left ltx_border_t"><span id="A1.T8.2.2.1.1" class="ltx_text" style="font-size:90%;">Training steps</span></td>
+<td id="A1.T8.2.2.2" class="ltx_td ltx_align_center ltx_border_t"><span id="A1.T8.2.2.2.1" class="ltx_text" style="font-size:90%;">10,000</span></td>
+</tr>
+<tr id="A1.T8.2.3" class="ltx_tr">
+<td id="A1.T8.2.3.1" class="ltx_td ltx_align_left"><span id="A1.T8.2.3.1.1" class="ltx_text" style="font-size:90%;">Warmup steps</span></td>
+<td id="A1.T8.2.3.2" class="ltx_td ltx_align_center"><span id="A1.T8.2.3.2.1" class="ltx_text" style="font-size:90%;">375</span></td>
+</tr>
+<tr id="A1.T8.2.4" class="ltx_tr">
+<td id="A1.T8.2.4.1" class="ltx_td ltx_align_left"><span id="A1.T8.2.4.1.1" class="ltx_text" style="font-size:90%;">Learning rate</span></td>
+<td id="A1.T8.2.4.2" class="ltx_td ltx_align_center"><span id="A1.T8.2.4.2.1" class="ltx_text" style="font-size:90%;">1e-5</span></td>
+</tr>
+<tr id="A1.T8.2.5" class="ltx_tr">
+<td id="A1.T8.2.5.1" class="ltx_td ltx_align_left"><span id="A1.T8.2.5.1.1" class="ltx_text" style="font-size:90%;">Batch size of language instruction data</span></td>
+<td id="A1.T8.2.5.2" class="ltx_td ltx_align_center"><span id="A1.T8.2.5.2.1" class="ltx_text" style="font-size:90%;">117</span></td>
+</tr>
+<tr id="A1.T8.2.6" class="ltx_tr">
+<td id="A1.T8.2.6.1" class="ltx_td ltx_align_left"><span id="A1.T8.2.6.1.1" class="ltx_text" style="font-size:90%;">Batch size of vision-language instruction data</span></td>
+<td id="A1.T8.2.6.2" class="ltx_td ltx_align_center"><span id="A1.T8.2.6.2.1" class="ltx_text" style="font-size:90%;">351</span></td>
+</tr>
+<tr id="A1.T8.2.7" class="ltx_tr">
+<td id="A1.T8.2.7.1" class="ltx_td ltx_align_left">
+<table id="A1.T8.2.7.1.1" class="ltx_tabular ltx_align_middle">
+<tr id="A1.T8.2.7.1.1.1" class="ltx_tr">
+<td id="A1.T8.2.7.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_left"><span id="A1.T8.2.7.1.1.1.1.1" class="ltx_text" style="font-size:90%;">Batch size of grounded image-text pairs</span></td>
+</tr>
+<tr id="A1.T8.2.7.1.1.2" class="ltx_tr">
+<td id="A1.T8.2.7.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_left"><span id="A1.T8.2.7.1.1.2.1.1" class="ltx_text" style="font-size:90%;">   &amp; grounded instruction data</span></td>
+</tr>
+</table>
+</td>
+<td id="A1.T8.2.7.2" class="ltx_td ltx_align_center"><span id="A1.T8.2.7.2.1" class="ltx_text" style="font-size:90%;">1404</span></td>
+</tr>
+<tr id="A1.T8.2.8" class="ltx_tr">
+<td id="A1.T8.2.8.1" class="ltx_td ltx_align_left"><span id="A1.T8.2.8.1.1" class="ltx_text" style="font-size:90%;">Batch size of text corpora</span></td>
+<td id="A1.T8.2.8.2" class="ltx_td ltx_align_center"><span id="A1.T8.2.8.2.1" class="ltx_text" style="font-size:90%;">30</span></td>
+</tr>
+<tr id="A1.T8.2.9" class="ltx_tr">
+<td id="A1.T8.2.9.1" class="ltx_td ltx_align_left ltx_border_bb"><span id="A1.T8.2.9.1.1" class="ltx_text" style="font-size:90%;">Batch size of interleaved data</span></td>
+<td id="A1.T8.2.9.2" class="ltx_td ltx_align_center ltx_border_bb"><span id="A1.T8.2.9.2.1" class="ltx_text" style="font-size:90%;">15</span></td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_table">Table 8: </span>Instruction tuning hyperparameters of <span id="A1.T8.6.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span></figcaption>
+</figure>
+</section>
+<section id="A2" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix B </span>Templates for Grounded Instruction Data</h2>
+
+<div id="A2.p1" class="ltx_para">
+<p id="A2.p1.1" class="ltx_p">Table <a href="#A2.T9" title="Table 9 ‣ Appendix B Templates for Grounded Instruction Data ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a> presents the instruction templates of expression generation based on its associated bounding boxes during instruction tuning.</p>
+</div>
+<figure id="A2.T9" class="ltx_table">
+<div id="A2.T9.1" class="ltx_block ltx_minipage ltx_align_center ltx_align_middle" style="width:429.3pt;">
+<div id="A2.T9.1.p1" class="ltx_para ltx_noindent">
+<svg id="A2.T9.1.p1.pic1" class="ltx_picture" height="107.81" overflow="visible" version="1.1" width="600"><g transform="translate(0,107.81) matrix(1 0 0 -1 0 0)" fill="#000000" stroke="#000000" stroke-width="0.4pt"><g fill="#404040" fill-opacity="1.0"><path d="M 0 5.91 L 0 101.91 C 0 105.17 2.64 107.81 5.91 107.81 L 594.09 107.81 C 597.36 107.81 600 105.17 600 101.91 L 600 5.91 C 600 2.64 597.36 0 594.09 0 L 5.91 0 C 2.64 0 0 2.64 0 5.91 Z" style="stroke:none"></path></g><g fill="#F2F2F2" fill-opacity="1.0"><path d="M 1.97 5.91 L 1.97 101.91 C 1.97 104.08 3.73 105.85 5.91 105.85 L 594.09 105.85 C 596.27 105.85 598.03 104.08 598.03 101.91 L 598.03 5.91 C 598.03 3.73 596.27 1.97 594.09 1.97 L 5.91 1.97 C 3.73 1.97 1.97 3.73 1.97 5.91 Z" style="stroke:none"></path></g><g fill-opacity="1.0" transform="matrix(1.0 0.0 0.0 1.0 21.65 13.78)"><foreignObject width="556.69" height="80.25" transform="matrix(1 0 0 -1 0 16.6)" overflow="visible" color="#000000">
+<span id="A2.T9.1.p1.pic1.1.1.1.1.1" class="ltx_inline-block ltx_minipage ltx_align_bottom" style="width:402.3pt;">
+<span id="A2.I1" class="ltx_itemize">
+<span id="A2.I1.i1" class="ltx_item" style="list-style-type:none;"><span class="ltx_tag ltx_tag_item">•</span> 
+<span id="A2.I1.i1.p1" class="ltx_para">
+<span id="A2.I1.i1.p1.2" class="ltx_p"><span id="A2.I1.i1.p1.2.3" class="ltx_text" style="font-size:90%;">"What is </span><span id="A2.I1.i1.p1.2.4" class="ltx_text ltx_font_typewriter" style="font-size:90%;">&lt;p&gt;</span><span id="A2.I1.i1.p1.2.5" class="ltx_text" style="font-size:90%;"> it </span><span id="A2.I1.i1.p1.2.2" class="ltx_text ltx_font_typewriter" style="font-size:90%;">&lt;/p&gt;&lt;box&gt;&lt;loc<sub id="A2.I1.i1.p1.2.2.1" class="ltx_sub"><span id="A2.I1.i1.p1.2.2.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;&lt;loc<sub id="A2.I1.i1.p1.2.2.2" class="ltx_sub"><span id="A2.I1.i1.p1.2.2.2.1" class="ltx_text ltx_font_serif">2</span></sub>&gt;&lt;/box&gt;</span><span id="A2.I1.i1.p1.2.6" class="ltx_text" style="font-size:90%;">? It is {</span><span id="A2.I1.i1.p1.2.7" class="ltx_text ltx_font_italic" style="font-size:90%;">expression</span><span id="A2.I1.i1.p1.2.8" class="ltx_text" style="font-size:90%;">}."</span></span>
+</span></span>
+<span id="A2.I1.i2" class="ltx_item" style="list-style-type:none;padding-top:2.0pt;"><span class="ltx_tag ltx_tag_item">•</span> 
+<span id="A2.I1.i2.p1" class="ltx_para">
+<span id="A2.I1.i2.p1.2" class="ltx_p"><span id="A2.I1.i2.p1.2.3" class="ltx_text" style="font-size:90%;">"What is </span><span id="A2.I1.i2.p1.2.4" class="ltx_text ltx_font_typewriter" style="font-size:90%;">&lt;p&gt;</span><span id="A2.I1.i2.p1.2.5" class="ltx_text" style="font-size:90%;"> this </span><span id="A2.I1.i2.p1.2.2" class="ltx_text ltx_font_typewriter" style="font-size:90%;">&lt;/p&gt;&lt;box&gt;&lt;loc<sub id="A2.I1.i2.p1.2.2.1" class="ltx_sub"><span id="A2.I1.i2.p1.2.2.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;&lt;loc<sub id="A2.I1.i2.p1.2.2.2" class="ltx_sub"><span id="A2.I1.i2.p1.2.2.2.1" class="ltx_text ltx_font_serif">2</span></sub>&gt;&lt;/box&gt;</span><span id="A2.I1.i2.p1.2.6" class="ltx_text" style="font-size:90%;">? This is {</span><span id="A2.I1.i2.p1.2.7" class="ltx_text ltx_font_italic" style="font-size:90%;">expression</span><span id="A2.I1.i2.p1.2.8" class="ltx_text" style="font-size:90%;">}."</span></span>
+</span></span>
+<span id="A2.I1.i3" class="ltx_item" style="list-style-type:none;padding-top:2.0pt;"><span class="ltx_tag ltx_tag_item">•</span> 
+<span id="A2.I1.i3.p1" class="ltx_para">
+<span id="A2.I1.i3.p1.2" class="ltx_p"><span id="A2.I1.i3.p1.2.3" class="ltx_text" style="font-size:90%;">"Describe </span><span id="A2.I1.i3.p1.2.4" class="ltx_text ltx_font_typewriter" style="font-size:90%;">&lt;p&gt;</span><span id="A2.I1.i3.p1.2.5" class="ltx_text" style="font-size:90%;"> this object </span><span id="A2.I1.i3.p1.2.2" class="ltx_text ltx_font_typewriter" style="font-size:90%;">&lt;/p&gt;&lt;box&gt;&lt;loc<sub id="A2.I1.i3.p1.2.2.1" class="ltx_sub"><span id="A2.I1.i3.p1.2.2.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;&lt;loc<sub id="A2.I1.i3.p1.2.2.2" class="ltx_sub"><span id="A2.I1.i3.p1.2.2.2.1" class="ltx_text ltx_font_serif">2</span></sub>&gt;&lt;/box&gt;</span><span id="A2.I1.i3.p1.2.6" class="ltx_text" style="font-size:90%;">. This object is {</span><span id="A2.I1.i3.p1.2.7" class="ltx_text ltx_font_italic" style="font-size:90%;">expression</span><span id="A2.I1.i3.p1.2.8" class="ltx_text" style="font-size:90%;">}."</span></span>
+</span></span>
+<span id="A2.I1.i4" class="ltx_item" style="list-style-type:none;padding-top:2.0pt;"><span class="ltx_tag ltx_tag_item">•</span> 
+<span id="A2.I1.i4.p1" class="ltx_para">
+<span id="A2.I1.i4.p1.2" class="ltx_p"><span id="A2.I1.i4.p1.2.3" class="ltx_text" style="font-size:90%;">"</span><span id="A2.I1.i4.p1.2.4" class="ltx_text ltx_font_typewriter" style="font-size:90%;">&lt;p&gt;</span><span id="A2.I1.i4.p1.2.5" class="ltx_text" style="font-size:90%;"> It </span><span id="A2.I1.i4.p1.2.2" class="ltx_text ltx_font_typewriter" style="font-size:90%;">&lt;/p&gt;&lt;box&gt;&lt;loc<sub id="A2.I1.i4.p1.2.2.1" class="ltx_sub"><span id="A2.I1.i4.p1.2.2.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;&lt;loc<sub id="A2.I1.i4.p1.2.2.2" class="ltx_sub"><span id="A2.I1.i4.p1.2.2.2.1" class="ltx_text ltx_font_serif">2</span></sub>&gt;&lt;/box&gt;</span><span id="A2.I1.i4.p1.2.6" class="ltx_text" style="font-size:90%;"> is {</span><span id="A2.I1.i4.p1.2.7" class="ltx_text ltx_font_italic" style="font-size:90%;">expression</span><span id="A2.I1.i4.p1.2.8" class="ltx_text" style="font-size:90%;">}."</span></span>
+</span></span>
+<span id="A2.I1.i5" class="ltx_item" style="list-style-type:none;padding-top:2.0pt;"><span class="ltx_tag ltx_tag_item">•</span> 
+<span id="A2.I1.i5.p1" class="ltx_para">
+<span id="A2.I1.i5.p1.2" class="ltx_p"><span id="A2.I1.i5.p1.2.3" class="ltx_text" style="font-size:90%;">"</span><span id="A2.I1.i5.p1.2.4" class="ltx_text ltx_font_typewriter" style="font-size:90%;">&lt;p&gt;</span><span id="A2.I1.i5.p1.2.5" class="ltx_text" style="font-size:90%;"> This </span><span id="A2.I1.i5.p1.2.2" class="ltx_text ltx_font_typewriter" style="font-size:90%;">&lt;/p&gt;&lt;box&gt;&lt;loc<sub id="A2.I1.i5.p1.2.2.1" class="ltx_sub"><span id="A2.I1.i5.p1.2.2.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;&lt;loc<sub id="A2.I1.i5.p1.2.2.2" class="ltx_sub"><span id="A2.I1.i5.p1.2.2.2.1" class="ltx_text ltx_font_serif">2</span></sub>&gt;&lt;/box&gt;</span><span id="A2.I1.i5.p1.2.6" class="ltx_text" style="font-size:90%;"> is {</span><span id="A2.I1.i5.p1.2.7" class="ltx_text ltx_font_italic" style="font-size:90%;">expression</span><span id="A2.I1.i5.p1.2.8" class="ltx_text" style="font-size:90%;">}."</span></span>
+</span></span>
+<span id="A2.I1.i6" class="ltx_item" style="list-style-type:none;padding-top:2.0pt;"><span class="ltx_tag ltx_tag_item">•</span> 
+<span id="A2.I1.i6.p1" class="ltx_para">
+<span id="A2.I1.i6.p1.2" class="ltx_p"><span id="A2.I1.i6.p1.2.3" class="ltx_text" style="font-size:90%;">"</span><span id="A2.I1.i6.p1.2.4" class="ltx_text ltx_font_typewriter" style="font-size:90%;">&lt;p&gt;</span><span id="A2.I1.i6.p1.2.5" class="ltx_text" style="font-size:90%;"> The object </span><span id="A2.I1.i6.p1.2.2" class="ltx_text ltx_font_typewriter" style="font-size:90%;">&lt;/p&gt;&lt;box&gt;&lt;loc<sub id="A2.I1.i6.p1.2.2.1" class="ltx_sub"><span id="A2.I1.i6.p1.2.2.1.1" class="ltx_text ltx_font_serif">1</span></sub>&gt;&lt;loc<sub id="A2.I1.i6.p1.2.2.2" class="ltx_sub"><span id="A2.I1.i6.p1.2.2.2.1" class="ltx_text ltx_font_serif">2</span></sub>&gt;&lt;/box&gt;</span><span id="A2.I1.i6.p1.2.6" class="ltx_text" style="font-size:90%;"> is {</span><span id="A2.I1.i6.p1.2.7" class="ltx_text ltx_font_italic" style="font-size:90%;">expression</span><span id="A2.I1.i6.p1.2.8" class="ltx_text" style="font-size:90%;">}."</span></span>
+</span></span>
+</span>
+</span></foreignObject></g></g></svg>
+</div>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_block"><span id="A2.T9.1.1.1.1" class="ltx_text" style="font-size:90%;">Table 9</span>: </span><span id="A2.T9.1.2.2" class="ltx_text" style="font-size:90%;">Instruction templates used for expression generation.</span></figcaption>
+</div>
+</figure>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+<section id="A3" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix C </span>Examples of <span id="A3.1.1" class="ltx_text ltx_font_smallcaps">GrIT</span>
+</h2>
+
+<div id="A3.p1" class="ltx_para">
+<p id="A3.p1.1" class="ltx_p">We present some examples of the <span id="A3.p1.1.1" class="ltx_text ltx_font_smallcaps">GrIT</span> corpus in
+<a href="#A3.F6" title="In Appendix C Examples of GrIT ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Figures</span> <span class="ltx_text ltx_ref_tag">6</span></a>, <a href="#A3.F7" title="Figure 7 ‣ Appendix C Examples of GrIT ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a>, <a href="#A3.F8" title="Figure 8 ‣ Appendix C Examples of GrIT ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8</span></a> and <a href="#A3.F9" title="Figure 9 ‣ Appendix C Examples of GrIT ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">9</span></a>.
+The grounded image-text pairs span over various domains and contain different numbers of objects.</p>
+</div>
+<figure id="A3.F6" class="ltx_figure"><img src="/html/2306.14824/assets/figure/generate_samples/vegetable_salad.png" id="A3.F6.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="299" height="448" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="A3.F6.4.1.1" class="ltx_text" style="font-size:90%;">Figure 6</span>: </span><span id="A3.F6.5.2" class="ltx_text" style="font-size:90%;">Example from <span id="A3.F6.5.2.1" class="ltx_text ltx_font_smallcaps">GrIT</span>.
+Caption: “<span id="A3.F6.5.2.2" class="ltx_text ltx_font_italic">A serving of kale and roasted vegetable salad on an aluminium tray served with a small white bowl filed with creamy light green avocado Caesar dressing</span>”.
+</span></figcaption>
+</figure>
+<figure id="A3.F7" class="ltx_figure"><img src="/html/2306.14824/assets/figure/generate_samples/chicken_nugget.png" id="A3.F7.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="359" height="240" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="A3.F7.4.1.1" class="ltx_text" style="font-size:90%;">Figure 7</span>: </span><span id="A3.F7.5.2" class="ltx_text" style="font-size:90%;">Example from <span id="A3.F7.5.2.1" class="ltx_text ltx_font_smallcaps">GrIT</span>.
+Caption: “<span id="A3.F7.5.2.2" class="ltx_text ltx_font_italic">A Keto Chicken Nugget being dipped into a bowl of keto honey mustard.</span>”.
+</span></figcaption>
+</figure>
+<figure id="A3.F8" class="ltx_figure"><img src="/html/2306.14824/assets/figure/generate_samples/sydney_solar.png" id="A3.F8.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="509" height="363" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="A3.F8.4.1.1" class="ltx_text" style="font-size:90%;">Figure 8</span>: </span><span id="A3.F8.5.2" class="ltx_text" style="font-size:90%;">Example from <span id="A3.F8.5.2.1" class="ltx_text ltx_font_smallcaps">GrIT</span>.
+Caption: “<span id="A3.F8.5.2.2" class="ltx_text ltx_font_italic">Solar cells on a red roof are in the foreground. The Sydney skyline is in the background.</span>”.
+</span></figcaption>
+</figure>
+<figure id="A3.F9" class="ltx_figure"><img src="/html/2306.14824/assets/figure/generate_samples/woman_girl.png" id="A3.F9.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="538" height="312" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="A3.F9.4.1.1" class="ltx_text" style="font-size:90%;">Figure 9</span>: </span><span id="A3.F9.5.2" class="ltx_text" style="font-size:90%;">Example from <span id="A3.F9.5.2.1" class="ltx_text ltx_font_smallcaps">GrIT</span>.
+Caption: “<span id="A3.F9.5.2.2" class="ltx_text ltx_font_italic">Woman standing outdoors in a city landscape and wearing a hijab. Her arm is around a young girl who is hugging her side. The background is blurred.</span>”.
+</span></figcaption>
+</figure>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+<section id="A4" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix D </span>More Examples of <span id="A4.1.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>
+</h2>
+
+<div id="A4.p1" class="ltx_para">
+<p id="A4.p1.1" class="ltx_p">As illustrated in Figure <a href="#A4.F10" title="Figure 10 ‣ Appendix D More Examples of Kosmos-2 ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10</span></a>, multimodal referring capability used for visual dialogue can unlock potential in human-AI interaction.
+In Figure <a href="#A4.F11" title="Figure 11 ‣ Appendix D More Examples of Kosmos-2 ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">11</span></a>, our approach demonstrates its in-context learning ability for fine-grained object detection using both text and image descriptions.
+Figure <a href="#A4.F12" title="Figure 12 ‣ Appendix D More Examples of Kosmos-2 ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">12</span></a> and Figure <a href="#A4.F13" title="Figure 13 ‣ Appendix D More Examples of Kosmos-2 ‣ Kosmos-2: Grounding Multimodal Large Language Models to the World" class="ltx_ref"><span class="ltx_text ltx_ref_tag">13</span></a> showcase more selected examples, including grounded visual question answering, grounded image captioning, and multimodal referring.</p>
+</div>
+<figure id="A4.F10" class="ltx_figure"><img src="/html/2306.14824/assets/x6.png" id="A4.F10.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="299" height="716" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="A4.F10.3.1.1" class="ltx_text" style="font-size:90%;">Figure 10</span>: </span><span id="A4.F10.4.2" class="ltx_text" style="font-size:90%;">
+Examples of visual dialogue generated from <span id="A4.F10.4.2.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>.
+</span></figcaption>
+</figure>
+<figure id="A4.F11" class="ltx_figure"><img src="/html/2306.14824/assets/x7.png" id="A4.F11.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="276" height="708" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="A4.F11.3.1.1" class="ltx_text" style="font-size:90%;">Figure 11</span>: </span><span id="A4.F11.4.2" class="ltx_text" style="font-size:90%;">
+Examples of object detection with multimodal descriptions from <span id="A4.F11.4.2.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>.
+</span></figcaption>
+</figure>
+<figure id="A4.F12" class="ltx_figure"><img src="/html/2306.14824/assets/x8.png" id="A4.F12.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="461" height="576" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="A4.F12.3.1.1" class="ltx_text" style="font-size:90%;">Figure 12</span>: </span><span id="A4.F12.4.2" class="ltx_text" style="font-size:90%;">
+Examples generated from <span id="A4.F12.4.2.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>.
+</span></figcaption>
+</figure>
+<figure id="A4.F13" class="ltx_figure"><img src="/html/2306.14824/assets/x9.png" id="A4.F13.g1" class="ltx_graphics ltx_centering ltx_img_square" width="461" height="420" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure"><span id="A4.F13.3.1.1" class="ltx_text" style="font-size:90%;">Figure 13</span>: </span><span id="A4.F13.4.2" class="ltx_text" style="font-size:90%;">
+Examples of grounded image captioning generated from <span id="A4.F13.4.2.1" class="ltx_text ltx_font_smallcaps">Kosmos-2</span>.
+</span></figcaption>
+</figure>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<div id="A4.p2" class="ltx_para">
+<p id="A4.p2.1" class="ltx_p"></p>
+</div>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2306.14823" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2306.14824" class="ar5iv-text-button ar5iv-severity-error">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2306.14824">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2306.14824" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2306.14825" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Wed Feb 28 22:04:13 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

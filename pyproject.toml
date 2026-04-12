@@ -1,0 +1,12 @@
+[project]
+name = "my-obsidian-wiki-tools"
+version = "0.1.0"
+description = "Utility scripts for ingesting PDFs, arXiv sources, and web pages into the wiki."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "pymupdf>=1.26.0,<2",
+  "requests>=2.32.0,<3",
+]
+
+[tool.uv]
+package = false

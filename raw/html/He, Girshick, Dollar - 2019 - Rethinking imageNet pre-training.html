@@ -1,0 +1,1489 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[1811.08883] Rethinking ImageNet Pre-training</title><meta property="og:description" content="We report competitive results on object detection and instance segmentation on the COCO dataset using standard models trained from random initialization. The results are no worse than their ImageNet pre-training counte…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Rethinking ImageNet Pre-training">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="Rethinking ImageNet Pre-training">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/1811.08883">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/1811.08883">
+
+<!--Generated on Sun Mar 17 04:13:14 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_title_document"> Rethinking ImageNet Pre-training 
+<br class="ltx_break">
+</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+Kaiming He  Ross Girshick  Piotr Dollár 
+<br class="ltx_break">Facebook AI Research (FAIR)
+</span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id1.id1" class="ltx_p">We report competitive results on object detection and instance segmentation on the COCO dataset using standard models trained <span id="id1.id1.1" class="ltx_text ltx_font_bold">from random initialization</span>. The results are <span id="id1.id1.2" class="ltx_text ltx_font_bold">no worse</span> than their ImageNet pre-training counterparts even when using the hyper-parameters of the baseline system (Mask R-CNN) that were optimized for fine-tuning pre-trained models, with the sole exception of increasing the number of training iterations so the randomly initialized models may converge. Training from random initialization is surprisingly robust; our results hold even when: (i) using only 10% of the training data, (ii) for deeper and wider models, and (iii) for multiple tasks and metrics. Experiments show that ImageNet pre-training speeds up convergence early in training, but does not necessarily provide regularization or improve final target task accuracy. To push the envelope we demonstrate 50.9 AP on COCO object detection without using any external data—a result on par with the top COCO 2017 competition results that used ImageNet pre-training. These observations challenge the conventional wisdom of ImageNet pre-training for dependent tasks and we expect these discoveries will encourage people to rethink the current de facto paradigm of ‘pre-training and fine-tuning’ in computer vision.</p>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">Deep convolutional neural networks <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib21" title="" class="ltx_ref">21</a>, <a href="#bib.bib23" title="" class="ltx_ref">23</a>]</cite> revolutionized computer vision arguably due to the discovery that feature representations learned on a <em id="S1.p1.1.1" class="ltx_emph ltx_font_italic">pre-training</em> task can transfer useful information to target tasks <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>, <a href="#bib.bib6" title="" class="ltx_ref">6</a>, <a href="#bib.bib50" title="" class="ltx_ref">50</a>]</cite>. In recent years, a well-established paradigm has been to pre-train models using large-scale data (<em id="S1.p1.1.2" class="ltx_emph ltx_font_italic">e.g</em>.<span id="S1.p1.1.3" class="ltx_text"></span>, ImageNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib39" title="" class="ltx_ref">39</a>]</cite>) and then to fine-tune the models on target tasks that often have less training data. Pre-training has enabled state-of-the-art results on many tasks, including object detection <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>, <a href="#bib.bib8" title="" class="ltx_ref">8</a>, <a href="#bib.bib36" title="" class="ltx_ref">36</a>]</cite>, image segmentation <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib29" title="" class="ltx_ref">29</a>, <a href="#bib.bib13" title="" class="ltx_ref">13</a>]</cite>, and action recognition <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib42" title="" class="ltx_ref">42</a>, <a href="#bib.bib4" title="" class="ltx_ref">4</a>]</cite>.</p>
+</div>
+<figure id="S1.F1" class="ltx_figure"><img src="/html/1811.08883/assets/x1.png" id="S1.F1.g1" class="ltx_graphics ltx_centering ltx_img_square" width="250" height="210" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1: </span>We train Mask R-CNN <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib13" title="" class="ltx_ref">13</a>]</cite> with a ResNet-50 FPN <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="" class="ltx_ref">26</a>]</cite> and GroupNorm <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib48" title="" class="ltx_ref">48</a>]</cite> backbone on the COCO <span id="S1.F1.4.1" class="ltx_text ltx_font_typewriter">train2017</span> set and evaluate bounding box AP on the <span id="S1.F1.5.2" class="ltx_text ltx_font_typewriter">val2017</span> set, initializing the model by random weights or ImageNet pre-training. We explore different training schedules by varying the iterations at which the learning rate is reduced (where the accuracy leaps).
+The model trained from random initialization needs more iterations to converge, but converges to a solution that is <em id="S1.F1.6.3" class="ltx_emph ltx_font_italic">no worse than the fine-tuning counterpart</em>. Table <a href="#S5.T1" title="Table 1 ‣ Baselines with GN and SyncBN. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> shows the resulting AP numbers.</figcaption>
+</figure>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">A path to ‘solving’ computer vision then appears to be paved by pre-training a ‘universal’ feature representation on ImageNet-like data at <em id="S1.p2.1.1" class="ltx_emph ltx_font_italic">massive</em> scale <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib44" title="" class="ltx_ref">44</a>, <a href="#bib.bib30" title="" class="ltx_ref">30</a>]</cite>. Attempts along this path have pushed the frontier to up to 3000<math id="S1.p2.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S1.p2.1.m1.1a"><mo id="S1.p2.1.m1.1.1" xref="S1.p2.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S1.p2.1.m1.1b"><times id="S1.p2.1.m1.1.1.cmml" xref="S1.p2.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S1.p2.1.m1.1c">\times</annotation></semantics></math> <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib30" title="" class="ltx_ref">30</a>]</cite> the size of ImageNet. However, the success of these experiments is mixed: although improvements have been observed, for object detection in particular they are small and scale poorly with the pre-training dataset size. That this path will ‘solve’ computer vision is open to doubt.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p">This paper questions the paradigm of pre-training even further by exploring the opposite regime: we report that competitive object detection and instance segmentation accuracy is achievable when training on COCO <em id="S1.p3.1.1" class="ltx_emph ltx_font_italic">from random initialization (‘from scratch’), without any pre-training</em>. More surprisingly, we can achieve these results by <em id="S1.p3.1.2" class="ltx_emph ltx_font_italic">using baseline systems <em id="S1.p3.1.2.1" class="ltx_emph ltx_font_upright"><cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib8" title="" class="ltx_ref">8</a>, <a href="#bib.bib36" title="" class="ltx_ref">36</a>, <a href="#bib.bib26" title="" class="ltx_ref">26</a>, <a href="#bib.bib13" title="" class="ltx_ref">13</a>]</cite></em> and their hyper-parameters that were optimized for fine-tuning pre-trained models</em>. We find that there is no fundamental obstacle preventing us from training from scratch, if: (i) we use normalization techniques appropriately for optimization, and (ii) we train the models sufficiently long to compensate for the lack of pre-training (Figure <a href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>).</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p id="S1.p4.1" class="ltx_p">We show that training from random initialization on COCO can be <em id="S1.p4.1.1" class="ltx_emph ltx_font_italic">on par with</em> its ImageNet pre-training counterparts for a variety of baselines that cover Average Precision (AP, in percentage) from 40 to over 50. Further, we find that such comparability holds even if we train with as little as 10% COCO training data. We also find that we can train large models from scratch—up to 4<math id="S1.p4.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S1.p4.1.m1.1a"><mo id="S1.p4.1.m1.1.1" xref="S1.p4.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S1.p4.1.m1.1b"><times id="S1.p4.1.m1.1.1.cmml" xref="S1.p4.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S1.p4.1.m1.1c">\times</annotation></semantics></math> larger than a ResNet-101 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib17" title="" class="ltx_ref">17</a>]</cite>—without overfitting. Based on these experiments and others, we observe the following:</p>
+</div>
+<div id="S1.p5" class="ltx_para">
+<p id="S1.p5.1" class="ltx_p">(i) ImageNet pre-training <em id="S1.p5.1.1" class="ltx_emph ltx_font_italic">speeds up</em> convergence, especially early on in training, but training from random initialization can catch up after training for a duration that is roughly comparable to the total ImageNet pre-training plus fine-tuning computation—it has to learn the low-/mid-level features (such as edges, textures) that are otherwise given by pre-training. As the cost of ImageNet pre-training is often ignored when studying the target task, ‘controlled’ comparisons with a <em id="S1.p5.1.2" class="ltx_emph ltx_font_italic">short</em> training schedule can veil the true behavior of training from random initialization.</p>
+</div>
+<div id="S1.p6" class="ltx_para">
+<p id="S1.p6.1" class="ltx_p">(ii) ImageNet pre-training does <em id="S1.p6.1.1" class="ltx_emph ltx_font_italic">not</em> automatically give better regularization. When training with fewer images (down to 10% of COCO), we find that new hyper-parameters must be selected for fine-tuning (from pre-training) to avoid overfitting. Then, when training from random initialization using these <em id="S1.p6.1.2" class="ltx_emph ltx_font_italic">same</em> hyper-parameters, the model can match the pre-training accuracy <em id="S1.p6.1.3" class="ltx_emph ltx_font_italic">without</em> any extra regularization, even with only 10% COCO data.</p>
+</div>
+<div id="S1.p7" class="ltx_para">
+<p id="S1.p7.1" class="ltx_p">(iii) ImageNet pre-training shows no benefit when the target tasks/metrics are more sensitive to spatially well-localized predictions. We observe a noticeable AP improvement for high box overlap thresholds when training from scratch; we also find that keypoint AP, which requires fine spatial localization, converges relatively faster from scratch. Intuitively, the task gap between the <em id="S1.p7.1.1" class="ltx_emph ltx_font_italic">classification</em>-based, ImageNet-like pre-training and <em id="S1.p7.1.2" class="ltx_emph ltx_font_italic">localization</em>-sensitive target tasks may limit the benefits of pre-training.</p>
+</div>
+<div id="S1.p8" class="ltx_para">
+<p id="S1.p8.1" class="ltx_p">Given the current literature, these results are surprising and challenge our understanding of the effects of ImageNet pre-training. These observations hint that ImageNet pre-training is a historical workaround (and will likely be so for some time) for when the community does not have enough target data or computational resources to make training on the target task doable. In addition, ImageNet has been largely thought of as a ‘free’ resource, thanks to the readily conducted annotation efforts <em id="S1.p8.1.1" class="ltx_emph ltx_font_italic">and</em> wide availability of pre-trained models. But looking forward, when the community will proceed with more data and faster computation, our study suggests that collecting data and training on the <em id="S1.p8.1.2" class="ltx_emph ltx_font_italic">target</em> tasks is a solution worth considering, especially when there is a significant gap between the source pre-training task and the target task. This paper provides new experimental evidence and discussions for people to rethink the ImageNet-like pre-training paradigm in computer vision.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Related Work</h2>
+
+<section id="S2.SS0.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Pre-training and fine-tuning.</h4>
+
+<div id="S2.SS0.SSS0.Px1.p1" class="ltx_para">
+<p id="S2.SS0.SSS0.Px1.p1.4" class="ltx_p">The initial breakthrough of applying deep learning to object detection (<em id="S2.SS0.SSS0.Px1.p1.4.1" class="ltx_emph ltx_font_italic">e.g</em>.<span id="S2.SS0.SSS0.Px1.p1.4.2" class="ltx_text"></span>, R-CNN <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite> and OverFeat <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib40" title="" class="ltx_ref">40</a>]</cite>) were achieved by fine-tuning networks that were pre-trained for ImageNet classification. Following these results, most modern object detectors and many other computer vision algorithms employ the ‘pre-training and fine-tuning’ paradigm.
+Recent work pushes this paradigm further by pre-training on datasets that are 6<math id="S2.SS0.SSS0.Px1.p1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S2.SS0.SSS0.Px1.p1.1.m1.1a"><mo id="S2.SS0.SSS0.Px1.p1.1.m1.1.1" xref="S2.SS0.SSS0.Px1.p1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S2.SS0.SSS0.Px1.p1.1.m1.1b"><times id="S2.SS0.SSS0.Px1.p1.1.m1.1.1.cmml" xref="S2.SS0.SSS0.Px1.p1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S2.SS0.SSS0.Px1.p1.1.m1.1c">\times</annotation></semantics></math> (ImageNet-5k <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="" class="ltx_ref">14</a>]</cite>), 300<math id="S2.SS0.SSS0.Px1.p1.2.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S2.SS0.SSS0.Px1.p1.2.m2.1a"><mo id="S2.SS0.SSS0.Px1.p1.2.m2.1.1" xref="S2.SS0.SSS0.Px1.p1.2.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S2.SS0.SSS0.Px1.p1.2.m2.1b"><times id="S2.SS0.SSS0.Px1.p1.2.m2.1.1.cmml" xref="S2.SS0.SSS0.Px1.p1.2.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S2.SS0.SSS0.Px1.p1.2.m2.1c">\times</annotation></semantics></math> (JFT <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib44" title="" class="ltx_ref">44</a>]</cite>), and even 3000<math id="S2.SS0.SSS0.Px1.p1.3.m3.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S2.SS0.SSS0.Px1.p1.3.m3.1a"><mo id="S2.SS0.SSS0.Px1.p1.3.m3.1.1" xref="S2.SS0.SSS0.Px1.p1.3.m3.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S2.SS0.SSS0.Px1.p1.3.m3.1b"><times id="S2.SS0.SSS0.Px1.p1.3.m3.1.1.cmml" xref="S2.SS0.SSS0.Px1.p1.3.m3.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S2.SS0.SSS0.Px1.p1.3.m3.1c">\times</annotation></semantics></math> (Instagram <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib30" title="" class="ltx_ref">30</a>]</cite>) larger than ImageNet. While this body of work demonstrates significant improvements on image classification transfer learning tasks, the improvements on object detection are relatively small (on the scale of +1.5 AP on COCO with 3000<math id="S2.SS0.SSS0.Px1.p1.4.m4.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S2.SS0.SSS0.Px1.p1.4.m4.1a"><mo id="S2.SS0.SSS0.Px1.p1.4.m4.1.1" xref="S2.SS0.SSS0.Px1.p1.4.m4.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S2.SS0.SSS0.Px1.p1.4.m4.1b"><times id="S2.SS0.SSS0.Px1.p1.4.m4.1.1.cmml" xref="S2.SS0.SSS0.Px1.p1.4.m4.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S2.SS0.SSS0.Px1.p1.4.m4.1c">\times</annotation></semantics></math> larger pre-training data <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib30" title="" class="ltx_ref">30</a>]</cite>). The marginal benefit from the kind of large-scale pre-training data used to date diminishes rapidly.</p>
+</div>
+</section>
+<section id="S2.SS0.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Detection from scratch.</h4>
+
+<div id="S2.SS0.SSS0.Px2.p1" class="ltx_para">
+<p id="S2.SS0.SSS0.Px2.p1.1" class="ltx_p">Before the prevalence of the ‘pre-training and fine-tuning’ paradigm, object detectors were trained <em id="S2.SS0.SSS0.Px2.p1.1.1" class="ltx_emph ltx_font_italic">with no pre-training</em> (<em id="S2.SS0.SSS0.Px2.p1.1.2" class="ltx_emph ltx_font_italic">e.g</em>.<span id="S2.SS0.SSS0.Px2.p1.1.3" class="ltx_text"></span>, <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib31" title="" class="ltx_ref">31</a>, <a href="#bib.bib38" title="" class="ltx_ref">38</a>, <a href="#bib.bib45" title="" class="ltx_ref">45</a>]</cite>)—a fact that is somewhat overlooked today. In fact, <em id="S2.SS0.SSS0.Px2.p1.1.4" class="ltx_emph ltx_font_italic">it should not be surprising that object detectors can be trained from scratch</em>.</p>
+</div>
+<div id="S2.SS0.SSS0.Px2.p2" class="ltx_para">
+<p id="S2.SS0.SSS0.Px2.p2.1" class="ltx_p">Given the success of pre-training in the R-CNN paper <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>]</cite>, later analysis <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="" class="ltx_ref">1</a>]</cite> found that pre-training plays an important role in detector accuracy when training data is limited, but also illustrated that <em id="S2.SS0.SSS0.Px2.p2.1.1" class="ltx_emph ltx_font_italic">training from scratch on more detection data is possible</em> and can achieve 90% of the fine-tuning accuracy, foreshadowing our results.</p>
+</div>
+<div id="S2.SS0.SSS0.Px2.p3" class="ltx_para">
+<p id="S2.SS0.SSS0.Px2.p3.1" class="ltx_p">As modern object detectors <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="" class="ltx_ref">9</a>, <a href="#bib.bib15" title="" class="ltx_ref">15</a>, <a href="#bib.bib8" title="" class="ltx_ref">8</a>, <a href="#bib.bib36" title="" class="ltx_ref">36</a>, <a href="#bib.bib35" title="" class="ltx_ref">35</a>, <a href="#bib.bib28" title="" class="ltx_ref">28</a>, <a href="#bib.bib26" title="" class="ltx_ref">26</a>, <a href="#bib.bib13" title="" class="ltx_ref">13</a>]</cite> evolved under the pre-training paradigm, the belief that training from scratch is non-trivial became conventional wisdom. Shen <em id="S2.SS0.SSS0.Px2.p3.1.1" class="ltx_emph ltx_font_italic">et al</em>.<span id="S2.SS0.SSS0.Px2.p3.1.2" class="ltx_text"></span> <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib41" title="" class="ltx_ref">41</a>]</cite> argued for <em id="S2.SS0.SSS0.Px2.p3.1.3" class="ltx_emph ltx_font_italic">a set of new design principles</em> to obtain a detector that is optimized for the accuracy when trained from scratch. They designed a specialized detector driven by deeply supervised networks <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib24" title="" class="ltx_ref">24</a>]</cite> and dense connections <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib18" title="" class="ltx_ref">18</a>]</cite>.
+DetNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib25" title="" class="ltx_ref">25</a>]</cite> and CornerNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite> also present results when training detectors from scratch. Similar to <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib41" title="" class="ltx_ref">41</a>]</cite>, these works <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib25" title="" class="ltx_ref">25</a>, <a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite> focus on designing detection-specific architectures.
+However, in <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib41" title="" class="ltx_ref">41</a>, <a href="#bib.bib25" title="" class="ltx_ref">25</a>, <a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite> <em id="S2.SS0.SSS0.Px2.p3.1.4" class="ltx_emph ltx_font_italic">there is little evidence that these specialized architectures are required for models to be trained from scratch</em>.</p>
+</div>
+<div id="S2.SS0.SSS0.Px2.p4" class="ltx_para">
+<p id="S2.SS0.SSS0.Px2.p4.1" class="ltx_p">Unlike these papers, our focus is on understanding the role of ImageNet pre-training on <em id="S2.SS0.SSS0.Px2.p4.1.1" class="ltx_emph ltx_font_italic">unspecialized</em> architectures (<em id="S2.SS0.SSS0.Px2.p4.1.2" class="ltx_emph ltx_font_italic">i.e</em>.<span id="S2.SS0.SSS0.Px2.p4.1.3" class="ltx_text"></span>, models that were originally designed <em id="S2.SS0.SSS0.Px2.p4.1.4" class="ltx_emph ltx_font_italic">without</em> the consideration for training from scratch). Our work demonstrates that it is often possible to <em id="S2.SS0.SSS0.Px2.p4.1.5" class="ltx_emph ltx_font_italic">match</em> fine-tuning accuracy when training from scratch even <em id="S2.SS0.SSS0.Px2.p4.1.6" class="ltx_emph ltx_font_italic">without</em> making any architectural specializations. Our study is on the comparison between ‘with <em id="S2.SS0.SSS0.Px2.p4.1.7" class="ltx_emph ltx_font_italic">vs</em>.<span id="S2.SS0.SSS0.Px2.p4.1.8" class="ltx_text"></span> without pre-training’, under controlled settings in which the architectures are not tailored.</p>
+</div>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Methodology</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.1" class="ltx_p">Our goal is to <em id="S3.p1.1.1" class="ltx_emph ltx_font_italic">ablate</em> the role of ImageNet pre-training via controlled experiments that can be done <em id="S3.p1.1.2" class="ltx_emph ltx_font_italic">without</em> ImageNet pre-training. Given this goal, architectural improvements are <em id="S3.p1.1.3" class="ltx_emph ltx_font_italic">not</em> our purpose; actually, to better understand what impact ImageNet pre-training can make, it is desired to enable typical architectures to be trained from scratch under <em id="S3.p1.1.4" class="ltx_emph ltx_font_italic">minimal</em> modifications. We describe the only two modifications that we find to be necessary, related to model normalization and training length, discussed next.</p>
+</div>
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1 </span>Normalization</h3>
+
+<div id="S3.SS1.p1" class="ltx_para">
+<p id="S3.SS1.p1.1" class="ltx_p">Image classifier training requires <em id="S3.SS1.p1.1.1" class="ltx_emph ltx_font_italic">normalization</em> to help optimization.
+Successful forms of normalization include normalized parameter initialization <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib11" title="" class="ltx_ref">11</a>, <a href="#bib.bib16" title="" class="ltx_ref">16</a>]</cite> and activation normalization layers <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref">20</a>, <a href="#bib.bib2" title="" class="ltx_ref">2</a>, <a href="#bib.bib46" title="" class="ltx_ref">46</a>, <a href="#bib.bib48" title="" class="ltx_ref">48</a>]</cite>.
+When training object detectors from scratch, they face issues similar to training image classifiers from scratch <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib11" title="" class="ltx_ref">11</a>, <a href="#bib.bib16" title="" class="ltx_ref">16</a>, <a href="#bib.bib20" title="" class="ltx_ref">20</a>]</cite>.
+Overlooking the role of normalization can give the misperception that detectors are hard to train from scratch.</p>
+</div>
+<div id="S3.SS1.p2" class="ltx_para">
+<p id="S3.SS1.p2.1" class="ltx_p">Batch Normalization (BN) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref">20</a>]</cite>, the popular normalization method used to train modern networks, partially makes training detectors from scratch difficult.
+Object detectors are typically trained with high resolution inputs, unlike image classifiers. This reduces batch sizes as constrained by memory, and small batch sizes severely degrade the accuracy of BN <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib19" title="" class="ltx_ref">19</a>, <a href="#bib.bib34" title="" class="ltx_ref">34</a>, <a href="#bib.bib48" title="" class="ltx_ref">48</a>]</cite>. This issue can be circumvented if pre-training is used, because fine-tuning can adopt the pre-training batch statistics as fixed parameters <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib17" title="" class="ltx_ref">17</a>]</cite>; however, freezing BN is invalid when training from scratch.</p>
+</div>
+<div id="S3.SS1.p3" class="ltx_para ltx_noindent">
+<p id="S3.SS1.p3.1" class="ltx_p">We investigate two normalization strategies in recent works that help relieve the small batch issue:</p>
+<ol id="S3.I1" class="ltx_enumerate">
+<li id="S3.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(i)</span> 
+<div id="S3.I1.i1.p1" class="ltx_para">
+<p id="S3.I1.i1.p1.1" class="ltx_p"><em id="S3.I1.i1.p1.1.1" class="ltx_emph ltx_font_italic">Group Normalization</em> (<span id="S3.I1.i1.p1.1.2" class="ltx_text ltx_font_bold">GN</span>) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib48" title="" class="ltx_ref">48</a>]</cite>: as a recently proposed alternative to BN, GN performs computation that is independent of the batch dimension. GN’s accuracy is insensitive to batch sizes <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib48" title="" class="ltx_ref">48</a>]</cite>.</p>
+</div>
+</li>
+<li id="S3.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">(ii)</span> 
+<div id="S3.I1.i2.p1" class="ltx_para">
+<p id="S3.I1.i2.p1.1" class="ltx_p"><em id="S3.I1.i2.p1.1.1" class="ltx_emph ltx_font_italic">Synchronized Batch Normalization</em> (<span id="S3.I1.i2.p1.1.2" class="ltx_text ltx_font_bold">SyncBN</span>) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib34" title="" class="ltx_ref">34</a>, <a href="#bib.bib27" title="" class="ltx_ref">27</a>]</cite>: this is an implementation of BN <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="" class="ltx_ref">20</a>]</cite> with batch statistics computed across multiple devices (GPUs). This increases the effective batch size for BN when using many GPUs, which avoids small batches.</p>
+</div>
+</li>
+</ol>
+<p id="S3.SS1.p3.2" class="ltx_p">Our experiments show that both GN and SyncBN can enable detection models to train from scratch.</p>
+</div>
+<div id="S3.SS1.p4" class="ltx_para">
+<p id="S3.SS1.p4.1" class="ltx_p">We also report that using appropriately normalized initialization <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib16" title="" class="ltx_ref">16</a>]</cite>, we can train object detectors with VGG nets <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib43" title="" class="ltx_ref">43</a>]</cite> from random initialization without BN or GN.</p>
+</div>
+<figure id="S3.F2" class="ltx_figure"><img src="/html/1811.08883/assets/x2.png" id="S3.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="461" height="206" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 2: </span>Total numbers of images, instances, and pixels seen during all training iterations, for pre-training + fine-tuning (green bars) <em id="S3.F2.19.2" class="ltx_emph ltx_font_italic">vs</em>.<span id="S3.F2.20.3" class="ltx_text"></span> from random initialization (purple bars). We consider that pre-training takes 100 epochs in ImageNet, and fine-tuning adopts the 2<math id="S3.F2.8.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.F2.8.m1.1b"><mo id="S3.F2.8.m1.1.1" xref="S3.F2.8.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.F2.8.m1.1c"><times id="S3.F2.8.m1.1.1.cmml" xref="S3.F2.8.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.F2.8.m1.1d">\times</annotation></semantics></math> schedule (<span id="S3.F2.9.m2.1.1.1" class="ltx_text ltx_markedasmath" style="position:relative; bottom:0.7pt;"><math id="S3.F2.9.m2.1.1.1.1.m1.1" class="ltx_Math" alttext="\scriptstyle\sim" display="inline"><semantics id="S3.F2.9.m2.1.1.1.1.m1.1b"><mo mathsize="70%" id="S3.F2.9.m2.1.1.1.1.m1.1.1" xref="S3.F2.9.m2.1.1.1.1.m1.1.1.cmml">∼</mo><annotation-xml encoding="MathML-Content" id="S3.F2.9.m2.1.1.1.1.m1.1c"><csymbol cd="latexml" id="S3.F2.9.m2.1.1.1.1.m1.1.1.cmml" xref="S3.F2.9.m2.1.1.1.1.m1.1.1">similar-to</csymbol></annotation-xml><annotation encoding="application/x-tex" id="S3.F2.9.m2.1.1.1.1.m1.1d">\scriptstyle\sim</annotation></semantics></math></span>24 epochs over COCO) and random initialization adopts the 6<math id="S3.F2.10.m3.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.F2.10.m3.1b"><mo id="S3.F2.10.m3.1.1" xref="S3.F2.10.m3.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.F2.10.m3.1c"><times id="S3.F2.10.m3.1.1.cmml" xref="S3.F2.10.m3.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.F2.10.m3.1d">\times</annotation></semantics></math> schedule (<span id="S3.F2.11.m4.1.1.1" class="ltx_text ltx_markedasmath" style="position:relative; bottom:0.7pt;"><math id="S3.F2.11.m4.1.1.1.1.m1.1" class="ltx_Math" alttext="\scriptstyle\sim" display="inline"><semantics id="S3.F2.11.m4.1.1.1.1.m1.1b"><mo mathsize="70%" id="S3.F2.11.m4.1.1.1.1.m1.1.1" xref="S3.F2.11.m4.1.1.1.1.m1.1.1.cmml">∼</mo><annotation-xml encoding="MathML-Content" id="S3.F2.11.m4.1.1.1.1.m1.1c"><csymbol cd="latexml" id="S3.F2.11.m4.1.1.1.1.m1.1.1.cmml" xref="S3.F2.11.m4.1.1.1.1.m1.1.1">similar-to</csymbol></annotation-xml><annotation encoding="application/x-tex" id="S3.F2.11.m4.1.1.1.1.m1.1d">\scriptstyle\sim</annotation></semantics></math></span>72 epochs over COCO). We count instances in ImageNet as 1 per image (<em id="S3.F2.21.4" class="ltx_emph ltx_font_italic">vs</em>.<span id="S3.F2.22.5" class="ltx_text"></span> <span id="S3.F2.12.1" class="ltx_text" style="position:relative; bottom:0.7pt;"><math id="S3.F2.12.1.1.m1.1" class="ltx_Math" alttext="\scriptstyle\sim" display="inline"><semantics id="S3.F2.12.1.1.m1.1b"><mo mathsize="70%" id="S3.F2.12.1.1.m1.1.1" xref="S3.F2.12.1.1.m1.1.1.cmml">∼</mo><annotation-xml encoding="MathML-Content" id="S3.F2.12.1.1.m1.1c"><csymbol cd="latexml" id="S3.F2.12.1.1.m1.1.1.cmml" xref="S3.F2.12.1.1.m1.1.1">similar-to</csymbol></annotation-xml><annotation encoding="application/x-tex" id="S3.F2.12.1.1.m1.1d">\scriptstyle\sim</annotation></semantics></math></span>7 in COCO), and pixels in ImageNet as 224<math id="S3.F2.13.m5.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.F2.13.m5.1b"><mo id="S3.F2.13.m5.1.1" xref="S3.F2.13.m5.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.F2.13.m5.1c"><times id="S3.F2.13.m5.1.1.cmml" xref="S3.F2.13.m5.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.F2.13.m5.1d">\times</annotation></semantics></math>224 and COCO as 800<math id="S3.F2.14.m6.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S3.F2.14.m6.1b"><mo id="S3.F2.14.m6.1.1" xref="S3.F2.14.m6.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S3.F2.14.m6.1c"><times id="S3.F2.14.m6.1.1.cmml" xref="S3.F2.14.m6.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S3.F2.14.m6.1d">\times</annotation></semantics></math>1333.
+</figcaption>
+</figure>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.2 </span>Convergence</h3>
+
+<div id="S3.SS2.p1" class="ltx_para">
+<p id="S3.SS2.p1.1" class="ltx_p">It is unrealistic and unfair to expect models trained from random initialization to converge similarly fast as those initialized from ImageNet pre-training. Overlooking this fact one can draw incomplete or incorrect conclusions about the true <em id="S3.SS2.p1.1.1" class="ltx_emph ltx_font_italic">capability</em> of models that are trained from scratch.</p>
+</div>
+<div id="S3.SS2.p2" class="ltx_para">
+<p id="S3.SS2.p2.1" class="ltx_p">Typical ImageNet pre-training involves over one million images iterated for one hundred epochs.
+In addition to any semantic information learned from this large-scale data, the pre-training model has also learned low-level features (<em id="S3.SS2.p2.1.1" class="ltx_emph ltx_font_italic">e.g</em>.<span id="S3.SS2.p2.1.2" class="ltx_text"></span>, edges, textures) that do not need to be re-learned during fine-tuning.<span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note">1</span>In fact, it is common practice <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib8" title="" class="ltx_ref">8</a>, <a href="#bib.bib36" title="" class="ltx_ref">36</a>]</cite> to freeze the convolutional filters in the first few layers when fine-tuning.</span></span></span>
+On the other hand, when training from scratch the model has to learn low- and high-level semantics, so more iterations may be necessary for it to converge well.</p>
+</div>
+<div id="S3.SS2.p3" class="ltx_para">
+<p id="S3.SS2.p3.1" class="ltx_p">With this motivation, we argue that models trained from scratch must be <span id="S3.SS2.p3.1.1" class="ltx_text ltx_font_bold">trained for longer</span> than typical fine-tuning schedules. Actually, this is a <em id="S3.SS2.p3.1.2" class="ltx_emph ltx_font_italic">fairer</em> comparison in term of the number of training samples provided. We consider three rough definitions of ‘samples’—the number of images, instances, and pixels that have been seen during all training iterations (<em id="S3.SS2.p3.1.3" class="ltx_emph ltx_font_italic">e.g</em>.<span id="S3.SS2.p3.1.4" class="ltx_text"></span>, one image for 100 epochs is counted as 100 image-level samples). We plot the comparisons on the numbers of samples in Figure <a href="#S3.F2" title="Figure 2 ‣ 3.1 Normalization ‣ 3 Methodology ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>.</p>
+</div>
+<div id="S3.SS2.p4" class="ltx_para">
+<p id="S3.SS2.p4.1" class="ltx_p">Figure <a href="#S3.F2" title="Figure 2 ‣ 3.1 Normalization ‣ 3 Methodology ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> shows a from-scratch case trained for 3 times more iterations than its fine-tuning counterpart on COCO. Despite using more iterations on COCO, if counting image-level samples, the from-scratch case still sees considerably <em id="S3.SS2.p4.1.1" class="ltx_emph ltx_font_italic">fewer</em> samples than its fine-tuning counterpart—the 1.28 million ImageNet images for 100 epochs dominate. Actually, the sample numbers only get closer if we count <em id="S3.SS2.p4.1.2" class="ltx_emph ltx_font_italic">pixel-level</em> samples (Figure <a href="#S3.F2" title="Figure 2 ‣ 3.1 Normalization ‣ 3 Methodology ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, bottom)—a consequence of object detectors using higher-resolution images. Our experiments show that under the schedules in Figure <a href="#S3.F2" title="Figure 2 ‣ 3.1 Normalization ‣ 3 Methodology ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, the from-scratch detectors can catch up with their fine-tuning counterparts.
+This suggests that a sufficiently large number of total samples (arguably in terms of pixels) are required for the models trained from random initialization to converge well.</p>
+</div>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Experimental Settings</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p">We pursue <em id="S4.p1.1.1" class="ltx_emph ltx_font_italic">minimal</em> changes made to baseline systems for pinpointing the keys to enabling training from scratch. Overall, our baselines and hyper-parameters follow Mask R-CNN <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib13" title="" class="ltx_ref">13</a>]</cite> in the publicly available code of <span id="S4.p1.1.2" class="ltx_text ltx_font_sansserif" style="font-size:90%;">Detectron</span> <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib10" title="" class="ltx_ref">10</a>]</cite>, except we use normalization and vary the number of training iterations. The implementation is as follows.</p>
+</div>
+<section id="S4.SS0.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Architecture.</h4>
+
+<div id="S4.SS0.SSS0.Px1.p1" class="ltx_para">
+<p id="S4.SS0.SSS0.Px1.p1.1" class="ltx_p">We investigate Mask R-CNN <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib13" title="" class="ltx_ref">13</a>]</cite> with ResNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib17" title="" class="ltx_ref">17</a>]</cite> or ResNeXt <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib49" title="" class="ltx_ref">49</a>]</cite> plus Feature Pyramid Network (FPN) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="" class="ltx_ref">26</a>]</cite> backbones. We adopt the end-to-end fashion <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib37" title="" class="ltx_ref">37</a>]</cite> of training Region Proposal Networks (RPN) jointly with Mask R-CNN.
+GN/SyncBN is used to replace all ‘frozen BN’ (channel-wise affine) layers. For fair comparisons, in this paper the <em id="S4.SS0.SSS0.Px1.p1.1.1" class="ltx_emph ltx_font_italic">fine-tuned</em> models (with pre-training) are also tuned with GN or SyncBN, rather than freezing them. They have higher accuracy than the frozen ones <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib34" title="" class="ltx_ref">34</a>, <a href="#bib.bib27" title="" class="ltx_ref">27</a>, <a href="#bib.bib48" title="" class="ltx_ref">48</a>]</cite>.</p>
+</div>
+</section>
+<section id="S4.SS0.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Learning rate scheduling.</h4>
+
+<div id="S4.SS0.SSS0.Px2.p1" class="ltx_para">
+<p id="S4.SS0.SSS0.Px2.p1.5" class="ltx_p">Original Mask R-CNN models in <span id="S4.SS0.SSS0.Px2.p1.5.1" class="ltx_text ltx_font_sansserif" style="font-size:90%;">Detectron</span> <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib10" title="" class="ltx_ref">10</a>]</cite> were fine-tuned with 90k iterations (namely, ‘1<math id="S4.SS0.SSS0.Px2.p1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS0.SSS0.Px2.p1.1.m1.1a"><mo id="S4.SS0.SSS0.Px2.p1.1.m1.1.1" xref="S4.SS0.SSS0.Px2.p1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS0.SSS0.Px2.p1.1.m1.1b"><times id="S4.SS0.SSS0.Px2.p1.1.m1.1.1.cmml" xref="S4.SS0.SSS0.Px2.p1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS0.SSS0.Px2.p1.1.m1.1c">\times</annotation></semantics></math> schedule’) or 180k iterations (‘2<math id="S4.SS0.SSS0.Px2.p1.2.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS0.SSS0.Px2.p1.2.m2.1a"><mo id="S4.SS0.SSS0.Px2.p1.2.m2.1.1" xref="S4.SS0.SSS0.Px2.p1.2.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS0.SSS0.Px2.p1.2.m2.1b"><times id="S4.SS0.SSS0.Px2.p1.2.m2.1.1.cmml" xref="S4.SS0.SSS0.Px2.p1.2.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS0.SSS0.Px2.p1.2.m2.1c">\times</annotation></semantics></math> schedule’). For models in this paper, we investigate longer training and we use similar terminology, <em id="S4.SS0.SSS0.Px2.p1.5.2" class="ltx_emph ltx_font_italic">e.g</em>.<span id="S4.SS0.SSS0.Px2.p1.5.3" class="ltx_text"></span>, a so-called ‘6<math id="S4.SS0.SSS0.Px2.p1.3.m3.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS0.SSS0.Px2.p1.3.m3.1a"><mo id="S4.SS0.SSS0.Px2.p1.3.m3.1.1" xref="S4.SS0.SSS0.Px2.p1.3.m3.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS0.SSS0.Px2.p1.3.m3.1b"><times id="S4.SS0.SSS0.Px2.p1.3.m3.1.1.cmml" xref="S4.SS0.SSS0.Px2.p1.3.m3.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS0.SSS0.Px2.p1.3.m3.1c">\times</annotation></semantics></math> schedule’ has 540k iterations. Following the strategy in the 2<math id="S4.SS0.SSS0.Px2.p1.4.m4.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS0.SSS0.Px2.p1.4.m4.1a"><mo id="S4.SS0.SSS0.Px2.p1.4.m4.1.1" xref="S4.SS0.SSS0.Px2.p1.4.m4.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS0.SSS0.Px2.p1.4.m4.1b"><times id="S4.SS0.SSS0.Px2.p1.4.m4.1.1.cmml" xref="S4.SS0.SSS0.Px2.p1.4.m4.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS0.SSS0.Px2.p1.4.m4.1c">\times</annotation></semantics></math> schedule, we always reduce the learning rate by 10<math id="S4.SS0.SSS0.Px2.p1.5.m5.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.SS0.SSS0.Px2.p1.5.m5.1a"><mo id="S4.SS0.SSS0.Px2.p1.5.m5.1.1" xref="S4.SS0.SSS0.Px2.p1.5.m5.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.SS0.SSS0.Px2.p1.5.m5.1b"><times id="S4.SS0.SSS0.Px2.p1.5.m5.1.1.cmml" xref="S4.SS0.SSS0.Px2.p1.5.m5.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.SS0.SSS0.Px2.p1.5.m5.1c">\times</annotation></semantics></math> in the last 60k and last 20k iterations respectively, no matter how many total iterations (<em id="S4.SS0.SSS0.Px2.p1.5.4" class="ltx_emph ltx_font_italic">i.e</em>.<span id="S4.SS0.SSS0.Px2.p1.5.5" class="ltx_text"></span>, the reduced learning rates are always run for the same number of iterations). We find that training longer for the first (large) learning rate is useful, but training for longer on small learning rates often leads to overfitting.</p>
+</div>
+</section>
+<section id="S4.SS0.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Hyper-parameters.</h4>
+
+<div id="S4.SS0.SSS0.Px3.p1" class="ltx_para">
+<p id="S4.SS0.SSS0.Px3.p1.1" class="ltx_p">All other hyper-parameters follow those in <span id="S4.SS0.SSS0.Px3.p1.1.1" class="ltx_text ltx_font_sansserif" style="font-size:90%;">Detectron</span> <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib10" title="" class="ltx_ref">10</a>]</cite>. Specially, the initial learning rate is 0.02 (with a linear warm-up <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="" class="ltx_ref">12</a>]</cite>). The weight decay is 0.0001 and momentum is 0.9. All models are trained in 8 GPUs using synchronized SGD, with a mini-batch size of 2 images per GPU.</p>
+</div>
+<div id="S4.SS0.SSS0.Px3.p2" class="ltx_para">
+<p id="S4.SS0.SSS0.Px3.p2.1" class="ltx_p">By default Mask R-CNN in <span id="S4.SS0.SSS0.Px3.p2.1.1" class="ltx_text ltx_font_sansserif" style="font-size:90%;">Detectron</span> uses <em id="S4.SS0.SSS0.Px3.p2.1.2" class="ltx_emph ltx_font_italic">no data augmentation</em> for testing, and only horizontal flipping augmentation for training. We use the same settings. Also, unless noted, the image scale is 800 pixels for the shorter side.</p>
+</div>
+<figure id="S4.F3" class="ltx_figure"><img src="/html/1811.08883/assets/x3.png" id="S4.F3.g1" class="ltx_graphics ltx_centering ltx_img_square" width="250" height="210" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 3: </span>Learning curves of AP<math id="S4.F3.2.m1.1" class="ltx_Math" alttext="{}^{\text{bbox}}" display="inline"><semantics id="S4.F3.2.m1.1b"><msup id="S4.F3.2.m1.1.1" xref="S4.F3.2.m1.1.1.cmml"><mi id="S4.F3.2.m1.1.1b" xref="S4.F3.2.m1.1.1.cmml"></mi><mtext id="S4.F3.2.m1.1.1.1" xref="S4.F3.2.m1.1.1.1a.cmml">bbox</mtext></msup><annotation-xml encoding="MathML-Content" id="S4.F3.2.m1.1c"><apply id="S4.F3.2.m1.1.1.cmml" xref="S4.F3.2.m1.1.1"><ci id="S4.F3.2.m1.1.1.1a.cmml" xref="S4.F3.2.m1.1.1.1"><mtext mathsize="70%" id="S4.F3.2.m1.1.1.1.cmml" xref="S4.F3.2.m1.1.1.1">bbox</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.F3.2.m1.1d">{}^{\text{bbox}}</annotation></semantics></math> on COCO <span id="S4.F3.5.1" class="ltx_text ltx_font_typewriter">val2017</span> using Mask R-CNN with <span id="S4.F3.6.2" class="ltx_text ltx_font_bold">R101</span>-FPN and GN. Table <a href="#S5.T1" title="Table 1 ‣ Baselines with GN and SyncBN. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> shows the resulting AP numbers.</figcaption>
+</figure>
+<figure id="S4.F4" class="ltx_figure"><img src="/html/1811.08883/assets/x4.png" id="S4.F4.g1" class="ltx_graphics ltx_centering ltx_img_square" width="250" height="210" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 4: </span>Learning curves of AP<math id="S4.F4.3.m1.1" class="ltx_Math" alttext="{}^{\text{bbox}}" display="inline"><semantics id="S4.F4.3.m1.1b"><msup id="S4.F4.3.m1.1.1" xref="S4.F4.3.m1.1.1.cmml"><mi id="S4.F4.3.m1.1.1b" xref="S4.F4.3.m1.1.1.cmml"></mi><mtext id="S4.F4.3.m1.1.1.1" xref="S4.F4.3.m1.1.1.1a.cmml">bbox</mtext></msup><annotation-xml encoding="MathML-Content" id="S4.F4.3.m1.1c"><apply id="S4.F4.3.m1.1.1.cmml" xref="S4.F4.3.m1.1.1"><ci id="S4.F4.3.m1.1.1.1a.cmml" xref="S4.F4.3.m1.1.1.1"><mtext mathsize="70%" id="S4.F4.3.m1.1.1.1.cmml" xref="S4.F4.3.m1.1.1.1">bbox</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S4.F4.3.m1.1d">{}^{\text{bbox}}</annotation></semantics></math> on COCO <span id="S4.F4.7.1" class="ltx_text ltx_font_typewriter">val2017</span> using Mask R-CNN with R50-FPN and <span id="S4.F4.8.2" class="ltx_text ltx_font_bold">SyncBN</span> <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib34" title="" class="ltx_ref">34</a>, <a href="#bib.bib27" title="" class="ltx_ref">27</a>]</cite> (that synchronizes batch statistics across GPUs). The results of the 6<math id="S4.F4.4.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S4.F4.4.m2.1b"><mo id="S4.F4.4.m2.1.1" xref="S4.F4.4.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S4.F4.4.m2.1c"><times id="S4.F4.4.m2.1.1.cmml" xref="S4.F4.4.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S4.F4.4.m2.1d">\times</annotation></semantics></math> schedule are 39.3 (random initialization) and 39.0 (pre-training).
+</figcaption>
+</figure>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Results and Analysis</h2>
+
+<section id="S5.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.1 </span>Training from scratch to match accuracy</h3>
+
+<div id="S5.SS1.p1" class="ltx_para">
+<p id="S5.SS1.p1.1" class="ltx_p">Our first surprising discovery is that when <em id="S5.SS1.p1.1.1" class="ltx_emph ltx_font_italic">only</em> using the COCO data, models trained from scratch can catch up in accuracy with ones that are fine-tuned.</p>
+</div>
+<div id="S5.SS1.p2" class="ltx_para">
+<p id="S5.SS1.p2.1" class="ltx_p">In this subsection, we train the models on the COCO <span id="S5.SS1.p2.1.1" class="ltx_text ltx_font_typewriter">train2017</span> split that has <span id="S5.SS1.p2.1.m1.1.1.1" class="ltx_text ltx_markedasmath" style="position:relative; bottom:0.7pt;"><math id="S5.SS1.p2.1.m1.1.1.1.1.m1.1" class="ltx_Math" alttext="\scriptstyle\sim" display="inline"><semantics id="S5.SS1.p2.1.m1.1.1.1.1.m1.1a"><mo mathsize="70%" id="S5.SS1.p2.1.m1.1.1.1.1.m1.1.1" xref="S5.SS1.p2.1.m1.1.1.1.1.m1.1.1.cmml">∼</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.p2.1.m1.1.1.1.1.m1.1b"><csymbol cd="latexml" id="S5.SS1.p2.1.m1.1.1.1.1.m1.1.1.cmml" xref="S5.SS1.p2.1.m1.1.1.1.1.m1.1.1">similar-to</csymbol></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.p2.1.m1.1.1.1.1.m1.1c">\scriptstyle\sim</annotation></semantics></math></span>118k (118,287) images, and evaluate in the 5k COCO <span id="S5.SS1.p2.1.2" class="ltx_text ltx_font_typewriter">val2017</span> split. We evaluate bounding box (bbox) Average Precision (AP) for object detection and mask AP for instance segmentation.</p>
+</div>
+<section id="S5.SS1.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Baselines with GN and SyncBN.</h4>
+
+<div id="S5.SS1.SSS0.Px1.p1" class="ltx_para">
+<p id="S5.SS1.SSS0.Px1.p1.1" class="ltx_p">The validation bbox AP curves are shown in Figures <a href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> and <a href="#S4.F3" title="Figure 3 ‣ Hyper-parameters. ‣ 4 Experimental Settings ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> when using GN for ResNet-50 (R50) and ResNet-101 (R101) backbones and in Figure <a href="#S4.F4" title="Figure 4 ‣ Hyper-parameters. ‣ 4 Experimental Settings ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a> when using SyncBN for R50. For each figure, we compare the curves between models trained from random initialization <em id="S5.SS1.SSS0.Px1.p1.1.1" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.SS1.SSS0.Px1.p1.1.2" class="ltx_text"></span> fine-tuned with ImageNet pre-training.</p>
+</div>
+<div id="S5.SS1.SSS0.Px1.p2" class="ltx_para">
+<p id="S5.SS1.SSS0.Px1.p2.2" class="ltx_p">We study five different schedules for each case, namely, 2<math id="S5.SS1.SSS0.Px1.p2.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.SS1.SSS0.Px1.p2.1.m1.1a"><mo id="S5.SS1.SSS0.Px1.p2.1.m1.1.1" xref="S5.SS1.SSS0.Px1.p2.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px1.p2.1.m1.1b"><times id="S5.SS1.SSS0.Px1.p2.1.m1.1.1.cmml" xref="S5.SS1.SSS0.Px1.p2.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px1.p2.1.m1.1c">\times</annotation></semantics></math> to 6<math id="S5.SS1.SSS0.Px1.p2.2.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.SS1.SSS0.Px1.p2.2.m2.1a"><mo id="S5.SS1.SSS0.Px1.p2.2.m2.1.1" xref="S5.SS1.SSS0.Px1.p2.2.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px1.p2.2.m2.1b"><times id="S5.SS1.SSS0.Px1.p2.2.m2.1.1.cmml" xref="S5.SS1.SSS0.Px1.p2.2.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px1.p2.2.m2.1c">\times</annotation></semantics></math> iterations (Sec. <a href="#S4" title="4 Experimental Settings ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>). Note that we overlay the five schedules of one model in the same plot. The leaps in the AP curves are a consequence of reducing learning rates, illustrating the results of different schedules.</p>
+</div>
+<div id="S5.SS1.SSS0.Px1.p3" class="ltx_para">
+<p id="S5.SS1.SSS0.Px1.p3.1" class="ltx_p">Similar phenomena, summarized below, are consistently present in Figures <a href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>, <a href="#S4.F3" title="Figure 3 ‣ Hyper-parameters. ‣ 4 Experimental Settings ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, and <a href="#S4.F4" title="Figure 4 ‣ Hyper-parameters. ‣ 4 Experimental Settings ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>:</p>
+</div>
+<div id="S5.SS1.SSS0.Px1.p4" class="ltx_para ltx_noindent">
+<p id="S5.SS1.SSS0.Px1.p4.1" class="ltx_p"><span id="S5.SS1.SSS0.Px1.p4.1.1" class="ltx_text ltx_font_bold">(i)</span> Typical fine-tuning schedules (2<math id="S5.SS1.SSS0.Px1.p4.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.SS1.SSS0.Px1.p4.1.m1.1a"><mo id="S5.SS1.SSS0.Px1.p4.1.m1.1.1" xref="S5.SS1.SSS0.Px1.p4.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px1.p4.1.m1.1b"><times id="S5.SS1.SSS0.Px1.p4.1.m1.1.1.cmml" xref="S5.SS1.SSS0.Px1.p4.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px1.p4.1.m1.1c">\times</annotation></semantics></math>) work well for the models with pre-training to converge to near optimum (see also Table <a href="#S5.T1" title="Table 1 ‣ Baselines with GN and SyncBN. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>, ‘w/ pre-train’). But these schedules are not enough for models trained from scratch, and they appear to be inferior if they are only trained for a short period.</p>
+</div>
+<div id="S5.SS1.SSS0.Px1.p5" class="ltx_para ltx_noindent">
+<p id="S5.SS1.SSS0.Px1.p5.2" class="ltx_p"><span id="S5.SS1.SSS0.Px1.p5.2.1" class="ltx_text ltx_font_bold">(ii)</span> Models trained from scratch <em id="S5.SS1.SSS0.Px1.p5.2.2" class="ltx_emph ltx_font_italic">can catch up</em> with their fine-tuning counterparts, if a 5<math id="S5.SS1.SSS0.Px1.p5.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.SS1.SSS0.Px1.p5.1.m1.1a"><mo id="S5.SS1.SSS0.Px1.p5.1.m1.1.1" xref="S5.SS1.SSS0.Px1.p5.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px1.p5.1.m1.1b"><times id="S5.SS1.SSS0.Px1.p5.1.m1.1.1.cmml" xref="S5.SS1.SSS0.Px1.p5.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px1.p5.1.m1.1c">\times</annotation></semantics></math> or 6<math id="S5.SS1.SSS0.Px1.p5.2.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.SS1.SSS0.Px1.p5.2.m2.1a"><mo id="S5.SS1.SSS0.Px1.p5.2.m2.1.1" xref="S5.SS1.SSS0.Px1.p5.2.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px1.p5.2.m2.1b"><times id="S5.SS1.SSS0.Px1.p5.2.m2.1.1.cmml" xref="S5.SS1.SSS0.Px1.p5.2.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px1.p5.2.m2.1c">\times</annotation></semantics></math> schedule is used—actually, when they converge to an optimum, their detection AP is <em id="S5.SS1.SSS0.Px1.p5.2.3" class="ltx_emph ltx_font_italic">no worse</em> than their fine-tuning counterparts.</p>
+</div>
+<div id="S5.SS1.SSS0.Px1.p6" class="ltx_para">
+<p id="S5.SS1.SSS0.Px1.p6.1" class="ltx_p">In the standard COCO training set, ImageNet pre-training mainly helps to <em id="S5.SS1.SSS0.Px1.p6.1.1" class="ltx_emph ltx_font_italic">speed up convergence</em> on the target task early on in training, but shows <em id="S5.SS1.SSS0.Px1.p6.1.2" class="ltx_emph ltx_font_italic">little or no evidence</em> of improving the final detection accuracy.</p>
+</div>
+<figure id="S5.T1" class="ltx_table">
+<table id="S5.T1.5" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S5.T1.5.5" class="ltx_tr">
+<th id="S5.T1.5.5.6" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_th_row ltx_border_r" style="padding:0.45pt 5.0pt;" colspan="2"><span id="S5.T1.5.5.6.1" class="ltx_text" style="font-size:90%;">schedule</span></th>
+<th id="S5.T1.1.1.1" class="ltx_td ltx_align_center ltx_th ltx_th_column" style="padding:0.45pt 5.0pt;">
+<span id="S5.T1.1.1.1.1" class="ltx_text" style="font-size:90%;">2</span><math id="S5.T1.1.1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.T1.1.1.1.m1.1a"><mo mathsize="90%" id="S5.T1.1.1.1.m1.1.1" xref="S5.T1.1.1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.T1.1.1.1.m1.1b"><times id="S5.T1.1.1.1.m1.1.1.cmml" xref="S5.T1.1.1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.T1.1.1.1.m1.1c">\times</annotation></semantics></math>
+</th>
+<th id="S5.T1.2.2.2" class="ltx_td ltx_align_center ltx_th ltx_th_column" style="padding:0.45pt 5.0pt;">
+<span id="S5.T1.2.2.2.1" class="ltx_text" style="font-size:90%;">3</span><math id="S5.T1.2.2.2.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.T1.2.2.2.m1.1a"><mo mathsize="90%" id="S5.T1.2.2.2.m1.1.1" xref="S5.T1.2.2.2.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.T1.2.2.2.m1.1b"><times id="S5.T1.2.2.2.m1.1.1.cmml" xref="S5.T1.2.2.2.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.T1.2.2.2.m1.1c">\times</annotation></semantics></math>
+</th>
+<th id="S5.T1.3.3.3" class="ltx_td ltx_align_center ltx_th ltx_th_column" style="padding:0.45pt 5.0pt;">
+<span id="S5.T1.3.3.3.1" class="ltx_text" style="font-size:90%;">4</span><math id="S5.T1.3.3.3.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.T1.3.3.3.m1.1a"><mo mathsize="90%" id="S5.T1.3.3.3.m1.1.1" xref="S5.T1.3.3.3.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.T1.3.3.3.m1.1b"><times id="S5.T1.3.3.3.m1.1.1.cmml" xref="S5.T1.3.3.3.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.T1.3.3.3.m1.1c">\times</annotation></semantics></math>
+</th>
+<th id="S5.T1.4.4.4" class="ltx_td ltx_align_center ltx_th ltx_th_column" style="padding:0.45pt 5.0pt;">
+<span id="S5.T1.4.4.4.1" class="ltx_text" style="font-size:90%;">5</span><math id="S5.T1.4.4.4.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.T1.4.4.4.m1.1a"><mo mathsize="90%" id="S5.T1.4.4.4.m1.1.1" xref="S5.T1.4.4.4.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.T1.4.4.4.m1.1b"><times id="S5.T1.4.4.4.m1.1.1.cmml" xref="S5.T1.4.4.4.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.T1.4.4.4.m1.1c">\times</annotation></semantics></math>
+</th>
+<th id="S5.T1.5.5.5" class="ltx_td ltx_align_center ltx_th ltx_th_column" style="padding:0.45pt 5.0pt;">
+<span id="S5.T1.5.5.5.1" class="ltx_text" style="font-size:90%;">6</span><math id="S5.T1.5.5.5.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.T1.5.5.5.m1.1a"><mo mathsize="90%" id="S5.T1.5.5.5.m1.1.1" xref="S5.T1.5.5.5.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.T1.5.5.5.m1.1b"><times id="S5.T1.5.5.5.m1.1.1.cmml" xref="S5.T1.5.5.5.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.T1.5.5.5.m1.1c">\times</annotation></semantics></math>
+</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S5.T1.5.6.1" class="ltx_tr">
+<th id="S5.T1.5.6.1.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_t" style="padding:0.45pt 5.0pt;" rowspan="2"><span id="S5.T1.5.6.1.1.1" class="ltx_text" style="font-size:90%;">R50</span></th>
+<th id="S5.T1.5.6.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.6.1.2.1" class="ltx_text" style="font-size:90%;">random init</span></th>
+<td id="S5.T1.5.6.1.3" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.6.1.3.1" class="ltx_text" style="font-size:90%;">36.8</span></td>
+<td id="S5.T1.5.6.1.4" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.6.1.4.1" class="ltx_text" style="font-size:90%;">39.5</span></td>
+<td id="S5.T1.5.6.1.5" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.6.1.5.1" class="ltx_text" style="font-size:90%;">40.6</span></td>
+<td id="S5.T1.5.6.1.6" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.6.1.6.1" class="ltx_text" style="font-size:90%;">40.7</span></td>
+<td id="S5.T1.5.6.1.7" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.6.1.7.1" class="ltx_text" style="font-size:90%;">41.3</span></td>
+</tr>
+<tr id="S5.T1.5.7.2" class="ltx_tr">
+<th id="S5.T1.5.7.2.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.7.2.1.1" class="ltx_text" style="font-size:90%;">w/ pre-train</span></th>
+<td id="S5.T1.5.7.2.2" class="ltx_td ltx_align_center" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.7.2.2.1" class="ltx_text" style="font-size:90%;">40.3</span></td>
+<td id="S5.T1.5.7.2.3" class="ltx_td ltx_align_center" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.7.2.3.1" class="ltx_text" style="font-size:90%;">40.8</span></td>
+<td id="S5.T1.5.7.2.4" class="ltx_td ltx_align_center" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.7.2.4.1" class="ltx_text" style="font-size:90%;">40.9</span></td>
+<td id="S5.T1.5.7.2.5" class="ltx_td ltx_align_center" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.7.2.5.1" class="ltx_text" style="font-size:90%;">40.9</span></td>
+<td id="S5.T1.5.7.2.6" class="ltx_td ltx_align_center" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.7.2.6.1" class="ltx_text" style="font-size:90%;">41.1</span></td>
+</tr>
+<tr id="S5.T1.5.8.3" class="ltx_tr">
+<th id="S5.T1.5.8.3.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_t" style="padding:0.45pt 5.0pt;" rowspan="2"><span id="S5.T1.5.8.3.1.1" class="ltx_text" style="font-size:90%;">R101</span></th>
+<th id="S5.T1.5.8.3.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.8.3.2.1" class="ltx_text" style="font-size:90%;">random init</span></th>
+<td id="S5.T1.5.8.3.3" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.8.3.3.1" class="ltx_text" style="font-size:90%;">38.2</span></td>
+<td id="S5.T1.5.8.3.4" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.8.3.4.1" class="ltx_text" style="font-size:90%;">41.0</span></td>
+<td id="S5.T1.5.8.3.5" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.8.3.5.1" class="ltx_text" style="font-size:90%;">41.8</span></td>
+<td id="S5.T1.5.8.3.6" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.8.3.6.1" class="ltx_text" style="font-size:90%;">42.2</span></td>
+<td id="S5.T1.5.8.3.7" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.8.3.7.1" class="ltx_text" style="font-size:90%;">42.7</span></td>
+</tr>
+<tr id="S5.T1.5.9.4" class="ltx_tr">
+<th id="S5.T1.5.9.4.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.9.4.1.1" class="ltx_text" style="font-size:90%;">w/ pre-train</span></th>
+<td id="S5.T1.5.9.4.2" class="ltx_td ltx_align_center" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.9.4.2.1" class="ltx_text" style="font-size:90%;">41.8</span></td>
+<td id="S5.T1.5.9.4.3" class="ltx_td ltx_align_center" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.9.4.3.1" class="ltx_text" style="font-size:90%;">42.3</span></td>
+<td id="S5.T1.5.9.4.4" class="ltx_td ltx_align_center" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.9.4.4.1" class="ltx_text" style="font-size:90%;">42.3</span></td>
+<td id="S5.T1.5.9.4.5" class="ltx_td ltx_align_center" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.9.4.5.1" class="ltx_text" style="font-size:90%;">41.9</span></td>
+<td id="S5.T1.5.9.4.6" class="ltx_td ltx_align_center" style="padding:0.45pt 5.0pt;"><span id="S5.T1.5.9.4.6.1" class="ltx_text" style="font-size:90%;">42.2</span></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_table">Table 1: </span>Object detection AP<math id="S5.T1.9.m1.1" class="ltx_Math" alttext="{}^{\text{bbox}}" display="inline"><semantics id="S5.T1.9.m1.1b"><msup id="S5.T1.9.m1.1.1" xref="S5.T1.9.m1.1.1.cmml"><mi id="S5.T1.9.m1.1.1b" xref="S5.T1.9.m1.1.1.cmml"></mi><mtext id="S5.T1.9.m1.1.1.1" xref="S5.T1.9.m1.1.1.1a.cmml">bbox</mtext></msup><annotation-xml encoding="MathML-Content" id="S5.T1.9.m1.1c"><apply id="S5.T1.9.m1.1.1.cmml" xref="S5.T1.9.m1.1.1"><ci id="S5.T1.9.m1.1.1.1a.cmml" xref="S5.T1.9.m1.1.1.1"><mtext mathsize="70%" id="S5.T1.9.m1.1.1.1.cmml" xref="S5.T1.9.m1.1.1.1">bbox</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T1.9.m1.1d">{}^{\text{bbox}}</annotation></semantics></math> on COCO <span id="S5.T1.21.1" class="ltx_text ltx_font_typewriter">val2017</span> of training schedules from 2<math id="S5.T1.10.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.T1.10.m2.1b"><mo id="S5.T1.10.m2.1.1" xref="S5.T1.10.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.T1.10.m2.1c"><times id="S5.T1.10.m2.1.1.cmml" xref="S5.T1.10.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.T1.10.m2.1d">\times</annotation></semantics></math> (180k iterations) to 6<math id="S5.T1.11.m3.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.T1.11.m3.1b"><mo id="S5.T1.11.m3.1.1" xref="S5.T1.11.m3.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.T1.11.m3.1c"><times id="S5.T1.11.m3.1.1.cmml" xref="S5.T1.11.m3.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.T1.11.m3.1d">\times</annotation></semantics></math> (540k iterations).
+The model is Mask R-CNN with FPN and GN (Figures <a href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> and <a href="#S4.F3" title="Figure 3 ‣ Hyper-parameters. ‣ 4 Experimental Settings ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>).</figcaption>
+</figure>
+<figure id="S5.T2" class="ltx_table">
+<table id="S5.T2.8" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S5.T2.6.6" class="ltx_tr">
+<th id="S5.T2.6.6.7" class="ltx_td ltx_th ltx_th_row" style="padding:0.45pt 2.2pt;"></th>
+<th id="S5.T2.6.6.8" class="ltx_td ltx_th ltx_th_row ltx_border_r" style="padding:0.45pt 2.2pt;"></th>
+<td id="S5.T2.1.1.1" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;">
+<span id="S5.T2.1.1.1.1" class="ltx_text" style="font-size:90%;">AP</span><math id="S5.T2.1.1.1.m1.1" class="ltx_Math" alttext="{}^{\text{bbox}}" display="inline"><semantics id="S5.T2.1.1.1.m1.1a"><msup id="S5.T2.1.1.1.m1.1.1" xref="S5.T2.1.1.1.m1.1.1.cmml"><mi id="S5.T2.1.1.1.m1.1.1a" xref="S5.T2.1.1.1.m1.1.1.cmml"></mi><mtext mathsize="90%" id="S5.T2.1.1.1.m1.1.1.1" xref="S5.T2.1.1.1.m1.1.1.1a.cmml">bbox</mtext></msup><annotation-xml encoding="MathML-Content" id="S5.T2.1.1.1.m1.1b"><apply id="S5.T2.1.1.1.m1.1.1.cmml" xref="S5.T2.1.1.1.m1.1.1"><ci id="S5.T2.1.1.1.m1.1.1.1a.cmml" xref="S5.T2.1.1.1.m1.1.1.1"><mtext mathsize="63%" id="S5.T2.1.1.1.m1.1.1.1.cmml" xref="S5.T2.1.1.1.m1.1.1.1">bbox</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T2.1.1.1.m1.1c">{}^{\text{bbox}}</annotation></semantics></math>
+</td>
+<td id="S5.T2.2.2.2" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;">
+<span id="S5.T2.2.2.2.1" class="ltx_text" style="font-size:90%;">AP</span><math id="S5.T2.2.2.2.m1.1" class="ltx_Math" alttext="{}^{\text{bbox}}_{\text{50}}" display="inline"><semantics id="S5.T2.2.2.2.m1.1a"><mmultiscripts id="S5.T2.2.2.2.m1.1.1" xref="S5.T2.2.2.2.m1.1.1.cmml"><mi id="S5.T2.2.2.2.m1.1.1.2.2" xref="S5.T2.2.2.2.m1.1.1.2.2.cmml"></mi><mprescripts id="S5.T2.2.2.2.m1.1.1a" xref="S5.T2.2.2.2.m1.1.1.cmml"></mprescripts><mtext mathsize="90%" id="S5.T2.2.2.2.m1.1.1.3" xref="S5.T2.2.2.2.m1.1.1.3a.cmml">50</mtext><mrow id="S5.T2.2.2.2.m1.1.1b" xref="S5.T2.2.2.2.m1.1.1.cmml"></mrow><mrow id="S5.T2.2.2.2.m1.1.1c" xref="S5.T2.2.2.2.m1.1.1.cmml"></mrow><mtext mathsize="90%" id="S5.T2.2.2.2.m1.1.1.2.3" xref="S5.T2.2.2.2.m1.1.1.2.3a.cmml">bbox</mtext></mmultiscripts><annotation-xml encoding="MathML-Content" id="S5.T2.2.2.2.m1.1b"><apply id="S5.T2.2.2.2.m1.1.1.cmml" xref="S5.T2.2.2.2.m1.1.1"><csymbol cd="ambiguous" id="S5.T2.2.2.2.m1.1.1.1.cmml" xref="S5.T2.2.2.2.m1.1.1">subscript</csymbol><apply id="S5.T2.2.2.2.m1.1.1.2.cmml" xref="S5.T2.2.2.2.m1.1.1"><csymbol cd="ambiguous" id="S5.T2.2.2.2.m1.1.1.2.1.cmml" xref="S5.T2.2.2.2.m1.1.1">superscript</csymbol><csymbol cd="latexml" id="S5.T2.2.2.2.m1.1.1.2.2.cmml" xref="S5.T2.2.2.2.m1.1.1.2.2">absent</csymbol><ci id="S5.T2.2.2.2.m1.1.1.2.3a.cmml" xref="S5.T2.2.2.2.m1.1.1.2.3"><mtext mathsize="63%" id="S5.T2.2.2.2.m1.1.1.2.3.cmml" xref="S5.T2.2.2.2.m1.1.1.2.3">bbox</mtext></ci></apply><ci id="S5.T2.2.2.2.m1.1.1.3a.cmml" xref="S5.T2.2.2.2.m1.1.1.3"><mtext mathsize="63%" id="S5.T2.2.2.2.m1.1.1.3.cmml" xref="S5.T2.2.2.2.m1.1.1.3">50</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T2.2.2.2.m1.1c">{}^{\text{bbox}}_{\text{50}}</annotation></semantics></math>
+</td>
+<td id="S5.T2.3.3.3" class="ltx_td ltx_align_center ltx_border_r" style="padding:0.45pt 2.2pt;">
+<span id="S5.T2.3.3.3.1" class="ltx_text" style="font-size:90%;">AP</span><math id="S5.T2.3.3.3.m1.1" class="ltx_Math" alttext="{}^{\text{bbox}}_{\text{75}}" display="inline"><semantics id="S5.T2.3.3.3.m1.1a"><mmultiscripts id="S5.T2.3.3.3.m1.1.1" xref="S5.T2.3.3.3.m1.1.1.cmml"><mi id="S5.T2.3.3.3.m1.1.1.2.2" xref="S5.T2.3.3.3.m1.1.1.2.2.cmml"></mi><mprescripts id="S5.T2.3.3.3.m1.1.1a" xref="S5.T2.3.3.3.m1.1.1.cmml"></mprescripts><mtext mathsize="90%" id="S5.T2.3.3.3.m1.1.1.3" xref="S5.T2.3.3.3.m1.1.1.3a.cmml">75</mtext><mrow id="S5.T2.3.3.3.m1.1.1b" xref="S5.T2.3.3.3.m1.1.1.cmml"></mrow><mrow id="S5.T2.3.3.3.m1.1.1c" xref="S5.T2.3.3.3.m1.1.1.cmml"></mrow><mtext mathsize="90%" id="S5.T2.3.3.3.m1.1.1.2.3" xref="S5.T2.3.3.3.m1.1.1.2.3a.cmml">bbox</mtext></mmultiscripts><annotation-xml encoding="MathML-Content" id="S5.T2.3.3.3.m1.1b"><apply id="S5.T2.3.3.3.m1.1.1.cmml" xref="S5.T2.3.3.3.m1.1.1"><csymbol cd="ambiguous" id="S5.T2.3.3.3.m1.1.1.1.cmml" xref="S5.T2.3.3.3.m1.1.1">subscript</csymbol><apply id="S5.T2.3.3.3.m1.1.1.2.cmml" xref="S5.T2.3.3.3.m1.1.1"><csymbol cd="ambiguous" id="S5.T2.3.3.3.m1.1.1.2.1.cmml" xref="S5.T2.3.3.3.m1.1.1">superscript</csymbol><csymbol cd="latexml" id="S5.T2.3.3.3.m1.1.1.2.2.cmml" xref="S5.T2.3.3.3.m1.1.1.2.2">absent</csymbol><ci id="S5.T2.3.3.3.m1.1.1.2.3a.cmml" xref="S5.T2.3.3.3.m1.1.1.2.3"><mtext mathsize="63%" id="S5.T2.3.3.3.m1.1.1.2.3.cmml" xref="S5.T2.3.3.3.m1.1.1.2.3">bbox</mtext></ci></apply><ci id="S5.T2.3.3.3.m1.1.1.3a.cmml" xref="S5.T2.3.3.3.m1.1.1.3"><mtext mathsize="63%" id="S5.T2.3.3.3.m1.1.1.3.cmml" xref="S5.T2.3.3.3.m1.1.1.3">75</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T2.3.3.3.m1.1c">{}^{\text{bbox}}_{\text{75}}</annotation></semantics></math>
+</td>
+<td id="S5.T2.4.4.4" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;">
+<span id="S5.T2.4.4.4.1" class="ltx_text" style="font-size:90%;">AP</span><math id="S5.T2.4.4.4.m1.1" class="ltx_Math" alttext="{}^{\text{mask}}" display="inline"><semantics id="S5.T2.4.4.4.m1.1a"><msup id="S5.T2.4.4.4.m1.1.1" xref="S5.T2.4.4.4.m1.1.1.cmml"><mi id="S5.T2.4.4.4.m1.1.1a" xref="S5.T2.4.4.4.m1.1.1.cmml"></mi><mtext mathsize="90%" id="S5.T2.4.4.4.m1.1.1.1" xref="S5.T2.4.4.4.m1.1.1.1a.cmml">mask</mtext></msup><annotation-xml encoding="MathML-Content" id="S5.T2.4.4.4.m1.1b"><apply id="S5.T2.4.4.4.m1.1.1.cmml" xref="S5.T2.4.4.4.m1.1.1"><ci id="S5.T2.4.4.4.m1.1.1.1a.cmml" xref="S5.T2.4.4.4.m1.1.1.1"><mtext mathsize="63%" id="S5.T2.4.4.4.m1.1.1.1.cmml" xref="S5.T2.4.4.4.m1.1.1.1">mask</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T2.4.4.4.m1.1c">{}^{\text{mask}}</annotation></semantics></math>
+</td>
+<td id="S5.T2.5.5.5" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;">
+<span id="S5.T2.5.5.5.1" class="ltx_text" style="font-size:90%;">AP</span><math id="S5.T2.5.5.5.m1.1" class="ltx_Math" alttext="{}^{\text{mask}}_{\text{50}}" display="inline"><semantics id="S5.T2.5.5.5.m1.1a"><mmultiscripts id="S5.T2.5.5.5.m1.1.1" xref="S5.T2.5.5.5.m1.1.1.cmml"><mi id="S5.T2.5.5.5.m1.1.1.2.2" xref="S5.T2.5.5.5.m1.1.1.2.2.cmml"></mi><mprescripts id="S5.T2.5.5.5.m1.1.1a" xref="S5.T2.5.5.5.m1.1.1.cmml"></mprescripts><mtext mathsize="90%" id="S5.T2.5.5.5.m1.1.1.3" xref="S5.T2.5.5.5.m1.1.1.3a.cmml">50</mtext><mrow id="S5.T2.5.5.5.m1.1.1b" xref="S5.T2.5.5.5.m1.1.1.cmml"></mrow><mrow id="S5.T2.5.5.5.m1.1.1c" xref="S5.T2.5.5.5.m1.1.1.cmml"></mrow><mtext mathsize="90%" id="S5.T2.5.5.5.m1.1.1.2.3" xref="S5.T2.5.5.5.m1.1.1.2.3a.cmml">mask</mtext></mmultiscripts><annotation-xml encoding="MathML-Content" id="S5.T2.5.5.5.m1.1b"><apply id="S5.T2.5.5.5.m1.1.1.cmml" xref="S5.T2.5.5.5.m1.1.1"><csymbol cd="ambiguous" id="S5.T2.5.5.5.m1.1.1.1.cmml" xref="S5.T2.5.5.5.m1.1.1">subscript</csymbol><apply id="S5.T2.5.5.5.m1.1.1.2.cmml" xref="S5.T2.5.5.5.m1.1.1"><csymbol cd="ambiguous" id="S5.T2.5.5.5.m1.1.1.2.1.cmml" xref="S5.T2.5.5.5.m1.1.1">superscript</csymbol><csymbol cd="latexml" id="S5.T2.5.5.5.m1.1.1.2.2.cmml" xref="S5.T2.5.5.5.m1.1.1.2.2">absent</csymbol><ci id="S5.T2.5.5.5.m1.1.1.2.3a.cmml" xref="S5.T2.5.5.5.m1.1.1.2.3"><mtext mathsize="63%" id="S5.T2.5.5.5.m1.1.1.2.3.cmml" xref="S5.T2.5.5.5.m1.1.1.2.3">mask</mtext></ci></apply><ci id="S5.T2.5.5.5.m1.1.1.3a.cmml" xref="S5.T2.5.5.5.m1.1.1.3"><mtext mathsize="63%" id="S5.T2.5.5.5.m1.1.1.3.cmml" xref="S5.T2.5.5.5.m1.1.1.3">50</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T2.5.5.5.m1.1c">{}^{\text{mask}}_{\text{50}}</annotation></semantics></math>
+</td>
+<td id="S5.T2.6.6.6" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;">
+<span id="S5.T2.6.6.6.1" class="ltx_text" style="font-size:90%;">AP</span><math id="S5.T2.6.6.6.m1.1" class="ltx_Math" alttext="{}^{\text{mask}}_{\text{75}}" display="inline"><semantics id="S5.T2.6.6.6.m1.1a"><mmultiscripts id="S5.T2.6.6.6.m1.1.1" xref="S5.T2.6.6.6.m1.1.1.cmml"><mi id="S5.T2.6.6.6.m1.1.1.2.2" xref="S5.T2.6.6.6.m1.1.1.2.2.cmml"></mi><mprescripts id="S5.T2.6.6.6.m1.1.1a" xref="S5.T2.6.6.6.m1.1.1.cmml"></mprescripts><mtext mathsize="90%" id="S5.T2.6.6.6.m1.1.1.3" xref="S5.T2.6.6.6.m1.1.1.3a.cmml">75</mtext><mrow id="S5.T2.6.6.6.m1.1.1b" xref="S5.T2.6.6.6.m1.1.1.cmml"></mrow><mrow id="S5.T2.6.6.6.m1.1.1c" xref="S5.T2.6.6.6.m1.1.1.cmml"></mrow><mtext mathsize="90%" id="S5.T2.6.6.6.m1.1.1.2.3" xref="S5.T2.6.6.6.m1.1.1.2.3a.cmml">mask</mtext></mmultiscripts><annotation-xml encoding="MathML-Content" id="S5.T2.6.6.6.m1.1b"><apply id="S5.T2.6.6.6.m1.1.1.cmml" xref="S5.T2.6.6.6.m1.1.1"><csymbol cd="ambiguous" id="S5.T2.6.6.6.m1.1.1.1.cmml" xref="S5.T2.6.6.6.m1.1.1">subscript</csymbol><apply id="S5.T2.6.6.6.m1.1.1.2.cmml" xref="S5.T2.6.6.6.m1.1.1"><csymbol cd="ambiguous" id="S5.T2.6.6.6.m1.1.1.2.1.cmml" xref="S5.T2.6.6.6.m1.1.1">superscript</csymbol><csymbol cd="latexml" id="S5.T2.6.6.6.m1.1.1.2.2.cmml" xref="S5.T2.6.6.6.m1.1.1.2.2">absent</csymbol><ci id="S5.T2.6.6.6.m1.1.1.2.3a.cmml" xref="S5.T2.6.6.6.m1.1.1.2.3"><mtext mathsize="63%" id="S5.T2.6.6.6.m1.1.1.2.3.cmml" xref="S5.T2.6.6.6.m1.1.1.2.3">mask</mtext></ci></apply><ci id="S5.T2.6.6.6.m1.1.1.3a.cmml" xref="S5.T2.6.6.6.m1.1.1.3"><mtext mathsize="63%" id="S5.T2.6.6.6.m1.1.1.3.cmml" xref="S5.T2.6.6.6.m1.1.1.3">75</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T2.6.6.6.m1.1c">{}^{\text{mask}}_{\text{75}}</annotation></semantics></math>
+</td>
+</tr>
+<tr id="S5.T2.8.9.1" class="ltx_tr">
+<th id="S5.T2.8.9.1.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_t" style="padding:0.45pt 2.2pt;" rowspan="3"><span id="S5.T2.8.9.1.1.1" class="ltx_text" style="font-size:90%;">R50</span></th>
+<th id="S5.T2.8.9.1.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.9.1.2.1" class="ltx_text" style="font-size:90%;">random init</span></th>
+<td id="S5.T2.8.9.1.3" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.9.1.3.1" class="ltx_text" style="font-size:90%;">41.3</span></td>
+<td id="S5.T2.8.9.1.4" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.9.1.4.1" class="ltx_text" style="font-size:90%;">61.8</span></td>
+<td id="S5.T2.8.9.1.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.9.1.5.1" class="ltx_text" style="font-size:90%;">45.6</span></td>
+<td id="S5.T2.8.9.1.6" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.9.1.6.1" class="ltx_text" style="font-size:90%;">36.6</span></td>
+<td id="S5.T2.8.9.1.7" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.9.1.7.1" class="ltx_text" style="font-size:90%;">59.0</span></td>
+<td id="S5.T2.8.9.1.8" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.9.1.8.1" class="ltx_text" style="font-size:90%;">38.9</span></td>
+</tr>
+<tr id="S5.T2.8.10.2" class="ltx_tr">
+<th id="S5.T2.8.10.2.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.10.2.1.1" class="ltx_text" style="font-size:90%;">w/ pre-train</span></th>
+<td id="S5.T2.8.10.2.2" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.10.2.2.1" class="ltx_text" style="font-size:90%;">41.1</span></td>
+<td id="S5.T2.8.10.2.3" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.10.2.3.1" class="ltx_text" style="font-size:90%;">61.7</span></td>
+<td id="S5.T2.8.10.2.4" class="ltx_td ltx_align_center ltx_border_r" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.10.2.4.1" class="ltx_text" style="font-size:90%;">44.6</span></td>
+<td id="S5.T2.8.10.2.5" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.10.2.5.1" class="ltx_text" style="font-size:90%;">36.4</span></td>
+<td id="S5.T2.8.10.2.6" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.10.2.6.1" class="ltx_text" style="font-size:90%;">58.5</span></td>
+<td id="S5.T2.8.10.2.7" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.10.2.7.1" class="ltx_text" style="font-size:90%;">38.7</span></td>
+</tr>
+<tr id="S5.T2.7.7" class="ltx_tr">
+<th id="S5.T2.7.7.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" style="padding:0.45pt 2.2pt;"><math id="S5.T2.7.7.1.m1.1" class="ltx_Math" alttext="\triangle" display="inline"><semantics id="S5.T2.7.7.1.m1.1a"><mi mathsize="90%" mathvariant="normal" id="S5.T2.7.7.1.m1.1.1" xref="S5.T2.7.7.1.m1.1.1.cmml">△</mi><annotation-xml encoding="MathML-Content" id="S5.T2.7.7.1.m1.1b"><ci id="S5.T2.7.7.1.m1.1.1.cmml" xref="S5.T2.7.7.1.m1.1.1">△</ci></annotation-xml><annotation encoding="application/x-tex" id="S5.T2.7.7.1.m1.1c">\triangle</annotation></semantics></math></th>
+<td id="S5.T2.7.7.2" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><em id="S5.T2.7.7.2.1" class="ltx_emph ltx_font_italic" style="font-size:90%;">+0.2</em></td>
+<td id="S5.T2.7.7.3" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><em id="S5.T2.7.7.3.1" class="ltx_emph ltx_font_italic" style="font-size:90%;">+0.1</em></td>
+<td id="S5.T2.7.7.4" class="ltx_td ltx_align_center ltx_border_r" style="padding:0.45pt 2.2pt;"><em id="S5.T2.7.7.4.1" class="ltx_emph ltx_font_italic" style="font-size:90%;">+1.0</em></td>
+<td id="S5.T2.7.7.5" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><em id="S5.T2.7.7.5.1" class="ltx_emph ltx_font_italic" style="font-size:90%;">+0.2</em></td>
+<td id="S5.T2.7.7.6" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><em id="S5.T2.7.7.6.1" class="ltx_emph ltx_font_italic" style="font-size:90%;">+0.5</em></td>
+<td id="S5.T2.7.7.7" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><em id="S5.T2.7.7.7.1" class="ltx_emph ltx_font_italic" style="font-size:90%;">+0.2</em></td>
+</tr>
+<tr id="S5.T2.8.11.3" class="ltx_tr">
+<th id="S5.T2.8.11.3.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_t" style="padding:0.45pt 2.2pt;" rowspan="3"><span id="S5.T2.8.11.3.1.1" class="ltx_text" style="font-size:90%;">R101</span></th>
+<th id="S5.T2.8.11.3.2" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.11.3.2.1" class="ltx_text" style="font-size:90%;">random init</span></th>
+<td id="S5.T2.8.11.3.3" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.11.3.3.1" class="ltx_text" style="font-size:90%;">42.7</span></td>
+<td id="S5.T2.8.11.3.4" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.11.3.4.1" class="ltx_text" style="font-size:90%;">62.9</span></td>
+<td id="S5.T2.8.11.3.5" class="ltx_td ltx_align_center ltx_border_r ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.11.3.5.1" class="ltx_text" style="font-size:90%;">47.0</span></td>
+<td id="S5.T2.8.11.3.6" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.11.3.6.1" class="ltx_text" style="font-size:90%;">37.6</span></td>
+<td id="S5.T2.8.11.3.7" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.11.3.7.1" class="ltx_text" style="font-size:90%;">59.9</span></td>
+<td id="S5.T2.8.11.3.8" class="ltx_td ltx_align_center ltx_border_t" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.11.3.8.1" class="ltx_text" style="font-size:90%;">39.7</span></td>
+</tr>
+<tr id="S5.T2.8.12.4" class="ltx_tr">
+<th id="S5.T2.8.12.4.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.12.4.1.1" class="ltx_text" style="font-size:90%;">w/ pre-train</span></th>
+<td id="S5.T2.8.12.4.2" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.12.4.2.1" class="ltx_text" style="font-size:90%;">42.3</span></td>
+<td id="S5.T2.8.12.4.3" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.12.4.3.1" class="ltx_text" style="font-size:90%;">62.6</span></td>
+<td id="S5.T2.8.12.4.4" class="ltx_td ltx_align_center ltx_border_r" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.12.4.4.1" class="ltx_text" style="font-size:90%;">46.2</span></td>
+<td id="S5.T2.8.12.4.5" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.12.4.5.1" class="ltx_text" style="font-size:90%;">37.2</span></td>
+<td id="S5.T2.8.12.4.6" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.12.4.6.1" class="ltx_text" style="font-size:90%;">59.7</span></td>
+<td id="S5.T2.8.12.4.7" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><span id="S5.T2.8.12.4.7.1" class="ltx_text" style="font-size:90%;">39.7</span></td>
+</tr>
+<tr id="S5.T2.8.8" class="ltx_tr">
+<th id="S5.T2.8.8.1" class="ltx_td ltx_align_center ltx_th ltx_th_row ltx_border_r" style="padding:0.45pt 2.2pt;"><math id="S5.T2.8.8.1.m1.1" class="ltx_Math" alttext="\triangle" display="inline"><semantics id="S5.T2.8.8.1.m1.1a"><mi mathsize="90%" mathvariant="normal" id="S5.T2.8.8.1.m1.1.1" xref="S5.T2.8.8.1.m1.1.1.cmml">△</mi><annotation-xml encoding="MathML-Content" id="S5.T2.8.8.1.m1.1b"><ci id="S5.T2.8.8.1.m1.1.1.cmml" xref="S5.T2.8.8.1.m1.1.1">△</ci></annotation-xml><annotation encoding="application/x-tex" id="S5.T2.8.8.1.m1.1c">\triangle</annotation></semantics></math></th>
+<td id="S5.T2.8.8.2" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><em id="S5.T2.8.8.2.1" class="ltx_emph ltx_font_italic" style="font-size:90%;">+0.4</em></td>
+<td id="S5.T2.8.8.3" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><em id="S5.T2.8.8.3.1" class="ltx_emph ltx_font_italic" style="font-size:90%;">+0.3</em></td>
+<td id="S5.T2.8.8.4" class="ltx_td ltx_align_center ltx_border_r" style="padding:0.45pt 2.2pt;"><em id="S5.T2.8.8.4.1" class="ltx_emph ltx_font_italic" style="font-size:90%;">+0.8</em></td>
+<td id="S5.T2.8.8.5" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><em id="S5.T2.8.8.5.1" class="ltx_emph ltx_font_italic" style="font-size:90%;">+0.4</em></td>
+<td id="S5.T2.8.8.6" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><em id="S5.T2.8.8.6.1" class="ltx_emph ltx_font_italic" style="font-size:90%;">+0.2</em></td>
+<td id="S5.T2.8.8.7" class="ltx_td ltx_align_center" style="padding:0.45pt 2.2pt;"><em id="S5.T2.8.8.7.1" class="ltx_emph ltx_font_italic" style="font-size:90%;">0.0</em></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_table">Table 2: </span>Training <span id="S5.T2.29.1" class="ltx_text ltx_font_bold">from random initialization</span> <em id="S5.T2.30.2" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.T2.31.3" class="ltx_text"></span> <span id="S5.T2.32.4" class="ltx_text ltx_font_bold">with ImageNet pre-training</span> (Mask R-CNN with FPN and GN, Figures <a href="#S1.F1" title="Figure 1 ‣ 1 Introduction ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>, <a href="#S4.F3" title="Figure 3 ‣ Hyper-parameters. ‣ 4 Experimental Settings ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>), evaluated on COCO <span id="S5.T2.33.5" class="ltx_text ltx_font_typewriter">val2017</span>. For each model, we show its results corresponding to the schedule (2 to 6<math id="S5.T2.11.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.T2.11.m1.1b"><mo id="S5.T2.11.m1.1.1" xref="S5.T2.11.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.T2.11.m1.1c"><times id="S5.T2.11.m1.1.1.cmml" xref="S5.T2.11.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.T2.11.m1.1d">\times</annotation></semantics></math>) that gives the best AP<math id="S5.T2.12.m2.1" class="ltx_Math" alttext="{}^{\text{bbox}}" display="inline"><semantics id="S5.T2.12.m2.1b"><msup id="S5.T2.12.m2.1.1" xref="S5.T2.12.m2.1.1.cmml"><mi id="S5.T2.12.m2.1.1b" xref="S5.T2.12.m2.1.1.cmml"></mi><mtext id="S5.T2.12.m2.1.1.1" xref="S5.T2.12.m2.1.1.1a.cmml">bbox</mtext></msup><annotation-xml encoding="MathML-Content" id="S5.T2.12.m2.1c"><apply id="S5.T2.12.m2.1.1.cmml" xref="S5.T2.12.m2.1.1"><ci id="S5.T2.12.m2.1.1.1a.cmml" xref="S5.T2.12.m2.1.1.1"><mtext mathsize="70%" id="S5.T2.12.m2.1.1.1.cmml" xref="S5.T2.12.m2.1.1.1">bbox</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T2.12.m2.1d">{}^{\text{bbox}}</annotation></semantics></math>.
+</figcaption>
+</figure>
+<figure id="S5.F5" class="ltx_figure">
+<div class="ltx_flex_figure">
+<div class="ltx_flex_cell ltx_flex_size_1"><img src="/html/1811.08883/assets/x5.png" id="S5.F5.g1" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_landscape" width="460" height="306" alt="Refer to caption"></div>
+<div class="ltx_flex_break"></div>
+<div class="ltx_flex_cell ltx_flex_size_1"><img src="/html/1811.08883/assets/x6.png" id="S5.F5.g2" class="ltx_graphics ltx_centering ltx_figure_panel ltx_img_landscape" width="460" height="306" alt="Refer to caption"></div>
+</div>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 5: </span>Comparisons between <span id="S5.F5.3.1" class="ltx_text ltx_font_bold">from random initialization <em id="S5.F5.3.1.1" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.F5.3.1.2" class="ltx_text"></span> with pre-training</span> on various systems using Mask R-CNN, including: (i) baselines using FPN and GN, (ii) baselines with training-time multi-scale augmentation, (iii) baselines with Cascade R-CNN <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib3" title="" class="ltx_ref">3</a>]</cite> and training-time augmentation, and (iv) plus test-time multi-scale augmentation.
+<span id="S5.F5.4.2" class="ltx_text ltx_font_bold">Top: R50; Bottom: R101</span>. </figcaption>
+</figure>
+</section>
+<section id="S5.SS1.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Multiple detection metrics.</h4>
+
+<div id="S5.SS1.SSS0.Px2.p1" class="ltx_para">
+<p id="S5.SS1.SSS0.Px2.p1.2" class="ltx_p">In Table <a href="#S5.T2" title="Table 2 ‣ Baselines with GN and SyncBN. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> we further compare different detection metrics between models trained from scratch and with pre-training, including box-level and segmentation-level AP of Mask R-CNN, under Intersection-over-Union (IoU) thresholds of 0.5 (AP<sub id="S5.SS1.SSS0.Px2.p1.2.1" class="ltx_sub"><span id="S5.SS1.SSS0.Px2.p1.2.1.1" class="ltx_text ltx_font_italic">50</span></sub>) and 0.75 (AP<sub id="S5.SS1.SSS0.Px2.p1.2.2" class="ltx_sub"><span id="S5.SS1.SSS0.Px2.p1.2.2.1" class="ltx_text ltx_font_italic">75</span></sub>).</p>
+</div>
+<div id="S5.SS1.SSS0.Px2.p2" class="ltx_para">
+<p id="S5.SS1.SSS0.Px2.p2.1" class="ltx_p">Table <a href="#S5.T2" title="Table 2 ‣ Baselines with GN and SyncBN. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> reveals that models trained from scratch and with pre-training have <em id="S5.SS1.SSS0.Px2.p2.1.1" class="ltx_emph ltx_font_italic">similar</em> AP metrics under various criteria, suggesting that the models trained from scratch catch up not only by chance for a single metric.</p>
+</div>
+<div id="S5.SS1.SSS0.Px2.p3" class="ltx_para">
+<p id="S5.SS1.SSS0.Px2.p3.1" class="ltx_p">Moreover, for the AP<math id="S5.SS1.SSS0.Px2.p3.1.m1.1" class="ltx_Math" alttext="{}^{\text{bbox}}_{75}" display="inline"><semantics id="S5.SS1.SSS0.Px2.p3.1.m1.1a"><mmultiscripts id="S5.SS1.SSS0.Px2.p3.1.m1.1.1" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1.cmml"><mi id="S5.SS1.SSS0.Px2.p3.1.m1.1.1.2.2" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1.2.2.cmml"></mi><mprescripts id="S5.SS1.SSS0.Px2.p3.1.m1.1.1a" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1.cmml"></mprescripts><mn id="S5.SS1.SSS0.Px2.p3.1.m1.1.1.3" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1.3.cmml">75</mn><mrow id="S5.SS1.SSS0.Px2.p3.1.m1.1.1b" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1.cmml"></mrow><mrow id="S5.SS1.SSS0.Px2.p3.1.m1.1.1c" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1.cmml"></mrow><mtext id="S5.SS1.SSS0.Px2.p3.1.m1.1.1.2.3" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1.2.3a.cmml">bbox</mtext></mmultiscripts><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px2.p3.1.m1.1b"><apply id="S5.SS1.SSS0.Px2.p3.1.m1.1.1.cmml" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1"><csymbol cd="ambiguous" id="S5.SS1.SSS0.Px2.p3.1.m1.1.1.1.cmml" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1">subscript</csymbol><apply id="S5.SS1.SSS0.Px2.p3.1.m1.1.1.2.cmml" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1"><csymbol cd="ambiguous" id="S5.SS1.SSS0.Px2.p3.1.m1.1.1.2.1.cmml" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1">superscript</csymbol><csymbol cd="latexml" id="S5.SS1.SSS0.Px2.p3.1.m1.1.1.2.2.cmml" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1.2.2">absent</csymbol><ci id="S5.SS1.SSS0.Px2.p3.1.m1.1.1.2.3a.cmml" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1.2.3"><mtext mathsize="70%" id="S5.SS1.SSS0.Px2.p3.1.m1.1.1.2.3.cmml" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1.2.3">bbox</mtext></ci></apply><cn type="integer" id="S5.SS1.SSS0.Px2.p3.1.m1.1.1.3.cmml" xref="S5.SS1.SSS0.Px2.p3.1.m1.1.1.3">75</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px2.p3.1.m1.1c">{}^{\text{bbox}}_{75}</annotation></semantics></math> metric (using a <em id="S5.SS1.SSS0.Px2.p3.1.1" class="ltx_emph ltx_font_italic">high overlap threshold</em>), training from scratch is better than fine-tuning by noticeable margins (1.0 or 0.8 AP).</p>
+</div>
+</section>
+<section id="S5.SS1.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Enhanced baselines.</h4>
+
+<div id="S5.SS1.SSS0.Px3.p1" class="ltx_para">
+<p id="S5.SS1.SSS0.Px3.p1.1" class="ltx_p">The phenomenon that training with and without pre-training can be comparable is also observed in various enhanced baselines, as compared in Figure <a href="#S5.F5" title="Figure 5 ‣ Baselines with GN and SyncBN. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>. We ablate the experiments as follows:</p>
+</div>
+<div id="S5.SS1.SSS0.Px3.p2" class="ltx_para">
+<p id="S5.SS1.SSS0.Px3.p2.2" class="ltx_p"><em id="S5.SS1.SSS0.Px3.p2.2.1" class="ltx_emph ltx_font_bold ltx_font_italic">– Training-time scale augmentation</em>: Thus far all models are trained with no data augmentation except horizontal flipping. Next we use the simple training-time scale augmentation implemented in <span id="S5.SS1.SSS0.Px3.p2.2.2" class="ltx_text ltx_font_sansserif" style="font-size:90%;">Detectron</span>: the shorter side of images is randomly sampled from [640, 800] pixels. Stronger data augmentation requires more iterations to converge, so we increase the schedule to 9<math id="S5.SS1.SSS0.Px3.p2.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.SS1.SSS0.Px3.p2.1.m1.1a"><mo id="S5.SS1.SSS0.Px3.p2.1.m1.1.1" xref="S5.SS1.SSS0.Px3.p2.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px3.p2.1.m1.1b"><times id="S5.SS1.SSS0.Px3.p2.1.m1.1.1.cmml" xref="S5.SS1.SSS0.Px3.p2.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px3.p2.1.m1.1c">\times</annotation></semantics></math> when training from scratch, and to 6<math id="S5.SS1.SSS0.Px3.p2.2.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.SS1.SSS0.Px3.p2.2.m2.1a"><mo id="S5.SS1.SSS0.Px3.p2.2.m2.1.1" xref="S5.SS1.SSS0.Px3.p2.2.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px3.p2.2.m2.1b"><times id="S5.SS1.SSS0.Px3.p2.2.m2.1.1.cmml" xref="S5.SS1.SSS0.Px3.p2.2.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px3.p2.2.m2.1c">\times</annotation></semantics></math> when from ImageNet pre-training.</p>
+</div>
+<div id="S5.SS1.SSS0.Px3.p3" class="ltx_para">
+<p id="S5.SS1.SSS0.Px3.p3.1" class="ltx_p">Figure <a href="#S5.F5" title="Figure 5 ‣ Baselines with GN and SyncBN. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a> (‘train aug’) shows that in this case models trained with and without ImageNet pre-training are still comparable. Actually, stronger data augmentation relieves the problem of insufficient data, so we may expect that models with pre-training have less of an advantage in this case.</p>
+</div>
+<div id="S5.SS1.SSS0.Px3.p4" class="ltx_para">
+<p id="S5.SS1.SSS0.Px3.p4.1" class="ltx_p"><em id="S5.SS1.SSS0.Px3.p4.1.1" class="ltx_emph ltx_font_bold ltx_font_italic">– Cascade R-CNN</em> <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib3" title="" class="ltx_ref">3</a>]</cite>: as a method focusing on improving <em id="S5.SS1.SSS0.Px3.p4.1.2" class="ltx_emph ltx_font_italic">localization</em> accuracy, Cascade R-CNN appends two extra stages to the standard two-stage Faster R-CNN system. We implement its Mask R-CNN version by simply adding a mask head to the last stage. To save running time for the from-scratch models, we train Mask R-CNN from scratch without cascade, and switch to cascade in the final 270k iterations, noting that this does not alter the fact that the final model uses no ImageNet pre-training. We train Cascade R-CNN under the scale augmentation setting.</p>
+</div>
+<div id="S5.SS1.SSS0.Px3.p5" class="ltx_para">
+<p id="S5.SS1.SSS0.Px3.p5.1" class="ltx_p">Figure <a href="#S5.F5" title="Figure 5 ‣ Baselines with GN and SyncBN. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a> (‘cascade + train aug’) again shows that Cascade R-CNN models have similar AP numbers with and without ImageNet pre-training.
+Supervision about <em id="S5.SS1.SSS0.Px3.p5.1.1" class="ltx_emph ltx_font_italic">localization</em> is mainly provided by the target dataset and is not explicitly available from the classification-based ImageNet pre-training. Thus we do not expect ImageNet pre-training to provide additional benefits in this setting.</p>
+</div>
+<div id="S5.SS1.SSS0.Px3.p6" class="ltx_para">
+<p id="S5.SS1.SSS0.Px3.p6.1" class="ltx_p"><em id="S5.SS1.SSS0.Px3.p6.1.1" class="ltx_emph ltx_font_bold ltx_font_italic">– Test-time augmentation</em>: thus far we have used no test-time augmentation.
+Next we further perform test-time augmentation by combining the predictions from multiple scaling transformations, as implemented in <span id="S5.SS1.SSS0.Px3.p6.1.2" class="ltx_text ltx_font_sansserif" style="font-size:90%;">Detectron</span> <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib10" title="" class="ltx_ref">10</a>]</cite>.</p>
+</div>
+<div id="S5.SS1.SSS0.Px3.p7" class="ltx_para">
+<p id="S5.SS1.SSS0.Px3.p7.1" class="ltx_p">Again, the models trained from scratch are <em id="S5.SS1.SSS0.Px3.p7.1.1" class="ltx_emph ltx_font_italic">no worse</em> than their pre-training counterparts. Actually, models trained from scratch are even slightly better in this case—for example, mask AP is 41.6 (from scratch) <em id="S5.SS1.SSS0.Px3.p7.1.2" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.SS1.SSS0.Px3.p7.1.3" class="ltx_text"></span> 40.9 for R50, and 42.5 <em id="S5.SS1.SSS0.Px3.p7.1.4" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.SS1.SSS0.Px3.p7.1.5" class="ltx_text"></span> 41.9 for R101.</p>
+</div>
+</section>
+<section id="S5.SS1.SSS0.Px4" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Large models trained from scratch.</h4>
+
+<div id="S5.SS1.SSS0.Px4.p1" class="ltx_para">
+<p id="S5.SS1.SSS0.Px4.p1.1" class="ltx_p">We have also trained a significantly larger Mask R-CNN model from scratch using a ResNeXt-152 8<math id="S5.SS1.SSS0.Px4.p1.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.SS1.SSS0.Px4.p1.1.m1.1a"><mo id="S5.SS1.SSS0.Px4.p1.1.m1.1.1" xref="S5.SS1.SSS0.Px4.p1.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px4.p1.1.m1.1b"><times id="S5.SS1.SSS0.Px4.p1.1.m1.1.1.cmml" xref="S5.SS1.SSS0.Px4.p1.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px4.p1.1.m1.1c">\times</annotation></semantics></math>32d <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib49" title="" class="ltx_ref">49</a>]</cite> (in short ‘X152’) backbone with GN. The results are in Table <a href="#S5.T3" title="Table 3 ‣ vs. previous from-scratch results. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>.</p>
+</div>
+<div id="S5.SS1.SSS0.Px4.p2" class="ltx_para">
+<p id="S5.SS1.SSS0.Px4.p2.2" class="ltx_p">This backbone has <span id="S5.SS1.SSS0.Px4.p2.1.m1.1.1.1" class="ltx_text ltx_markedasmath" style="position:relative; bottom:0.7pt;"><math id="S5.SS1.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1" class="ltx_Math" alttext="\scriptstyle\sim" display="inline"><semantics id="S5.SS1.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1a"><mo mathsize="70%" id="S5.SS1.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1.1" xref="S5.SS1.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1.1.cmml">∼</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1b"><csymbol cd="latexml" id="S5.SS1.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1.1.cmml" xref="S5.SS1.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1.1">similar-to</csymbol></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1c">\scriptstyle\sim</annotation></semantics></math></span>4<math id="S5.SS1.SSS0.Px4.p2.2.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.SS1.SSS0.Px4.p2.2.m2.1a"><mo id="S5.SS1.SSS0.Px4.p2.2.m2.1.1" xref="S5.SS1.SSS0.Px4.p2.2.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px4.p2.2.m2.1b"><times id="S5.SS1.SSS0.Px4.p2.2.m2.1.1.cmml" xref="S5.SS1.SSS0.Px4.p2.2.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px4.p2.2.m2.1c">\times</annotation></semantics></math> more FLOPs than R101.
+Despite being substantially larger, this model shows no noticeable overfitting. It achieves good results of <span id="S5.SS1.SSS0.Px4.p2.2.1" class="ltx_text ltx_font_bold">50.9</span> bbox AP and <span id="S5.SS1.SSS0.Px4.p2.2.2" class="ltx_text ltx_font_bold">43.2</span> mask AP in <span id="S5.SS1.SSS0.Px4.p2.2.3" class="ltx_text ltx_font_typewriter">val2017</span> when <em id="S5.SS1.SSS0.Px4.p2.2.4" class="ltx_emph ltx_font_italic">trained from random initialization</em>. We submitted this model to COCO 2018 competition, and it has <span id="S5.SS1.SSS0.Px4.p2.2.5" class="ltx_text ltx_font_bold">51.3</span> bbox AP and <span id="S5.SS1.SSS0.Px4.p2.2.6" class="ltx_text ltx_font_bold">43.6</span> mask AP in the <span id="S5.SS1.SSS0.Px4.p2.2.7" class="ltx_text ltx_font_typewriter">test-challenge</span> set. Our bbox AP is at the level of the COCO 2017 winners (50.5 bbox AP, <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib34" title="" class="ltx_ref">34</a>]</cite>), and is by far the highest number of its kind (single model, <em id="S5.SS1.SSS0.Px4.p2.2.8" class="ltx_emph ltx_font_italic">without ImageNet pre-training</em>).</p>
+</div>
+<div id="S5.SS1.SSS0.Px4.p3" class="ltx_para">
+<p id="S5.SS1.SSS0.Px4.p3.1" class="ltx_p">We have trained the same model with ImageNet pre-training. It has bbox/mask AP of 50.3/42.5 in <span id="S5.SS1.SSS0.Px4.p3.1.1" class="ltx_text ltx_font_typewriter">val2017</span> (<em id="S5.SS1.SSS0.Px4.p3.1.2" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.SS1.SSS0.Px4.p3.1.3" class="ltx_text"></span> from-scratch’s 50.9/43.2). Interestingly, even for this large model, pre-training does not improve results.</p>
+</div>
+</section>
+<section id="S5.SS1.SSS0.Px5" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">
+<em id="S5.SS1.SSS0.Px5.1.1" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.SS1.SSS0.Px5.2.2" class="ltx_text"></span> previous from-scratch results.</h4>
+
+<div id="S5.SS1.SSS0.Px5.p1" class="ltx_para">
+<p id="S5.SS1.SSS0.Px5.p1.1" class="ltx_p">DSOD <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib41" title="" class="ltx_ref">41</a>]</cite> reported 29.3 bbox AP by using an architecture specially tailored for results of training from scratch. A recent work of CornerNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite> reported 42.1 bbox AP (w/ multi-scale augmentation) using no ImageNet pre-training. Our results, of various versions, are higher than previous ones. Again, we emphasize that previous works <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib41" title="" class="ltx_ref">41</a>, <a href="#bib.bib22" title="" class="ltx_ref">22</a>]</cite> reported <em id="S5.SS1.SSS0.Px5.p1.1.1" class="ltx_emph ltx_font_italic">no evidence</em> that models without ImageNet pre-training can be <em id="S5.SS1.SSS0.Px5.p1.1.2" class="ltx_emph ltx_font_italic">comparably</em> good as their ImageNet pre-training <em id="S5.SS1.SSS0.Px5.p1.1.3" class="ltx_emph ltx_font_italic">counterparts</em>.</p>
+</div>
+<figure id="S5.T3" class="ltx_table">
+<table id="S5.T3.6" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S5.T3.6.6" class="ltx_tr">
+<th id="S5.T3.6.6.7" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_th ltx_th_column ltx_th_row ltx_border_r" style="padding:0.45pt 1.0pt;"></th>
+<th id="S5.T3.1.1.1" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_th ltx_th_column" style="padding:0.45pt 1.0pt;">
+<span id="S5.T3.1.1.1.1" class="ltx_text" style="font-size:90%;">AP</span><math id="S5.T3.1.1.1.m1.1" class="ltx_Math" alttext="{}^{\text{bbox}}" display="inline"><semantics id="S5.T3.1.1.1.m1.1a"><msup id="S5.T3.1.1.1.m1.1.1" xref="S5.T3.1.1.1.m1.1.1.cmml"><mi id="S5.T3.1.1.1.m1.1.1a" xref="S5.T3.1.1.1.m1.1.1.cmml"></mi><mtext mathsize="90%" id="S5.T3.1.1.1.m1.1.1.1" xref="S5.T3.1.1.1.m1.1.1.1a.cmml">bbox</mtext></msup><annotation-xml encoding="MathML-Content" id="S5.T3.1.1.1.m1.1b"><apply id="S5.T3.1.1.1.m1.1.1.cmml" xref="S5.T3.1.1.1.m1.1.1"><ci id="S5.T3.1.1.1.m1.1.1.1a.cmml" xref="S5.T3.1.1.1.m1.1.1.1"><mtext mathsize="63%" id="S5.T3.1.1.1.m1.1.1.1.cmml" xref="S5.T3.1.1.1.m1.1.1.1">bbox</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T3.1.1.1.m1.1c">{}^{\text{bbox}}</annotation></semantics></math>
+</th>
+<th id="S5.T3.2.2.2" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_th ltx_th_column" style="padding:0.45pt 1.0pt;">
+<span id="S5.T3.2.2.2.1" class="ltx_text" style="font-size:90%;">AP</span><math id="S5.T3.2.2.2.m1.1" class="ltx_Math" alttext="{}^{\text{bbox}}_{\text{50}}" display="inline"><semantics id="S5.T3.2.2.2.m1.1a"><mmultiscripts id="S5.T3.2.2.2.m1.1.1" xref="S5.T3.2.2.2.m1.1.1.cmml"><mi id="S5.T3.2.2.2.m1.1.1.2.2" xref="S5.T3.2.2.2.m1.1.1.2.2.cmml"></mi><mprescripts id="S5.T3.2.2.2.m1.1.1a" xref="S5.T3.2.2.2.m1.1.1.cmml"></mprescripts><mtext mathsize="90%" id="S5.T3.2.2.2.m1.1.1.3" xref="S5.T3.2.2.2.m1.1.1.3a.cmml">50</mtext><mrow id="S5.T3.2.2.2.m1.1.1b" xref="S5.T3.2.2.2.m1.1.1.cmml"></mrow><mrow id="S5.T3.2.2.2.m1.1.1c" xref="S5.T3.2.2.2.m1.1.1.cmml"></mrow><mtext mathsize="90%" id="S5.T3.2.2.2.m1.1.1.2.3" xref="S5.T3.2.2.2.m1.1.1.2.3a.cmml">bbox</mtext></mmultiscripts><annotation-xml encoding="MathML-Content" id="S5.T3.2.2.2.m1.1b"><apply id="S5.T3.2.2.2.m1.1.1.cmml" xref="S5.T3.2.2.2.m1.1.1"><csymbol cd="ambiguous" id="S5.T3.2.2.2.m1.1.1.1.cmml" xref="S5.T3.2.2.2.m1.1.1">subscript</csymbol><apply id="S5.T3.2.2.2.m1.1.1.2.cmml" xref="S5.T3.2.2.2.m1.1.1"><csymbol cd="ambiguous" id="S5.T3.2.2.2.m1.1.1.2.1.cmml" xref="S5.T3.2.2.2.m1.1.1">superscript</csymbol><csymbol cd="latexml" id="S5.T3.2.2.2.m1.1.1.2.2.cmml" xref="S5.T3.2.2.2.m1.1.1.2.2">absent</csymbol><ci id="S5.T3.2.2.2.m1.1.1.2.3a.cmml" xref="S5.T3.2.2.2.m1.1.1.2.3"><mtext mathsize="63%" id="S5.T3.2.2.2.m1.1.1.2.3.cmml" xref="S5.T3.2.2.2.m1.1.1.2.3">bbox</mtext></ci></apply><ci id="S5.T3.2.2.2.m1.1.1.3a.cmml" xref="S5.T3.2.2.2.m1.1.1.3"><mtext mathsize="63%" id="S5.T3.2.2.2.m1.1.1.3.cmml" xref="S5.T3.2.2.2.m1.1.1.3">50</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T3.2.2.2.m1.1c">{}^{\text{bbox}}_{\text{50}}</annotation></semantics></math>
+</th>
+<th id="S5.T3.3.3.3" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_th ltx_th_column ltx_border_r" style="padding:0.45pt 1.0pt;">
+<span id="S5.T3.3.3.3.1" class="ltx_text" style="font-size:90%;">AP</span><math id="S5.T3.3.3.3.m1.1" class="ltx_Math" alttext="{}^{\text{bbox}}_{\text{75}}" display="inline"><semantics id="S5.T3.3.3.3.m1.1a"><mmultiscripts id="S5.T3.3.3.3.m1.1.1" xref="S5.T3.3.3.3.m1.1.1.cmml"><mi id="S5.T3.3.3.3.m1.1.1.2.2" xref="S5.T3.3.3.3.m1.1.1.2.2.cmml"></mi><mprescripts id="S5.T3.3.3.3.m1.1.1a" xref="S5.T3.3.3.3.m1.1.1.cmml"></mprescripts><mtext mathsize="90%" id="S5.T3.3.3.3.m1.1.1.3" xref="S5.T3.3.3.3.m1.1.1.3a.cmml">75</mtext><mrow id="S5.T3.3.3.3.m1.1.1b" xref="S5.T3.3.3.3.m1.1.1.cmml"></mrow><mrow id="S5.T3.3.3.3.m1.1.1c" xref="S5.T3.3.3.3.m1.1.1.cmml"></mrow><mtext mathsize="90%" id="S5.T3.3.3.3.m1.1.1.2.3" xref="S5.T3.3.3.3.m1.1.1.2.3a.cmml">bbox</mtext></mmultiscripts><annotation-xml encoding="MathML-Content" id="S5.T3.3.3.3.m1.1b"><apply id="S5.T3.3.3.3.m1.1.1.cmml" xref="S5.T3.3.3.3.m1.1.1"><csymbol cd="ambiguous" id="S5.T3.3.3.3.m1.1.1.1.cmml" xref="S5.T3.3.3.3.m1.1.1">subscript</csymbol><apply id="S5.T3.3.3.3.m1.1.1.2.cmml" xref="S5.T3.3.3.3.m1.1.1"><csymbol cd="ambiguous" id="S5.T3.3.3.3.m1.1.1.2.1.cmml" xref="S5.T3.3.3.3.m1.1.1">superscript</csymbol><csymbol cd="latexml" id="S5.T3.3.3.3.m1.1.1.2.2.cmml" xref="S5.T3.3.3.3.m1.1.1.2.2">absent</csymbol><ci id="S5.T3.3.3.3.m1.1.1.2.3a.cmml" xref="S5.T3.3.3.3.m1.1.1.2.3"><mtext mathsize="63%" id="S5.T3.3.3.3.m1.1.1.2.3.cmml" xref="S5.T3.3.3.3.m1.1.1.2.3">bbox</mtext></ci></apply><ci id="S5.T3.3.3.3.m1.1.1.3a.cmml" xref="S5.T3.3.3.3.m1.1.1.3"><mtext mathsize="63%" id="S5.T3.3.3.3.m1.1.1.3.cmml" xref="S5.T3.3.3.3.m1.1.1.3">75</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T3.3.3.3.m1.1c">{}^{\text{bbox}}_{\text{75}}</annotation></semantics></math>
+</th>
+<th id="S5.T3.4.4.4" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_th ltx_th_column" style="padding:0.45pt 1.0pt;">
+<span id="S5.T3.4.4.4.1" class="ltx_text" style="font-size:90%;">AP</span><math id="S5.T3.4.4.4.m1.1" class="ltx_Math" alttext="{}^{\text{mask}}" display="inline"><semantics id="S5.T3.4.4.4.m1.1a"><msup id="S5.T3.4.4.4.m1.1.1" xref="S5.T3.4.4.4.m1.1.1.cmml"><mi id="S5.T3.4.4.4.m1.1.1a" xref="S5.T3.4.4.4.m1.1.1.cmml"></mi><mtext mathsize="90%" id="S5.T3.4.4.4.m1.1.1.1" xref="S5.T3.4.4.4.m1.1.1.1a.cmml">mask</mtext></msup><annotation-xml encoding="MathML-Content" id="S5.T3.4.4.4.m1.1b"><apply id="S5.T3.4.4.4.m1.1.1.cmml" xref="S5.T3.4.4.4.m1.1.1"><ci id="S5.T3.4.4.4.m1.1.1.1a.cmml" xref="S5.T3.4.4.4.m1.1.1.1"><mtext mathsize="63%" id="S5.T3.4.4.4.m1.1.1.1.cmml" xref="S5.T3.4.4.4.m1.1.1.1">mask</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T3.4.4.4.m1.1c">{}^{\text{mask}}</annotation></semantics></math>
+</th>
+<th id="S5.T3.5.5.5" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_th ltx_th_column" style="padding:0.45pt 1.0pt;">
+<span id="S5.T3.5.5.5.1" class="ltx_text" style="font-size:90%;">AP</span><math id="S5.T3.5.5.5.m1.1" class="ltx_Math" alttext="{}^{\text{mask}}_{\text{50}}" display="inline"><semantics id="S5.T3.5.5.5.m1.1a"><mmultiscripts id="S5.T3.5.5.5.m1.1.1" xref="S5.T3.5.5.5.m1.1.1.cmml"><mi id="S5.T3.5.5.5.m1.1.1.2.2" xref="S5.T3.5.5.5.m1.1.1.2.2.cmml"></mi><mprescripts id="S5.T3.5.5.5.m1.1.1a" xref="S5.T3.5.5.5.m1.1.1.cmml"></mprescripts><mtext mathsize="90%" id="S5.T3.5.5.5.m1.1.1.3" xref="S5.T3.5.5.5.m1.1.1.3a.cmml">50</mtext><mrow id="S5.T3.5.5.5.m1.1.1b" xref="S5.T3.5.5.5.m1.1.1.cmml"></mrow><mrow id="S5.T3.5.5.5.m1.1.1c" xref="S5.T3.5.5.5.m1.1.1.cmml"></mrow><mtext mathsize="90%" id="S5.T3.5.5.5.m1.1.1.2.3" xref="S5.T3.5.5.5.m1.1.1.2.3a.cmml">mask</mtext></mmultiscripts><annotation-xml encoding="MathML-Content" id="S5.T3.5.5.5.m1.1b"><apply id="S5.T3.5.5.5.m1.1.1.cmml" xref="S5.T3.5.5.5.m1.1.1"><csymbol cd="ambiguous" id="S5.T3.5.5.5.m1.1.1.1.cmml" xref="S5.T3.5.5.5.m1.1.1">subscript</csymbol><apply id="S5.T3.5.5.5.m1.1.1.2.cmml" xref="S5.T3.5.5.5.m1.1.1"><csymbol cd="ambiguous" id="S5.T3.5.5.5.m1.1.1.2.1.cmml" xref="S5.T3.5.5.5.m1.1.1">superscript</csymbol><csymbol cd="latexml" id="S5.T3.5.5.5.m1.1.1.2.2.cmml" xref="S5.T3.5.5.5.m1.1.1.2.2">absent</csymbol><ci id="S5.T3.5.5.5.m1.1.1.2.3a.cmml" xref="S5.T3.5.5.5.m1.1.1.2.3"><mtext mathsize="63%" id="S5.T3.5.5.5.m1.1.1.2.3.cmml" xref="S5.T3.5.5.5.m1.1.1.2.3">mask</mtext></ci></apply><ci id="S5.T3.5.5.5.m1.1.1.3a.cmml" xref="S5.T3.5.5.5.m1.1.1.3"><mtext mathsize="63%" id="S5.T3.5.5.5.m1.1.1.3.cmml" xref="S5.T3.5.5.5.m1.1.1.3">50</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T3.5.5.5.m1.1c">{}^{\text{mask}}_{\text{50}}</annotation></semantics></math>
+</th>
+<th id="S5.T3.6.6.6" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_th ltx_th_column" style="padding:0.45pt 1.0pt;">
+<span id="S5.T3.6.6.6.1" class="ltx_text" style="font-size:90%;">AP</span><math id="S5.T3.6.6.6.m1.1" class="ltx_Math" alttext="{}^{\text{mask}}_{\text{75}}" display="inline"><semantics id="S5.T3.6.6.6.m1.1a"><mmultiscripts id="S5.T3.6.6.6.m1.1.1" xref="S5.T3.6.6.6.m1.1.1.cmml"><mi id="S5.T3.6.6.6.m1.1.1.2.2" xref="S5.T3.6.6.6.m1.1.1.2.2.cmml"></mi><mprescripts id="S5.T3.6.6.6.m1.1.1a" xref="S5.T3.6.6.6.m1.1.1.cmml"></mprescripts><mtext mathsize="90%" id="S5.T3.6.6.6.m1.1.1.3" xref="S5.T3.6.6.6.m1.1.1.3a.cmml">75</mtext><mrow id="S5.T3.6.6.6.m1.1.1b" xref="S5.T3.6.6.6.m1.1.1.cmml"></mrow><mrow id="S5.T3.6.6.6.m1.1.1c" xref="S5.T3.6.6.6.m1.1.1.cmml"></mrow><mtext mathsize="90%" id="S5.T3.6.6.6.m1.1.1.2.3" xref="S5.T3.6.6.6.m1.1.1.2.3a.cmml">mask</mtext></mmultiscripts><annotation-xml encoding="MathML-Content" id="S5.T3.6.6.6.m1.1b"><apply id="S5.T3.6.6.6.m1.1.1.cmml" xref="S5.T3.6.6.6.m1.1.1"><csymbol cd="ambiguous" id="S5.T3.6.6.6.m1.1.1.1.cmml" xref="S5.T3.6.6.6.m1.1.1">subscript</csymbol><apply id="S5.T3.6.6.6.m1.1.1.2.cmml" xref="S5.T3.6.6.6.m1.1.1"><csymbol cd="ambiguous" id="S5.T3.6.6.6.m1.1.1.2.1.cmml" xref="S5.T3.6.6.6.m1.1.1">superscript</csymbol><csymbol cd="latexml" id="S5.T3.6.6.6.m1.1.1.2.2.cmml" xref="S5.T3.6.6.6.m1.1.1.2.2">absent</csymbol><ci id="S5.T3.6.6.6.m1.1.1.2.3a.cmml" xref="S5.T3.6.6.6.m1.1.1.2.3"><mtext mathsize="63%" id="S5.T3.6.6.6.m1.1.1.2.3.cmml" xref="S5.T3.6.6.6.m1.1.1.2.3">mask</mtext></ci></apply><ci id="S5.T3.6.6.6.m1.1.1.3a.cmml" xref="S5.T3.6.6.6.m1.1.1.3"><mtext mathsize="63%" id="S5.T3.6.6.6.m1.1.1.3.cmml" xref="S5.T3.6.6.6.m1.1.1.3">75</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S5.T3.6.6.6.m1.1c">{}^{\text{mask}}_{\text{75}}</annotation></semantics></math>
+</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S5.T3.6.7.1" class="ltx_tr">
+<th id="S5.T3.6.7.1.1" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_th ltx_th_row ltx_border_r ltx_border_t" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.7.1.1.1" class="ltx_text" style="font-size:90%;color:#909090;">R101 w/ train aug</span></th>
+<td id="S5.T3.6.7.1.2" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_t" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.7.1.2.1" class="ltx_text" style="font-size:90%;color:#909090;">45.0</span></td>
+<td id="S5.T3.6.7.1.3" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_t" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.7.1.3.1" class="ltx_text" style="font-size:90%;color:#909090;">65.7</span></td>
+<td id="S5.T3.6.7.1.4" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r ltx_border_t" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.7.1.4.1" class="ltx_text" style="font-size:90%;color:#909090;">49.3</span></td>
+<td id="S5.T3.6.7.1.5" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_t" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.7.1.5.1" class="ltx_text" style="font-size:90%;color:#909090;">39.5</span></td>
+<td id="S5.T3.6.7.1.6" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_t" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.7.1.6.1" class="ltx_text" style="font-size:90%;color:#909090;">62.5</span></td>
+<td id="S5.T3.6.7.1.7" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_t" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.7.1.7.1" class="ltx_text" style="font-size:90%;color:#909090;">42.1</span></td>
+</tr>
+<tr id="S5.T3.6.8.2" class="ltx_tr">
+<th id="S5.T3.6.8.2.1" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_th ltx_th_row ltx_border_r" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.8.2.1.1" class="ltx_text" style="font-size:90%;">X152 w/ train aug</span></th>
+<td id="S5.T3.6.8.2.2" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.8.2.2.1" class="ltx_text" style="font-size:90%;">46.4</span></td>
+<td id="S5.T3.6.8.2.3" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.8.2.3.1" class="ltx_text" style="font-size:90%;">67.1</span></td>
+<td id="S5.T3.6.8.2.4" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.8.2.4.1" class="ltx_text" style="font-size:90%;">51.1</span></td>
+<td id="S5.T3.6.8.2.5" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.8.2.5.1" class="ltx_text" style="font-size:90%;">40.5</span></td>
+<td id="S5.T3.6.8.2.6" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.8.2.6.1" class="ltx_text" style="font-size:90%;">63.9</span></td>
+<td id="S5.T3.6.8.2.7" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.8.2.7.1" class="ltx_text" style="font-size:90%;">43.4</span></td>
+</tr>
+<tr id="S5.T3.6.9.3" class="ltx_tr">
+<th id="S5.T3.6.9.3.1" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_th ltx_th_row ltx_border_r" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.9.3.1.1" class="ltx_text" style="font-size:90%;"> + cascade</span></th>
+<td id="S5.T3.6.9.3.2" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.9.3.2.1" class="ltx_text" style="font-size:90%;">48.6</span></td>
+<td id="S5.T3.6.9.3.3" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.9.3.3.1" class="ltx_text" style="font-size:90%;">66.8</span></td>
+<td id="S5.T3.6.9.3.4" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.9.3.4.1" class="ltx_text" style="font-size:90%;">52.9</span></td>
+<td id="S5.T3.6.9.3.5" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.9.3.5.1" class="ltx_text" style="font-size:90%;">41.4</span></td>
+<td id="S5.T3.6.9.3.6" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.9.3.6.1" class="ltx_text" style="font-size:90%;">64.2</span></td>
+<td id="S5.T3.6.9.3.7" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.9.3.7.1" class="ltx_text" style="font-size:90%;">44.6</span></td>
+</tr>
+<tr id="S5.T3.6.10.4" class="ltx_tr">
+<th id="S5.T3.6.10.4.1" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_th ltx_th_row ltx_border_r" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.10.4.1.1" class="ltx_text" style="font-size:90%;"> + test aug</span></th>
+<td id="S5.T3.6.10.4.2" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.10.4.2.1" class="ltx_text" style="font-size:90%;">50.9</span></td>
+<td id="S5.T3.6.10.4.3" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.10.4.3.1" class="ltx_text" style="font-size:90%;">68.7</span></td>
+<td id="S5.T3.6.10.4.4" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center ltx_border_r" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.10.4.4.1" class="ltx_text" style="font-size:90%;">55.4</span></td>
+<td id="S5.T3.6.10.4.5" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.10.4.5.1" class="ltx_text" style="font-size:90%;">43.2</span></td>
+<td id="S5.T3.6.10.4.6" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.10.4.6.1" class="ltx_text" style="font-size:90%;">66.1</span></td>
+<td id="S5.T3.6.10.4.7" class="ltx_td ltx_nopad_l ltx_nopad_r ltx_align_center" style="padding:0.45pt 1.0pt;"><span id="S5.T3.6.10.4.7.1" class="ltx_text" style="font-size:90%;">46.8</span></td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:90%;"><span class="ltx_tag ltx_tag_table">Table 3: </span>Mask R-CNN with <span id="S5.T3.13.1" class="ltx_text ltx_font_bold">ResNeXt-152 trained from random initialization</span> (w/ FPN and GN), evaluated on COCO <span id="S5.T3.14.2" class="ltx_text ltx_font_typewriter">val2017</span>.
+</figcaption>
+</figure>
+</section>
+<section id="S5.SS1.SSS0.Px6" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Keypoint detection.</h4>
+
+<div id="S5.SS1.SSS0.Px6.p1" class="ltx_para">
+<p id="S5.SS1.SSS0.Px6.p1.1" class="ltx_p">We also train Mask R-CNN for the COCO human keypoint detection task. The results are in Figure <a href="#S5.F6" title="Figure 6 ‣ Keypoint detection. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>. In this case, the model trained from scratch can catch up more quickly, and
+even when <em id="S5.SS1.SSS0.Px6.p1.1.1" class="ltx_emph ltx_font_italic">not</em> increasing training iterations, it is comparable with its counterpart that uses ImageNet pre-training.
+Keypoint detection is a task more sensitive to fine spatial localization. Our experiment suggests that ImageNet pre-training, which has little explicit localization information, does not help keypoint detection.</p>
+</div>
+<figure id="S5.F6" class="ltx_figure">
+<p id="S5.F6.7" class="ltx_p"><span id="S5.F6.1.1" class="ltx_text" style="position:relative; bottom:-317.7pt;">
+<span id="S5.F6.1.1.1.1.1" class="ltx_inline-block ltx_transformed_outer" style="width:198.5pt;height:628.4pt;vertical-align:-310.7pt;"><span class="ltx_transformed_inner" style="transform:translate(0.0pt,0.0pt) scale(1,1) ;">
+<span id="S5.F6.1.1.1.1.1.1" class="ltx_p"><span id="S5.F6.1.1.1.1.1.1.1" class="ltx_text">
+<span id="S5.F6.1.1.1.1.1.1.1.1" class="ltx_inline-block ltx_minipage ltx_align_middle" style="width:195.1pt;"><img src="/html/1811.08883/assets/x7.png" id="S5.F6.1.1.1.1.1.1.1.1.g1" class="ltx_graphics ltx_img_portrait" width="461" height="669" alt="[Uncaptioned image]">
+</span></span></span>
+</span></span></span>
+<span id="S5.F6.7.7" class="ltx_text" style="position:relative; bottom:-3.5pt;">
+<span id="S5.F6.7.7.6.6.6" class="ltx_inline-block ltx_transformed_outer" style="width:237.5pt;height:3.5pt;vertical-align:-0.0pt;"><span class="ltx_transformed_inner" style="transform:translate(0.0pt,0.0pt) scale(1,1) ;">
+<span id="S5.F6.7.7.6.6.6.6" class="ltx_p"><span id="S5.F6.7.7.6.6.6.6.6" class="ltx_text">
+<span id="S5.F6.7.7.6.6.6.6.6.6" class="ltx_block ltx_minipage ltx_align_middle" style="width:234.2pt;">
+<span class="ltx_caption"><span class="ltx_tag ltx_tag_block">Figure 6: </span><span id="S5.F6.7.7.6.6.6.6.6.6.14.1" class="ltx_text ltx_font_bold">Keypoint detection</span> on COCO using Mask R-CNN with R50-FPN and GN. We show keypoint AP on COCO <span id="S5.F6.7.7.6.6.6.6.6.6.15.2" class="ltx_text ltx_font_typewriter">val2017</span>.
+ImageNet pre-training has little benefit, and training from random initialization can quickly catch up <em id="S5.F6.7.7.6.6.6.6.6.6.16.3" class="ltx_emph ltx_font_italic">without</em> increasing training iterations. We only need to use 2<math id="S5.F6.5.5.4.4.4.4.4.4.4.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.F6.5.5.4.4.4.4.4.4.4.m1.1a"><mo id="S5.F6.5.5.4.4.4.4.4.4.4.m1.1.1" xref="S5.F6.5.5.4.4.4.4.4.4.4.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.F6.5.5.4.4.4.4.4.4.4.m1.1b"><times id="S5.F6.5.5.4.4.4.4.4.4.4.m1.1.1.cmml" xref="S5.F6.5.5.4.4.4.4.4.4.4.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.F6.5.5.4.4.4.4.4.4.4.m1.1c">\times</annotation></semantics></math> and 3<math id="S5.F6.6.6.5.5.5.5.5.5.5.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.F6.6.6.5.5.5.5.5.5.5.m2.1a"><mo id="S5.F6.6.6.5.5.5.5.5.5.5.m2.1.1" xref="S5.F6.6.6.5.5.5.5.5.5.5.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.F6.6.6.5.5.5.5.5.5.5.m2.1b"><times id="S5.F6.6.6.5.5.5.5.5.5.5.m2.1.1.cmml" xref="S5.F6.6.6.5.5.5.5.5.5.5.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.F6.6.6.5.5.5.5.5.5.5.m2.1c">\times</annotation></semantics></math> schedules, unlike the object detection case.
+The result is 65.6 <em id="S5.F6.7.7.6.6.6.6.6.6.17.4" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.F6.7.7.6.6.6.6.6.6.18.5" class="ltx_text"></span> 65.5 (random initialization <em id="S5.F6.7.7.6.6.6.6.6.6.19.6" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.F6.7.7.6.6.6.6.6.6.20.7" class="ltx_text"></span> pre-training) with 2<math id="S5.F6.7.7.6.6.6.6.6.6.6.m3.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.F6.7.7.6.6.6.6.6.6.6.m3.1a"><mo id="S5.F6.7.7.6.6.6.6.6.6.6.m3.1.1" xref="S5.F6.7.7.6.6.6.6.6.6.6.m3.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.F6.7.7.6.6.6.6.6.6.6.m3.1b"><times id="S5.F6.7.7.6.6.6.6.6.6.6.m3.1.1.cmml" xref="S5.F6.7.7.6.6.6.6.6.6.6.m3.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.F6.7.7.6.6.6.6.6.6.6.m3.1c">\times</annotation></semantics></math> schedules.
+</span>
+</span></span></span>
+</span></span></span></p>
+</figure>
+<figure id="S5.F7" class="ltx_figure">
+<div id="S5.F7.3" class="ltx_inline-block ltx_transformed_outer" style="width:433.2pt;height:139.7pt;vertical-align:-0.7pt;"><span class="ltx_transformed_inner" style="transform:translate(-90.9pt,29.2pt) scale(0.70447777423832,0.70447777423832) ;"><img src="/html/1811.08883/assets/x8.png" id="S5.F7.1.g1" class="ltx_graphics ltx_img_portrait" width="145" height="210" alt="Refer to caption"><img src="/html/1811.08883/assets/x9.png" id="S5.F7.2.g2" class="ltx_graphics ltx_centering ltx_img_square" width="250" height="210" alt="Refer to caption"><img src="/html/1811.08883/assets/x10.png" id="S5.F7.3.g3" class="ltx_graphics ltx_centering ltx_img_square" width="250" height="210" alt="Refer to caption">
+</span></div>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure">Figure 7: </span><span id="S5.F7.12.1" class="ltx_text ltx_font_bold">Training with fewer COCO images</span> (left/middle: <span id="S5.F7.13.2" class="ltx_text ltx_font_bold">35k</span>; right: <span id="S5.F7.14.3" class="ltx_text ltx_font_bold">10k</span>).
+The model is Mask R-CNN with R50-FPN and GN, evaluated by bbox AP in <span id="S5.F7.15.4" class="ltx_text ltx_font_typewriter">val2017</span>.
+<span id="S5.F7.16.5" class="ltx_text ltx_font_bold">Left</span>: training with 35k COCO images, using the default hyper-parameters that were chosen for the 118k <span id="S5.F7.17.6" class="ltx_text ltx_font_typewriter">train2017</span>. It shows overfitting before and after the learning rate changes.
+<span id="S5.F7.18.7" class="ltx_text ltx_font_bold">Middle</span>: training with 35k COCO images, using hyper-parameters optimized for ‘w/ pre-train’ (the same hyper-parameters are then applied to the model from random initialization).
+<span id="S5.F7.19.8" class="ltx_text ltx_font_bold">Right</span>: training with 10k COCO images, using hyper-parameters optimized for ‘w/ pre-training’.
+</figcaption>
+</figure>
+</section>
+<section id="S5.SS1.SSS0.Px7" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Models without BN/GN — VGG nets.</h4>
+
+<div id="S5.SS1.SSS0.Px7.p1" class="ltx_para">
+<p id="S5.SS1.SSS0.Px7.p1.1" class="ltx_p">Thus far all of our experiments involve ResNet-based models, which require some form of activation normalization (<em id="S5.SS1.SSS0.Px7.p1.1.1" class="ltx_emph ltx_font_italic">e.g</em>.<span id="S5.SS1.SSS0.Px7.p1.1.2" class="ltx_text"></span>, BN or GN). Shallower models like VGG-16 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib43" title="" class="ltx_ref">43</a>]</cite> can be trained from scratch without activation normalization as long as a proper initialization normalization is used <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib16" title="" class="ltx_ref">16</a>]</cite>. Our next experiment tests the generality of our observations by exploring the behavior of training Faster R-CNN from scratch using VGG-16 as the backbone.</p>
+</div>
+<div id="S5.SS1.SSS0.Px7.p2" class="ltx_para">
+<p id="S5.SS1.SSS0.Px7.p2.1" class="ltx_p">We implement the model following the original Faster R-CNN paper <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib37" title="" class="ltx_ref">37</a>]</cite> and its VGG-16 architecture; no FPN is used.
+We adopt standard hyper-parameters with a learning rate of 0.02, learning rate decay factor of 0.1, and weight decay of 0.0001. We use scale augmentation during training. Following previous experiments, we use the exact same hyper-parameters when fine-tuning and training from scratch. When randomly initializing the model, we use the same MSRA initialization <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib16" title="" class="ltx_ref">16</a>]</cite> for ImageNet pre-training and for COCO from scratch.</p>
+</div>
+<div id="S5.SS1.SSS0.Px7.p3" class="ltx_para">
+<p id="S5.SS1.SSS0.Px7.p3.2" class="ltx_p">The baseline model <em id="S5.SS1.SSS0.Px7.p3.2.1" class="ltx_emph ltx_font_italic">with pre-training</em> is able to reach a maximal bbox AP of 35.6 after an extremely long 9<math id="S5.SS1.SSS0.Px7.p3.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.SS1.SSS0.Px7.p3.1.m1.1a"><mo id="S5.SS1.SSS0.Px7.p3.1.m1.1.1" xref="S5.SS1.SSS0.Px7.p3.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px7.p3.1.m1.1b"><times id="S5.SS1.SSS0.Px7.p3.1.m1.1.1.cmml" xref="S5.SS1.SSS0.Px7.p3.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px7.p3.1.m1.1c">\times</annotation></semantics></math> training schedule (training for longer leads to a slight degradation in AP). Here we note that even <em id="S5.SS1.SSS0.Px7.p3.2.2" class="ltx_emph ltx_font_italic">with</em> pre-training, full convergence for VGG-16 is slow. The model trained from scratch reaches a similar level of performance with a maximal bbox AP of 35.2 after an 11<math id="S5.SS1.SSS0.Px7.p3.2.m2.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.SS1.SSS0.Px7.p3.2.m2.1a"><mo id="S5.SS1.SSS0.Px7.p3.2.m2.1.1" xref="S5.SS1.SSS0.Px7.p3.2.m2.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.SS1.SSS0.Px7.p3.2.m2.1b"><times id="S5.SS1.SSS0.Px7.p3.2.m2.1.1.cmml" xref="S5.SS1.SSS0.Px7.p3.2.m2.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.SS1.SSS0.Px7.p3.2.m2.1c">\times</annotation></semantics></math> schedule (training for longer resulted in a lower AP, too). These results indicate that our methodology of ‘making minimal/no changes’ (Sec. <a href="#S3" title="3 Methodology ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>) but adopting good optimization strategies and training for longer are sufficient for training comparably performant detectors on COCO, compared to the standard ‘pre-training and fine-tuning’ paradigm.</p>
+</div>
+</section>
+</section>
+<section id="S5.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.2 </span>Training from scratch with less data</h3>
+
+<div id="S5.SS2.p1" class="ltx_para">
+<p id="S5.SS2.p1.1" class="ltx_p">Our second discovery, which is even more surprising, is that with substantially less data (<em id="S5.SS2.p1.1.1" class="ltx_emph ltx_font_italic">e.g</em>.<span id="S5.SS2.p1.1.2" class="ltx_text"></span>, <span id="S5.SS2.p1.1.m1.1.1.1" class="ltx_text ltx_markedasmath" style="position:relative; bottom:0.7pt;"><math id="S5.SS2.p1.1.m1.1.1.1.1.m1.1" class="ltx_Math" alttext="\scriptstyle\sim" display="inline"><semantics id="S5.SS2.p1.1.m1.1.1.1.1.m1.1a"><mo mathsize="70%" id="S5.SS2.p1.1.m1.1.1.1.1.m1.1.1" xref="S5.SS2.p1.1.m1.1.1.1.1.m1.1.1.cmml">∼</mo><annotation-xml encoding="MathML-Content" id="S5.SS2.p1.1.m1.1.1.1.1.m1.1b"><csymbol cd="latexml" id="S5.SS2.p1.1.m1.1.1.1.1.m1.1.1.cmml" xref="S5.SS2.p1.1.m1.1.1.1.1.m1.1.1">similar-to</csymbol></annotation-xml><annotation encoding="application/x-tex" id="S5.SS2.p1.1.m1.1.1.1.1.m1.1c">\scriptstyle\sim</annotation></semantics></math></span>1/10 of COCO), models trained from scratch are <em id="S5.SS2.p1.1.3" class="ltx_emph ltx_font_italic">no worse</em> than their counterparts that are pre-trained.</p>
+</div>
+<section id="S5.SS2.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">35k COCO training images.</h4>
+
+<div id="S5.SS2.SSS0.Px1.p1" class="ltx_para">
+<p id="S5.SS2.SSS0.Px1.p1.1" class="ltx_p">We start our next investigation with <span id="S5.SS2.SSS0.Px1.p1.1.m1.1.1.1" class="ltx_text ltx_markedasmath" style="position:relative; bottom:0.7pt;"><math id="S5.SS2.SSS0.Px1.p1.1.m1.1.1.1.1.m1.1" class="ltx_Math" alttext="\scriptstyle\sim" display="inline"><semantics id="S5.SS2.SSS0.Px1.p1.1.m1.1.1.1.1.m1.1a"><mo mathsize="70%" id="S5.SS2.SSS0.Px1.p1.1.m1.1.1.1.1.m1.1.1" xref="S5.SS2.SSS0.Px1.p1.1.m1.1.1.1.1.m1.1.1.cmml">∼</mo><annotation-xml encoding="MathML-Content" id="S5.SS2.SSS0.Px1.p1.1.m1.1.1.1.1.m1.1b"><csymbol cd="latexml" id="S5.SS2.SSS0.Px1.p1.1.m1.1.1.1.1.m1.1.1.cmml" xref="S5.SS2.SSS0.Px1.p1.1.m1.1.1.1.1.m1.1.1">similar-to</csymbol></annotation-xml><annotation encoding="application/x-tex" id="S5.SS2.SSS0.Px1.p1.1.m1.1.1.1.1.m1.1c">\scriptstyle\sim</annotation></semantics></math></span>1/3 of COCO training data (35k images from <span id="S5.SS2.SSS0.Px1.p1.1.1" class="ltx_text ltx_font_typewriter">train2017</span>, equivalent to the older <span id="S5.SS2.SSS0.Px1.p1.1.2" class="ltx_text ltx_font_typewriter">val35k</span>). We train models with or without ImageNet pre-training on this set.</p>
+</div>
+<div id="S5.SS2.SSS0.Px1.p2" class="ltx_para">
+<p id="S5.SS2.SSS0.Px1.p2.1" class="ltx_p">Figure <a href="#S5.F7" title="Figure 7 ‣ Keypoint detection. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a> (left) is the result using ImageNet pre-training under the hyper-parameters of Mask R-CNN that were chosen for the 118k COCO set. These hyper-parameters are not optimal, and the model suffers from overfitting even with ImageNet pre-training. It suggests that <em id="S5.SS2.SSS0.Px1.p2.1.1" class="ltx_emph ltx_font_italic">ImageNet pre-training does not automatically help reduce overfitting</em>.</p>
+</div>
+<div id="S5.SS2.SSS0.Px1.p3" class="ltx_para">
+<p id="S5.SS2.SSS0.Px1.p3.1" class="ltx_p">To obtain a healthy baseline, we redo grid search for hyper-parameters on the models that are <em id="S5.SS2.SSS0.Px1.p3.1.1" class="ltx_emph ltx_font_italic">with</em> ImageNet pre-training.<span id="footnote2" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">2</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">2</sup><span class="ltx_tag ltx_tag_note">2</span>Our new recipe changes are: training-time scale augmentation range of [512, 800] (<em id="footnote2.1" class="ltx_emph ltx_font_italic">vs</em>.<span id="footnote2.2" class="ltx_text"></span> baseline’s no scale augmentation), a starting learning rate of 0.04 (<em id="footnote2.3" class="ltx_emph ltx_font_italic">vs</em>.<span id="footnote2.4" class="ltx_text"></span> 0.02), and a learning rate decay factor of 0.02 (<em id="footnote2.5" class="ltx_emph ltx_font_italic">vs</em>.<span id="footnote2.6" class="ltx_text"></span> 0.1).</span></span></span> The gray curve in Figure <a href="#S5.F7" title="Figure 7 ‣ Keypoint detection. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a> (middle) shows the results. It has optimally 36.3 AP with a 6<math id="S5.SS2.SSS0.Px1.p3.1.m1.1" class="ltx_Math" alttext="\times" display="inline"><semantics id="S5.SS2.SSS0.Px1.p3.1.m1.1a"><mo id="S5.SS2.SSS0.Px1.p3.1.m1.1.1" xref="S5.SS2.SSS0.Px1.p3.1.m1.1.1.cmml">×</mo><annotation-xml encoding="MathML-Content" id="S5.SS2.SSS0.Px1.p3.1.m1.1b"><times id="S5.SS2.SSS0.Px1.p3.1.m1.1.1.cmml" xref="S5.SS2.SSS0.Px1.p3.1.m1.1.1"></times></annotation-xml><annotation encoding="application/x-tex" id="S5.SS2.SSS0.Px1.p3.1.m1.1c">\times</annotation></semantics></math> schedule.</p>
+</div>
+<div id="S5.SS2.SSS0.Px1.p4" class="ltx_para">
+<p id="S5.SS2.SSS0.Px1.p4.1" class="ltx_p">Then we train our model from scratch using <em id="S5.SS2.SSS0.Px1.p4.1.1" class="ltx_emph ltx_font_italic">the exact same</em> new hyper-parameters that are chosen for the pre-training case.
+This obviously biases results in favor of the pre-training model.
+Nevertheless, the model trained from scratch has 36.3 AP and <em id="S5.SS2.SSS0.Px1.p4.1.2" class="ltx_emph ltx_font_italic">catches up</em> with its pre-training counterpart (Figure <a href="#S5.F7" title="Figure 7 ‣ Keypoint detection. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a>, middle), despite less data.</p>
+</div>
+</section>
+<section id="S5.SS2.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">10k COCO training images.</h4>
+
+<div id="S5.SS2.SSS0.Px2.p1" class="ltx_para">
+<p id="S5.SS2.SSS0.Px2.p1.1" class="ltx_p">We repeat the same set of experiments on a smaller training set of 10k COCO images (<em id="S5.SS2.SSS0.Px2.p1.1.1" class="ltx_emph ltx_font_italic">i.e</em>.<span id="S5.SS2.SSS0.Px2.p1.1.2" class="ltx_text"></span>, <em id="S5.SS2.SSS0.Px2.p1.1.3" class="ltx_emph ltx_font_italic">less than 1/10th of the full COCO set</em>). Again, we perform grid search for hyper-parameters on the models that use ImageNet pre-training, and apply them to the models trained from scratch. We shorten the training schedules in this small training set (noted by x-axis, Figure <a href="#S5.F7" title="Figure 7 ‣ Keypoint detection. ‣ 5.1 Training from scratch to match accuracy ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a>, right).</p>
+</div>
+<div id="S5.SS2.SSS0.Px2.p2" class="ltx_para">
+<p id="S5.SS2.SSS0.Px2.p2.1" class="ltx_p">The model with pre-training reaches 26.0 AP with 60k iterations, but has a slight degradation when training more. The counterpart model trained from scratch has 25.9 AP at 220k iterations, which is <em id="S5.SS2.SSS0.Px2.p2.1.1" class="ltx_emph ltx_font_italic">comparably</em> accurate.</p>
+</div>
+</section>
+<section id="S5.SS2.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Breakdown regime: 1k COCO training images.</h4>
+
+<div id="S5.SS2.SSS0.Px3.p1" class="ltx_para">
+<p id="S5.SS2.SSS0.Px3.p1.1" class="ltx_p">That training from scratch in 10k images is comparably accurate is surprising. But it is not reasonable to expect this trend will last for arbitrarily small target data, as we report next.</p>
+</div>
+<div id="S5.SS2.SSS0.Px3.p2" class="ltx_para">
+<p id="S5.SS2.SSS0.Px3.p2.1" class="ltx_p">In Figure <a href="#S5.F8" title="Figure 8 ‣ Breakdown regime: PASCAL VOC. ‣ 5.2 Training from scratch with less data ‣ 5 Results and Analysis ‣ Rethinking ImageNet Pre-training" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8</span></a> we repeat the same set of experiments using only 1k COCO training images (<span id="S5.SS2.SSS0.Px3.p2.1.m1.1.1.1" class="ltx_text ltx_markedasmath" style="position:relative; bottom:0.7pt;"><math id="S5.SS2.SSS0.Px3.p2.1.m1.1.1.1.1.m1.1" class="ltx_Math" alttext="\scriptstyle\sim" display="inline"><semantics id="S5.SS2.SSS0.Px3.p2.1.m1.1.1.1.1.m1.1a"><mo mathsize="70%" id="S5.SS2.SSS0.Px3.p2.1.m1.1.1.1.1.m1.1.1" xref="S5.SS2.SSS0.Px3.p2.1.m1.1.1.1.1.m1.1.1.cmml">∼</mo><annotation-xml encoding="MathML-Content" id="S5.SS2.SSS0.Px3.p2.1.m1.1.1.1.1.m1.1b"><csymbol cd="latexml" id="S5.SS2.SSS0.Px3.p2.1.m1.1.1.1.1.m1.1.1.cmml" xref="S5.SS2.SSS0.Px3.p2.1.m1.1.1.1.1.m1.1.1">similar-to</csymbol></annotation-xml><annotation encoding="application/x-tex" id="S5.SS2.SSS0.Px3.p2.1.m1.1.1.1.1.m1.1c">\scriptstyle\sim</annotation></semantics></math></span>1/100th of full COCO, again optimizing hyper-parameters for the pre-training case) and show the training loss. In terms of <em id="S5.SS2.SSS0.Px3.p2.1.1" class="ltx_emph ltx_font_italic">optimization</em> (<em id="S5.SS2.SSS0.Px3.p2.1.2" class="ltx_emph ltx_font_italic">i.e</em>.<span id="S5.SS2.SSS0.Px3.p2.1.3" class="ltx_text"></span>, reducing training loss), training from scratch is still <em id="S5.SS2.SSS0.Px3.p2.1.4" class="ltx_emph ltx_font_italic">no worse</em> but only converges more slowly, as seen previously. However, in this case, the training loss does not translate into a good validation AP: the model with ImageNet pre-training has 9.9 AP <em id="S5.SS2.SSS0.Px3.p2.1.5" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.SS2.SSS0.Px3.p2.1.6" class="ltx_text"></span> the from scratch model’s 3.5 AP.
+For one experiment only we also performed a grid search to optimize the from-scratch case: the result improves to 5.4 AP, but does not catch up. This is a sign of strong overfitting due to the severe lack of data.</p>
+</div>
+<div id="S5.SS2.SSS0.Px3.p3" class="ltx_para">
+<p id="S5.SS2.SSS0.Px3.p3.1" class="ltx_p">We also do similar experiments using 3.5k COCO training images. The model that uses pre-training has a peak of 16.0 bbox AP <em id="S5.SS2.SSS0.Px3.p3.1.1" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.SS2.SSS0.Px3.p3.1.2" class="ltx_text"></span> the trained from scratch counterpart’s 9.3 AP. The breakdown point in the COCO dataset is somewhere between 3.5k to 10k training images.</p>
+</div>
+</section>
+<section id="S5.SS2.SSS0.Px4" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Breakdown regime: PASCAL VOC.</h4>
+
+<div id="S5.SS2.SSS0.Px4.p1" class="ltx_para">
+<p id="S5.SS2.SSS0.Px4.p1.1" class="ltx_p">Lastly we report the comparison in PASCAL VOC object detection <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib7" title="" class="ltx_ref">7</a>]</cite>. We train on the set of <span id="S5.SS2.SSS0.Px4.p1.1.1" class="ltx_text ltx_font_typewriter">trainval2007</span>+<span id="S5.SS2.SSS0.Px4.p1.1.2" class="ltx_text ltx_font_typewriter">train2012</span>, and evaluate on <span id="S5.SS2.SSS0.Px4.p1.1.3" class="ltx_text ltx_font_typewriter">val2012</span>.
+Using ImageNet pre-training, our Faster R-CNN baseline (with R101-FPN, GN, and only training-time augmentation) has 82.7 mAP at 18k iterations. Its counterpart trained from scratch in VOC has 77.6 mAP at 144k iterations and does not catch up even training longer.</p>
+</div>
+<div id="S5.SS2.SSS0.Px4.p2" class="ltx_para">
+<p id="S5.SS2.SSS0.Px4.p2.1" class="ltx_p">There are 15k VOC images used for training. But these images have on average 2.3 instances per image (<em id="S5.SS2.SSS0.Px4.p2.1.1" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.SS2.SSS0.Px4.p2.1.2" class="ltx_text"></span> COCO’s <span id="S5.SS2.SSS0.Px4.p2.1.m1.1.1.1" class="ltx_text ltx_markedasmath" style="position:relative; bottom:0.7pt;"><math id="S5.SS2.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1" class="ltx_Math" alttext="\scriptstyle\sim" display="inline"><semantics id="S5.SS2.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1a"><mo mathsize="70%" id="S5.SS2.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1.1" xref="S5.SS2.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1.1.cmml">∼</mo><annotation-xml encoding="MathML-Content" id="S5.SS2.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1b"><csymbol cd="latexml" id="S5.SS2.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1.1.cmml" xref="S5.SS2.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1.1">similar-to</csymbol></annotation-xml><annotation encoding="application/x-tex" id="S5.SS2.SSS0.Px4.p2.1.m1.1.1.1.1.m1.1c">\scriptstyle\sim</annotation></semantics></math></span>7) and 20 categories (<em id="S5.SS2.SSS0.Px4.p2.1.3" class="ltx_emph ltx_font_italic">vs</em>.<span id="S5.SS2.SSS0.Px4.p2.1.4" class="ltx_text"></span> COCO’s 80). They are not directly comparable to the same number of COCO images. We suspect that the fewer instances (and categories) has a similar negative impact as insufficient training data, which can explain why training from scratch on VOC is not able to catch up as observed on COCO.</p>
+</div>
+<figure id="S5.F8" class="ltx_figure"><img src="/html/1811.08883/assets/x11.png" id="S5.F8.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="415" height="207" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 8: </span>Training with <span id="S5.F8.5.1" class="ltx_text ltx_font_bold">1k COCO images</span> (shown as the <em id="S5.F8.6.2" class="ltx_emph ltx_font_italic">loss</em> in the training set). The model is Mask R-CNN with R50-FPN and GN.
+As before, we use hyper-parameters optimized for the model with pre-training, and apply the same hyper-parameters to the model from random initialization. The randomly initialized model can catch up for the <em id="S5.F8.7.3" class="ltx_emph ltx_font_italic">training loss</em>, but has lower <em id="S5.F8.8.4" class="ltx_emph ltx_font_italic">validation accuracy</em> (3.4 AP) than the pre-training counterpart (9.9 AP).
+</figcaption>
+</figure>
+</section>
+</section>
+</section>
+<section id="S6" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6 </span>Discussions</h2>
+
+<div id="S6.p1" class="ltx_para">
+<p id="S6.p1.1" class="ltx_p">We summarize the main observations from our experiments as follows:</p>
+</div>
+<div id="S6.p2" class="ltx_para">
+<p id="S6.p2.1" class="ltx_p">- <em id="S6.p2.1.1" class="ltx_emph ltx_font_italic">Training from scratch on target tasks is possible without architectural changes.</em></p>
+</div>
+<div id="S6.p3" class="ltx_para">
+<p id="S6.p3.1" class="ltx_p">- <em id="S6.p3.1.1" class="ltx_emph ltx_font_italic">Training from scratch requires more iterations to sufficiently converge.</em></p>
+</div>
+<div id="S6.p4" class="ltx_para">
+<p id="S6.p4.1" class="ltx_p">- <em id="S6.p4.1.1" class="ltx_emph ltx_font_italic">Training from scratch can be no worse than its ImageNet pre-training counterparts under many circumstances, down to as few as 10k COCO images</em>.</p>
+</div>
+<div id="S6.p5" class="ltx_para">
+<p id="S6.p5.1" class="ltx_p">- <em id="S6.p5.1.1" class="ltx_emph ltx_font_italic">ImageNet pre-training speeds up convergence on the target task</em>.</p>
+</div>
+<div id="S6.p6" class="ltx_para">
+<p id="S6.p6.1" class="ltx_p">- <em id="S6.p6.1.1" class="ltx_emph ltx_font_italic">ImageNet pre-training does not necessarily help reduce overfitting unless we enter a very small data regime.</em></p>
+</div>
+<div id="S6.p7" class="ltx_para">
+<p id="S6.p7.1" class="ltx_p">- <em id="S6.p7.1.1" class="ltx_emph ltx_font_italic">ImageNet pre-training helps less if the target task is more sensitive to localization than classification.</em></p>
+</div>
+<div id="S6.p8" class="ltx_para">
+<p id="S6.p8.1" class="ltx_p">Based on these observations, we provide our answers to a few important questions that may encourage people to rethink ImageNet pre-training:</p>
+</div>
+<div id="S6.p9" class="ltx_para">
+<p id="S6.p9.1" class="ltx_p"><em id="S6.p9.1.1" class="ltx_emph ltx_font_bold ltx_font_italic">Is ImageNet pre-training necessary?</em> No—if we have enough target data (and computation). Our experiments show that ImageNet can help speed up convergence, but does not necessarily improve accuracy unless the target dataset is too small (<em id="S6.p9.1.2" class="ltx_emph ltx_font_italic">e.g</em>.<span id="S6.p9.1.3" class="ltx_text"></span>, <math id="S6.p9.1.m1.1" class="ltx_Math" alttext="&lt;" display="inline"><semantics id="S6.p9.1.m1.1a"><mo id="S6.p9.1.m1.1.1" xref="S6.p9.1.m1.1.1.cmml">&lt;</mo><annotation-xml encoding="MathML-Content" id="S6.p9.1.m1.1b"><lt id="S6.p9.1.m1.1.1.cmml" xref="S6.p9.1.m1.1.1"></lt></annotation-xml><annotation encoding="application/x-tex" id="S6.p9.1.m1.1c">&lt;</annotation></semantics></math>10k COCO images). It can be <em id="S6.p9.1.4" class="ltx_emph ltx_font_italic">sufficient</em> to directly train on the target data if its dataset scale is large enough. Looking forward, this suggests that <em id="S6.p9.1.5" class="ltx_emph ltx_font_italic">collecting annotations of target data (instead of pre-training data)</em> can be more useful for improving the target task performance.</p>
+</div>
+<div id="S6.p10" class="ltx_para">
+<p id="S6.p10.1" class="ltx_p"><em id="S6.p10.1.1" class="ltx_emph ltx_font_bold ltx_font_italic">Is ImageNet helpful?</em> Yes. ImageNet pre-training has been a <em id="S6.p10.1.2" class="ltx_emph ltx_font_italic">critical</em> auxiliary task for the computer vision community to progress.
+It enabled people to see significant improvements before larger-scale data was available (<em id="S6.p10.1.3" class="ltx_emph ltx_font_italic">e.g</em>.<span id="S6.p10.1.4" class="ltx_text"></span>, in VOC for a long while).
+It also largely helped to circumvent optimization problems in the target data (<em id="S6.p10.1.5" class="ltx_emph ltx_font_italic">e.g</em>.<span id="S6.p10.1.6" class="ltx_text"></span>, under the lack of normalization/initialization methods). Moreover, ImageNet pre-training reduces research cycles, leading to <em id="S6.p10.1.7" class="ltx_emph ltx_font_italic">easier</em> access to encouraging results—pre-trained models are widely and freely available today, pre-training cost does not need to be paid repeatedly, and fine-tuning from pre-trained weights converges faster than from scratch.
+We believe that these advantages will still make ImageNet undoubtedly helpful for computer vision research.</p>
+</div>
+<div id="S6.p11" class="ltx_para">
+<p id="S6.p11.1" class="ltx_p"><em id="S6.p11.1.1" class="ltx_emph ltx_font_bold ltx_font_italic">Do we need big data?</em> Yes. But a generic large-scale, <em id="S6.p11.1.2" class="ltx_emph ltx_font_italic">classification-level</em> pre-training set is not ideal if we take into account the extra effort of collecting and cleaning data—the cost of collecting ImageNet has been largely ignored, but the ‘pre-training’ step in the ‘pre-training + fine-tuning’ paradigm is in fact <em id="S6.p11.1.3" class="ltx_emph ltx_font_italic">not free</em> when we scale out this paradigm. If the gain of large-scale classification-level pre-training becomes exponentially diminishing <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib44" title="" class="ltx_ref">44</a>, <a href="#bib.bib30" title="" class="ltx_ref">30</a>]</cite>, it would be more effective to collect data in the target domain.</p>
+</div>
+<div id="S6.p12" class="ltx_para">
+<p id="S6.p12.1" class="ltx_p"><em id="S6.p12.1.1" class="ltx_emph ltx_font_bold ltx_font_italic">Shall we pursuit universal representations?</em> Yes. We believe learning universal representations is a laudable goal. Our results do not mean deviating from this goal. Actually, our study suggests that the community should be more careful when evaluating pre-trained features (<em id="S6.p12.1.2" class="ltx_emph ltx_font_italic">e.g</em>.<span id="S6.p12.1.3" class="ltx_text"></span>, for <em id="S6.p12.1.4" class="ltx_emph ltx_font_italic">self-supervised</em> learning <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib5" title="" class="ltx_ref">5</a>, <a href="#bib.bib47" title="" class="ltx_ref">47</a>, <a href="#bib.bib33" title="" class="ltx_ref">33</a>, <a href="#bib.bib32" title="" class="ltx_ref">32</a>]</cite>), as now we learn that even random initialization could produce excellent results.</p>
+</div>
+<div id="S6.p13" class="ltx_para">
+<p id="S6.p13.1" class="ltx_p">In closing, ImageNet and its pre-training role have been incredibly influential in computer vision, and we hope that our new experimental evidence about ImageNet and its role will shed light into potential future directions for the community to move forward.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography" style="font-size:90%;">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[1]</span>
+<span class="ltx_bibblock"><span id="bib.bib1.1.1" class="ltx_text" style="font-size:90%;">
+P. Agrawal, R. Girshick, and J. Malik.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib1.2.1" class="ltx_text" style="font-size:90%;">Analyzing the performance of multilayer neural networks for object
+recognition.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib1.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib1.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ECCV</span><span id="bib.bib1.5.3" class="ltx_text" style="font-size:90%;">, 2014.
+</span>
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[2]</span>
+<span class="ltx_bibblock"><span id="bib.bib2.1.1" class="ltx_text" style="font-size:90%;">
+J. L. Ba, J. R. Kiros, and G. E. Hinton.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib2.2.1" class="ltx_text" style="font-size:90%;">Layer normalization.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib2.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv:1607.06450</span><span id="bib.bib2.4.2" class="ltx_text" style="font-size:90%;">, 2016.
+</span>
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[3]</span>
+<span class="ltx_bibblock"><span id="bib.bib3.1.1" class="ltx_text" style="font-size:90%;">
+Z. Cai and N. Vasconcelos.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib3.2.1" class="ltx_text" style="font-size:90%;">Cascade R-CNN: Delving into high quality object detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib3.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib3.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib3.5.3" class="ltx_text" style="font-size:90%;">, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[4]</span>
+<span class="ltx_bibblock"><span id="bib.bib4.1.1" class="ltx_text" style="font-size:90%;">
+J. Carreira and A. Zisserman.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib4.2.1" class="ltx_text" style="font-size:90%;">Quo vadis, action recognition? a new model and the kinetics dataset.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib4.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib4.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib4.5.3" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[5]</span>
+<span class="ltx_bibblock"><span id="bib.bib5.1.1" class="ltx_text" style="font-size:90%;">
+C. Doersch, A. Gupta, and A. A. Efros.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib5.2.1" class="ltx_text" style="font-size:90%;">Unsupervised visual representation learning by context prediction.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib5.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib5.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ICCV</span><span id="bib.bib5.5.3" class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[6]</span>
+<span class="ltx_bibblock"><span id="bib.bib6.1.1" class="ltx_text" style="font-size:90%;">
+J. Donahue, Y. Jia, O. Vinyals, J. Hoffman, N. Zhang, E. Tzeng, and T. Darrell.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib6.2.1" class="ltx_text" style="font-size:90%;">Decaf: A deep convolutional activation feature for generic visual
+recognition.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib6.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib6.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ICML</span><span id="bib.bib6.5.3" class="ltx_text" style="font-size:90%;">, 2014.
+</span>
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[7]</span>
+<span class="ltx_bibblock"><span id="bib.bib7.1.1" class="ltx_text" style="font-size:90%;">
+M. Everingham, L. Van Gool, C. K. Williams, J. Winn, and A. Zisserman.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib7.2.1" class="ltx_text" style="font-size:90%;">The Pascal Visual Object Classes (VOC) Challenge.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib7.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">IJCV</span><span id="bib.bib7.4.2" class="ltx_text" style="font-size:90%;">, 2010.
+</span>
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[8]</span>
+<span class="ltx_bibblock"><span id="bib.bib8.1.1" class="ltx_text" style="font-size:90%;">
+R. Girshick.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib8.2.1" class="ltx_text" style="font-size:90%;">Fast R-CNN.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib8.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib8.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ICCV</span><span id="bib.bib8.5.3" class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[9]</span>
+<span class="ltx_bibblock"><span id="bib.bib9.1.1" class="ltx_text" style="font-size:90%;">
+R. Girshick, J. Donahue, T. Darrell, and J. Malik.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib9.2.1" class="ltx_text" style="font-size:90%;">Rich feature hierarchies for accurate object detection and semantic
+segmentation.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib9.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib9.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib9.5.3" class="ltx_text" style="font-size:90%;">, 2014.
+</span>
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[10]</span>
+<span class="ltx_bibblock"><span id="bib.bib10.1.1" class="ltx_text" style="font-size:90%;">
+R. Girshick, I. Radosavovic, G. Gkioxari, P. Dollár, and K. He.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib10.2.1" class="ltx_text" style="font-size:90%;">Detectron.
+</span>
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://github.com/facebookresearch/detectron" title="" class="ltx_ref ltx_url ltx_font_typewriter" style="font-size:90%;">https://github.com/facebookresearch/detectron</a><span id="bib.bib10.3.1" class="ltx_text" style="font-size:90%;">, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[11]</span>
+<span class="ltx_bibblock"><span id="bib.bib11.1.1" class="ltx_text" style="font-size:90%;">
+X. Glorot and Y. Bengio.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib11.2.1" class="ltx_text" style="font-size:90%;">Understanding the difficulty of training deep feedforward neural
+networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib11.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib11.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">AISTATS</span><span id="bib.bib11.5.3" class="ltx_text" style="font-size:90%;">, 2010.
+</span>
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[12]</span>
+<span class="ltx_bibblock"><span id="bib.bib12.1.1" class="ltx_text" style="font-size:90%;">
+P. Goyal, P. Dollár, R. Girshick, P. Noordhuis, L. Wesolowski, A. Kyrola,
+A. Tulloch, Y. Jia, and K. He.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib12.2.1" class="ltx_text" style="font-size:90%;">Accurate, large minibatch SGD: Training ImageNet in 1 hour.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib12.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv:1706.02677</span><span id="bib.bib12.4.2" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[13]</span>
+<span class="ltx_bibblock"><span id="bib.bib13.1.1" class="ltx_text" style="font-size:90%;">
+K. He, G. Gkioxari, P. Dollár, and R. Girshick.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib13.2.1" class="ltx_text" style="font-size:90%;">Mask R-CNN.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib13.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib13.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ICCV</span><span id="bib.bib13.5.3" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[14]</span>
+<span class="ltx_bibblock"><span id="bib.bib14.1.1" class="ltx_text" style="font-size:90%;">
+K. He, G. Gkioxari, P. Dollár, and R. Girshick.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib14.2.1" class="ltx_text" style="font-size:90%;">Mask R-CNN.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib14.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">TPAMI</span><span id="bib.bib14.4.2" class="ltx_text" style="font-size:90%;">, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[15]</span>
+<span class="ltx_bibblock"><span id="bib.bib15.1.1" class="ltx_text" style="font-size:90%;">
+K. He, X. Zhang, S. Ren, and J. Sun.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib15.2.1" class="ltx_text" style="font-size:90%;">Spatial pyramid pooling in deep convolutional networks for visual
+recognition.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib15.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib15.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ECCV</span><span id="bib.bib15.5.3" class="ltx_text" style="font-size:90%;">, 2014.
+</span>
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[16]</span>
+<span class="ltx_bibblock"><span id="bib.bib16.1.1" class="ltx_text" style="font-size:90%;">
+K. He, X. Zhang, S. Ren, and J. Sun.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib16.2.1" class="ltx_text" style="font-size:90%;">Delving deep into rectifiers: Surpassing human-level performance on
+imagenet classification.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib16.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib16.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ICCV</span><span id="bib.bib16.5.3" class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[17]</span>
+<span class="ltx_bibblock"><span id="bib.bib17.1.1" class="ltx_text" style="font-size:90%;">
+K. He, X. Zhang, S. Ren, and J. Sun.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib17.2.1" class="ltx_text" style="font-size:90%;">Deep residual learning for image recognition.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib17.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib17.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib17.5.3" class="ltx_text" style="font-size:90%;">, 2016.
+</span>
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[18]</span>
+<span class="ltx_bibblock"><span id="bib.bib18.1.1" class="ltx_text" style="font-size:90%;">
+G. Huang, Z. Liu, L. van der Maaten, and K. Q. Weinberger.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib18.2.1" class="ltx_text" style="font-size:90%;">Densely connected convolutional networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib18.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib18.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib18.5.3" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[19]</span>
+<span class="ltx_bibblock"><span id="bib.bib19.1.1" class="ltx_text" style="font-size:90%;">
+S. Ioffe.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib19.2.1" class="ltx_text" style="font-size:90%;">Batch renormalization: Towards reducing minibatch dependence in
+batch-normalized models.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib19.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib19.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">NIPS</span><span id="bib.bib19.5.3" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[20]</span>
+<span class="ltx_bibblock"><span id="bib.bib20.1.1" class="ltx_text" style="font-size:90%;">
+S. Ioffe and C. Szegedy.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib20.2.1" class="ltx_text" style="font-size:90%;">Batch normalization: Accelerating deep network training by reducing
+internal covariate shift.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib20.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib20.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ICML</span><span id="bib.bib20.5.3" class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[21]</span>
+<span class="ltx_bibblock"><span id="bib.bib21.1.1" class="ltx_text" style="font-size:90%;">
+A. Krizhevsky, I. Sutskever, and G. Hinton.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib21.2.1" class="ltx_text" style="font-size:90%;">Imagenet classification with deep convolutional neural networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib21.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib21.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">NIPS</span><span id="bib.bib21.5.3" class="ltx_text" style="font-size:90%;">, 2012.
+</span>
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[22]</span>
+<span class="ltx_bibblock"><span id="bib.bib22.1.1" class="ltx_text" style="font-size:90%;">
+H. Law and J. Deng.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib22.2.1" class="ltx_text" style="font-size:90%;">CornerNet: Detecting objects as paired keypoints.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib22.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib22.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ECCV</span><span id="bib.bib22.5.3" class="ltx_text" style="font-size:90%;">, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[23]</span>
+<span class="ltx_bibblock"><span id="bib.bib23.1.1" class="ltx_text" style="font-size:90%;">
+Y. LeCun, B. Boser, J. S. Denker, D. Henderson, R. E. Howard, W. Hubbard, and
+L. D. Jackel.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib23.2.1" class="ltx_text" style="font-size:90%;">Backpropagation applied to handwritten zip code recognition.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib23.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">Neural computation</span><span id="bib.bib23.4.2" class="ltx_text" style="font-size:90%;">, 1989.
+</span>
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[24]</span>
+<span class="ltx_bibblock"><span id="bib.bib24.1.1" class="ltx_text" style="font-size:90%;">
+C.-Y. Lee, S. Xie, P. Gallagher, Z. Zhang, and Z. Tu.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib24.2.1" class="ltx_text" style="font-size:90%;">Deeply-supervised nets.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib24.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib24.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">AISTATS</span><span id="bib.bib24.5.3" class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[25]</span>
+<span class="ltx_bibblock"><span id="bib.bib25.1.1" class="ltx_text" style="font-size:90%;">
+Z. Li, C. Peng, G. Yu, X. Zhang, Y. Deng, and J. Sun.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib25.2.1" class="ltx_text" style="font-size:90%;">DetNet: A backbone network for object detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib25.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv:1804.06215</span><span id="bib.bib25.4.2" class="ltx_text" style="font-size:90%;">, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[26]</span>
+<span class="ltx_bibblock"><span id="bib.bib26.1.1" class="ltx_text" style="font-size:90%;">
+T.-Y. Lin, P. Dollár, R. Girshick, K. He, B. Hariharan, and S. Belongie.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib26.2.1" class="ltx_text" style="font-size:90%;">Feature pyramid networks for object detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib26.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib26.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib26.5.3" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[27]</span>
+<span class="ltx_bibblock"><span id="bib.bib27.1.1" class="ltx_text" style="font-size:90%;">
+S. Liu, L. Qi, H. Qin, J. Shi, and J. Jia.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib27.2.1" class="ltx_text" style="font-size:90%;">Path aggregation network for instance segmentation.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib27.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib27.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib27.5.3" class="ltx_text" style="font-size:90%;">, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[28]</span>
+<span class="ltx_bibblock"><span id="bib.bib28.1.1" class="ltx_text" style="font-size:90%;">
+W. Liu, D. Anguelov, D. Erhan, C. Szegedy, S. Reed, C.-Y. Fu, and A. C. Berg.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib28.2.1" class="ltx_text" style="font-size:90%;">Ssd: Single shot multibox detector.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib28.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib28.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ECCV</span><span id="bib.bib28.5.3" class="ltx_text" style="font-size:90%;">, 2016.
+</span>
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[29]</span>
+<span class="ltx_bibblock"><span id="bib.bib29.1.1" class="ltx_text" style="font-size:90%;">
+J. Long, E. Shelhamer, and T. Darrell.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib29.2.1" class="ltx_text" style="font-size:90%;">Fully convolutional networks for semantic segmentation.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib29.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib29.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib29.5.3" class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[30]</span>
+<span class="ltx_bibblock"><span id="bib.bib30.1.1" class="ltx_text" style="font-size:90%;">
+D. Mahajan, R. Girshick, V. Ramanathan, K. He, M. Paluri, Y. Li, A. Bharambe,
+and L. van der Maaten.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib30.2.1" class="ltx_text" style="font-size:90%;">Exploring the limits of weakly supervised pretraining.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib30.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib30.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ECCV</span><span id="bib.bib30.5.3" class="ltx_text" style="font-size:90%;">, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[31]</span>
+<span class="ltx_bibblock"><span id="bib.bib31.1.1" class="ltx_text" style="font-size:90%;">
+O. Matan, C. J. Burges, Y. LeCun, and J. S. Denker.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib31.2.1" class="ltx_text" style="font-size:90%;">Multi-digit recognition using a space displacement neural network.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib31.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib31.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">NIPS</span><span id="bib.bib31.5.3" class="ltx_text" style="font-size:90%;">, 1992.
+</span>
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[32]</span>
+<span class="ltx_bibblock"><span id="bib.bib32.1.1" class="ltx_text" style="font-size:90%;">
+D. Pathak, R. Girshick, P. Dollár, T. Darrell, and B. Hariharan.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib32.2.1" class="ltx_text" style="font-size:90%;">Learning features by watching objects move.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib32.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib32.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib32.5.3" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib33" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[33]</span>
+<span class="ltx_bibblock"><span id="bib.bib33.1.1" class="ltx_text" style="font-size:90%;">
+D. Pathak, P. Krahenbuhl, J. Donahue, T. Darrell, and A. A. Efros.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib33.2.1" class="ltx_text" style="font-size:90%;">Context encoders: Feature learning by inpainting.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib33.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib33.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib33.5.3" class="ltx_text" style="font-size:90%;">, 2016.
+</span>
+</span>
+</li>
+<li id="bib.bib34" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[34]</span>
+<span class="ltx_bibblock"><span id="bib.bib34.1.1" class="ltx_text" style="font-size:90%;">
+C. Peng, T. Xiao, Z. Li, Y. Jiang, X. Zhang, K. Jia, G. Yu, and J. Sun.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib34.2.1" class="ltx_text" style="font-size:90%;">MegDet: A large mini-batch object detector.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib34.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib34.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib34.5.3" class="ltx_text" style="font-size:90%;">, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib35" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[35]</span>
+<span class="ltx_bibblock"><span id="bib.bib35.1.1" class="ltx_text" style="font-size:90%;">
+J. Redmon, S. Divvala, R. Girshick, and A. Farhadi.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib35.2.1" class="ltx_text" style="font-size:90%;">You only look once: Unified, real-time object detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib35.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib35.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib35.5.3" class="ltx_text" style="font-size:90%;">, 2016.
+</span>
+</span>
+</li>
+<li id="bib.bib36" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[36]</span>
+<span class="ltx_bibblock"><span id="bib.bib36.1.1" class="ltx_text" style="font-size:90%;">
+S. Ren, K. He, R. Girshick, and J. Sun.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib36.2.1" class="ltx_text" style="font-size:90%;">Faster R-CNN: Towards real-time object detection with region
+proposal networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib36.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib36.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">NIPS</span><span id="bib.bib36.5.3" class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib37" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[37]</span>
+<span class="ltx_bibblock"><span id="bib.bib37.1.1" class="ltx_text" style="font-size:90%;">
+S. Ren, K. He, R. Girshick, and J. Sun.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib37.2.1" class="ltx_text" style="font-size:90%;">Faster R-CNN: Towards real-time object detection with region
+proposal networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib37.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">TPAMI</span><span id="bib.bib37.4.2" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib38" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[38]</span>
+<span class="ltx_bibblock"><span id="bib.bib38.1.1" class="ltx_text" style="font-size:90%;">
+H. A. Rowley, S. Baluja, and T. Kanade.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib38.2.1" class="ltx_text" style="font-size:90%;">Human face detection in visual scenes.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib38.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib38.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">NIPS</span><span id="bib.bib38.5.3" class="ltx_text" style="font-size:90%;">, 1996.
+</span>
+</span>
+</li>
+<li id="bib.bib39" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[39]</span>
+<span class="ltx_bibblock"><span id="bib.bib39.1.1" class="ltx_text" style="font-size:90%;">
+O. Russakovsky, J. Deng, H. Su, J. Krause, S. Satheesh, S. Ma, Z. Huang,
+A. Karpathy, A. Khosla, M. Bernstein, A. C. Berg, and L. Fei-Fei.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib39.2.1" class="ltx_text" style="font-size:90%;">ImageNet Large Scale Visual Recognition Challenge.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib39.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">IJCV</span><span id="bib.bib39.4.2" class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib40" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[40]</span>
+<span class="ltx_bibblock"><span id="bib.bib40.1.1" class="ltx_text" style="font-size:90%;">
+P. Sermanet, D. Eigen, X. Zhang, M. Mathieu, R. Fergus, and Y. LeCun.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib40.2.1" class="ltx_text" style="font-size:90%;">Overfeat: Integrated recognition, localization and detection using
+convolutional networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib40.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib40.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ICLR</span><span id="bib.bib40.5.3" class="ltx_text" style="font-size:90%;">, 2014.
+</span>
+</span>
+</li>
+<li id="bib.bib41" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[41]</span>
+<span class="ltx_bibblock"><span id="bib.bib41.1.1" class="ltx_text" style="font-size:90%;">
+Z. Shen, Z. Liu, J. Li, Y.-G. Jiang, Y. Chen, and X. Xue.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib41.2.1" class="ltx_text" style="font-size:90%;">DSOD: Learning deeply supervised object detectors from scratch.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib41.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib41.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ICCV</span><span id="bib.bib41.5.3" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib42" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[42]</span>
+<span class="ltx_bibblock"><span id="bib.bib42.1.1" class="ltx_text" style="font-size:90%;">
+K. Simonyan and A. Zisserman.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib42.2.1" class="ltx_text" style="font-size:90%;">Two-stream convolutional networks for action recognition in videos.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib42.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib42.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">NIPS</span><span id="bib.bib42.5.3" class="ltx_text" style="font-size:90%;">, 2014.
+</span>
+</span>
+</li>
+<li id="bib.bib43" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[43]</span>
+<span class="ltx_bibblock"><span id="bib.bib43.1.1" class="ltx_text" style="font-size:90%;">
+K. Simonyan and A. Zisserman.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib43.2.1" class="ltx_text" style="font-size:90%;">Very deep convolutional networks for large-scale image recognition.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib43.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib43.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ICLR</span><span id="bib.bib43.5.3" class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib44" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[44]</span>
+<span class="ltx_bibblock"><span id="bib.bib44.1.1" class="ltx_text" style="font-size:90%;">
+C. Sun, A. Shrivastava, S. Singh, and A. Gupta.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib44.2.1" class="ltx_text" style="font-size:90%;">Revisiting unreasonable effectiveness of data in deep learning era.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib44.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib44.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ICCV</span><span id="bib.bib44.5.3" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib45" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[45]</span>
+<span class="ltx_bibblock"><span id="bib.bib45.1.1" class="ltx_text" style="font-size:90%;">
+C. Szegedy, A. Toshev, and D. Erhan.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib45.2.1" class="ltx_text" style="font-size:90%;">Deep neural networks for object detection.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib45.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib45.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">NIPS</span><span id="bib.bib45.5.3" class="ltx_text" style="font-size:90%;">, 2013.
+</span>
+</span>
+</li>
+<li id="bib.bib46" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[46]</span>
+<span class="ltx_bibblock"><span id="bib.bib46.1.1" class="ltx_text" style="font-size:90%;">
+D. Ulyanov, A. Vedaldi, and V. Lempitsky.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib46.2.1" class="ltx_text" style="font-size:90%;">Instance normalization: The missing ingredient for fast stylization.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib46.3.1" class="ltx_text ltx_font_italic" style="font-size:90%;">arXiv:1607.08022</span><span id="bib.bib46.4.2" class="ltx_text" style="font-size:90%;">, 2016.
+</span>
+</span>
+</li>
+<li id="bib.bib47" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[47]</span>
+<span class="ltx_bibblock"><span id="bib.bib47.1.1" class="ltx_text" style="font-size:90%;">
+X. Wang and A. Gupta.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib47.2.1" class="ltx_text" style="font-size:90%;">Unsupervised learning of visual representations using videos.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib47.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib47.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ICCV</span><span id="bib.bib47.5.3" class="ltx_text" style="font-size:90%;">, 2015.
+</span>
+</span>
+</li>
+<li id="bib.bib48" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[48]</span>
+<span class="ltx_bibblock"><span id="bib.bib48.1.1" class="ltx_text" style="font-size:90%;">
+Y. Wu and K. He.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib48.2.1" class="ltx_text" style="font-size:90%;">Group normalization.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib48.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib48.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ECCV</span><span id="bib.bib48.5.3" class="ltx_text" style="font-size:90%;">, 2018.
+</span>
+</span>
+</li>
+<li id="bib.bib49" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[49]</span>
+<span class="ltx_bibblock"><span id="bib.bib49.1.1" class="ltx_text" style="font-size:90%;">
+S. Xie, R. Girshick, P. Dollár, Z. Tu, and K. He.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib49.2.1" class="ltx_text" style="font-size:90%;">Aggregated residual transformations for deep neural networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib49.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib49.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">CVPR</span><span id="bib.bib49.5.3" class="ltx_text" style="font-size:90%;">, 2017.
+</span>
+</span>
+</li>
+<li id="bib.bib50" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[50]</span>
+<span class="ltx_bibblock"><span id="bib.bib50.1.1" class="ltx_text" style="font-size:90%;">
+M. D. Zeiler and R. Fergus.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib50.2.1" class="ltx_text" style="font-size:90%;">Visualizing and understanding convolutional neural networks.
+</span>
+</span>
+<span class="ltx_bibblock"><span id="bib.bib50.3.1" class="ltx_text" style="font-size:90%;">In </span><span id="bib.bib50.4.2" class="ltx_text ltx_font_italic" style="font-size:90%;">ECCV</span><span id="bib.bib50.5.3" class="ltx_text" style="font-size:90%;">, 2014.
+</span>
+</span>
+</li>
+</ul>
+</section>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/1811.08882" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/1811.08883" class="ar5iv-text-button ar5iv-severity-error">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+1811.08883">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/1811.08883" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/1811.08884" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Sun Mar 17 04:13:14 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

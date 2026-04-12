@@ -1,0 +1,1078 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[1910.00486] Dialogue Transformers</title><meta property="og:description" content="We introduce a dialogue policy based on a transformer architecture [Vaswani et al., 2017], where the self-attention mechanism operates over the sequence of dialogue turns.
+Recent work has used hierarchical recurrent ne…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Dialogue Transformers">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="Dialogue Transformers">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/1910.00486">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/1910.00486">
+
+<!--Generated on Fri Mar  8 02:23:00 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_title_document">Dialogue Transformers</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Vladimir Vlasov
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_email"><a href="mailto:vladimir@rasa.com">vladimir@rasa.com</a>
+</span>
+<span class="ltx_contact ltx_role_affiliation">Rasa
+</span></span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Johannes E. M. Mosig
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_email"><a href="mailto:j.mosig@rasa.com">j.mosig@rasa.com</a>
+</span>
+<span class="ltx_contact ltx_role_affiliation">Rasa
+</span></span></span>
+<span class="ltx_author_before">  </span><span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Alan Nichol
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_email"><a href="mailto:alan@rasa.com">alan@rasa.com</a>
+</span>
+<span class="ltx_contact ltx_role_affiliation">Rasa
+</span></span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id1.id1" class="ltx_p">We introduce a dialogue policy based on a transformer architecture <cite class="ltx_cite ltx_citemacro_citep">[Vaswani et al., <a href="#bib.bib1" title="" class="ltx_ref">2017</a>]</cite>, where the self-attention mechanism operates over the sequence of dialogue turns.
+Recent work has used hierarchical recurrent neural networks to encode multiple utterances in a dialogue context, but we argue that a pure self-attention mechanism is more suitable.
+By default, an RNN assumes that every item in a sequence is relevant for producing an encoding of the full sequence, but a single conversation can consist of multiple overlapping discourse segments as speakers interleave multiple topics.
+A transformer picks which turns to include in its encoding of the current dialogue state, and is naturally suited to selectively ignoring or attending to dialogue history.
+We compare the performance of the Transformer Embedding Dialogue (TED) policy to an LSTM and to the REDP <cite class="ltx_cite ltx_citemacro_citep">[Vlasov et al., <a href="#bib.bib2" title="" class="ltx_ref">2018</a>]</cite>, which was specifically designed to overcome this limitation of RNNs.</p>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">I </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">Conversational AI assistants promise to help users achieve a task through natural language.
+Interpreting simple instructions like <em id="S1.p1.1.1" class="ltx_emph ltx_font_italic">please turn on the lights</em> is relatively straightforward, but to handle more complex tasks, these systems must be able to engage in multi-turn conversations.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">The goal of this paper is to show that the transformer architecture <cite class="ltx_cite ltx_citemacro_citep">[Vaswani et al., <a href="#bib.bib1" title="" class="ltx_ref">2017</a>]</cite> is more suitable for modeling multi-turn conversations than the commonly used recurrent models.
+To compare the basic mechanisms that are at the heart of the sequence encoding we intentionally choose simple architectures.
+The proposed TED architecture should be thought of as a candidate building block for use in developing state-of-the-art architectures in various dialogue tasks.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p">Not every utterance in a conversation has to be a response to the most recent utterance by the other party.
+Groz and Sidner <cite class="ltx_cite ltx_citemacro_citep">[Grosz and Sidner, <a href="#bib.bib3" title="" class="ltx_ref">1986</a>]</cite> consider conversations as an interleaved set of <em id="S1.p3.1.1" class="ltx_emph ltx_font_italic">discourse segments</em>, where a discourse segment (or topic) is a set of utterances that directly respond to each other.
+These sequences of turns may not directly follow one another in the conversation.
+An intuitive example of this is the need for sub-dialogues in task-oriented dialogue systems. Consider this conversation:</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<pre id="S1.p4.1" class="ltx_verbatim ltx_font_typewriter" style="font-size:90%;">
+ BOT: Your total is $15.50 - shall I
+      charge the card you used last time?
+ USER: Do I still have credit on my
+       account from that refund I got?
+ BOT: Yes, your account is $10 in credit.
+ USER: Ok, great.
+ BOT: Shall I place the order?
+ USER: Yes.
+ BOT: Done. You should have your items tomorrow.
+</pre>
+</div>
+<section id="S1.SS0.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Dialogue Stacks</h4>
+
+<div id="S1.SS0.SSS0.Px1.p1" class="ltx_para">
+<p id="S1.SS0.SSS0.Px1.p1.1" class="ltx_p">The assistant’s question <em id="S1.SS0.SSS0.Px1.p1.1.1" class="ltx_emph ltx_font_italic">Shall I place the order?</em> prompts the return to the task at hand: completing a purchase.
+One model is to think of these sub-dialogues as existing on a stack, where new topics are pushed on to the stack when they are introduced and popped off the stack once concluded.</p>
+</div>
+<div id="S1.SS0.SSS0.Px1.p2" class="ltx_para">
+<p id="S1.SS0.SSS0.Px1.p2.1" class="ltx_p">In the 1980s, Groz and Sidner <cite class="ltx_cite ltx_citemacro_citep">[Grosz and Sidner, <a href="#bib.bib3" title="" class="ltx_ref">1986</a>]</cite> argued for representing dialogue history as a stack of topics, and later the RavenClaw <cite class="ltx_cite ltx_citemacro_citep">[Bohus and Rudnicky, <a href="#bib.bib4" title="" class="ltx_ref">2009</a>]</cite> dialogue system implemented a dialogue stack for the specific purpose of handling sub-dialogues.
+While a stack naturally allows for sub-dialogues to be handled and concluded, the strict structure of a stack is also limiting.
+The authors of RavenClaw argue for explicitly tracking topics to enable the contextual interpretation of the user intents.
+However, once a topic has been popped from the dialogue stack, it is no longer available to provide this context.
+In the example above, the user might follow up with a further question like <em id="S1.SS0.SSS0.Px1.p2.1.1" class="ltx_emph ltx_font_italic">so that used up my credit, right?</em>. If the topic of refund credits has been popped from the stack, this can no longer help clarify what the user wants to know.
+Since there is in principle no restriction to how humans revisit and interleave topics in a conversation, we are interested in a more flexible structure than a stack.</p>
+</div>
+</section>
+<section id="S1.SS0.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Recurrent Neural Networks</h4>
+
+<div id="S1.SS0.SSS0.Px2.p1" class="ltx_para">
+<p id="S1.SS0.SSS0.Px2.p1.1" class="ltx_p">A common choice in recent years has been to use a recurrent neural network (RNN) to process the sequence of previous dialogue turns, both for open domain <cite class="ltx_cite ltx_citemacro_citep">[Sordoni et al., <a href="#bib.bib5" title="" class="ltx_ref">2015</a>, Serban et al., <a href="#bib.bib6" title="" class="ltx_ref">2016</a>]</cite> and task-oriented systems <cite class="ltx_cite ltx_citemacro_citep">[Williams et al., <a href="#bib.bib7" title="" class="ltx_ref">2017</a>]</cite>.
+Given enough training data, an RNN should be able to learn any desired behaviour.
+However, in a typical low-resource setting where no large corpus for training a particular task is available, an RNN is not guaranteed to learn to generalize these behaviours.
+Previous work on modifying the basic RNN structure to include inductive biases for this behaviour into a dialogue policy was conducted by Vlasov et al. <cite class="ltx_cite ltx_citemacro_citep">[Vlasov et al., <a href="#bib.bib2" title="" class="ltx_ref">2018</a>]</cite> and Sahay et al. <cite class="ltx_cite ltx_citemacro_citep">[Sahay et al., <a href="#bib.bib8" title="" class="ltx_ref">2019</a>]</cite>.
+These works aim to overcome a feature of RNNs that is undesirable for dialogue modeling.
+RNNs by default consume the <em id="S1.SS0.SSS0.Px2.p1.1.1" class="ltx_emph ltx_font_italic">entire</em> sequence of input elements to produce an encoding, unless a more complex structure like a Long Short-Term Memory (LSTM) cell is trained on sufficient data to explicitly learn that it should ‘forget’ parts of a sequence.</p>
+</div>
+</section>
+<section id="S1.SS0.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Transformers</h4>
+
+<div id="S1.SS0.SSS0.Px3.p1" class="ltx_para">
+<p id="S1.SS0.SSS0.Px3.p1.1" class="ltx_p">The transformer architecture has in recent years replaced recurrent neural networks as the standard for training language models, with models such as Transformer-XL <cite class="ltx_cite ltx_citemacro_citep">[Dai et al., <a href="#bib.bib9" title="" class="ltx_ref">2019</a>]</cite> and GPT-2 <cite class="ltx_cite ltx_citemacro_citep">[Radford et al., <a href="#bib.bib10" title="" class="ltx_ref">2019</a>]</cite> achieving much lower perplexities across a variety of corpora and producing representations that are useful for a variety of downstream tasks <cite class="ltx_cite ltx_citemacro_citep">[Wang et al., <a href="#bib.bib11" title="" class="ltx_ref">2018</a>, Devlin et al., <a href="#bib.bib12" title="" class="ltx_ref">2018</a>]</cite>.
+In addition, transformers have recently shown to be more robust to unexpected inputs (such as adversarial examples) <cite class="ltx_cite ltx_citemacro_citep">[Hsieh et al., <a href="#bib.bib13" title="" class="ltx_ref">2019</a>]</cite>.
+Intuitively, because the self-attention mechanism preselects which tokens will contribute to the current state of the encoder, a transformer can ignore uninformative (or adversarial) tokens in a sequence.
+To make a prediction at each time step, an LSTM needs to update its internal memory cell, propagating this update to further time steps.
+If an input at the current time step is unexpected, the internal state gets perturbed and at the next time step the neural network encounters a memory state unlike anything encountered during training.
+A transformer accounts for time history via a self-attention mechanism, making the predictions at each time step independent of each other.
+If a transformer receives an irrelevant input, it can ignore it and use only the relevant previous inputs to make a prediction.</p>
+</div>
+<div id="S1.SS0.SSS0.Px3.p2" class="ltx_para">
+<p id="S1.SS0.SSS0.Px3.p2.1" class="ltx_p">Since a transformer chooses which elements in a sequence to use to produce an encoder state at every step, we hypothesise that it could be a useful architecture for processing dialogue histories.
+The sequence of utterances in a conversation may represent multiple interleaved topics, and the transformer’s self-attention mechanism can simultaneously learn to disentangle these discourse segments and also to respond appropriately.</p>
+</div>
+</section>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">II </span>Related Work</h2>
+
+<section id="S2.SS0.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Transformers for open-domain dialogue</h4>
+
+<div id="S2.SS0.SSS0.Px1.p1" class="ltx_para">
+<p id="S2.SS0.SSS0.Px1.p1.1" class="ltx_p">Multiple authors have recently used transformer architectures in dialogue modeling.
+Henderson et al. <cite class="ltx_cite ltx_citemacro_citep">[Henderson et al., <a href="#bib.bib14" title="" class="ltx_ref">2019</a>]</cite> train response selection models on a large dataset from Reddit where both
+the dialogue context and responses are encoded with a transformer.
+They show that these architectures can be pre-trained on a large, diverse dataset and later fine-tuned for task-oriented dialogue in specific domains.
+Dinan et al. <cite class="ltx_cite ltx_citemacro_citep">[Dinan et al., <a href="#bib.bib15" title="" class="ltx_ref">2018</a>]</cite> used a similar approach, using tranformers to encode the dialogue context as well as
+background knowledge for studying grounded open-domain conversations.
+Their proposed architecture comes in two forms: a retrieval model where another transformer is used to
+encode candidate responses which are selected by ranking, and a generative model where a transformer is
+used as a decoder to produce responses token-by-token.
+The key difference with these approaches is that we apply self-attention at the discourse level,
+attending over the sequence of dialogue turns rather than the sequence of tokens in a single turn.</p>
+</div>
+</section>
+<section id="S2.SS0.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Topic disentanglement in task-oriented dialogue</h4>
+
+<div id="S2.SS0.SSS0.Px2.p1" class="ltx_para">
+<p id="S2.SS0.SSS0.Px2.p1.1" class="ltx_p">Recent work has attempted to produce neural architectures for dialogue policies which can handle interleaved discourse segments in a single conversation.
+Vlasov et al. <cite class="ltx_cite ltx_citemacro_citep">[Vlasov et al., <a href="#bib.bib2" title="" class="ltx_ref">2018</a>]</cite> introduced the Recurrent Embedding Dialogue Policy (REDP) architecture.
+The ablation study in this work highlighted that the improved performance of REDP is due to an attention
+mechanism over the dialogue history and a copy mechanism to recover from unexpected user input.
+This modification to the standard RNN structure enables the dialogue policy to ‘skip’ specific turns in the dialogue history and produce an encoder state which is identical before and after the unexpected input.
+Sahay et al. <cite class="ltx_cite ltx_citemacro_citep">[Sahay et al., <a href="#bib.bib8" title="" class="ltx_ref">2019</a>]</cite> develop this line of investigation further by studying the effectiveness of different attention mechanisms for learning this masking behaviour.</p>
+</div>
+<div id="S2.SS0.SSS0.Px2.p2" class="ltx_para">
+<p id="S2.SS0.SSS0.Px2.p2.1" class="ltx_p">In this work we do not augment the basic RNN architecture but rather replace it with a transformer.
+By default, an RNN processes every item in a sequence to calculate an encoding.
+REDP’s modifications were motivated by the fact that not all dialogue history is relevant.
+Taking this line of reasoning further, we can use self-attention in place of an RNN, so there is no
+<em id="S2.SS0.SSS0.Px2.p2.1.1" class="ltx_emph ltx_font_italic">a priori</em> assumption that the whole sequence is relevant, but rather that the dialogue policy should select which historical turns are relevant for choosing a response.</p>
+</div>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">III </span>Transformer as a dialogue policy</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.1" class="ltx_p">We propose the Transformer Embedding Dialogue (TED) policy, which greatly simplifies the architecture of the REDP.
+Similar to the REDP, we do not use a classifier to select a system action.
+Instead, we jointly train embeddings for the dialogue state and each of the system actions by maximizing a similarity function between them.
+At inference time, the current state of the dialogue is compared to all possible system actions, and the one with the highest similarity is selected.
+A similar approach is taken by <cite class="ltx_cite ltx_citemacro_citep">[Bordes et al., <a href="#bib.bib16" title="" class="ltx_ref">2016</a>, Mehri et al., <a href="#bib.bib17" title="" class="ltx_ref">2019</a>, Henderson et al., <a href="#bib.bib14" title="" class="ltx_ref">2019</a>]</cite> in training retrieval models for task-oriented dialogue.</p>
+</div>
+<figure id="S3.F1" class="ltx_figure"><img src="/html/1910.00486/assets/x1.png" id="S3.F1.g1" class="ltx_graphics ltx_centering ltx_img_square" width="461" height="470" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1: </span>A schematic representation of two time steps of the transformer embedding dialogue policy.</figcaption>
+</figure>
+<div id="S3.p2" class="ltx_para">
+<p id="S3.p2.1" class="ltx_p">Two time steps (i.e. dialogue turns) of the TED policy are illustrated in Figure <a href="#S3.F1" title="Figure 1 ‣ III Transformer as a dialogue policy ‣ Dialogue Transformers" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>. A step consists of several key parts.</p>
+</div>
+<section id="S3.SS0.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Featurization</h4>
+
+<div id="S3.SS0.SSS0.Px1.p1" class="ltx_para">
+<p id="S3.SS0.SSS0.Px1.p1.1" class="ltx_p">Firstly, the policy featurizes the user input, system actions and slots.</p>
+</div>
+<div id="S3.SS0.SSS0.Px1.p2" class="ltx_para">
+<p id="S3.SS0.SSS0.Px1.p2.1" class="ltx_p">The TED policy can be used in an end-to-end or in a modular fashion.
+The modular approach is similar to that taken in POMDP-based dialogue policies <cite class="ltx_cite ltx_citemacro_citep">[Williams and Young, <a href="#bib.bib18" title="" class="ltx_ref">2007</a>]</cite> or Hybrid Code Networks <cite class="ltx_cite ltx_citemacro_citep">[Williams et al., <a href="#bib.bib7" title="" class="ltx_ref">2017</a>, Bocklisch et al., <a href="#bib.bib19" title="" class="ltx_ref">2017</a>]</cite>.
+An external natural language understanding system is used and the user input
+is featurized as a binary vector indicating the recognized intent and the detected entities.
+The dialogue policy predicts an action from a fixed list of system actions. System actions are featurized as binary vectors representing the action name, following the REDP approach
+explained in detail in  <cite class="ltx_cite ltx_citemacro_citep">[Vlasov et al., <a href="#bib.bib2" title="" class="ltx_ref">2018</a>]</cite>.</p>
+</div>
+<div id="S3.SS0.SSS0.Px1.p3" class="ltx_para">
+<p id="S3.SS0.SSS0.Px1.p3.1" class="ltx_p">By end-to-end we mean that there is no supervision beyond the sequence of utterances.
+That is, there are no gold labels for the NLU output or the system action names.
+The end-to-end TED policy is still a retrieval model and does not generate new responses.
+In the end-to-end setup, user and system utterances are encoded as bag-of-words vectors.</p>
+</div>
+<div id="S3.SS0.SSS0.Px1.p4" class="ltx_para">
+<p id="S3.SS0.SSS0.Px1.p4.1" class="ltx_p">Slots are always featurized as binary vectors, indicating their presence, absence, or that the value is not important to the user, at each step of the dialogue.
+We use a simple slot tracking method, overwriting each slot with the most recently specified value.</p>
+</div>
+</section>
+<section id="S3.SS0.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Transformer</h4>
+
+<div id="S3.SS0.SSS0.Px2.p1" class="ltx_para">
+<p id="S3.SS0.SSS0.Px2.p1.1" class="ltx_p">The input to the transformer is the sequence of user inputs and system actions.
+Therefore, we leverage the self-attention mechanism present in the transformer to access different parts of dialogue history dynamically at each dialogue turn.
+The relevance of previous dialogue turns is learned from data and calculated anew at each
+turn in the dialogue.
+Crucially, this allows the dialogue policy to take a user utterance into account at one turn
+but ignore it completely at another.</p>
+</div>
+</section>
+<section id="S3.SS0.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Similarity</h4>
+
+<div id="S3.SS0.SSS0.Px3.p1" class="ltx_para">
+<p id="S3.SS0.SSS0.Px3.p1.9" class="ltx_p">The transformer output <math id="S3.SS0.SSS0.Px3.p1.1.m1.1" class="ltx_Math" alttext="a_{\text{dialogue}}" display="inline"><semantics id="S3.SS0.SSS0.Px3.p1.1.m1.1a"><msub id="S3.SS0.SSS0.Px3.p1.1.m1.1.1" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1.cmml"><mi id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.2" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1.2.cmml">a</mi><mtext id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.3" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1.3a.cmml">dialogue</mtext></msub><annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px3.p1.1.m1.1b"><apply id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1">subscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1.2">𝑎</ci><ci id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.3a.cmml" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1.3"><mtext mathsize="70%" id="S3.SS0.SSS0.Px3.p1.1.m1.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.1.m1.1.1.3">dialogue</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.p1.1.m1.1c">a_{\text{dialogue}}</annotation></semantics></math> and system actions <math id="S3.SS0.SSS0.Px3.p1.2.m2.1" class="ltx_Math" alttext="y_{\text{action}}" display="inline"><semantics id="S3.SS0.SSS0.Px3.p1.2.m2.1a"><msub id="S3.SS0.SSS0.Px3.p1.2.m2.1.1" xref="S3.SS0.SSS0.Px3.p1.2.m2.1.1.cmml"><mi id="S3.SS0.SSS0.Px3.p1.2.m2.1.1.2" xref="S3.SS0.SSS0.Px3.p1.2.m2.1.1.2.cmml">y</mi><mtext id="S3.SS0.SSS0.Px3.p1.2.m2.1.1.3" xref="S3.SS0.SSS0.Px3.p1.2.m2.1.1.3a.cmml">action</mtext></msub><annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px3.p1.2.m2.1b"><apply id="S3.SS0.SSS0.Px3.p1.2.m2.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.2.m2.1.1"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.2.m2.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.2.m2.1.1">subscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.2.m2.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.2.m2.1.1.2">𝑦</ci><ci id="S3.SS0.SSS0.Px3.p1.2.m2.1.1.3a.cmml" xref="S3.SS0.SSS0.Px3.p1.2.m2.1.1.3"><mtext mathsize="70%" id="S3.SS0.SSS0.Px3.p1.2.m2.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.2.m2.1.1.3">action</mtext></ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.p1.2.m2.1c">y_{\text{action}}</annotation></semantics></math> are embedded into a single semantic vector space <math id="S3.SS0.SSS0.Px3.p1.3.m3.1" class="ltx_Math" alttext="h_{\text{dialogue}}=E(a_{\text{dialogue}})" display="inline"><semantics id="S3.SS0.SSS0.Px3.p1.3.m3.1a"><mrow id="S3.SS0.SSS0.Px3.p1.3.m3.1.1" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.cmml"><msub id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.cmml"><mi id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.2" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.2.cmml">h</mi><mtext id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.3" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.3a.cmml">dialogue</mtext></msub><mo id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.2" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.2.cmml">=</mo><mrow id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.cmml"><mi id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.3" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.3.cmml">E</mi><mo lspace="0em" rspace="0em" id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.2" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.2.cmml">​</mo><mrow id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.cmml"><mo stretchy="false" id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.2" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.cmml">(</mo><msub id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.cmml"><mi id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.2" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.2.cmml">a</mi><mtext id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.3" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.3a.cmml">dialogue</mtext></msub><mo stretchy="false" id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.3" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.cmml">)</mo></mrow></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px3.p1.3.m3.1b"><apply id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1"><eq id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.2"></eq><apply id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.1.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3">subscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.2.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.2">ℎ</ci><ci id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.3a.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.3"><mtext mathsize="70%" id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.3.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.3.3">dialogue</mtext></ci></apply><apply id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1"><times id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.2"></times><ci id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.3">𝐸</ci><apply id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1">subscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.2">𝑎</ci><ci id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.3a.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.3"><mtext mathsize="70%" id="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.3.m3.1.1.1.1.1.1.3">dialogue</mtext></ci></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.p1.3.m3.1c">h_{\text{dialogue}}=E(a_{\text{dialogue}})</annotation></semantics></math>, <math id="S3.SS0.SSS0.Px3.p1.4.m4.1" class="ltx_Math" alttext="h_{\text{action}}=E(y_{\text{action}})" display="inline"><semantics id="S3.SS0.SSS0.Px3.p1.4.m4.1a"><mrow id="S3.SS0.SSS0.Px3.p1.4.m4.1.1" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.cmml"><msub id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.cmml"><mi id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.2" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.2.cmml">h</mi><mtext id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.3" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.3a.cmml">action</mtext></msub><mo id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.2" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.2.cmml">=</mo><mrow id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.cmml"><mi id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.3" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.3.cmml">E</mi><mo lspace="0em" rspace="0em" id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.2" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.2.cmml">​</mo><mrow id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.cmml"><mo stretchy="false" id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.2" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.cmml">(</mo><msub id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.cmml"><mi id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.2" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.2.cmml">y</mi><mtext id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.3" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.3a.cmml">action</mtext></msub><mo stretchy="false" id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.3" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.cmml">)</mo></mrow></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px3.p1.4.m4.1b"><apply id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1"><eq id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.2"></eq><apply id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.1.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3">subscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.2.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.2">ℎ</ci><ci id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.3a.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.3"><mtext mathsize="70%" id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.3.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.3.3">action</mtext></ci></apply><apply id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1"><times id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.2"></times><ci id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.3">𝐸</ci><apply id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1">subscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.2">𝑦</ci><ci id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.3a.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.3"><mtext mathsize="70%" id="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.4.m4.1.1.1.1.1.1.3">action</mtext></ci></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.p1.4.m4.1c">h_{\text{action}}=E(y_{\text{action}})</annotation></semantics></math>, where <math id="S3.SS0.SSS0.Px3.p1.5.m5.1" class="ltx_Math" alttext="h\in{\rm I\!R}^{20}" display="inline"><semantics id="S3.SS0.SSS0.Px3.p1.5.m5.1a"><mrow id="S3.SS0.SSS0.Px3.p1.5.m5.1.1" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.cmml"><mi id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.2" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.2.cmml">h</mi><mo id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.1" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.1.cmml">∈</mo><mrow id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.cmml"><mpadded width="0.348em"><mi mathvariant="normal" id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.2" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.2.cmml">I</mi></mpadded><mo lspace="0em" rspace="0em" id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.1" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.1.cmml">​</mo><msup id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3.cmml"><mi mathvariant="normal" id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3.2" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3.2.cmml">R</mi><mn id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3.3" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3.3.cmml">20</mn></msup></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px3.p1.5.m5.1b"><apply id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1"><in id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.1"></in><ci id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.2">ℎ</ci><apply id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3"><times id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.1.cmml" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.1"></times><ci id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.2.cmml" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.2">I</ci><apply id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3.cmml" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3.1.cmml" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3">superscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3.2.cmml" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3.2">R</ci><cn type="integer" id="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3.3.cmml" xref="S3.SS0.SSS0.Px3.p1.5.m5.1.1.3.3.3">20</cn></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.p1.5.m5.1c">h\in{\rm I\!R}^{20}</annotation></semantics></math>. We use the dot-product loss <cite class="ltx_cite ltx_citemacro_citep">[Wu et al., <a href="#bib.bib20" title="" class="ltx_ref">2017</a>, Henderson et al., <a href="#bib.bib14" title="" class="ltx_ref">2019</a>]</cite> to maximize the similarity <math id="S3.SS0.SSS0.Px3.p1.6.m6.1" class="ltx_Math" alttext="S^{+}=h_{\text{dialogue}}^{T}h_{\text{action}}^{+}" display="inline"><semantics id="S3.SS0.SSS0.Px3.p1.6.m6.1a"><mrow id="S3.SS0.SSS0.Px3.p1.6.m6.1.1" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.cmml"><msup id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2.cmml"><mi id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2.2" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2.2.cmml">S</mi><mo id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2.3" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2.3.cmml">+</mo></msup><mo id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.1" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.1.cmml">=</mo><mrow id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.cmml"><msubsup id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.cmml"><mi id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.2.2" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.2.2.cmml">h</mi><mtext id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.2.3" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.2.3a.cmml">dialogue</mtext><mi id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.3" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.3.cmml">T</mi></msubsup><mo lspace="0em" rspace="0em" id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.1" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.1.cmml">​</mo><msubsup id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.cmml"><mi id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.2.2" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.2.2.cmml">h</mi><mtext id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.2.3" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.2.3a.cmml">action</mtext><mo id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.3" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.3.cmml">+</mo></msubsup></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px3.p1.6.m6.1b"><apply id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1"><eq id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.1"></eq><apply id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2.1.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2">superscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2.2.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2.2">𝑆</ci><plus id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2.3.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.2.3"></plus></apply><apply id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3"><times id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.1.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.1"></times><apply id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.1.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2">superscript</csymbol><apply id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.2.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.2.1.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2">subscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.2.2.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.2.2">ℎ</ci><ci id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.2.3a.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.2.3"><mtext mathsize="70%" id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.2.3.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.2.3">dialogue</mtext></ci></apply><ci id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.3.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.2.3">𝑇</ci></apply><apply id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.1.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3">superscript</csymbol><apply id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.2.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.2.1.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3">subscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.2.2.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.2.2">ℎ</ci><ci id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.2.3a.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.2.3"><mtext mathsize="70%" id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.2.3.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.2.3">action</mtext></ci></apply><plus id="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.3.cmml" xref="S3.SS0.SSS0.Px3.p1.6.m6.1.1.3.3.3"></plus></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.p1.6.m6.1c">S^{+}=h_{\text{dialogue}}^{T}h_{\text{action}}^{+}</annotation></semantics></math> with the target label <math id="S3.SS0.SSS0.Px3.p1.7.m7.1" class="ltx_Math" alttext="y_{\text{action}}^{+}" display="inline"><semantics id="S3.SS0.SSS0.Px3.p1.7.m7.1a"><msubsup id="S3.SS0.SSS0.Px3.p1.7.m7.1.1" xref="S3.SS0.SSS0.Px3.p1.7.m7.1.1.cmml"><mi id="S3.SS0.SSS0.Px3.p1.7.m7.1.1.2.2" xref="S3.SS0.SSS0.Px3.p1.7.m7.1.1.2.2.cmml">y</mi><mtext id="S3.SS0.SSS0.Px3.p1.7.m7.1.1.2.3" xref="S3.SS0.SSS0.Px3.p1.7.m7.1.1.2.3a.cmml">action</mtext><mo id="S3.SS0.SSS0.Px3.p1.7.m7.1.1.3" xref="S3.SS0.SSS0.Px3.p1.7.m7.1.1.3.cmml">+</mo></msubsup><annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px3.p1.7.m7.1b"><apply id="S3.SS0.SSS0.Px3.p1.7.m7.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.7.m7.1.1"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.7.m7.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.7.m7.1.1">superscript</csymbol><apply id="S3.SS0.SSS0.Px3.p1.7.m7.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.7.m7.1.1"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.7.m7.1.1.2.1.cmml" xref="S3.SS0.SSS0.Px3.p1.7.m7.1.1">subscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.7.m7.1.1.2.2.cmml" xref="S3.SS0.SSS0.Px3.p1.7.m7.1.1.2.2">𝑦</ci><ci id="S3.SS0.SSS0.Px3.p1.7.m7.1.1.2.3a.cmml" xref="S3.SS0.SSS0.Px3.p1.7.m7.1.1.2.3"><mtext mathsize="70%" id="S3.SS0.SSS0.Px3.p1.7.m7.1.1.2.3.cmml" xref="S3.SS0.SSS0.Px3.p1.7.m7.1.1.2.3">action</mtext></ci></apply><plus id="S3.SS0.SSS0.Px3.p1.7.m7.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.7.m7.1.1.3"></plus></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.p1.7.m7.1c">y_{\text{action}}^{+}</annotation></semantics></math> and minimize similarities <math id="S3.SS0.SSS0.Px3.p1.8.m8.1" class="ltx_Math" alttext="S^{-}=h_{\text{dialogue}}^{T}h_{\text{action}}^{-}" display="inline"><semantics id="S3.SS0.SSS0.Px3.p1.8.m8.1a"><mrow id="S3.SS0.SSS0.Px3.p1.8.m8.1.1" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.cmml"><msup id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2.cmml"><mi id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2.2" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2.2.cmml">S</mi><mo id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2.3" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2.3.cmml">−</mo></msup><mo id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.1" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.1.cmml">=</mo><mrow id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.cmml"><msubsup id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.cmml"><mi id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.2.2" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.2.2.cmml">h</mi><mtext id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.2.3" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.2.3a.cmml">dialogue</mtext><mi id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.3" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.3.cmml">T</mi></msubsup><mo lspace="0em" rspace="0em" id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.1" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.1.cmml">​</mo><msubsup id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.cmml"><mi id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.2.2" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.2.2.cmml">h</mi><mtext id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.2.3" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.2.3a.cmml">action</mtext><mo id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.3" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.3.cmml">−</mo></msubsup></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px3.p1.8.m8.1b"><apply id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1"><eq id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.1"></eq><apply id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2.1.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2">superscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2.2.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2.2">𝑆</ci><minus id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2.3.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.2.3"></minus></apply><apply id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3"><times id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.1.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.1"></times><apply id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.1.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2">superscript</csymbol><apply id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.2.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.2.1.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2">subscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.2.2.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.2.2">ℎ</ci><ci id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.2.3a.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.2.3"><mtext mathsize="70%" id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.2.3.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.2.3">dialogue</mtext></ci></apply><ci id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.3.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.2.3">𝑇</ci></apply><apply id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.1.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3">superscript</csymbol><apply id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.2.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.2.1.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3">subscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.2.2.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.2.2">ℎ</ci><ci id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.2.3a.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.2.3"><mtext mathsize="70%" id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.2.3.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.2.3">action</mtext></ci></apply><minus id="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.3.cmml" xref="S3.SS0.SSS0.Px3.p1.8.m8.1.1.3.3.3"></minus></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.p1.8.m8.1c">S^{-}=h_{\text{dialogue}}^{T}h_{\text{action}}^{-}</annotation></semantics></math> with negative samples <math id="S3.SS0.SSS0.Px3.p1.9.m9.1" class="ltx_Math" alttext="y_{\text{action}}^{-}" display="inline"><semantics id="S3.SS0.SSS0.Px3.p1.9.m9.1a"><msubsup id="S3.SS0.SSS0.Px3.p1.9.m9.1.1" xref="S3.SS0.SSS0.Px3.p1.9.m9.1.1.cmml"><mi id="S3.SS0.SSS0.Px3.p1.9.m9.1.1.2.2" xref="S3.SS0.SSS0.Px3.p1.9.m9.1.1.2.2.cmml">y</mi><mtext id="S3.SS0.SSS0.Px3.p1.9.m9.1.1.2.3" xref="S3.SS0.SSS0.Px3.p1.9.m9.1.1.2.3a.cmml">action</mtext><mo id="S3.SS0.SSS0.Px3.p1.9.m9.1.1.3" xref="S3.SS0.SSS0.Px3.p1.9.m9.1.1.3.cmml">−</mo></msubsup><annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px3.p1.9.m9.1b"><apply id="S3.SS0.SSS0.Px3.p1.9.m9.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.9.m9.1.1"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.9.m9.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.9.m9.1.1">superscript</csymbol><apply id="S3.SS0.SSS0.Px3.p1.9.m9.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.9.m9.1.1"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.9.m9.1.1.2.1.cmml" xref="S3.SS0.SSS0.Px3.p1.9.m9.1.1">subscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.9.m9.1.1.2.2.cmml" xref="S3.SS0.SSS0.Px3.p1.9.m9.1.1.2.2">𝑦</ci><ci id="S3.SS0.SSS0.Px3.p1.9.m9.1.1.2.3a.cmml" xref="S3.SS0.SSS0.Px3.p1.9.m9.1.1.2.3"><mtext mathsize="70%" id="S3.SS0.SSS0.Px3.p1.9.m9.1.1.2.3.cmml" xref="S3.SS0.SSS0.Px3.p1.9.m9.1.1.2.3">action</mtext></ci></apply><minus id="S3.SS0.SSS0.Px3.p1.9.m9.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.9.m9.1.1.3"></minus></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.p1.9.m9.1c">y_{\text{action}}^{-}</annotation></semantics></math>. Thus, the loss function for one dialogue reads</p>
+<table id="S3.E1" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E1.m1.2" class="ltx_Math" alttext="L_{\text{dialogue}}=-\biggl{\langle}S^{+}-\log\biggl{(}e^{S^{+}}+\sum_{\Omega^{-}}e^{S^{-}}\biggr{)}\biggr{\rangle}," display="block"><semantics id="S3.E1.m1.2a"><mrow id="S3.E1.m1.2.2.1" xref="S3.E1.m1.2.2.1.1.cmml"><mrow id="S3.E1.m1.2.2.1.1" xref="S3.E1.m1.2.2.1.1.cmml"><msub id="S3.E1.m1.2.2.1.1.3" xref="S3.E1.m1.2.2.1.1.3.cmml"><mi id="S3.E1.m1.2.2.1.1.3.2" xref="S3.E1.m1.2.2.1.1.3.2.cmml">L</mi><mtext id="S3.E1.m1.2.2.1.1.3.3" xref="S3.E1.m1.2.2.1.1.3.3a.cmml">dialogue</mtext></msub><mo id="S3.E1.m1.2.2.1.1.2" xref="S3.E1.m1.2.2.1.1.2.cmml">=</mo><mrow id="S3.E1.m1.2.2.1.1.1" xref="S3.E1.m1.2.2.1.1.1.cmml"><mo id="S3.E1.m1.2.2.1.1.1a" xref="S3.E1.m1.2.2.1.1.1.cmml">−</mo><mrow id="S3.E1.m1.2.2.1.1.1.1.1" xref="S3.E1.m1.2.2.1.1.1.1.2.cmml"><mo maxsize="210%" minsize="210%" id="S3.E1.m1.2.2.1.1.1.1.1.2" xref="S3.E1.m1.2.2.1.1.1.1.2.1.cmml">⟨</mo><mrow id="S3.E1.m1.2.2.1.1.1.1.1.1" xref="S3.E1.m1.2.2.1.1.1.1.1.1.cmml"><msup id="S3.E1.m1.2.2.1.1.1.1.1.1.3" xref="S3.E1.m1.2.2.1.1.1.1.1.1.3.cmml"><mi id="S3.E1.m1.2.2.1.1.1.1.1.1.3.2" xref="S3.E1.m1.2.2.1.1.1.1.1.1.3.2.cmml">S</mi><mo id="S3.E1.m1.2.2.1.1.1.1.1.1.3.3" xref="S3.E1.m1.2.2.1.1.1.1.1.1.3.3.cmml">+</mo></msup><mo id="S3.E1.m1.2.2.1.1.1.1.1.1.2" xref="S3.E1.m1.2.2.1.1.1.1.1.1.2.cmml">−</mo><mrow id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.2.cmml"><mi id="S3.E1.m1.1.1" xref="S3.E1.m1.1.1.cmml">log</mi><mo id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1a" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.2.cmml">⁡</mo><mrow id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.2.cmml"><mo maxsize="210%" minsize="210%" id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.2" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.2.cmml">(</mo><mrow id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.cmml"><msup id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.cmml"><mi id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.2" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.2.cmml">e</mi><msup id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3.cmml"><mi id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3.2" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3.2.cmml">S</mi><mo id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3.3" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3.3.cmml">+</mo></msup></msup><mo rspace="0.055em" id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.cmml">+</mo><mrow id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.cmml"><munder id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.cmml"><mo movablelimits="false" id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.2" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.2.cmml">∑</mo><msup id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3.cmml"><mi mathvariant="normal" id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3.2" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3.2.cmml">Ω</mi><mo id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3.3" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3.3.cmml">−</mo></msup></munder><msup id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.cmml"><mi id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.2" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.2.cmml">e</mi><msup id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3.cmml"><mi id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3.2" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3.2.cmml">S</mi><mo id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3.3" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3.3.cmml">−</mo></msup></msup></mrow></mrow><mo maxsize="210%" minsize="210%" id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.3" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.2.cmml">)</mo></mrow></mrow></mrow><mo maxsize="210%" minsize="210%" id="S3.E1.m1.2.2.1.1.1.1.1.3" xref="S3.E1.m1.2.2.1.1.1.1.2.1.cmml">⟩</mo></mrow></mrow></mrow><mo id="S3.E1.m1.2.2.1.2" xref="S3.E1.m1.2.2.1.1.cmml">,</mo></mrow><annotation-xml encoding="MathML-Content" id="S3.E1.m1.2b"><apply id="S3.E1.m1.2.2.1.1.cmml" xref="S3.E1.m1.2.2.1"><eq id="S3.E1.m1.2.2.1.1.2.cmml" xref="S3.E1.m1.2.2.1.1.2"></eq><apply id="S3.E1.m1.2.2.1.1.3.cmml" xref="S3.E1.m1.2.2.1.1.3"><csymbol cd="ambiguous" id="S3.E1.m1.2.2.1.1.3.1.cmml" xref="S3.E1.m1.2.2.1.1.3">subscript</csymbol><ci id="S3.E1.m1.2.2.1.1.3.2.cmml" xref="S3.E1.m1.2.2.1.1.3.2">𝐿</ci><ci id="S3.E1.m1.2.2.1.1.3.3a.cmml" xref="S3.E1.m1.2.2.1.1.3.3"><mtext mathsize="70%" id="S3.E1.m1.2.2.1.1.3.3.cmml" xref="S3.E1.m1.2.2.1.1.3.3">dialogue</mtext></ci></apply><apply id="S3.E1.m1.2.2.1.1.1.cmml" xref="S3.E1.m1.2.2.1.1.1"><minus id="S3.E1.m1.2.2.1.1.1.2.cmml" xref="S3.E1.m1.2.2.1.1.1"></minus><apply id="S3.E1.m1.2.2.1.1.1.1.2.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1"><csymbol cd="latexml" id="S3.E1.m1.2.2.1.1.1.1.2.1.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.2">delimited-⟨⟩</csymbol><apply id="S3.E1.m1.2.2.1.1.1.1.1.1.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1"><minus id="S3.E1.m1.2.2.1.1.1.1.1.1.2.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.2"></minus><apply id="S3.E1.m1.2.2.1.1.1.1.1.1.3.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.3"><csymbol cd="ambiguous" id="S3.E1.m1.2.2.1.1.1.1.1.1.3.1.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.3">superscript</csymbol><ci id="S3.E1.m1.2.2.1.1.1.1.1.1.3.2.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.3.2">𝑆</ci><plus id="S3.E1.m1.2.2.1.1.1.1.1.1.3.3.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.3.3"></plus></apply><apply id="S3.E1.m1.2.2.1.1.1.1.1.1.1.2.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1"><log id="S3.E1.m1.1.1.cmml" xref="S3.E1.m1.1.1"></log><apply id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1"><plus id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.1"></plus><apply id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2"><csymbol cd="ambiguous" id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.1.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2">superscript</csymbol><ci id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.2.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.2">𝑒</ci><apply id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3"><csymbol cd="ambiguous" id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3.1.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3">superscript</csymbol><ci id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3.2.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3.2">𝑆</ci><plus id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3.3.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.2.3.3"></plus></apply></apply><apply id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3"><apply id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1"><csymbol cd="ambiguous" id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.1.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1">subscript</csymbol><sum id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.2.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.2"></sum><apply id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3"><csymbol cd="ambiguous" id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3.1.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3">superscript</csymbol><ci id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3.2.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3.2">Ω</ci><minus id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3.3.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.1.3.3"></minus></apply></apply><apply id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2"><csymbol cd="ambiguous" id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.1.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2">superscript</csymbol><ci id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.2.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.2">𝑒</ci><apply id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3"><csymbol cd="ambiguous" id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3.1.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3">superscript</csymbol><ci id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3.2.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3.2">𝑆</ci><minus id="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3.3.cmml" xref="S3.E1.m1.2.2.1.1.1.1.1.1.1.1.1.1.3.2.3.3"></minus></apply></apply></apply></apply></apply></apply></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.E1.m1.2c">L_{\text{dialogue}}=-\biggl{\langle}S^{+}-\log\biggl{(}e^{S^{+}}+\sum_{\Omega^{-}}e^{S^{-}}\biggr{)}\biggr{\rangle},</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(1)</span></td>
+</tr></tbody>
+</table>
+<p id="S3.SS0.SSS0.Px3.p1.11" class="ltx_p">where the sum is taken over the set of negative samples <math id="S3.SS0.SSS0.Px3.p1.10.m1.1" class="ltx_Math" alttext="\Omega^{-}" display="inline"><semantics id="S3.SS0.SSS0.Px3.p1.10.m1.1a"><msup id="S3.SS0.SSS0.Px3.p1.10.m1.1.1" xref="S3.SS0.SSS0.Px3.p1.10.m1.1.1.cmml"><mi mathvariant="normal" id="S3.SS0.SSS0.Px3.p1.10.m1.1.1.2" xref="S3.SS0.SSS0.Px3.p1.10.m1.1.1.2.cmml">Ω</mi><mo id="S3.SS0.SSS0.Px3.p1.10.m1.1.1.3" xref="S3.SS0.SSS0.Px3.p1.10.m1.1.1.3.cmml">−</mo></msup><annotation-xml encoding="MathML-Content" id="S3.SS0.SSS0.Px3.p1.10.m1.1b"><apply id="S3.SS0.SSS0.Px3.p1.10.m1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.10.m1.1.1"><csymbol cd="ambiguous" id="S3.SS0.SSS0.Px3.p1.10.m1.1.1.1.cmml" xref="S3.SS0.SSS0.Px3.p1.10.m1.1.1">superscript</csymbol><ci id="S3.SS0.SSS0.Px3.p1.10.m1.1.1.2.cmml" xref="S3.SS0.SSS0.Px3.p1.10.m1.1.1.2">Ω</ci><minus id="S3.SS0.SSS0.Px3.p1.10.m1.1.1.3.cmml" xref="S3.SS0.SSS0.Px3.p1.10.m1.1.1.3"></minus></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.p1.10.m1.1c">\Omega^{-}</annotation></semantics></math> and the average <math id="S3.SS0.SSS0.Px3.p1.11.m2.1" class="ltx_math_unparsed" alttext="\langle.\rangle" display="inline"><semantics id="S3.SS0.SSS0.Px3.p1.11.m2.1a"><mrow id="S3.SS0.SSS0.Px3.p1.11.m2.1b"><mo stretchy="false" id="S3.SS0.SSS0.Px3.p1.11.m2.1.1">⟨</mo><mo lspace="0em" rspace="0.167em" id="S3.SS0.SSS0.Px3.p1.11.m2.1.2">.</mo><mo stretchy="false" id="S3.SS0.SSS0.Px3.p1.11.m2.1.3">⟩</mo></mrow><annotation encoding="application/x-tex" id="S3.SS0.SSS0.Px3.p1.11.m2.1c">\langle.\rangle</annotation></semantics></math> is taken over time steps inside one dialogue.</p>
+</div>
+<div id="S3.SS0.SSS0.Px3.p2" class="ltx_para">
+<p id="S3.SS0.SSS0.Px3.p2.1" class="ltx_p">The global loss is an average of all loss functions from all dialogues.</p>
+</div>
+<div id="S3.SS0.SSS0.Px3.p3" class="ltx_para">
+<p id="S3.SS0.SSS0.Px3.p3.1" class="ltx_p">At inference time, the dot-product similarity serves as a ranker for the next utterance retrieval problem.</p>
+</div>
+<div id="S3.SS0.SSS0.Px3.p4" class="ltx_para">
+<p id="S3.SS0.SSS0.Px3.p4.1" class="ltx_p">During modular training, we use a balanced batching strategy to mitigate class imbalance, as some system actions are far more frequent than others.</p>
+</div>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">IV </span>Experiments</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p">The aim of our experiments is to compare the performance of the transformer against that of an LSTM on multi-turn conversations.
+Specifically, we want to test the TED policy on the task of picking out relevant turns in the dialogue history for next action prediction.
+Therefore, we need a conversational dataset for which system actions depend on the dialogue history across several turns.
+This requirement precludes question-answering datasets such as WikiQA <cite class="ltx_cite ltx_citemacro_cite">Yang et al. [<a href="#bib.bib21" title="" class="ltx_ref">2015</a>]</cite> as candidates for evaluation.</p>
+</div>
+<div id="S4.p2" class="ltx_para">
+<p id="S4.p2.1" class="ltx_p">In addition, system actions need to be labeled to evaluate next action retrieval accuracy.
+Note, that metrics such as Recall@k <cite class="ltx_cite ltx_citemacro_cite">Lowe et al. [<a href="#bib.bib22" title="" class="ltx_ref">2016</a>]</cite> could be used on unlabeled data, but since typical dialogues contain many generic responses, such as “yes”, that are correct in a large number of situations, the meaningfulness of Recall@k is questionable.
+We therefore exclude unlabeled dialogue corpora such as the Ubuntu Dialogue Corpus <cite class="ltx_cite ltx_citemacro_cite">Lowe et al. [<a href="#bib.bib22" title="" class="ltx_ref">2016</a>]</cite> or MetalWOZ <cite class="ltx_cite ltx_citemacro_cite">Schulz et al. [<a href="#bib.bib23" title="" class="ltx_ref">2019</a>]</cite> from our experiments.</p>
+</div>
+<div id="S4.p3" class="ltx_para">
+<p id="S4.p3.1" class="ltx_p">To our knowledge, the only publicly available dialogue datasets that might satisfy both our criteria are the REDP dataset <cite class="ltx_cite ltx_citemacro_cite">Vlasov et al. [<a href="#bib.bib2" title="" class="ltx_ref">2018</a>]</cite>, MultiWOZ <cite class="ltx_cite ltx_citemacro_cite">Budzianowski et al. [<a href="#bib.bib24" title="" class="ltx_ref">2018</a>], Eric et al. [<a href="#bib.bib25" title="" class="ltx_ref">2019</a>]</cite> and Google Taskmaster-1 <cite class="ltx_cite ltx_citemacro_cite">Byrne et al. [<a href="#bib.bib26" title="" class="ltx_ref">2019</a>]</cite>.
+For the latter, we would have to extract action labels from the entity annotations, which is not always possible.</p>
+</div>
+<div id="S4.p4" class="ltx_para">
+<p id="S4.p4.1" class="ltx_p">Two different models serve as baseline in our experiments.
+First, the REDP model by <cite class="ltx_cite ltx_citemacro_citet">Vlasov et al. [<a href="#bib.bib2" title="" class="ltx_ref">2018</a>]</cite>, which was specifically designed to handle long-range history dependencies, but is LSTM-based.
+Second, another LSTM-based policy that is identical to TED, except that the transformer was replaced by an LSTM.</p>
+</div>
+<div id="S4.p5" class="ltx_para">
+<p id="S4.p5.1" class="ltx_p">We use the first (REDP) baseline for the experiments on the <cite class="ltx_cite ltx_citemacro_citep">[Vlasov et al., <a href="#bib.bib2" title="" class="ltx_ref">2018</a>]</cite> dataset, as this baseline is stronger when long-range dependencies are in play.
+For the MultiWOZ experiments, we only compare to the simple LSTM policy, since the MultiWOZ dataset is nearly history independent as we demonstrate here.</p>
+</div>
+<div id="S4.p6" class="ltx_para">
+<p id="S4.p6.1" class="ltx_p">All experiments are available online at <a target="_blank" href="https://github.com/RasaHQ/TED-paper" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/RasaHQ/TED-paper</a>.</p>
+</div>
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">IV.1 </span>Conversations containing sub-dialogues</h3>
+
+<div id="S4.SS1.p1" class="ltx_para">
+<p id="S4.SS1.p1.1" class="ltx_p">We first evaluate experiments on the dataset of <cite class="ltx_cite ltx_citemacro_citet">Vlasov et al. [<a href="#bib.bib2" title="" class="ltx_ref">2018</a>]</cite>.
+This dataset was specifically designed to test the ability of a dialogue policy to handle non-cooperative or unexpected user input. It consists of task-oriented dialogues in hotel and restaurant reservation domains containing cooperative (user provides necessary information related to the task) and non-cooperative (user asks a question unrelated to the task or makes chit-chat) dialogue turns.
+One of the properties of this dataset is that the system repeats the previously asked question after any non-cooperative user behavior.
+This dataset is also used in <cite class="ltx_cite ltx_citemacro_citep">[Sahay et al., <a href="#bib.bib8" title="" class="ltx_ref">2019</a>]</cite> to compare the performance of different attention mechanisms.</p>
+</div>
+<figure id="S4.F2" class="ltx_figure"><img src="/html/1910.00486/assets/x2.png" id="S4.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="461" height="346" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 2: </span>Performance of REDP, TED policy, and an LSTM baseline policy on the dataset from <cite class="ltx_cite ltx_citemacro_citep">[Vlasov et al., <a href="#bib.bib2" title="" class="ltx_ref">2018</a>]</cite>. Lines indicate mean and shaded area the standard deviation of 3 runs. The horizontal axis indicates the amount of training conversations used to train the model and the vertical axis is the number of conversations in the test set in which every action is predicted correctly.</figcaption>
+</figure>
+<div id="S4.SS1.p2" class="ltx_para">
+<p id="S4.SS1.p2.1" class="ltx_p">Figure <a href="#S4.F2" title="Figure 2 ‣ IV.1 Conversations containing sub-dialogues ‣ IV Experiments ‣ Dialogue Transformers" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> shows the performance of different dialogue policies on the held-out test dialogues as a function of the amount of conversations used to train the model. The TED policy performs on par with REDP without any specifically designed architecture to solve the task and significantly outperforms a simple LSTM-based policy.
+In the extreme low-data regime, the TED policy is outperformed by REDP. It should be noted that REDP relies heavily on its copy mechanism to predict the previously asked question after a non-cooperative digression.
+However, the TED policy, being both simpler and more general, achieves similar performance without relying on dialogue properties like repeating a question.
+Moreover, due to the transformer architecture, the TED policy trains faster than REDP and requires fewer training epochs to achieve the same accuracy.</p>
+</div>
+<figure id="S4.F3" class="ltx_figure"><img src="/html/1910.00486/assets/x3.png" id="S4.F3.g1" class="ltx_graphics ltx_img_square" width="461" height="461" alt="Refer to caption">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure">Figure 3: </span>Attention weights of the TED policy on an example dialogue. On the vertical axis are predicted dialogue turns, and on the horizontal axis is the dialogue history over which the TED policy attends. We use a unidirectional transformer, so the upper triangle is masked with zeros to avoid attending to future dialogue turns.</figcaption>
+</figure>
+<div id="S4.SS1.p3" class="ltx_para">
+<p id="S4.SS1.p3.1" class="ltx_p">Figure <a href="#S4.F3" title="Figure 3 ‣ IV.1 Conversations containing sub-dialogues ‣ IV Experiments ‣ Dialogue Transformers" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> visualizes the attention weights of the TED policy on an example dialogue.
+This example dialogue contains several chit-chat utterances in a row in the middle of the conversation.
+The Figure shows that the series of chit-chat interactions is completely ignored by the self-attention mechanism when task completion is attempted (i.e. further required questions are asked).
+Note, that the learned weights are sparse, even though the TED policy does not use a sparse attention architecture.
+Importantly, the TED policy chooses key dialogue steps from the history that are relevant for the current prediction and ignores uninformative history.
+Here, we visualize only one conversation, but the result is the same for an arbitrary number of chit-chat dialogue turns.</p>
+</div>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">IV.2 </span>Comparing the end-to-end and modular approaches on MultiWOZ</h3>
+
+<div id="S4.SS2.p1" class="ltx_para">
+<p id="S4.SS2.p1.1" class="ltx_p">Having demonstrated that the light-weight TED policy performs at least on par with the specialized REDP and significantly outperforms a basic LSTM policy when evaluated on conversations that contain long-range history dependencies, we now compare TED to an LSTM policy on the MultiWOZ 2.1 dataset.
+In contrast to the previous Section, the LSTM policy of the present Section is an architecture identical to TED, but with the transformer replaced by an LSTM cell.</p>
+</div>
+<div id="S4.SS2.p2" class="ltx_para">
+<p id="S4.SS2.p2.1" class="ltx_p">We chose MultiWOZ for this experiment because it concerns multi-turn conversations and provides system action labels.
+Unfortunately, we discovered that it does not contain many long-range dependencies, as we shall demonstrate later in this Section.
+Therefore, neither TED nor the REDP have any conceptual advantages over an LSTM.
+Subsequently we show that the TED policy performs on par with an LSTM on this commonly used benchmark dataset.
+</p>
+</div>
+<div id="S4.SS2.p3" class="ltx_para">
+<p id="S4.SS2.p3.1" class="ltx_p">MultiWOZ 2.1 is a dataset of 10438 human-human dialogues for a Wizard-of-Oz task in seven different domains: hotel, restaurant, train, taxi, attraction, hospital, and police.
+In particular, the dialogues are between a user and a clerk (wizard).
+The user asks for information and the wizard, who has access to a knowledge base about all the possible things that the user may ask for, provides that information or executes a booking.
+The dialogues are annotated with labels for the wizard’s actions, as well as the wizard’s knowledge about the user’s goal after each user turn.</p>
+</div>
+<div id="S4.SS2.p4" class="ltx_para">
+<p id="S4.SS2.p4.3" class="ltx_p">For our experiments, we split the MultiWOZ 2.1 dataset into a training and a test set of <math id="S4.SS2.p4.1.m1.1" class="ltx_Math" alttext="7249" display="inline"><semantics id="S4.SS2.p4.1.m1.1a"><mn id="S4.SS2.p4.1.m1.1.1" xref="S4.SS2.p4.1.m1.1.1.cmml">7249</mn><annotation-xml encoding="MathML-Content" id="S4.SS2.p4.1.m1.1b"><cn type="integer" id="S4.SS2.p4.1.m1.1.1.cmml" xref="S4.SS2.p4.1.m1.1.1">7249</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.p4.1.m1.1c">7249</annotation></semantics></math> and <math id="S4.SS2.p4.2.m2.1" class="ltx_Math" alttext="1812" display="inline"><semantics id="S4.SS2.p4.2.m2.1a"><mn id="S4.SS2.p4.2.m2.1.1" xref="S4.SS2.p4.2.m2.1.1.cmml">1812</mn><annotation-xml encoding="MathML-Content" id="S4.SS2.p4.2.m2.1b"><cn type="integer" id="S4.SS2.p4.2.m2.1.1.cmml" xref="S4.SS2.p4.2.m2.1.1">1812</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.p4.2.m2.1c">1812</annotation></semantics></math> dialogues, respectively.
+Unfortunately, we had to neglect <math id="S4.SS2.p4.3.m3.1" class="ltx_Math" alttext="1377" display="inline"><semantics id="S4.SS2.p4.3.m3.1a"><mn id="S4.SS2.p4.3.m3.1.1" xref="S4.SS2.p4.3.m3.1.1.cmml">1377</mn><annotation-xml encoding="MathML-Content" id="S4.SS2.p4.3.m3.1b"><cn type="integer" id="S4.SS2.p4.3.m3.1.1.cmml" xref="S4.SS2.p4.3.m3.1.1">1377</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.p4.3.m3.1c">1377</annotation></semantics></math> dialogues altogether, since their annotations are incomplete.</p>
+</div>
+<section id="S4.SS2.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">End-to-end training.</h4>
+
+<div id="S4.SS2.SSS0.Px1.p1" class="ltx_para">
+<p id="S4.SS2.SSS0.Px1.p1.1" class="ltx_p">As a first experiment on MultiWOZ 2.1 we study an end-to-end retrieval setup, where the user utterance is used directly as input to the TED policy, which then has to retrieve the correct response from a predefined list (extracted from MultiWOZ).</p>
+</div>
+<div id="S4.SS2.SSS0.Px1.p2" class="ltx_para">
+<p id="S4.SS2.SSS0.Px1.p2.1" class="ltx_p">The wizard’s behaviour depends on the result of queries to the knowledge base. For example, if only a single venue is returned, the wizard will probably refer to it.
+We marginalize this knowledge base dependence by (i) delexicalizing all user and wizard utterances <cite class="ltx_cite ltx_citemacro_citep">[Mrkšić et al., <a href="#bib.bib27" title="" class="ltx_ref">2016</a>]</cite>, and (ii) introducing status slots that indicate whether a venue is available, not available, already booked, or unique (i.e. the wizard is going to recommend or book a particular venue in the next turn).
+These slots are featurized as a 1-of-K binary vector.</p>
+</div>
+<div id="S4.SS2.SSS0.Px1.p3" class="ltx_para">
+<p id="S4.SS2.SSS0.Px1.p3.1" class="ltx_p">To compute the accuracy and F1 scores of the TED policy’s predictions, we assign the action labels (e.g. <code id="S4.SS2.SSS0.Px1.p3.1.1" class="ltx_verbatim ltx_font_typewriter">request_restaurant</code>) that are provided by the MultiWOZ dataset to the output utterances, and compare them to the correct labels.
+If multiple labels are present, we concatenate them in alphabetic order to a single label.</p>
+</div>
+<div id="S4.SS2.SSS0.Px1.p4" class="ltx_para">
+<p id="S4.SS2.SSS0.Px1.p4.1" class="ltx_p">Table <a href="#S4.T1" title="Table 1 ‣ End-to-end training. ‣ IV.2 Comparing the end-to-end and modular approaches on MultiWOZ ‣ IV Experiments ‣ Dialogue Transformers" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> shows the resulting F1 scores and accuracies on the hold-out test set.
+The discrepancy between the F1 score and the accuracy stems from the fact that some labels, s.a. <code id="S4.SS2.SSS0.Px1.p4.1.1" class="ltx_verbatim ltx_font_typewriter">bye_general</code>, occur very frequently (4759 times) compared to most other labels, s.a. <code id="S4.SS2.SSS0.Px1.p4.1.2" class="ltx_verbatim ltx_font_typewriter">recommend_restaurant_select_restau</code> <code id="S4.SS2.SSS0.Px1.p4.1.3" class="ltx_verbatim ltx_font_typewriter">rant</code>, which only occurs 11 times.</p>
+</div>
+<div id="S4.SS2.SSS0.Px1.p5" class="ltx_para">
+<p id="S4.SS2.SSS0.Px1.p5.1" class="ltx_p">The fact that accuracy and F1 scores are generally low compared to 1.0 stems from a deeper issue with the MultiWOZ dialog dataset.
+Specifically, because more than one particular behaviour of the wizard would be considered ’correct’ in most situations, the MultiWOZ dataset is unsuitable for supervised learning of dialogue policies.
+Put differently, some of the wizards’ actions in MultiWOZ are not deterministic, but probabilistic.
+For example, it cannot be learned when the wizard should ask if the user needs anything else, since this is the personal preference of the people who take the wizard’s role.
+We elaborate on this and several other issues of the MultiWOZ dataset in <cite class="ltx_cite ltx_citemacro_citep">[Mosig et al., <a href="#bib.bib28" title="" class="ltx_ref">2020</a>]</cite>.</p>
+</div>
+<figure id="S4.T1" class="ltx_table">
+<table id="S4.T1.1" class="ltx_tabular ltx_centering ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S4.T1.1.1" class="ltx_tr">
+<th id="S4.T1.1.1.2" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_l ltx_border_t"><span id="S4.T1.1.1.2.1" class="ltx_text ltx_font_bold">model</span></th>
+<th id="S4.T1.1.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_th_row ltx_border_t"><math id="S4.T1.1.1.1.m1.1" class="ltx_Math" alttext="N" display="inline"><semantics id="S4.T1.1.1.1.m1.1a"><mi id="S4.T1.1.1.1.m1.1.1" xref="S4.T1.1.1.1.m1.1.1.cmml">N</mi><annotation-xml encoding="MathML-Content" id="S4.T1.1.1.1.m1.1b"><ci id="S4.T1.1.1.1.m1.1.1.cmml" xref="S4.T1.1.1.1.m1.1.1">𝑁</ci></annotation-xml><annotation encoding="application/x-tex" id="S4.T1.1.1.1.m1.1c">N</annotation></semantics></math></th>
+<th id="S4.T1.1.1.3" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_t"><span id="S4.T1.1.1.3.1" class="ltx_text ltx_font_bold">accuracy</span></th>
+<th id="S4.T1.1.1.4" class="ltx_td ltx_align_left ltx_th ltx_th_column ltx_border_r ltx_border_t"><span id="S4.T1.1.1.4.1" class="ltx_text ltx_font_bold">F1 score</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S4.T1.1.2.1" class="ltx_tr">
+<th id="S4.T1.1.2.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_tt">TED end-to-end</th>
+<th id="S4.T1.1.2.1.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_tt">10</th>
+<td id="S4.T1.1.2.1.3" class="ltx_td ltx_align_left ltx_border_tt">0.64</td>
+<td id="S4.T1.1.2.1.4" class="ltx_td ltx_align_left ltx_border_r ltx_border_tt">0.28</td>
+</tr>
+<tr id="S4.T1.1.3.2" class="ltx_tr">
+<th id="S4.T1.1.3.2.1" class="ltx_td ltx_th ltx_th_row ltx_border_l"></th>
+<th id="S4.T1.1.3.2.2" class="ltx_td ltx_align_left ltx_th ltx_th_row">2</th>
+<td id="S4.T1.1.3.2.3" class="ltx_td ltx_align_left">0.62</td>
+<td id="S4.T1.1.3.2.4" class="ltx_td ltx_align_left ltx_border_r">0.24</td>
+</tr>
+<tr id="S4.T1.1.4.3" class="ltx_tr">
+<th id="S4.T1.1.4.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_t">TED modular</th>
+<th id="S4.T1.1.4.3.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">10</th>
+<td id="S4.T1.1.4.3.3" class="ltx_td ltx_align_left ltx_border_t">0.73</td>
+<td id="S4.T1.1.4.3.4" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">0.63</td>
+</tr>
+<tr id="S4.T1.1.5.4" class="ltx_tr">
+<th id="S4.T1.1.5.4.1" class="ltx_td ltx_th ltx_th_row ltx_border_l"></th>
+<th id="S4.T1.1.5.4.2" class="ltx_td ltx_align_left ltx_th ltx_th_row">2</th>
+<td id="S4.T1.1.5.4.3" class="ltx_td ltx_align_left">0.69</td>
+<td id="S4.T1.1.5.4.4" class="ltx_td ltx_align_left ltx_border_r">0.55</td>
+</tr>
+<tr id="S4.T1.1.6.5" class="ltx_tr">
+<th id="S4.T1.1.6.5.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_t">LSTM end-to-end</th>
+<th id="S4.T1.1.6.5.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">10</th>
+<td id="S4.T1.1.6.5.3" class="ltx_td ltx_align_left ltx_border_t">0.51</td>
+<td id="S4.T1.1.6.5.4" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">0.23</td>
+</tr>
+<tr id="S4.T1.1.7.6" class="ltx_tr">
+<th id="S4.T1.1.7.6.1" class="ltx_td ltx_th ltx_th_row ltx_border_l"></th>
+<th id="S4.T1.1.7.6.2" class="ltx_td ltx_align_left ltx_th ltx_th_row">2</th>
+<td id="S4.T1.1.7.6.3" class="ltx_td ltx_align_left">0.57</td>
+<td id="S4.T1.1.7.6.4" class="ltx_td ltx_align_left ltx_border_r">0.24</td>
+</tr>
+<tr id="S4.T1.1.8.7" class="ltx_tr">
+<th id="S4.T1.1.8.7.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_l ltx_border_t">LSTM modular</th>
+<th id="S4.T1.1.8.7.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">10</th>
+<td id="S4.T1.1.8.7.3" class="ltx_td ltx_align_left ltx_border_t">0.68</td>
+<td id="S4.T1.1.8.7.4" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">0.60</td>
+</tr>
+<tr id="S4.T1.1.9.8" class="ltx_tr">
+<th id="S4.T1.1.9.8.1" class="ltx_td ltx_th ltx_th_row ltx_border_b ltx_border_l"></th>
+<th id="S4.T1.1.9.8.2" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b">2</th>
+<td id="S4.T1.1.9.8.3" class="ltx_td ltx_align_left ltx_border_b">0.61</td>
+<td id="S4.T1.1.9.8.4" class="ltx_td ltx_align_left ltx_border_b ltx_border_r">0.54</td>
+</tr>
+</tbody>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 1: </span>Accuracy and F1 scores of the TED policy in end-to-end and modular mode,
+as well as the TED policy with the transformer replaced by an LSTM.
+Models are evaluated on the MultiWOZ 2.1 dataset using max_history <math id="S4.T1.3.m1.1" class="ltx_Math" alttext="N" display="inline"><semantics id="S4.T1.3.m1.1b"><mi id="S4.T1.3.m1.1.1" xref="S4.T1.3.m1.1.1.cmml">N</mi><annotation-xml encoding="MathML-Content" id="S4.T1.3.m1.1c"><ci id="S4.T1.3.m1.1.1.cmml" xref="S4.T1.3.m1.1.1">𝑁</ci></annotation-xml><annotation encoding="application/x-tex" id="S4.T1.3.m1.1d">N</annotation></semantics></math>.
+All scores concern prediction at the action level on the test set.
+</figcaption>
+</figure>
+</section>
+<section id="S4.SS2.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Modular training.</h4>
+
+<div id="S4.SS2.SSS0.Px2.p1" class="ltx_para">
+<p id="S4.SS2.SSS0.Px2.p1.1" class="ltx_p">We now repeat the above experiment, using the same subset of MultiWOZ dialogues, but now adopting the modular approach.
+We simulate an external natural language understanding pipeline and provide gold user intents and entities to the TED policy instead of the original user utterances.
+We extract the intents from the changes in the Wizard’s belief state.
+This belief state is provided by the MultiWOZ dataset in the form of a set of slots (e.g. <code id="S4.SS2.SSS0.Px2.p1.1.1" class="ltx_verbatim ltx_font_typewriter">restaurant_area</code>, <code id="S4.SS2.SSS0.Px2.p1.1.2" class="ltx_verbatim ltx_font_typewriter">hotel_name</code>, etc.) that get updated after each user turn.
+A typical user intent is thus <code id="S4.SS2.SSS0.Px2.p1.1.3" class="ltx_verbatim ltx_font_typewriter">inform{"restaurant_area": "south"}</code>.
+The user does not always provide new information, however, so the intent might be simply <code id="S4.SS2.SSS0.Px2.p1.1.4" class="ltx_verbatim ltx_font_typewriter">inform</code> (without any entities).
+If the last user intent of the dialogue was uninformative in this way, we assume it is a farewell and thus annotate it as <code id="S4.SS2.SSS0.Px2.p1.1.5" class="ltx_verbatim ltx_font_typewriter">bye</code>.</p>
+</div>
+<div id="S4.SS2.SSS0.Px2.p2" class="ltx_para">
+<p id="S4.SS2.SSS0.Px2.p2.1" class="ltx_p">Using the modular approach instead of end-to-end learning roughly doubles the F1 score and also increases accuracy slightly, as can be seen in Table <a href="#S4.T1" title="Table 1 ‣ End-to-end training. ‣ IV.2 Comparing the end-to-end and modular approaches on MultiWOZ ‣ IV Experiments ‣ Dialogue Transformers" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>.
+This is not surprising since the modular approach receives additional supervision.</p>
+</div>
+<div id="S4.SS2.SSS0.Px2.p3" class="ltx_para">
+<p id="S4.SS2.SSS0.Px2.p3.1" class="ltx_p">Although the scores suggest that the modular TED policy performs better than the end-to-end TED policy, the <span id="S4.SS2.SSS0.Px2.p3.1.1" class="ltx_text ltx_font_italic">kinds</span> of mistakes made are similar.
+We demonstrate this with one example dialog from our test set, named <code id="S4.SS2.SSS0.Px2.p3.1.2" class="ltx_verbatim ltx_font_typewriter">SNG0253</code>, that is displayed in Figure <a href="#S4.F4" title="Figure 4 ‣ Modular training. ‣ IV.2 Comparing the end-to-end and modular approaches on MultiWOZ ‣ IV Experiments ‣ Dialogue Transformers" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>.</p>
+</div>
+<figure id="S4.F4" class="ltx_figure"><img src="/html/1910.00486/assets/MultiWOZ_gold_e2e_modular.png" id="S4.F4.1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="479" height="224" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 4: </span>MultiWOZ 2.1 dialogue SNG0253, as-is (first column), as predicted by the end-to-end TED policy (second column), and as sequence of user intents and system actions predicted by modular TED policy (third column). The two predictions are sensible, yet incorrect according to the labels. Furthermore, the end-to-end and modular TED policies make similar kinds of mistakes.</figcaption>
+</figure>
+<div id="S4.SS2.SSS0.Px2.p4" class="ltx_para">
+<p id="S4.SS2.SSS0.Px2.p4.1" class="ltx_p">The second column of Figure <a href="#S4.F4" title="Figure 4 ‣ Modular training. ‣ IV.2 Comparing the end-to-end and modular approaches on MultiWOZ ‣ IV Experiments ‣ Dialogue Transformers" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a> shows the end-to-end predictions.
+The two predicted responses are both sensible, i.e. the replies could have come from a human.
+Nevertheless, both results are marked as wrong, because according to the gold dialogue (first column), the first response should only have included its second sentence (<code id="S4.SS2.SSS0.Px2.p4.1.1" class="ltx_verbatim ltx_font_typewriter">request_train</code>, but not <code id="S4.SS2.SSS0.Px2.p4.1.2" class="ltx_verbatim ltx_font_typewriter">inform_train</code>).
+For the fourth turn, however, it is the other way around: According to the target dialogue the response should have included additional information about the train (<code id="S4.SS2.SSS0.Px2.p4.1.3" class="ltx_verbatim ltx_font_typewriter">inform_train_request_train</code>), whereas the predicted dialogue only asked for more information (<code id="S4.SS2.SSS0.Px2.p4.1.4" class="ltx_verbatim ltx_font_typewriter">request_train</code>).</p>
+</div>
+<div id="S4.SS2.SSS0.Px2.p5" class="ltx_para">
+<p id="S4.SS2.SSS0.Px2.p5.1" class="ltx_p">The third column shows that the modular TED policy makes the same kinds of mistakes: instead of predicting only <code id="S4.SS2.SSS0.Px2.p5.1.1" class="ltx_verbatim ltx_font_typewriter">request_train</code>, it predicts to take both actions, <code id="S4.SS2.SSS0.Px2.p5.1.2" class="ltx_verbatim ltx_font_typewriter">inform_train</code> and <code id="S4.SS2.SSS0.Px2.p5.1.3" class="ltx_verbatim ltx_font_typewriter">request_train</code> in the second turn.
+In the final turn, instead of <code id="S4.SS2.SSS0.Px2.p5.1.4" class="ltx_verbatim ltx_font_typewriter">request_train</code>, the modular TED policy predicts <code id="S4.SS2.SSS0.Px2.p5.1.5" class="ltx_verbatim ltx_font_typewriter">reqmore_general</code>, which means that the wizard asks if the user requires anything else.
+This reply is perfectly sensible and does in fact occur in similar dialogues of the training set (see, e.g., Dialogue <code id="S4.SS2.SSS0.Px2.p5.1.6" class="ltx_verbatim ltx_font_typewriter">PMUL1883</code>).
+Thus, <span id="S4.SS2.SSS0.Px2.p5.1.7" class="ltx_text ltx_font_italic">the</span> correct behaviour doesn’t exist and it is impossible to achieve high scores, as reflected by the test scores of Table <a href="#S4.T1" title="Table 1 ‣ End-to-end training. ‣ IV.2 Comparing the end-to-end and modular approaches on MultiWOZ ‣ IV Experiments ‣ Dialogue Transformers" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>.</p>
+</div>
+<div id="S4.SS2.SSS0.Px2.p6" class="ltx_para">
+<p id="S4.SS2.SSS0.Px2.p6.4" class="ltx_p">To the best of our knowledge, the state of the art F1 scores on next action retrieval with MultiWOZ are given by <cite class="ltx_cite ltx_citemacro_citep">[Mehri et al., <a href="#bib.bib17" title="" class="ltx_ref">2019</a>]</cite> and <cite class="ltx_cite ltx_citemacro_citep">[Mehri and Eskenazi, <a href="#bib.bib29" title="" class="ltx_ref">2019</a>]</cite> with <math id="S4.SS2.SSS0.Px2.p6.1.m1.1" class="ltx_Math" alttext="0.64" display="inline"><semantics id="S4.SS2.SSS0.Px2.p6.1.m1.1a"><mn id="S4.SS2.SSS0.Px2.p6.1.m1.1.1" xref="S4.SS2.SSS0.Px2.p6.1.m1.1.1.cmml">0.64</mn><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px2.p6.1.m1.1b"><cn type="float" id="S4.SS2.SSS0.Px2.p6.1.m1.1.1.cmml" xref="S4.SS2.SSS0.Px2.p6.1.m1.1.1">0.64</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px2.p6.1.m1.1c">0.64</annotation></semantics></math> and <math id="S4.SS2.SSS0.Px2.p6.2.m2.1" class="ltx_Math" alttext="0.72" display="inline"><semantics id="S4.SS2.SSS0.Px2.p6.2.m2.1a"><mn id="S4.SS2.SSS0.Px2.p6.2.m2.1.1" xref="S4.SS2.SSS0.Px2.p6.2.m2.1.1.cmml">0.72</mn><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px2.p6.2.m2.1b"><cn type="float" id="S4.SS2.SSS0.Px2.p6.2.m2.1.1.cmml" xref="S4.SS2.SSS0.Px2.p6.2.m2.1.1">0.72</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px2.p6.2.m2.1c">0.72</annotation></semantics></math>, respectively. However, these numbers are not directly comparable to ours: we retrieve actions out of all <math id="S4.SS2.SSS0.Px2.p6.3.m3.1" class="ltx_Math" alttext="56128" display="inline"><semantics id="S4.SS2.SSS0.Px2.p6.3.m3.1a"><mn id="S4.SS2.SSS0.Px2.p6.3.m3.1.1" xref="S4.SS2.SSS0.Px2.p6.3.m3.1.1.cmml">56128</mn><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px2.p6.3.m3.1b"><cn type="integer" id="S4.SS2.SSS0.Px2.p6.3.m3.1.1.cmml" xref="S4.SS2.SSS0.Px2.p6.3.m3.1.1">56128</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px2.p6.3.m3.1c">56128</annotation></semantics></math> possible responses and compare the label of the retrieved response with the label of correct response, while they retrieve out of <math id="S4.SS2.SSS0.Px2.p6.4.m4.1" class="ltx_Math" alttext="20" display="inline"><semantics id="S4.SS2.SSS0.Px2.p6.4.m4.1a"><mn id="S4.SS2.SSS0.Px2.p6.4.m4.1.1" xref="S4.SS2.SSS0.Px2.p6.4.m4.1.1.cmml">20</mn><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px2.p6.4.m4.1b"><cn type="integer" id="S4.SS2.SSS0.Px2.p6.4.m4.1.1.cmml" xref="S4.SS2.SSS0.Px2.p6.4.m4.1.1">20</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px2.p6.4.m4.1c">20</annotation></semantics></math> negative samples and compare text responses directly.</p>
+</div>
+</section>
+<section id="S4.SS2.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">History independence.</h4>
+
+<div id="S4.SS2.SSS0.Px3.p1" class="ltx_para">
+<p id="S4.SS2.SSS0.Px3.p1.2" class="ltx_p">As Table <a href="#S4.T1" title="Table 1 ‣ End-to-end training. ‣ IV.2 Comparing the end-to-end and modular approaches on MultiWOZ ‣ IV Experiments ‣ Dialogue Transformers" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> shows, taking into account only the last two turns (i.e. the current user utterance or intent, and one system action before that), instead of the last 10 turns, the accuracy and F1 scores decrease by no more than <math id="S4.SS2.SSS0.Px3.p1.1.m1.1" class="ltx_Math" alttext="0.04" display="inline"><semantics id="S4.SS2.SSS0.Px3.p1.1.m1.1a"><mn id="S4.SS2.SSS0.Px3.p1.1.m1.1.1" xref="S4.SS2.SSS0.Px3.p1.1.m1.1.1.cmml">0.04</mn><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px3.p1.1.m1.1b"><cn type="float" id="S4.SS2.SSS0.Px3.p1.1.m1.1.1.cmml" xref="S4.SS2.SSS0.Px3.p1.1.m1.1.1">0.04</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px3.p1.1.m1.1c">0.04</annotation></semantics></math> for end-to-end and no more than <math id="S4.SS2.SSS0.Px3.p1.2.m2.1" class="ltx_Math" alttext="0.08" display="inline"><semantics id="S4.SS2.SSS0.Px3.p1.2.m2.1a"><mn id="S4.SS2.SSS0.Px3.p1.2.m2.1.1" xref="S4.SS2.SSS0.Px3.p1.2.m2.1.1.cmml">0.08</mn><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px3.p1.2.m2.1b"><cn type="float" id="S4.SS2.SSS0.Px3.p1.2.m2.1.1.cmml" xref="S4.SS2.SSS0.Px3.p1.2.m2.1.1">0.08</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px3.p1.2.m2.1c">0.08</annotation></semantics></math> for the modular architecture.
+For the end-to-end LSTM architecture that we discuss in the next paragraph, the performance even improves when less history is taken into account.
+Thus, MultiWOZ appears to depend only weakly on the dialogue history, and therefore we cannot evaluate how well the TED policy handles dialogue complexity.</p>
+</div>
+</section>
+<section id="S4.SS2.SSS0.Px4" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Transformer vs LSTM.</h4>
+
+<div id="S4.SS2.SSS0.Px4.p1" class="ltx_para">
+<p id="S4.SS2.SSS0.Px4.p1.1" class="ltx_p">As a final experiment, we replace the transformer in the TED architecture by an LSTM and run the same experiments as before.
+The results are shown in Table <a href="#S4.T1" title="Table 1 ‣ End-to-end training. ‣ IV.2 Comparing the end-to-end and modular approaches on MultiWOZ ‣ IV Experiments ‣ Dialogue Transformers" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>.</p>
+</div>
+<div id="S4.SS2.SSS0.Px4.p2" class="ltx_para">
+<p id="S4.SS2.SSS0.Px4.p2.1" class="ltx_p">The F1 scores of the LSTM and transformer versions differ by no more than <math id="S4.SS2.SSS0.Px4.p2.1.m1.1" class="ltx_Math" alttext="0.05" display="inline"><semantics id="S4.SS2.SSS0.Px4.p2.1.m1.1a"><mn id="S4.SS2.SSS0.Px4.p2.1.m1.1.1" xref="S4.SS2.SSS0.Px4.p2.1.m1.1.1.cmml">0.05</mn><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px4.p2.1.m1.1b"><cn type="float" id="S4.SS2.SSS0.Px4.p2.1.m1.1.1.cmml" xref="S4.SS2.SSS0.Px4.p2.1.m1.1.1">0.05</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px4.p2.1.m1.1c">0.05</annotation></semantics></math>, which is to be expected, since in MultiWOZ the vast majority of information is carried by the most recent turn.</p>
+</div>
+<div id="S4.SS2.SSS0.Px4.p3" class="ltx_para">
+<p id="S4.SS2.SSS0.Px4.p3.1" class="ltx_p">The LSTM version lacks the accuracy of the transformer version, however.
+Specifically, the accuracy scores for end-to-end training are up to <math id="S4.SS2.SSS0.Px4.p3.1.m1.1" class="ltx_Math" alttext="0.13" display="inline"><semantics id="S4.SS2.SSS0.Px4.p3.1.m1.1a"><mn id="S4.SS2.SSS0.Px4.p3.1.m1.1.1" xref="S4.SS2.SSS0.Px4.p3.1.m1.1.1.cmml">0.13</mn><annotation-xml encoding="MathML-Content" id="S4.SS2.SSS0.Px4.p3.1.m1.1b"><cn type="float" id="S4.SS2.SSS0.Px4.p3.1.m1.1.1.cmml" xref="S4.SS2.SSS0.Px4.p3.1.m1.1.1">0.13</cn></annotation-xml><annotation encoding="application/x-tex" id="S4.SS2.SSS0.Px4.p3.1.m1.1c">0.13</annotation></semantics></math> points lower for the LSTM.
+It is difficult to assert the reason for this discrepancy due to the problems of ambiguity that we have identified earlier in this Section.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">V </span>Conclusions</h2>
+
+<div id="S5.p1" class="ltx_para">
+<p id="S5.p1.1" class="ltx_p">We introduce the transformer embedding dialogue (TED) policy in which a transformer’s self-attention mechanism operates over the sequence of dialogue turns.
+We argue that this is a more appropriate architecture than an RNN due to the presence of interleaved topics in real-life conversations.
+We show that the TED policy can be applied to the MultiWOZ dataset in both a modular and end-to-end fashion, although we also find that this dataset is not ideal for supervised learning of dialogue policies, due to a lack of history dependence and a dependence on individual crowd-worker preferences.
+We also perform experiments on a task-oriented dataset specifically created to test the ability to recover from non-cooperative user behaviour.
+The TED policy outperforms the baseline LSTM approach and performs on par with REDP, despite TED being faster, simpler, and more general. We demonstrate that learned attention weights are easily interpretable and reflect dialogue logic. At every dialogue turn, a transformer picks which previous turns to take into account for current prediction, selectively ignoring or attending to different turns of the dialogue history.</p>
+</div>
+<section id="S5.SSx1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">Acknowledgments</h3>
+
+<div id="S5.SSx1.p1" class="ltx_para">
+<p id="S5.SSx1.p1.1" class="ltx_p">We would like to thank the Rasa team and Rasa community for feedback and support. Special thanks to Elise Boyd for supporting us with the illustrations.</p>
+</div>
+</section>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Vaswani et al. [2017]</span>
+<span class="ltx_bibblock">
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,
+Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin.
+
+</span>
+<span class="ltx_bibblock">Attention is all you need.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib1.1.1" class="ltx_emph ltx_font_italic">Advances in neural information processing systems</em>, pages
+5998–6008, 2017.
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Vlasov et al. [2018]</span>
+<span class="ltx_bibblock">
+Vladimir Vlasov, Akela Drissner-Schmid, and Alan Nichol.
+
+</span>
+<span class="ltx_bibblock">Few-shot generalization across dialogue tasks.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib2.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1811.11707</em>, 2018.
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Grosz and Sidner [1986]</span>
+<span class="ltx_bibblock">
+Barbara J Grosz and Candace L Sidner.
+
+</span>
+<span class="ltx_bibblock">Attention, intentions, and the structure of discourse.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib3.1.1" class="ltx_emph ltx_font_italic">Computational linguistics</em>, 12(3):175–204,
+1986.
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Bohus and Rudnicky [2009]</span>
+<span class="ltx_bibblock">
+Dan Bohus and Alexander I Rudnicky.
+
+</span>
+<span class="ltx_bibblock">The ravenclaw dialog management framework: Architecture and systems.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib4.1.1" class="ltx_emph ltx_font_italic">Computer Speech &amp; Language</em>, 23(3):332–361, 2009.
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sordoni et al. [2015]</span>
+<span class="ltx_bibblock">
+Alessandro Sordoni, Yoshua Bengio, Hossein Vahabi, Christina Lioma, Jakob
+Grue Simonsen, and Jian-Yun Nie.
+
+</span>
+<span class="ltx_bibblock">A hierarchical recurrent encoder-decoder for generative context-aware
+query suggestion.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib5.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 24th ACM International on Conference on
+Information and Knowledge Management</em>, pages 553–562. ACM, 2015.
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Serban et al. [2016]</span>
+<span class="ltx_bibblock">
+Iulian V Serban, Alessandro Sordoni, Yoshua Bengio, Aaron Courville, and Joelle
+Pineau.
+
+</span>
+<span class="ltx_bibblock">Building end-to-end dialogue systems using generative hierarchical
+neural network models.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib6.1.1" class="ltx_emph ltx_font_italic">Thirtieth AAAI Conference on Artificial Intelligence</em>, 2016.
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Williams et al. [2017]</span>
+<span class="ltx_bibblock">
+Jason D Williams, Kavosh Asadi, and Geoffrey Zweig.
+
+</span>
+<span class="ltx_bibblock">Hybrid code networks: practical and efficient end-to-end dialog
+control with supervised and reinforcement learning.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib7.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1702.03274</em>, 2017.
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sahay et al. [2019]</span>
+<span class="ltx_bibblock">
+Saurav Sahay, Shachi H. Kumar, Eda Okur, Haroon Syed, and Lama Nachman.
+
+</span>
+<span class="ltx_bibblock">Modeling intent, dialog policies and response adaptation for
+goal-oriented interactions.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib8.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 23rd Workshop on the Semantics and
+Pragmatics of Dialogue - Full Papers</em>, London, United Kingdom, September
+2019. SEMDIAL.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://semdial.org/anthology/Z19-Sahay_semdial_0019.pdf" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://semdial.org/anthology/Z19-Sahay_semdial_0019.pdf</a>.
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Dai et al. [2019]</span>
+<span class="ltx_bibblock">
+Zihang Dai, Zhilin Yang, Yiming Yang, William W Cohen, Jaime Carbonell, Quoc V
+Le, and Ruslan Salakhutdinov.
+
+</span>
+<span class="ltx_bibblock">Transformer-xl: Attentive language models beyond a fixed-length
+context.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib9.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1901.02860</em>, 2019.
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Radford et al. [2019]</span>
+<span class="ltx_bibblock">
+Alec Radford, Jeffrey Wu, Rewon Child, David Luan, Dario Amodei, and Ilya
+Sutskever.
+
+</span>
+<span class="ltx_bibblock">Language models are unsupervised multitask learners.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib10.1.1" class="ltx_emph ltx_font_italic">OpenAI Blog</em>, 1(8), 2019.
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wang et al. [2018]</span>
+<span class="ltx_bibblock">
+Alex Wang, Amanpreet Singh, Julian Michael, Felix Hill, Omer Levy, and Samuel R
+Bowman.
+
+</span>
+<span class="ltx_bibblock">Glue: A multi-task benchmark and analysis platform for natural
+language understanding.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib11.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1804.07461</em>, 2018.
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Devlin et al. [2018]</span>
+<span class="ltx_bibblock">
+Jacob Devlin, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova.
+
+</span>
+<span class="ltx_bibblock">Bert: Pre-training of deep bidirectional transformers for language
+understanding.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib12.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1810.04805</em>, 2018.
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Hsieh et al. [2019]</span>
+<span class="ltx_bibblock">
+Yu-Lun Hsieh, Minhao Cheng, Da-Cheng Juan, Wei Wei, Wen-Lian Hsu, and Cho-Jui
+Hsieh.
+
+</span>
+<span class="ltx_bibblock">On the robustness of self-attentive models.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib13.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 57th Annual Meeting of the Association
+for Computational Linguistics</em>, pages 1520–1529, 2019.
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Henderson et al. [2019]</span>
+<span class="ltx_bibblock">
+Matthew Henderson, Ivan Vulić, Daniela Gerz, Iñigo Casanueva, Paweł
+Budzianowski, Sam Coope, Georgios Spithourakis, Tsung-Hsien Wen, Nikola
+Mrkšić, and Pei-Hao Su.
+
+</span>
+<span class="ltx_bibblock">Training neural response selection for task-oriented dialogue
+systems.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib14.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1906.01543</em>, 2019.
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Dinan et al. [2018]</span>
+<span class="ltx_bibblock">
+Emily Dinan, Stephen Roller, Kurt Shuster, Angela Fan, Michael Auli, and Jason
+Weston.
+
+</span>
+<span class="ltx_bibblock">Wizard of wikipedia: Knowledge-powered conversational agents.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib15.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1811.01241</em>, 2018.
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Bordes et al. [2016]</span>
+<span class="ltx_bibblock">
+Antoine Bordes, Y-Lan Boureau, and Jason Weston.
+
+</span>
+<span class="ltx_bibblock">Learning end-to-end goal-oriented dialog.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib16.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1605.07683</em>, 2016.
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Mehri et al. [2019]</span>
+<span class="ltx_bibblock">
+Shikib Mehri, Evgeniia Razumovsakaia, Tiancheng Zhao, and Maxine Eskenazi.
+
+</span>
+<span class="ltx_bibblock">Pretraining methods for dialog context representation learning.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib17.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1906.00414</em>, 2019.
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Williams and Young [2007]</span>
+<span class="ltx_bibblock">
+Jason D Williams and Steve Young.
+
+</span>
+<span class="ltx_bibblock">Partially observable markov decision processes for spoken dialog
+systems.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib18.1.1" class="ltx_emph ltx_font_italic">Computer Speech &amp; Language</em>, 21(2):393–422, 2007.
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Bocklisch et al. [2017]</span>
+<span class="ltx_bibblock">
+Tom Bocklisch, Joey Faulkner, Nick Pawlowski, and Alan Nichol.
+
+</span>
+<span class="ltx_bibblock">Rasa: Open source language understanding and dialogue management.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib19.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1712.05181</em>, 2017.
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wu et al. [2017]</span>
+<span class="ltx_bibblock">
+Ledell Wu, Adam Fisch, Sumit Chopra, Keith Adams, Antoine Bordes, and Jason
+Weston.
+
+</span>
+<span class="ltx_bibblock">Starspace: Embed all the things!
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib20.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1709.03856</em>, 2017.
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Yang et al. [2015]</span>
+<span class="ltx_bibblock">
+Yi Yang, Wen-tau Yih, and Christopher Meek.
+
+</span>
+<span class="ltx_bibblock">WikiQA: A Challenge Dataset for Open-Domain Question
+Answering.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib21.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 2015 Conference on Empirical
+Methods in Natural Language Processing</em>, pages 2013–2018. Association
+for Computational Linguistics, 2015.
+
+</span>
+<span class="ltx_bibblock">doi: <span class="ltx_ref ltx_nolink ltx_Url ltx_ref_self">10.18653/v1/D15-1237</span>.
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lowe et al. [2016]</span>
+<span class="ltx_bibblock">
+Ryan Lowe, Nissan Pow, Iulian Serban, and Joelle Pineau.
+
+</span>
+<span class="ltx_bibblock">The Ubuntu Dialogue Corpus: A Large Dataset for Research
+in Unstructured Multi-Turn Dialogue Systems.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib22.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1506.08909</em>, 2016.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1506.08909" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1506.08909</a>.
+
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Schulz et al. [2019]</span>
+<span class="ltx_bibblock">
+Hannes Schulz, Adam Atkinson, Mahmoud Adada, Kaheer Suleman, and Shikhar
+Sharma.
+
+</span>
+<span class="ltx_bibblock">MetaLWOz, 2019.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://www.microsoft.com/en-us/research/project/metalwoz/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.microsoft.com/en-us/research/project/metalwoz/</a>.
+
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Budzianowski et al. [2018]</span>
+<span class="ltx_bibblock">
+Paweł Budzianowski, Tsung-Hsien Wen, Bo-Hsiang Tseng, Inigo Casanueva,
+Stefan Ultes, Osman Ramadan, and Milica Gašić.
+
+</span>
+<span class="ltx_bibblock">Multiwoz-a large-scale multi-domain wizard-of-oz dataset for
+task-oriented dialogue modelling.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib24.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1810.00278</em>, 2018.
+
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Eric et al. [2019]</span>
+<span class="ltx_bibblock">
+Mihail Eric, Rahul Goel, Shachi Paul, Abhishek Sethi, Sanchit Agarwal, Shuyag
+Gao, and Dilek Hakkani-Tur.
+
+</span>
+<span class="ltx_bibblock">Multiwoz 2.1: Multi-domain dialogue state corrections and state
+tracking baselines.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib25.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1907.01669</em>, 2019.
+
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Byrne et al. [2019]</span>
+<span class="ltx_bibblock">
+Bill Byrne, Karthik Krishnamoorthi, Chinnadhurai Sankar, Arvind Neelakantan,
+Daniel Duckworth, Semih Yavuz, Ben Goodrich, Amit Dubey, Kyu-Young Kim, and
+Andy Cedilnik.
+
+</span>
+<span class="ltx_bibblock">Taskmaster-1:Toward a realistic and diverse dialog dataset.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib26.1.1" class="ltx_emph ltx_font_italic">2019 Conference on Empirical Methods in Natural Language
+Processing and 9th International Joint Conference on Natural Language
+Processing</em>, 2019.
+
+</span>
+<span class="ltx_bibblock">URL
+<a target="_blank" href="https://storage.googleapis.com/dialog-data-corpus/TASKMASTER-1-2019/landing_page.html" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://storage.googleapis.com/dialog-data-corpus/TASKMASTER-1-2019/landing_page.html</a>.
+
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Mrkšić et al. [2016]</span>
+<span class="ltx_bibblock">
+Nikola Mrkšić, Diarmuid O Séaghdha, Tsung-Hsien Wen, Blaise
+Thomson, and Steve Young.
+
+</span>
+<span class="ltx_bibblock">Neural belief tracker: Data-driven dialogue state tracking.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib27.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1606.03777</em>, 2016.
+
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Mosig et al. [2020]</span>
+<span class="ltx_bibblock">
+Johannes EM Mosig, Vladimir Vlasov, and Alan Nichol.
+
+</span>
+<span class="ltx_bibblock">Where is the context?–a critique of recent dialogue datasets.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib28.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2004.10473</em>, 2020.
+
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Mehri and Eskenazi [2019]</span>
+<span class="ltx_bibblock">
+Shikib Mehri and Maxine Eskenazi.
+
+</span>
+<span class="ltx_bibblock">Multi-granularity representations of dialog.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib29.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1908.09890</em>, 2019.
+
+</span>
+</li>
+</ul>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/1910.00485" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/1910.00486" class="ar5iv-text-button ar5iv-severity-warning">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+1910.00486">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/1910.00486" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/1910.00487" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Fri Mar  8 02:23:00 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

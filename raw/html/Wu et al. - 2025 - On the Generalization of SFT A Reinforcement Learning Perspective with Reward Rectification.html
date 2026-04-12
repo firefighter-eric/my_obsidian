@@ -1,0 +1,1497 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2508.05629] On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification</title><meta property="og:description" content="We present a simple yet theoretically motivated improvement to Supervised Fine-Tuning (SFT) for the Large Language Model (LLM), addressing its limited generalization compared to reinforcement learning (RL). Through mat…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2508.05629">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2508.05629">
+
+<!--Generated on Fri Sep  5 14:20:10 2025 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_title_document">On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+Yongliang Wu<sup class="ltx_sup"><span class="ltx_text ltx_font_italic">1</span></sup>  Yizhou Zhou<sup class="ltx_sup"><span class="ltx_text ltx_font_italic">2∗†</span></sup>  Zhou Ziheng<sup class="ltx_sup"><span class="ltx_text ltx_font_italic">3</span></sup>  Yingzhe Peng<sup class="ltx_sup"><span class="ltx_text ltx_font_italic">1</span></sup>  Xinyu Ye<sup class="ltx_sup"><span class="ltx_text ltx_font_italic">4</span></sup> 
+<br class="ltx_break"> <span class="ltx_text ltx_font_bold">Xinting Hu<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">5</span></sup></span>  <span class="ltx_text ltx_font_bold">Wenbo Zhu<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">6</span></sup></span>  <span class="ltx_text ltx_font_bold">Lu Qi<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">7</span></sup></span>  <span class="ltx_text ltx_font_bold">Ming-Hsuan Yang<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">8</span></sup></span>  <span class="ltx_text ltx_font_bold">Xu Yang<sup class="ltx_sup"><span class="ltx_text ltx_font_medium ltx_font_italic">1‡</span></sup></span> 
+<br class="ltx_break"><sup class="ltx_sup">1</sup>Southeast University  <sup class="ltx_sup">2</sup>Independent Researcher <sup class="ltx_sup">3</sup>University of California, Los Angeles 
+<br class="ltx_break"><sup class="ltx_sup">4</sup>Shanghai Jiao Tong University  <sup class="ltx_sup">5</sup>Nanyang Technological University 
+<br class="ltx_break"><sup class="ltx_sup">6</sup>University of California, Berkeley  <sup class="ltx_sup">7</sup>Wuhan University  <sup class="ltx_sup">8</sup>University of California, Merced 
+<br class="ltx_break"><span class="ltx_text ltx_font_typewriter"> yongliang0223@gmail.com, zyz0205@hotmail.com, xuyang_palm@seu.edu.cn</span> 
+<br class="ltx_break">
+</span><span class="ltx_author_notes">Equal Contribution. <sup class="ltx_sup"><span class="ltx_text ltx_font_italic">†</span></sup>Project Leader. <sup class="ltx_sup"><span class="ltx_text ltx_font_italic">‡</span></sup>Corresponding Author.</span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p class="ltx_p">We present a simple yet theoretically motivated improvement to Supervised Fine-Tuning (SFT) for the Large Language Model (LLM), addressing its limited generalization compared to reinforcement learning (RL). Through mathematical analysis, we reveal that standard SFT gradients implicitly encode a problematic reward structure that may severely restrict the generalization capabilities of model. To rectify this, we propose Dynamic Fine-Tuning (DFT), stabilizing gradient updates for each token by dynamically rescaling the objective function with the probability of this token. Remarkably, this single-line code change significantly outperforms standard SFT across multiple challenging benchmarks and base models, demonstrating greatly improved generalization. Additionally, our approach shows competitive results in offline RL settings, offering an effective yet simpler alternative. This work bridges theoretical insight and practical solutions, substantially advancing SFT performance. The code will be available at <a target="_blank" href="https://github.com/yongliang-wu/DFT" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/yongliang-wu/DFT</a>.</p>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Supervised Fine-Tuning (SFT), which involves training a model on expert demonstration datasets, has become a standard Large Language Model (LLM) post-training approach for adapting models to new tasks or enhancing existing capabilities <cite class="ltx_cite ltx_citemacro_citep">(Chung et al., <a href="#bib.bib10" title="" class="ltx_ref">2024</a>; Zhang et al., <a href="#bib.bib42" title="" class="ltx_ref">2024</a>; Sanh et al., <a href="#bib.bib33" title="" class="ltx_ref">2022</a>; Ouyang et al., <a href="#bib.bib26" title="" class="ltx_ref">2022</a>)</cite>. Its widespread adoption is largely due to its ease of implementation and rapid acquisition of expert-like behaviors <cite class="ltx_cite ltx_citemacro_citep">(Wei et al., <a href="#bib.bib40" title="" class="ltx_ref">2022</a>; Zhou et al., <a href="#bib.bib44" title="" class="ltx_ref">2023</a>)</cite>. However, despite these advantages, SFT typically suffers from limited generalization compared to reinforcement learning (RL) methods <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib9" title="" class="ltx_ref">Chu et al., </a>; Ouyang et al., <a href="#bib.bib26" title="" class="ltx_ref">2022</a>; Christiano et al., <a href="#bib.bib8" title="" class="ltx_ref">2017</a>; Bai et al., <a href="#bib.bib5" title="" class="ltx_ref">2022</a>; Huan et al., <a href="#bib.bib16" title="" class="ltx_ref">2025</a>; Swamy et al., <a href="#bib.bib38" title="" class="ltx_ref">2025</a>)</cite>. RL leverages explicit reward or verification signals, allowing the model to explore diverse strategies, thereby achieving stronger generalization. Nonetheless, RL approaches often require significant computational resources, are sensitive to hyperparameter tuning, and rely on the availability of reward signals, conditions that are not always feasible in practice <cite class="ltx_cite ltx_citemacro_citep">(Schulman et al., <a href="#bib.bib34" title="" class="ltx_ref">2017</a>; Ouyang et al., <a href="#bib.bib26" title="" class="ltx_ref">2022</a>; Sheng et al., <a href="#bib.bib36" title="" class="ltx_ref">2025</a>; Strubell et al., <a href="#bib.bib37" title="" class="ltx_ref">2019</a>; Liu &amp; Yin, <a href="#bib.bib23" title="" class="ltx_ref">2024</a>; Winsta, <a href="#bib.bib41" title="" class="ltx_ref">2025</a>)</cite>. Even when RL is viable, SFT remains advantageous in rapidly acquiring expert behavioral patterns that RL may struggle to discover independently <cite class="ltx_cite ltx_citemacro_citep">(Mandlekar et al., <a href="#bib.bib24" title="" class="ltx_ref">2022</a>; Chen et al., <a href="#bib.bib7" title="" class="ltx_ref">2025b</a>)</cite>.</p>
+</div>
+<div id="S1.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">To leverage the complementary strengths of both approaches, numerous hybrid methods have been developed by incorporating SFT and RL <cite class="ltx_cite ltx_citemacro_citep">(Ouyang et al., <a href="#bib.bib26" title="" class="ltx_ref">2022</a>; Sheng et al., <a href="#bib.bib36" title="" class="ltx_ref">2025</a>; Rafailov et al., <a href="#bib.bib31" title="" class="ltx_ref">2023</a>; Liu et al., <a href="#bib.bib22" title="" class="ltx_ref">2025</a>; Qiu et al., <a href="#bib.bib28" title="" class="ltx_ref">2025</a>)</cite>. <span class="ltx_text ltx_font_italic">However, can we fundamentally improve SFT itself?</span> This is crucial since SFT is the only viable approach when there are no negative samples in the dataset and no reward or verification model available.</p>
+</div>
+<div id="S1.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p">In this work, we address this gap by providing a mathematical analysis that elucidates the fundamental differences between SFT and RL. We demonstrate that the gradient update of SFT can be interpreted as a special case of a policy gradient method with a specific, implicitly defined reward structure. Our analysis reveals that <em class="ltx_emph ltx_font_italic">this implicit reward is both extremely sparse and inversely proportional to the policy’s assigned probability of expert actions</em> (see Equation <a href="#S3.E6" title="In Rewriting SFT Gradient as Policy Gradient via Importance Sampling. ‣ 3.2 Unify SFT–RL Gradient Expression ‣ 3 Method ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> for precise math details). Consequently, this leads to an ill-posed reward structure, especially when the model assigns low probabilities to expert actions; the resulting gradient experiences unbounded variance, creating a pathological optimization landscape.</p>
+</div>
+<div id="S1.p4" class="ltx_para ltx_noindent">
+<p class="ltx_p">Building on this mathematical analysis, we propose <em class="ltx_emph ltx_font_italic">Dynamic Fine-Tuning</em> (DFT), a principled solution that addresses the root cause of the implicitly ill-posed reward structure. <span class="ltx_text ltx_font_italic">For each token, our method simply rescales the standard SFT objectives with the token probability</span>, effectively neutralizing the inverse probability weighting that leads to an unexpected reward structure and unbounded variance. This theoretically motivated modification fundamentally transforms the gradient estimator from an unstable, biased and probability-dependent mechanism into a stable, uniformly-weighted update procedure.</p>
+</div>
+<div id="S1.p5" class="ltx_para ltx_noindent">
+<p class="ltx_p">The empirical results of our method are highly significant. For example, by fine-tuning the Qwen-2.5-Math models <cite class="ltx_cite ltx_citemacro_citep">(Qwen Team et al., <a href="#bib.bib30" title="" class="ltx_ref">2024b</a>)</cite> on the NuminaMath dataset <cite class="ltx_cite ltx_citemacro_citep">(LI et al., <a href="#bib.bib20" title="" class="ltx_ref">2024</a>)</cite>, the improvement with our approach over the baseline is generally multiple times greater than that of improvement by SFT. Crucially, when standard SFT experiences performance degradation on challenging datasets including Olympiad Bench<cite class="ltx_cite ltx_citemacro_citep">(International Mathematical Olympiad, <a href="#bib.bib17" title="" class="ltx_ref">2024</a>)</cite>, AIME 2024 <cite class="ltx_cite ltx_citemacro_citep">(American Institute of Mathematics, <a href="#bib.bib4" title="" class="ltx_ref">2024</a>)</cite>, and AMC 2023 <cite class="ltx_cite ltx_citemacro_citep">(Mathematical Association of America, <a href="#bib.bib25" title="" class="ltx_ref">2023</a>)</cite>, likely due to overfitting, our method consistently deliver substantial improvements, highlighting its more robust generalization capabilities. The result is validated across model types, sizes, and data sizes (Table <a href="#S4.T1" title="Table 1 ‣ Evaluation Settings. ‣ 4.1.1 Setup and Implementation Details ‣ 4.1 Main Experiment - SFT Setting ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>, Figure <a href="#S4.F1" title="Figure 1 ‣ DFT exhibits better learning efficiency and faster convergence characteristics. ‣ 4.1.2 Main Results ‣ 4.1 Main Experiment - SFT Setting ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>).</p>
+</div>
+<div id="S1.p6" class="ltx_para ltx_noindent">
+<p class="ltx_p">In addition, we explore the applicability of our method within RL scenarios (see Table <a href="#S4.T3" title="Table 3 ‣ 4.2.2 Results ‣ 4.2 Exploratory Experiment - Offline RL Setting ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, where negative samples or dense reward signals are available <cite class="ltx_cite ltx_citemacro_citep">(Levine et al., <a href="#bib.bib18" title="" class="ltx_ref">2020</a>)</cite>. Our experiments demonstrate that our approach not only significantly outperforms other offline RL methods such as DPO <cite class="ltx_cite ltx_citemacro_citep">(Rafailov et al., <a href="#bib.bib31" title="" class="ltx_ref">2023</a>)</cite>, RFT/RAFT <cite class="ltx_cite ltx_citemacro_citep">(Dong et al., <a href="#bib.bib12" title="" class="ltx_ref">2023</a>; Ahn et al., <a href="#bib.bib2" title="" class="ltx_ref">2024</a>)</cite>, but also our method performs favorably against online RL methods such as GRPO and PPO for Qwen2.5-Math-1.5B model in math tasks.
+Note that our method is much simpler in computation resources or procedure than most of the RL methods that may require a reference model or certain batch size, offering a practical alternative.</p>
+</div>
+<div id="S1.p7" class="ltx_para ltx_noindent">
+<p class="ltx_p">To understand how DFT affects the model differently, we analyze the change in the probability distribution after training (Figure  <a href="#S4.F2" title="Figure 2 ‣ 4.3.1 Token Probability Distribution ‣ 4.3 Ablation and Investigation ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>. We observe that traditional SFT training uniformly increases token probabilities toward fitting the training data more tightly, whereas our approach, interestingly, also pushes some token distribution away from the training set. In particular, although most tokens still fit the training set closer, the percentage of less strongly fitted tokens increases markedly. We provide an in-depth discussion of this phenomenon in Section <a href="#S4.SS3.SSS1" title="4.3.1 Token Probability Distribution ‣ 4.3 Ablation and Investigation ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.3.1</span></a>.</p>
+</div>
+<div id="S1.p8" class="ltx_para ltx_noindent">
+<p class="ltx_p">The contributions of this work are theoretical and practical. On the theoretical side, we mathematically establish LLM SFT as a special RL in policy gradient space, pinpoint the underlying reasons for SFT’s limited generalization, and derive a method to improve it. On the experimental side, we show that such a simple solution, just one line of code, can substantially enhance LLM SFT’s performance and generalization capabilities across various tasks and models.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Related Work</h2>
+
+<div id="S2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">The trade-off between SFT and RL is a central theme in modern language model alignment. SFT is widely adopted for its simplicity and efficiency in mimicking expert demonstrations <cite class="ltx_cite ltx_citemacro_citep">(Chung et al., <a href="#bib.bib10" title="" class="ltx_ref">2024</a>; Zhou et al., <a href="#bib.bib44" title="" class="ltx_ref">2023</a>; Wei et al., <a href="#bib.bib40" title="" class="ltx_ref">2022</a>)</cite>, a process analogous to behavioral cloning in robotics <cite class="ltx_cite ltx_citemacro_citep">(Sammut, <a href="#bib.bib32" title="" class="ltx_ref">2011</a>; Mandlekar et al., <a href="#bib.bib24" title="" class="ltx_ref">2022</a>)</cite>. However, the literature frequently notes that this approach can lead to overfitting and poor generalization compared to RL, which leverages reward signals to explore and discover more robust policies <cite class="ltx_cite ltx_citemacro_citep">(Ouyang et al., <a href="#bib.bib26" title="" class="ltx_ref">2022</a>; Christiano et al., <a href="#bib.bib8" title="" class="ltx_ref">2017</a>; Bai et al., <a href="#bib.bib5" title="" class="ltx_ref">2022</a>; Swamy et al., <a href="#bib.bib38" title="" class="ltx_ref">2025</a>)</cite>. Recently, <cite class="ltx_cite ltx_citemacro_citet"><a href="#bib.bib9" title="" class="ltx_ref">Chu et al. </a></cite> conduct a systematic comparison of SFT and RL on both textual and visual tasks, confirming that ”SFT memorizes while RL generalizes”. More importantly, they also find that SFT remains necessary as an initialization step to stabilize output formatting before RL training can be effective. Nevertheless, RL comes with significant practical hurdles, including high computational costs, hyperparameter sensitivity, and the need for an explicit reward function, often limit its applicability <cite class="ltx_cite ltx_citemacro_citep">(Schulman et al., <a href="#bib.bib34" title="" class="ltx_ref">2017</a>; Strubell et al., <a href="#bib.bib37" title="" class="ltx_ref">2019</a>; Sheng et al., <a href="#bib.bib36" title="" class="ltx_ref">2025</a>)</cite>.</p>
+</div>
+<div id="S2.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">To exploit the benefits of both paradigms, a dominant line of research has focused on hybrid methods. The most established strategy involves an SFT pre-training phase followed by RL-based refinement, often using a learned reward model, as popularized by InstructGPT <cite class="ltx_cite ltx_citemacro_citep">(Ouyang et al., <a href="#bib.bib26" title="" class="ltx_ref">2022</a>)</cite>. More recent approaches have explored alternative combinations, such as interleaving SFT and RL steps to improve stability and performance <cite class="ltx_cite ltx_citemacro_citep">(Sheng et al., <a href="#bib.bib36" title="" class="ltx_ref">2025</a>; Liu et al., <a href="#bib.bib22" title="" class="ltx_ref">2025</a>; Qiu et al., <a href="#bib.bib28" title="" class="ltx_ref">2025</a>)</cite>. Other prominent approaches, such as Direct Preference Optimization (DPO) <cite class="ltx_cite ltx_citemacro_citep">(Rafailov et al., <a href="#bib.bib31" title="" class="ltx_ref">2023</a>)</cite>, bypass explicit reward modeling by directly optimizing a policy on preference data, effectively integrating imitation and reinforcement signals into a single loss function. <cite class="ltx_cite ltx_citemacro_citet">Chen et al. (<a href="#bib.bib6" title="" class="ltx_ref">2025a</a>)</cite> Negative-aware Fine-Tuning (NFT) while enables LLMs to self-improve by modeling their own incorrect generations through an implicit negative policy. Although powerful, these methods are designed for settings where a reward signal, preference pairs, or negative samples are available. They augment the training pipeline, but do not fundamentally improve the SFT process in its native context, where there are only positive expert demonstrations. Our work diverges by focusing on enhancing SFT itself, without requiring any external feedback.</p>
+</div>
+<div id="S2.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p">On the other side, a theoretical line of inquiry has sought to unify SFT and RL. For example, <cite class="ltx_cite ltx_citemacro_citet">Du et al. (<a href="#bib.bib13" title="" class="ltx_ref">2025</a>)</cite> reframe RLHF as a reward-weighted form of SFT, simplifying the pipeline while maintaining dependence on an explicit reward. <cite class="ltx_cite ltx_citemacro_citet">Wang et al. (<a href="#bib.bib39" title="" class="ltx_ref">2025</a>)</cite> demonstrate that SFT can be viewed as an RL method with an implicit reward, proposing solutions such as smaller learning rates to manage an otherwise vanishing KL constraint. <cite class="ltx_cite ltx_citemacro_citet">Abdolmaleki et al. (<a href="#bib.bib1" title="" class="ltx_ref">2025</a>)</cite> analyze learning from both positive and negative feedback, showing how their balance affects policy convergence. <cite class="ltx_cite ltx_citemacro_citet">Qin &amp; Springenberg (<a href="#bib.bib27" title="" class="ltx_ref">2025</a>)</cite> reframe SFT as a lower bound of RL and improve it by introducing importance weighting based on the data-generating policy. Although these works point out the general connection between SFT and RL through the lens of weighting, they stop short of providing a precise mathematical equivalence between the SFT gradient and the off-line policy gradient. In contrast, our work is the first to rigorously establish this equivalence, explicitly identifying that the key difference lies in an inverse-probability weighting term present in SFT. This insight directly motivates our proposed solution: simply multiplying the SFT loss with the model probability to cancel out the weighting.</p>
+</div>
+<div id="S2.p4" class="ltx_para ltx_noindent">
+<p class="ltx_p">Interestingly, our method yields a design for the cross-entropy (CE) loss that is diametrically opposite to the well-known Focal Loss <cite class="ltx_cite ltx_citemacro_citep">(Lin et al., <a href="#bib.bib21" title="" class="ltx_ref">2017</a>)</cite>. Our modified CE is <math id="S2.p4.m1" class="ltx_Math" alttext="-p\log(p)" display="inline" intent=":literal"><semantics><mrow><mo>−</mo><mrow><mi>p</mi><mo lspace="0.167em" rspace="0em">​</mo><mrow><mi>log</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo><mi>p</mi><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">-p\log(p)</annotation></semantics></math>, while the focal loss is <math id="S2.p4.m2" class="ltx_Math" alttext="-(1-p)^{\gamma}\log(p)" display="inline" intent=":literal"><semantics><mrow><mo>−</mo><mrow><msup><mrow><mo stretchy="false">(</mo><mrow><mn>1</mn><mo>−</mo><mi>p</mi></mrow><mo stretchy="false">)</mo></mrow><mi>γ</mi></msup><mo lspace="0.167em" rspace="0em">​</mo><mrow><mi>log</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo><mi>p</mi><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow><annotation encoding="application/x-tex">-(1-p)^{\gamma}\log(p)</annotation></semantics></math>. Focal Loss intentionally downweights well-classified samples to improve performance on underrepresented classes, whereas we intentionally downweight poorly-classified samples to improve generalization. This contrast may reflect a fundamental shift in the era of LLMs, where underfitting becomes less problematic than overfitting.</p>
+</div>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Method</h2>
+
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1 </span>Preliminaries</h3>
+
+<section id="S3.SS1.SSS0.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Supervised Fine-Tuning.</h5>
+
+<div id="S3.SS1.SSS0.Px1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Let <math id="S3.SS1.SSS0.Px1.p1.m1" class="ltx_Math" alttext="\mathcal{D}=\{(x,y^{\star})\}" display="inline" intent=":literal"><semantics><mrow><mi class="ltx_font_mathcaligraphic">𝒟</mi><mo>=</mo><mrow><mo stretchy="false">{</mo><mrow><mo stretchy="false">(</mo><mi>x</mi><mo>,</mo><msup><mi>y</mi><mo>⋆</mo></msup><mo stretchy="false">)</mo></mrow><mo stretchy="false">}</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{D}=\{(x,y^{\star})\}</annotation></semantics></math> denote a corpus of expert demonstrations, where <math id="S3.SS1.SSS0.Px1.p1.m2" class="ltx_Math" alttext="y^{\star}" display="inline" intent=":literal"><semantics><msup><mi>y</mi><mo>⋆</mo></msup><annotation encoding="application/x-tex">y^{\star}</annotation></semantics></math> is the full reference response for query <math id="S3.SS1.SSS0.Px1.p1.m3" class="ltx_Math" alttext="x" display="inline" intent=":literal"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>. SFT minimizes the sentence-level cross-entropy:</p>
+<table id="S3.E1" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E1.m1" class="ltx_Math" alttext="\mathcal{L}_{\mathrm{SFT}}(\theta)\;=\;\mathbb{E}_{(x,y^{\star})\sim\mathcal{D}}\bigl[-\log\pi_{\theta}\bigl(y^{\star}\mid x\bigr)\bigr]." display="block" intent=":literal"><semantics><mrow><mrow><mrow><msub><mi class="ltx_font_mathcaligraphic">ℒ</mi><mi>SFT</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>θ</mi><mo rspace="0.280em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.558em">=</mo><mrow><msub><mi>𝔼</mi><mrow><mrow><mo stretchy="false">(</mo><mi>x</mi><mo>,</mo><msup><mi>y</mi><mo>⋆</mo></msup><mo stretchy="false">)</mo></mrow><mo>∼</mo><mi class="ltx_font_mathcaligraphic">𝒟</mi></mrow></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo maxsize="1.200em" minsize="1.200em">[</mo><mrow><mo rspace="0.167em">−</mo><mrow><mrow><mi>log</mi><mo lspace="0.167em">⁡</mo><msub><mi>π</mi><mi>θ</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo maxsize="1.200em" minsize="1.200em">(</mo><mrow><msup><mi>y</mi><mo>⋆</mo></msup><mo>∣</mo><mi>x</mi></mrow><mo maxsize="1.200em" minsize="1.200em">)</mo></mrow></mrow></mrow><mo maxsize="1.200em" minsize="1.200em">]</mo></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}_{\mathrm{SFT}}(\theta)\;=\;\mathbb{E}_{(x,y^{\star})\sim\mathcal{D}}\bigl[-\log\pi_{\theta}\bigl(y^{\star}\mid x\bigr)\bigr].</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(1)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">Its gradient is:</p>
+<table id="S3.E2" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E2.m1" class="ltx_Math" alttext="\nabla_{\theta}\mathcal{L}_{\mathrm{SFT}}(\theta)\;=\;\mathbb{E}_{(x,y^{\star})\sim\mathcal{D}}\bigl[-\nabla_{\theta}\log\pi_{\theta}\bigl(y^{\star}\mid x\bigr)\bigr]." display="block" intent=":literal"><semantics><mrow><mrow><mrow><mrow><msub><mo>∇</mo><mi>θ</mi></msub><msub><mi class="ltx_font_mathcaligraphic">ℒ</mi><mi>SFT</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>θ</mi><mo rspace="0.280em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.558em">=</mo><mrow><msub><mi>𝔼</mi><mrow><mrow><mo stretchy="false">(</mo><mi>x</mi><mo>,</mo><msup><mi>y</mi><mo>⋆</mo></msup><mo stretchy="false">)</mo></mrow><mo>∼</mo><mi class="ltx_font_mathcaligraphic">𝒟</mi></mrow></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo maxsize="1.200em" minsize="1.200em">[</mo><mrow><mo rspace="0.167em">−</mo><mrow><mrow><mrow><msub><mo rspace="0.167em">∇</mo><mi>θ</mi></msub><mi>log</mi></mrow><mo lspace="0.167em">⁡</mo><msub><mi>π</mi><mi>θ</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo maxsize="1.200em" minsize="1.200em">(</mo><mrow><msup><mi>y</mi><mo>⋆</mo></msup><mo>∣</mo><mi>x</mi></mrow><mo maxsize="1.200em" minsize="1.200em">)</mo></mrow></mrow></mrow><mo maxsize="1.200em" minsize="1.200em">]</mo></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow><annotation encoding="application/x-tex">\nabla_{\theta}\mathcal{L}_{\mathrm{SFT}}(\theta)\;=\;\mathbb{E}_{(x,y^{\star})\sim\mathcal{D}}\bigl[-\nabla_{\theta}\log\pi_{\theta}\bigl(y^{\star}\mid x\bigr)\bigr].</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(2)</span></td>
+</tr></tbody>
+</table>
+</div>
+</section>
+<section id="S3.SS1.SSS0.Px2" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Reinforcement Learning.</h5>
+
+<div id="S3.SS1.SSS0.Px2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Let <math id="S3.SS1.SSS0.Px2.p1.m1" class="ltx_Math" alttext="y" display="inline" intent=":literal"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math> denote a response sampled from the policy <math id="S3.SS1.SSS0.Px2.p1.m2" class="ltx_math_unparsed" alttext="\pi_{\theta}(\cdot\mid x)" display="inline" intent=":literal"><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub><mrow><mo stretchy="false">(</mo><mo lspace="0em" rspace="0em">⋅</mo><mo lspace="0em" rspace="0.167em">∣</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\pi_{\theta}(\cdot\mid x)</annotation></semantics></math> for query <math id="S3.SS1.SSS0.Px2.p1.m3" class="ltx_Math" alttext="x" display="inline" intent=":literal"><semantics><mi>x</mi><annotation encoding="application/x-tex">x</annotation></semantics></math>. Given a reward function <math id="S3.SS1.SSS0.Px2.p1.m4" class="ltx_Math" alttext="r(x,y)\in\mathbb{R}" display="inline" intent=":literal"><semantics><mrow><mrow><mi>r</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="false">)</mo></mrow></mrow><mo>∈</mo><mi>ℝ</mi></mrow><annotation encoding="application/x-tex">r(x,y)\in\mathbb{R}</annotation></semantics></math>, the policy objective is</p>
+<table id="S3.E3" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E3.m1" class="ltx_math_unparsed" alttext="J(\theta)\;=\;\mathbb{E}_{x\sim\mathcal{D}_{x},\;y\sim\pi_{\theta}(\cdot\mid x)}\bigl[r(x,y)\bigr]." display="block" intent=":literal"><semantics><mrow><mrow><mrow><mi>J</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>θ</mi><mo rspace="0.280em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.558em">=</mo><mrow><msub><mi>𝔼</mi><mrow><mi>x</mi><mo>∼</mo><msub><mi class="ltx_font_mathcaligraphic">𝒟</mi><mi>x</mi></msub><mo rspace="0.447em">,</mo><mi>y</mi><mo>∼</mo><msub><mi>π</mi><mi>θ</mi></msub><mrow><mo stretchy="false">(</mo><mo lspace="0em" rspace="0em">⋅</mo><mo lspace="0em" rspace="0.167em">∣</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mrow></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo maxsize="1.200em" minsize="1.200em">[</mo><mrow><mi>r</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="false">)</mo></mrow></mrow><mo maxsize="1.200em" minsize="1.200em">]</mo></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow><annotation encoding="application/x-tex">J(\theta)\;=\;\mathbb{E}_{x\sim\mathcal{D}_{x},\;y\sim\pi_{\theta}(\cdot\mid x)}\bigl[r(x,y)\bigr].</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(3)</span></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">Its policy gradient at the sentence level is</p>
+<table id="S3.E4" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E4.m1" class="ltx_math_unparsed" alttext="\nabla_{\theta}J(\theta)\;=\;\mathbb{E}_{x\sim\mathcal{D}_{x},\;y\sim\pi_{\theta}(\cdot\mid x)}\bigl[\nabla_{\theta}\log\pi_{\theta}(y\mid x)\;r(x,y)\bigr]." display="block" intent=":literal"><semantics><mrow><mrow><mrow><mrow><msub><mo>∇</mo><mi>θ</mi></msub><mi>J</mi></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>θ</mi><mo rspace="0.280em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.558em">=</mo><mrow><msub><mi>𝔼</mi><mrow><mi>x</mi><mo>∼</mo><msub><mi class="ltx_font_mathcaligraphic">𝒟</mi><mi>x</mi></msub><mo rspace="0.447em">,</mo><mi>y</mi><mo>∼</mo><msub><mi>π</mi><mi>θ</mi></msub><mrow><mo stretchy="false">(</mo><mo lspace="0em" rspace="0em">⋅</mo><mo lspace="0em" rspace="0.167em">∣</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mrow></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo maxsize="1.200em" minsize="1.200em">[</mo><mrow><mrow><mrow><msub><mo rspace="0.167em">∇</mo><mi>θ</mi></msub><mi>log</mi></mrow><mo lspace="0.167em">⁡</mo><msub><mi>π</mi><mi>θ</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><mi>y</mi><mo>∣</mo><mi>x</mi></mrow><mo stretchy="false">)</mo></mrow><mo lspace="0.280em" rspace="0em">​</mo><mi>r</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="false">)</mo></mrow></mrow><mo maxsize="1.200em" minsize="1.200em">]</mo></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow><annotation encoding="application/x-tex">\nabla_{\theta}J(\theta)\;=\;\mathbb{E}_{x\sim\mathcal{D}_{x},\;y\sim\pi_{\theta}(\cdot\mid x)}\bigl[\nabla_{\theta}\log\pi_{\theta}(y\mid x)\;r(x,y)\bigr].</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(4)</span></td>
+</tr></tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.2 </span>Unify SFT–RL Gradient Expression</h3>
+
+<section id="S3.SS2.SSS0.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Rewriting SFT Gradient as Policy Gradient via Importance Sampling.</h5>
+
+<div id="S3.SS2.SSS0.Px1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">The SFT gradient in Equation <a href="#S3.E2" title="In Supervised Fine-Tuning. ‣ 3.1 Preliminaries ‣ 3 Method ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> is taken under the <em class="ltx_emph ltx_font_italic">fixed</em> demonstration distribution. We convert it to an on-policy expectation by inserting an importance weight that compares the expert (Dirac Delta) distribution with the model distribution.</p>
+<table id="S3.E5" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E5.m1" class="ltx_math_unparsed" alttext="\mathbb{E}_{(x,y^{\star})\sim\mathcal{D}}\,\bigl[-\nabla_{\theta}\log\pi_{\theta}\bigl(y^{\star}\mid x\bigr)\bigr]=\mathbb{E}_{x\sim\mathcal{D}_{x}}\,\underbrace{\mathbb{E}_{y\sim\pi_{\theta}(\cdot\mid x)}\frac{\mathbf{1}[y=y^{\star}]}{\pi_{\theta}(y\mid x)}\,\bigl[-\nabla_{\theta}\log\pi_{\theta}\bigl(y\mid x\bigr)\bigr]}_{\text{resample + reweight}}\," display="block" intent=":literal"><semantics><mrow><mrow><msub><mi>𝔼</mi><mrow><mrow><mo stretchy="false">(</mo><mi>x</mi><mo>,</mo><msup><mi>y</mi><mo>⋆</mo></msup><mo stretchy="false">)</mo></mrow><mo>∼</mo><mi class="ltx_font_mathcaligraphic">𝒟</mi></mrow></msub><mo lspace="0.170em" rspace="0em">​</mo><mrow><mo maxsize="1.200em" minsize="1.200em">[</mo><mrow><mo rspace="0.167em">−</mo><mrow><mrow><mrow><msub><mo rspace="0.167em">∇</mo><mi>θ</mi></msub><mi>log</mi></mrow><mo lspace="0.167em">⁡</mo><msub><mi>π</mi><mi>θ</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo maxsize="1.200em" minsize="1.200em">(</mo><mrow><msup><mi>y</mi><mo>⋆</mo></msup><mo>∣</mo><mi>x</mi></mrow><mo maxsize="1.200em" minsize="1.200em">)</mo></mrow></mrow></mrow><mo maxsize="1.200em" minsize="1.200em">]</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>𝔼</mi><mrow><mi>x</mi><mo>∼</mo><msub><mi class="ltx_font_mathcaligraphic">𝒟</mi><mi>x</mi></msub></mrow></msub><mo lspace="0em" rspace="0em">​</mo><munder><munder accentunder="true"><mrow><msub><mi>𝔼</mi><mrow><mi>y</mi><mo>∼</mo><msub><mi>π</mi><mi>θ</mi></msub><mrow><mo stretchy="false">(</mo><mo lspace="0em" rspace="0em">⋅</mo><mo lspace="0em" rspace="0.167em">∣</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mrow></msub><mo lspace="0em" rspace="0em">​</mo><mfrac><mrow><mn>𝟏</mn><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">[</mo><mrow><mi>y</mi><mo>=</mo><msup><mi>y</mi><mo>⋆</mo></msup></mrow><mo stretchy="false">]</mo></mrow></mrow><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><mi>y</mi><mo>∣</mo><mi>x</mi></mrow><mo stretchy="false">)</mo></mrow></mrow></mfrac><mo lspace="0.170em" rspace="0em">​</mo><mrow><mo maxsize="1.200em" minsize="1.200em">[</mo><mrow><mo rspace="0.167em">−</mo><mrow><mrow><mrow><msub><mo rspace="0.167em">∇</mo><mi>θ</mi></msub><mi>log</mi></mrow><mo lspace="0.167em">⁡</mo><msub><mi>π</mi><mi>θ</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo maxsize="1.200em" minsize="1.200em">(</mo><mrow><mi>y</mi><mo>∣</mo><mi>x</mi></mrow><mo maxsize="1.200em" minsize="1.200em">)</mo></mrow></mrow></mrow><mo maxsize="1.200em" minsize="1.200em">]</mo></mrow></mrow><mo stretchy="true">⏟</mo></munder><mtext>resample + reweight</mtext></munder></mrow></mrow><annotation encoding="application/x-tex">\mathbb{E}_{(x,y^{\star})\sim\mathcal{D}}\,\bigl[-\nabla_{\theta}\log\pi_{\theta}\bigl(y^{\star}\mid x\bigr)\bigr]=\mathbb{E}_{x\sim\mathcal{D}_{x}}\,\underbrace{\mathbb{E}_{y\sim\pi_{\theta}(\cdot\mid x)}\frac{\mathbf{1}[y=y^{\star}]}{\pi_{\theta}(y\mid x)}\,\bigl[-\nabla_{\theta}\log\pi_{\theta}\bigl(y\mid x\bigr)\bigr]}_{\text{resample + reweight}}\,</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(5)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S3.SS2.SSS0.Px1.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">Define the auxiliary variables</p>
+<table id="S3.Ex1" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.Ex1.m1" class="ltx_Math" alttext="w(y\mid x)=\frac{\mathbf{1}}{\pi_{\theta}(y\mid x)},\quad r(x,y)=\mathbf{1}[y=y^{\star}]," display="block" intent=":literal"><semantics><mrow><mrow><mrow><mrow><mi>w</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><mi>y</mi><mo>∣</mo><mi>x</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mfrac><mn>𝟏</mn><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><mi>y</mi><mo>∣</mo><mi>x</mi></mrow><mo stretchy="false">)</mo></mrow></mrow></mfrac></mrow><mo rspace="1.167em">,</mo><mrow><mrow><mi>r</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mn>𝟏</mn><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">[</mo><mrow><mi>y</mi><mo>=</mo><msup><mi>y</mi><mo>⋆</mo></msup></mrow><mo stretchy="false">]</mo></mrow></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">w(y\mid x)=\frac{\mathbf{1}}{\pi_{\theta}(y\mid x)},\quad r(x,y)=\mathbf{1}[y=y^{\star}],</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+</tr></tbody>
+</table>
+<p class="ltx_p">Reorganize the Equation <a href="#S3.E5" title="In Rewriting SFT Gradient as Policy Gradient via Importance Sampling. ‣ 3.2 Unify SFT–RL Gradient Expression ‣ 3 Method ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a> and rewrite it using the above auxiliary variables, we obtain the form</p>
+<table id="S3.E6" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E6.m1" class="ltx_math_unparsed" alttext="\nabla_{\theta}\mathcal{L}_{\mathrm{SFT}}(\theta)=-\mathbb{E}_{x\sim\mathcal{D}_{x},\;y\sim\pi_{\theta}(\cdot\mid x)}\bigl[{\color[rgb]{0,0,1}w(y\mid x)}\,\nabla_{\theta}\log\pi_{\theta}(y\mid x)\,{\color[rgb]{0,0,1}r(x,y)}\bigr]." display="block" intent=":literal"><semantics><mrow><mrow><mrow><mrow><msub><mo>∇</mo><mi>θ</mi></msub><msub><mi class="ltx_font_mathcaligraphic">ℒ</mi><mi>SFT</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mo>−</mo><mrow><msub><mi>𝔼</mi><mrow><mi>x</mi><mo>∼</mo><msub><mi class="ltx_font_mathcaligraphic">𝒟</mi><mi>x</mi></msub><mo rspace="0.447em">,</mo><mi>y</mi><mo>∼</mo><msub><mi>π</mi><mi>θ</mi></msub><mrow><mo stretchy="false">(</mo><mo lspace="0em" rspace="0em">⋅</mo><mo lspace="0em" rspace="0.167em">∣</mo><mi>x</mi><mo stretchy="false">)</mo></mrow></mrow></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo maxsize="1.200em" minsize="1.200em">[</mo><mrow><mi mathcolor="#0000FF">w</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo mathcolor="#0000FF" stretchy="false">(</mo><mrow><mi mathcolor="#0000FF">y</mi><mo mathcolor="#0000FF">∣</mo><mi mathcolor="#0000FF">x</mi></mrow><mo mathcolor="#0000FF" stretchy="false">)</mo></mrow><mo lspace="0.337em" rspace="0em">​</mo><mrow><mrow><msub><mo rspace="0.167em">∇</mo><mi>θ</mi></msub><mi>log</mi></mrow><mo lspace="0.167em">⁡</mo><msub><mi>π</mi><mi>θ</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><mi>y</mi><mo>∣</mo><mi>x</mi></mrow><mo stretchy="false">)</mo></mrow><mo lspace="0.170em" rspace="0em">​</mo><mi mathcolor="#0000FF">r</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo mathcolor="#0000FF" stretchy="false">(</mo><mi mathcolor="#0000FF">x</mi><mo mathcolor="#0000FF">,</mo><mi mathcolor="#0000FF">y</mi><mo mathcolor="#0000FF" stretchy="false">)</mo></mrow></mrow><mo maxsize="1.200em" minsize="1.200em">]</mo></mrow></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow><annotation encoding="application/x-tex">\nabla_{\theta}\mathcal{L}_{\mathrm{SFT}}(\theta)=-\mathbb{E}_{x\sim\mathcal{D}_{x},\;y\sim\pi_{\theta}(\cdot\mid x)}\bigl[{\color[rgb]{0,0,1}w(y\mid x)}\,\nabla_{\theta}\log\pi_{\theta}(y\mid x)\,{\color[rgb]{0,0,1}r(x,y)}\bigr].</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(6)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S3.SS2.SSS0.Px1.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p">This form of SFT gradient now closely aligns with policy gradient Equation <a href="#S3.E4" title="In Reinforcement Learning. ‣ 3.1 Preliminaries ‣ 3 Method ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>. Thus we can see, <em class="ltx_emph ltx_font_italic">conventional SFT is precisely an on-policy-gradient with the reward as an indicator function of matching the expert trajectory but biased by an importance weighting <math id="S3.SS2.SSS0.Px1.p3.m1" class="ltx_Math" alttext="1/\pi_{\theta}" display="inline" intent=":literal"><semantics><mrow><mn>1</mn><mo>/</mo><msub><mi>π</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">1/\pi_{\theta}</annotation></semantics></math></em>.</p>
+</div>
+<div id="S3.SS2.SSS0.Px1.p4" class="ltx_para ltx_noindent">
+<p class="ltx_p">Given the unavoidable sparsity of reward signals in the SFT setting, we identify the importance sampling weight <math id="S3.SS2.SSS0.Px1.p4.m1" class="ltx_Math" alttext="1/\pi_{\theta}" display="inline" intent=":literal"><semantics><mrow><mn>1</mn><mo>/</mo><msub><mi>π</mi><mi>θ</mi></msub></mrow><annotation encoding="application/x-tex">1/\pi_{\theta}</annotation></semantics></math> as a fundamental cause of SFT’s poor generalization relative to RL. When the model assigns low probability to the expert response, the weight <math id="S3.SS2.SSS0.Px1.p4.m2" class="ltx_Math" alttext="w" display="inline" intent=":literal"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math> becomes large, resulting in unbounded and high-variance reward estimates from an RL perspective. This large variance issue is exacerbated by the extreme sparsity of the reward function—since <math id="S3.SS2.SSS0.Px1.p4.m3" class="ltx_Math" alttext="r(x,y)=\mathbf{1}[y=y^{\star}]" display="inline" intent=":literal"><semantics><mrow><mrow><mi>r</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>x</mi><mo>,</mo><mi>y</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mn>𝟏</mn><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">[</mo><mrow><mi>y</mi><mo>=</mo><msup><mi>y</mi><mo>⋆</mo></msup></mrow><mo stretchy="false">]</mo></mrow></mrow></mrow><annotation encoding="application/x-tex">r(x,y)=\mathbf{1}[y=y^{\star}]</annotation></semantics></math> is nonzero only when the model exactly matches the expert output. As a result, optimization tends to overfit to rare exact-match demonstrations, undermining the model’s ability to generalize beyond the training data.</p>
+</div>
+</section>
+</section>
+<section id="S3.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.3 </span>Proposed Method</h3>
+
+<section id="S3.SS3.SSS0.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Reward Rectification via Dynamic Reweighting.</h5>
+
+<div id="S3.SS3.SSS0.Px1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">To neutralize the skewed reward issue identified when viewing SFT under an RL objective, we dynamically reweight the reward by multiplying by a corrective inverse ratio given by the policy probability <math id="S3.SS3.SSS0.Px1.p1.m1" class="ltx_Math" alttext="1/w" display="inline" intent=":literal"><semantics><mrow><mn>1</mn><mo>/</mo><mi>w</mi></mrow><annotation encoding="application/x-tex">1/w</annotation></semantics></math>. The resulting “dynamically fine-tuned” gradient is then</p>
+<table id="S3.E7" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E7.m1" class="ltx_Math" alttext="\nabla_{\theta}\mathcal{L}_{\mathrm{DFT}}(\theta)=\nabla_{\theta}\mathcal{L}_{\mathrm{SFT}}(\theta)\;\cdot\;\operatorname{sg}(\frac{1}{w})=\nabla_{\theta}\mathcal{L}_{\mathrm{SFT}}(\theta)\;\cdot\;\operatorname{sg}(\pi_{\theta}(y^{\star}\mid x))." display="block" intent=":literal"><semantics><mrow><mrow><mrow><mrow><msub><mo>∇</mo><mi>θ</mi></msub><msub><mi class="ltx_font_mathcaligraphic">ℒ</mi><mi>DFT</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mrow><mrow><msub><mo rspace="0.167em">∇</mo><mi>θ</mi></msub><msub><mi class="ltx_font_mathcaligraphic">ℒ</mi><mi>SFT</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>θ</mi><mo rspace="0.335em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.502em">⋅</mo><mrow><mi>sg</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo><mfrac><mn>1</mn><mi>w</mi></mfrac><mo stretchy="false">)</mo></mrow></mrow></mrow><mo>=</mo><mrow><mrow><mrow><msub><mo rspace="0.167em">∇</mo><mi>θ</mi></msub><msub><mi class="ltx_font_mathcaligraphic">ℒ</mi><mi>SFT</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>θ</mi><mo rspace="0.335em" stretchy="false">)</mo></mrow></mrow><mo rspace="0.502em">⋅</mo><mrow><mi>sg</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><msup><mi>y</mi><mo>⋆</mo></msup><mo>∣</mo><mi>x</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow><annotation encoding="application/x-tex">\nabla_{\theta}\mathcal{L}_{\mathrm{DFT}}(\theta)=\nabla_{\theta}\mathcal{L}_{\mathrm{SFT}}(\theta)\;\cdot\;\operatorname{sg}(\frac{1}{w})=\nabla_{\theta}\mathcal{L}_{\mathrm{SFT}}(\theta)\;\cdot\;\operatorname{sg}(\pi_{\theta}(y^{\star}\mid x)).</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(7)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S3.SS3.SSS0.Px1.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">where <math id="S3.SS3.SSS0.Px1.p2.m1" class="ltx_Math" alttext="\operatorname{sg}(\cdot)" display="inline" intent=":literal"><semantics><mrow><mi>sg</mi><mo>⁡</mo><mrow><mo stretchy="false">(</mo><mo lspace="0em" rspace="0em">⋅</mo><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\operatorname{sg}(\cdot)</annotation></semantics></math> denotes the stop-gradient operator, ensuring that gradients do not flow through the reward scaling term <math id="S3.SS3.SSS0.Px1.p2.m2" class="ltx_Math" alttext="w" display="inline" intent=":literal"><semantics><mi>w</mi><annotation encoding="application/x-tex">w</annotation></semantics></math>. To facilitate transitioning to later equations, we directly write <math id="S3.SS3.SSS0.Px1.p2.m3" class="ltx_Math" alttext="1/w" display="inline" intent=":literal"><semantics><mrow><mn>1</mn><mo>/</mo><mi>w</mi></mrow><annotation encoding="application/x-tex">1/w</annotation></semantics></math> to be <math id="S3.SS3.SSS0.Px1.p2.m4" class="ltx_Math" alttext="\pi_{\theta}(y^{\star}\mid x)" display="inline" intent=":literal"><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><msup><mi>y</mi><mo>⋆</mo></msup><mo>∣</mo><mi>x</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\pi_{\theta}(y^{\star}\mid x)</annotation></semantics></math> instead of <math id="S3.SS3.SSS0.Px1.p2.m5" class="ltx_Math" alttext="\pi_{\theta}(y\mid x)" display="inline" intent=":literal"><semantics><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><mi>y</mi><mo>∣</mo><mi>x</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\pi_{\theta}(y\mid x)</annotation></semantics></math> because the indicator function in Equation <a href="#S3.E5" title="In Rewriting SFT Gradient as Policy Gradient via Importance Sampling. ‣ 3.2 Unify SFT–RL Gradient Expression ‣ 3 Method ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a> or Equation <a href="#S3.E6" title="In Rewriting SFT Gradient as Policy Gradient via Importance Sampling. ‣ 3.2 Unify SFT–RL Gradient Expression ‣ 3 Method ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> would leave all cases where <math id="S3.SS3.SSS0.Px1.p2.m6" class="ltx_Math" alttext="y\neq y^{\star}" display="inline" intent=":literal"><semantics><mrow><mi>y</mi><mo>≠</mo><msup><mi>y</mi><mo>⋆</mo></msup></mrow><annotation encoding="application/x-tex">y\neq y^{\star}</annotation></semantics></math> as 0. Now since the gradient does not flow, the corrected SFT loss also becomes a simple reweighted loss, called Dynamic Fine-tuning (DFT).</p>
+<table id="S3.E8" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E8.m1" class="ltx_Math" alttext="\mathcal{L}_{\text{DFT}}(\theta)=\mathbb{E}_{(x,y^{\star})\sim\mathcal{D}}\Bigl[\operatorname{sg}\big(\pi_{\theta}(y^{\star}_{t}\mid x)\big)\log\pi_{\theta}(y^{\star}_{t}\mid x)\Bigr]." display="block" intent=":literal"><semantics><mrow><mrow><mrow><msub><mi class="ltx_font_mathcaligraphic">ℒ</mi><mtext>DFT</mtext></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>𝔼</mi><mrow><mrow><mo stretchy="false">(</mo><mi>x</mi><mo>,</mo><msup><mi>y</mi><mo>⋆</mo></msup><mo stretchy="false">)</mo></mrow><mo>∼</mo><mi class="ltx_font_mathcaligraphic">𝒟</mi></mrow></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo maxsize="1.600em" minsize="1.600em">[</mo><mrow><mrow><mi>sg</mi><mo>⁡</mo><mrow><mo maxsize="1.200em" minsize="1.200em">(</mo><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><msubsup><mi>y</mi><mi>t</mi><mo>⋆</mo></msubsup><mo>∣</mo><mi>x</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo maxsize="1.200em" minsize="1.200em">)</mo></mrow></mrow><mo lspace="0.167em" rspace="0em">​</mo><mrow><mi>log</mi><mo lspace="0.167em">⁡</mo><msub><mi>π</mi><mi>θ</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><msubsup><mi>y</mi><mi>t</mi><mo>⋆</mo></msubsup><mo>∣</mo><mi>x</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo maxsize="1.600em" minsize="1.600em">]</mo></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}_{\text{DFT}}(\theta)=\mathbb{E}_{(x,y^{\star})\sim\mathcal{D}}\Bigl[\operatorname{sg}\big(\pi_{\theta}(y^{\star}_{t}\mid x)\big)\log\pi_{\theta}(y^{\star}_{t}\mid x)\Bigr].</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(8)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S3.SS3.SSS0.Px1.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p">In practice, however, computing importance weights over the entire trajectory can induce numerical instability. A common treatment of this issue is to simply apply importance sampling in token-level, as was adopted in PPO <cite class="ltx_cite ltx_citemacro_citep">(Schulman et al., <a href="#bib.bib34" title="" class="ltx_ref">2017</a>)</cite>. This leads to the final DFT loss version:</p>
+</div>
+<div id="S3.SS3.SSS0.Px1.p4" class="ltx_para ltx_noindent">
+<table id="S3.E9" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E9.m1" class="ltx_Math" alttext="\mathcal{L}_{\text{DFT}}(\theta)=\mathbb{E}_{(x,y^{\star})\sim\mathcal{D}}\Bigl[-\!\sum_{t=1}^{|y^{\star}|}\operatorname{sg}\big(\pi_{\theta}(y^{\star}_{t}\mid y^{\star}_{&lt;t},x)\big)\log\pi_{\theta}(y^{\star}_{t}\mid y^{\star}_{&lt;t},x)\Bigr]." display="block" intent=":literal"><semantics><mrow><mrow><mrow><msub><mi class="ltx_font_mathcaligraphic">ℒ</mi><mtext>DFT</mtext></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>θ</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><msub><mi>𝔼</mi><mrow><mrow><mo stretchy="false">(</mo><mi>x</mi><mo>,</mo><msup><mi>y</mi><mo>⋆</mo></msup><mo stretchy="false">)</mo></mrow><mo>∼</mo><mi class="ltx_font_mathcaligraphic">𝒟</mi></mrow></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo maxsize="1.600em" minsize="1.600em">[</mo><mrow><mo>−</mo><mrow><munderover><mo movablelimits="false">∑</mo><mrow><mi>t</mi><mo>=</mo><mn>1</mn></mrow><mrow><mo stretchy="false">|</mo><msup><mi>y</mi><mo>⋆</mo></msup><mo stretchy="false">|</mo></mrow></munderover><mrow><mrow><mi>sg</mi><mo>⁡</mo><mrow><mo maxsize="1.200em" minsize="1.200em">(</mo><mrow><msub><mi>π</mi><mi>θ</mi></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><msubsup><mi>y</mi><mi>t</mi><mo>⋆</mo></msubsup><mo>∣</mo><mrow><msubsup><mi>y</mi><mrow><mi></mi><mo>&lt;</mo><mi>t</mi></mrow><mo>⋆</mo></msubsup><mo>,</mo><mi>x</mi></mrow></mrow><mo stretchy="false">)</mo></mrow></mrow><mo maxsize="1.200em" minsize="1.200em">)</mo></mrow></mrow><mo lspace="0.167em" rspace="0em">​</mo><mrow><mi>log</mi><mo lspace="0.167em">⁡</mo><msub><mi>π</mi><mi>θ</mi></msub></mrow><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mrow><msubsup><mi>y</mi><mi>t</mi><mo>⋆</mo></msubsup><mo>∣</mo><mrow><msubsup><mi>y</mi><mrow><mi></mi><mo>&lt;</mo><mi>t</mi></mrow><mo>⋆</mo></msubsup><mo>,</mo><mi>x</mi></mrow></mrow><mo stretchy="false">)</mo></mrow></mrow></mrow></mrow><mo maxsize="1.600em" minsize="1.600em">]</mo></mrow></mrow></mrow><mo lspace="0em">.</mo></mrow><annotation encoding="application/x-tex">\mathcal{L}_{\text{DFT}}(\theta)=\mathbb{E}_{(x,y^{\star})\sim\mathcal{D}}\Bigl[-\!\sum_{t=1}^{|y^{\star}|}\operatorname{sg}\big(\pi_{\theta}(y^{\star}_{t}\mid y^{\star}_{&lt;t},x)\big)\log\pi_{\theta}(y^{\star}_{t}\mid y^{\star}_{&lt;t},x)\Bigr].</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(9)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S3.SS3.SSS0.Px1.p5" class="ltx_para ltx_noindent">
+<p class="ltx_p">Note that the reward of this corrected SFT (in RL form), i.e., DFT, now becomes 1 uniformly for all expert trajectory. This is akin to contemporary verification based reward approach RLVR  <cite class="ltx_cite ltx_citemacro_citep">(DeepSeek-AI et al., <a href="#bib.bib11" title="" class="ltx_ref">2025</a>)</cite> that assigns uniform reward to all correct samples.
+Consequently, it avoids over-concentration on specific low-probability reference tokens, leading to more stable updates and improved generalization without introducing any additional sampling or reward models.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Experiments</h2>
+
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Main Experiment - SFT Setting</h3>
+
+<div id="S4.SS1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">We focs on the standard SFT setting, characterized by having only expert demonstration data without negative samples, reward models, or verification signals.
+Our expert dataset typically originates from external policies, such as expert models or human annotations. The primary objective of this experiment is to rigorously evaluate whether DFT can robustly surpass standard SFT across diverse tasks, model architectures, model sizes, and dataset sizes.</p>
+</div>
+<section id="S4.SS1.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.1.1 </span>Setup and Implementation Details</h4>
+
+<section id="S4.SS1.SSS1.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Dataset and Models.</h5>
+
+<div id="S4.SS1.SSS1.Px1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">We train with the NuminaMath CoT dataset <cite class="ltx_cite ltx_citemacro_citep">(LI et al., <a href="#bib.bib20" title="" class="ltx_ref">2024</a>)</cite>, comprising around 860,000 mathematical problems paired with the corresponding solutions. The dataset spans various sources, including Chinese high school mathematics exercises and U.S. and international mathematical olympiads. To efficiently manage computational resources, we randomly sample 100,000 instances from the dataset for training, which is sufficient since the evaluation accruacy curve <a href="#S4.F1" title="Figure 1 ‣ DFT exhibits better learning efficiency and faster convergence characteristics. ‣ 4.1.2 Main Results ‣ 4.1 Main Experiment - SFT Setting ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> indicates the convergence of all methods well before the dataset exhaustion. We conduct experiments using multiple state-of-the-art models, including Qwen2.5-Math-1.5B, Qwen2.5-Math-7B <cite class="ltx_cite ltx_citemacro_citep">(Qwen Team et al., <a href="#bib.bib29" title="" class="ltx_ref">2024a</a>)</cite>, LLaMA-3.2-3B, LLaMA-3.1-8B <cite class="ltx_cite ltx_citemacro_citep">(Dubey et al., <a href="#bib.bib14" title="" class="ltx_ref">2024</a>)</cite>, and DeepSeekMath-7B-Base <cite class="ltx_cite ltx_citemacro_citep">(Shao et al., <a href="#bib.bib35" title="" class="ltx_ref">2024</a>)</cite>.</p>
+</div>
+</section>
+<section id="S4.SS1.SSS1.Px2" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Training Details.</h5>
+
+<div id="S4.SS1.SSS1.Px2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Our implementation builds upon the verl framework <cite class="ltx_cite ltx_citemacro_citep">(Sheng et al., <a href="#bib.bib36" title="" class="ltx_ref">2025</a>)</cite>, using recommended SFT hyperparameters. Specifically, we employ the AdamW optimizer with learning rates of <math id="S4.SS1.SSS1.Px2.p1.m1" class="ltx_Math" alttext="5\times 10^{-5}" display="inline" intent=":literal"><semantics><mrow><mn>5</mn><mo lspace="0.222em" rspace="0.222em">×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>5</mn></mrow></msup></mrow><annotation encoding="application/x-tex">5\times 10^{-5}</annotation></semantics></math> for all models except the LLaMA-3.1-8B, for which we adopt a lower learning rate of <math id="S4.SS1.SSS1.Px2.p1.m2" class="ltx_Math" alttext="2\times 10^{-5}" display="inline" intent=":literal"><semantics><mrow><mn>2</mn><mo lspace="0.222em" rspace="0.222em">×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>5</mn></mrow></msup></mrow><annotation encoding="application/x-tex">2\times 10^{-5}</annotation></semantics></math>. We set the mini-batch size to 256 and the maximum input length to 2048 tokens. The learning rate follows a cosine decay schedule with a warm-up ratio of 0.1. We also include a concurrent method, Importance-Weighted SFT (iw-SFT) <cite class="ltx_cite ltx_citemacro_citep">(Qin &amp; Springenberg, <a href="#bib.bib27" title="" class="ltx_ref">2025</a>)</cite>, for comparison. All training settings follow those reported in the original paper, except that we set the number of training epochs to 1.</p>
+</div>
+</section>
+<section id="S4.SS1.SSS1.Px3" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Evaluation Settings.</h5>
+
+<div id="S4.SS1.SSS1.Px3.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">For mathematical reasoning tasks, we evaluate on established benchmarks including Math500 <cite class="ltx_cite ltx_citemacro_citep">(<a href="#bib.bib15" title="" class="ltx_ref">Hendrycks et al., </a>)</cite>, Minerva Math <cite class="ltx_cite ltx_citemacro_citep">(Lewkowycz et al., <a href="#bib.bib19" title="" class="ltx_ref">2022</a>)</cite>, Olympiad Bench <cite class="ltx_cite ltx_citemacro_citep">(AI Mathematical Olympiad, <a href="#bib.bib3" title="" class="ltx_ref">2024</a>)</cite>, AIME 2024<cite class="ltx_cite ltx_citemacro_citep">(American Institute of Mathematics, <a href="#bib.bib4" title="" class="ltx_ref">2024</a>)</cite>, and AMC 2023<cite class="ltx_cite ltx_citemacro_citep">(Mathematical Association of America, <a href="#bib.bib25" title="" class="ltx_ref">2023</a>)</cite>. Each model uses the default chat template and Chain-of-Thought (CoT) prompting to stimulate step-by-step reasoning. All reported results represent average accuracy across 16 decoding runs, evaluated with a temperature of 1.0 and maximum generation length of 4096 tokens.</p>
+</div>
+<figure id="S4.T1" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 1: </span>Average@16 accuracy of five state-of-the-art large language models on five mathematical reasoning benchmarks: Math500, Minerva Math, Olympiad Bench, AIME 2024, and AMC 2023. The best performance of each model across benchmarks is bold.</figcaption>
+<div class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:397.5pt;height:147.4pt;vertical-align:-71.8pt;"><span class="ltx_transformed_inner" style="transform:translate(-63.8pt,23.7pt) scale(0.756916132269368,0.756916132269368) ;">
+<table class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_th ltx_th_row ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">Math500</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">Minerva Math</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">Olympiad Bench</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">AIME24</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">AMC23</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">Avg.</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">LLaMA-3.2-3B</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">1.63</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">1.36</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">1.01</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">0.41</span></td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">1.56</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">1.19</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;">LLaMA-3.2-3B w/SFT</th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">8.65</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">2.38</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">2.06</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">0.00</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">3.13</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">3.24</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">LLaMA-3.2-3B w/DFT</span></th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">12.79</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">2.84</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">2.90</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">0.83</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">3.91</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">4.65</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">LLaMA-3.1-8B</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">1.86</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">0.98</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">0.94</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">0.21</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">1.01</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">1.00</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;">LLaMA-3.1-8B w/SFT</th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">16.85</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">5.78</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">3.88</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">0.00</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">5.16</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">6.33</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">LLaMA-3.1-8B w/DFT</span></th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">27.44</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">8.26</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">6.94</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">0.41</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">12.03</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">11.02</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">DeepSeekMath-7B</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">6.15</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">2.15</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">1.74</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">0.21</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">2.97</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">2.64</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;">DeepSeekMath-7B w/SFT</th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">26.83</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">7.26</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">6.33</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">0.41</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">8.28</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">9.82</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">DeepSeekMath-7B w/DFT</span></th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">41.46</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">16.79</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">15.00</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">1.24</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">16.25</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">18.15</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">Qwen2.5-Math-1.5B</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">31.66</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">8.51</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">15.88</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">4.16</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">19.38</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">15.92</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;">Qwen2.5-Math-1.5B w/SFT</th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">43.76</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">13.04</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">12.63</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">1.87</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">18.75</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">18.01</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">Qwen2.5-Math-1.5B w/DFT</span></th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">64.89</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">20.94</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">27.08</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">6.87</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">38.13</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">31.58</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">Qwen2.5-Math-7B</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">40.12</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">14.39</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">17.12</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">6.68</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">27.96</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">21.25</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;">Qwen2.5-Math-7B w/SFT</th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">53.96</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">16.66</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">18.93</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">2.48</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">26.09</td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;">23.62</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">Qwen2.5-Math-7B w/DFT</span></th>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">68.20</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">30.16</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">33.83</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">8.56</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">45.00</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">37.15</span></td>
+</tr>
+</tbody>
+</table>
+</span></div>
+</figure>
+</section>
+</section>
+<section id="S4.SS1.SSS2" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.1.2 </span>Main Results</h4>
+
+<div id="S4.SS1.SSS2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">DFT consistently yields significantly average performance improvements over base models compared to standard SFT across all evaluated LLMs.</span> As shown in Table <a href="#S4.T1" title="Table 1 ‣ Evaluation Settings. ‣ 4.1.1 Setup and Implementation Details ‣ 4.1 Main Experiment - SFT Setting ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>, for example, for Qwen2.5-Math-1.5B, DFT achieves an average gain of +15.66 points over the base model, which is over 5.9<math id="S4.SS1.SSS2.p1.m1" class="ltx_Math" alttext="\times" display="inline" intent=":literal"><semantics><mo>×</mo><annotation encoding="application/x-tex">\times</annotation></semantics></math> larger than the +2.09 point improvement from SFT. This pattern generalizes across other model families and sizes: LLaMA-3.2-3B benefits from a +3.46 point gain with DFT, exceeding the SFT gain (+2.05) by approximately 1.4<math id="S4.SS1.SSS2.p1.m2" class="ltx_Math" alttext="\times" display="inline" intent=":literal"><semantics><mo>×</mo><annotation encoding="application/x-tex">\times</annotation></semantics></math>; LLaMA-3.1-8B achieves +10.02 from DFT, surpassing SFT’s +5.33 by 1.88<math id="S4.SS1.SSS2.p1.m3" class="ltx_Math" alttext="\times" display="inline" intent=":literal"><semantics><mo>×</mo><annotation encoding="application/x-tex">\times</annotation></semantics></math>; DeepSeekMath-7B sees a +15.51 point improvement via DFT, which is 1.58<math id="S4.SS1.SSS2.p1.m4" class="ltx_Math" alttext="\times" display="inline" intent=":literal"><semantics><mo>×</mo><annotation encoding="application/x-tex">\times</annotation></semantics></math> larger than SFT’s +7.18; and Qwen2.5-Math-7B reaches a +15.90 point gain, nearly 3.8<math id="S4.SS1.SSS2.p1.m5" class="ltx_Math" alttext="\times" display="inline" intent=":literal"><semantics><mo>×</mo><annotation encoding="application/x-tex">\times</annotation></semantics></math> higher than the SFT improvement of +2.37.</p>
+</div>
+<div id="S4.SS1.SSS2.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">DFT demonstrates generalization and robustness, especially on challenging benchmarks where standard SFT yields minimal or even negative impact</span>. For instance, on Olympiad Bench, SFT degrades performance for Qwen2.5-Math-1.5B, dropping accuracy from 15.88 to 12.63, while DFT  boosts it to 27.08, +11.20 point improvement over base model. On AIME24, SFT reduces accuracy for Qwen2.5-Math-7B by 4.20 points (from 6.68 to 2.48), whereas DFT improves performance to 8.56, achieving a +1.88 point gain over the base model despite the difficulty of the benchmark. A similar trend is observed on AMC23. SFT reduces the performance of Qwen2.5-Math-1.5B from 19.38 to 18.75, while DFT raises it to 38.13, a +18.75 point gain over base. For Qwen2.5-Math-7B, SFT yields only a marginal improvement (+1.86), whereas DFT achieves a +17.04 point gain. These results underscore that DFT not only scales more effectively across models of varying capacities, but also exhibits greater resilience on difficult reasoning tasks where traditional SFT struggles. This highlights its potential as a more robust fine-tuning paradigm to enhance mathematical reasoning capabilities in LLMs.</p>
+</div>
+<section id="S4.SS1.SSS2.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">DFT exhibits better learning efficiency and faster convergence characteristics.</h5>
+
+<div id="S4.SS1.SSS2.Px1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">Figure <a href="#S4.F1" title="Figure 1 ‣ DFT exhibits better learning efficiency and faster convergence characteristics. ‣ 4.1.2 Main Results ‣ 4.1 Main Experiment - SFT Setting ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> reveals clear differences in learning dynamics between DFT and standard SFT on Qwen2.5-Math-1.5B across all math reasoning benchmarks. Compared to SFT, our method demonstrates three distinct advantages: (1) Faster convergence, achieving peak performance within the first 120 training steps on most benchmarks; (2) Better early-stage performance, with DFT already outperforming best final accuracy of SFT within the first 10–20 steps; and (3) Higher sample efficiency, consistently requiring fewer updates to reach relatively optimal results. This accelerated convergence indicates that the dynamic reweighting mechanism in DFT leads to more informative gradient updates, guiding the model toward high-quality solutions early in training. It also suggests that DFT helps avoid the optimization plateaus or noise-prone regions often encountered in standard SFT, thereby enabling more efficient acquisition of complex mathematical reasoning patterns.</p>
+</div>
+<figure id="S4.F1" class="ltx_figure"><img src="/html/2508.05629/assets/x1.png" id="S4.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="498" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1: </span>Accuracy progression for Qwen2.5-MATH-1.5B across mathematical benchmarks, illustrating faster convergence and better performance achieved by DFT relative to SFT.</figcaption>
+</figure>
+<figure id="S4.T2" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 2: </span>Comparison with concurrent work iw-SFT on math benchmarks. DFT  outperforms the iw-SFT in most settings across model families and benchmarks. The best performance is bold.</figcaption>
+<div class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:397.5pt;height:99.9pt;vertical-align:-48.1pt;"><span class="ltx_transformed_inner" style="transform:translate(-69.5pt,17.5pt) scale(0.741040820009008,0.741040820009008) ;">
+<table class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_th ltx_th_row ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">Math500</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">Minerva Math</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">Olympiad Bench</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">AIME24</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">AMC23</span></th>
+<th class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_tt" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">Avg.</span></th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">LLaMA-3.2-3B w/iw-SFT</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">5.13</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">2.63</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">1.51</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">0.00</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">2.03</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">2.26</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">LLaMA-3.2-3B w/DFT</span></th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">12.79</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">2.84</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">2.90</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">0.83</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">3.91</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">4.65</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">LLaMA-3.1-8B w/iw-SFT</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">18.21</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">4.31</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">4.31</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">0.20</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">7.34</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">6.87</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">LLaMA-3.1-8B w/DFT</span></th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">27.44</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">8.26</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">6.94</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">0.41</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">12.03</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">11.02</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">DeepSeekMath-7B w/iw-SFT</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">35.32</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">8.75</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">11.11</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">0.61</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">18.28</span></td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">14.81</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">DeepSeekMath-7B w/DFT</span></th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">41.46</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">16.79</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">15.00</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">1.24</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">16.25</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">18.15</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">Qwen2.5-Math-1.5B w/iw-SFT</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">59.38</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">17.08</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">26.82</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">8.13</span></td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">40.00</span></td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">30.28</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">Qwen2.5-Math-1.5B w/DFT</span></th>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">64.89</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">20.94</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">27.08</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">6.87</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">38.13</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">31.58</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">Qwen2.5-Math-7B w/iw-SFT</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">70.28</span></td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;">25.70</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">34.46</span></td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">16.46</span></td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">51.09</span></td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold">39.60</span></td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">Qwen2.5-Math-7B w/DFT</span></th>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">68.20</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">30.16</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">33.83</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">8.56</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">45.00</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:2.5pt;padding-bottom:2.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">37.15</span></td>
+</tr>
+</tbody>
+</table>
+</span></div>
+</figure>
+<div id="S4.SS1.SSS2.Px1.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">DFT  outperforms the concurrent Importance-Weighted SFT (iw-SFT) in most settings across model families and benchmarks.</span> As shown in Table <a href="#S4.T2" title="Table 2 ‣ DFT exhibits better learning efficiency and faster convergence characteristics. ‣ 4.1.2 Main Results ‣ 4.1 Main Experiment - SFT Setting ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, DFT achieves higher average accuracy than iw-SFT on most model families: LLaMA-3.2-3B (+2.39), LLaMA-3.1-8B (+4.15), DeepSeekMath-7B (+3.34), and Qwen2.5-Math-1.5B (+1.30). Although iw-SFT slightly outperforms our method on Qwen2.5-Math-7B (+2.45), this improvement is not consistent across datasets. In particular, on the LLaMA model family, iw-SFT exhibits signs of limited robustness. For LLaMA-3.2-3B, iw-SFT underperforms standard SFT on Math500 (5.13 vs. 8.65) and AMC23 (2.03 vs. 3.13). Similarly, for LLaMA-3.1-8B, iw-SFT results in worse performance than SFT on Minerva Math (4.31 vs. 5.78) and AMC23 (7.34 vs. 8.28). These cases demonstrate that iw-SFT might struggle to generalize beyond specific training signals, and may even degrade performance under distribution shifts or on harder benchmarks. In contrast, DFT consistently improves upon both the base model and SFT across nearly all datasets, including those where iw-SFT fails. These results underline better generalization ability of DFT in diverse mathematical reasoning scenarios. Moreover, iw-SFT incurs additional computational overhead by requiring a separate reference model to compute importance weights, whereas DFTdynamically derives its own weighting directly from the model’s token probabilities, resulting in a more efficient training procedure.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Exploratory Experiment - Offline RL Setting</h3>
+
+<section id="S4.SS2.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.2.1 </span>Setup and Implementation Details</h4>
+
+<section id="S4.SS2.SSS1.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Data Preparation.</h5>
+
+<div id="S4.SS2.SSS1.Px1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">We conduct an exploratory investigation of applying DFT  an offline RL setting, where the sparsity of reward issue could be alleviated comparing to SFT setting. Specifically, we adopt the commonly used rejection sampling fine-tuning (RFT) framework <cite class="ltx_cite ltx_citemacro_cite">Dong et al. (<a href="#bib.bib12" title="" class="ltx_ref">2023</a>); Ahn et al. (<a href="#bib.bib2" title="" class="ltx_ref">2024</a>)</cite>. Following the setup in Section <a href="#S4.SS1" title="4.1 Main Experiment - SFT Setting ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.1</span></a>, we sample responses for 10,000 math questions using a temperature of 1.0 and generate four responses per question from the base model itself. Correct responses are identified using math verify and retained as training data, resulting in approximately 140,000 examples. For DPO training, we construct 100,000 positive–negative preference pairs from the generated responses.</p>
+</div>
+</section>
+<section id="S4.SS2.SSS1.Px2" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Training Details.</h5>
+
+<div id="S4.SS2.SSS1.Px2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">All experiments are conducted using the Qwen2.5-math-1.5B model. We compare DFT with representative offline RL methods, including DPO <cite class="ltx_cite ltx_citemacro_citep">(Rafailov et al., <a href="#bib.bib31" title="" class="ltx_ref">2023</a>)</cite> and RFT <cite class="ltx_cite ltx_citemacro_citep">(Dong et al., <a href="#bib.bib12" title="" class="ltx_ref">2023</a>; Ahn et al., <a href="#bib.bib2" title="" class="ltx_ref">2024</a>)</cite>, as well as online RL methods PPO <cite class="ltx_cite ltx_citemacro_citep">(Schulman et al., <a href="#bib.bib34" title="" class="ltx_ref">2017</a>)</cite> and GRPO <cite class="ltx_cite ltx_citemacro_citep">(Shao et al., <a href="#bib.bib35" title="" class="ltx_ref">2024</a>)</cite>. For RFT and DFT, the training setup follows the configuration in Section <a href="#S4.SS1" title="4.1 Main Experiment - SFT Setting ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4.1</span></a>. For DPO, we use the ms-swift framework <cite class="ltx_cite ltx_citemacro_citep">(Zhao et al., <a href="#bib.bib43" title="" class="ltx_ref">2024</a>)</cite> with a learning rate of <math id="S4.SS2.SSS1.Px2.p1.m1" class="ltx_Math" alttext="1\times 10^{-6}" display="inline" intent=":literal"><semantics><mrow><mn>1</mn><mo lspace="0.222em" rspace="0.222em">×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>6</mn></mrow></msup></mrow><annotation encoding="application/x-tex">1\times 10^{-6}</annotation></semantics></math>, batch size of 128, and a warmup ratio of 0.05. For PPO and GRPO, training is performed using the verl framework <cite class="ltx_cite ltx_citemacro_citep">(Sheng et al., <a href="#bib.bib36" title="" class="ltx_ref">2025</a>)</cite> with a learning rate of <math id="S4.SS2.SSS1.Px2.p1.m2" class="ltx_Math" alttext="1\times 10^{-6}" display="inline" intent=":literal"><semantics><mrow><mn>1</mn><mo lspace="0.222em" rspace="0.222em">×</mo><msup><mn>10</mn><mrow><mo>−</mo><mn>6</mn></mrow></msup></mrow><annotation encoding="application/x-tex">1\times 10^{-6}</annotation></semantics></math>, batch size of 256, and a warmup ratio of 0.1. We set the number of response per input to <math id="S4.SS2.SSS1.Px2.p1.m3" class="ltx_Math" alttext="n=4" display="inline" intent=":literal"><semantics><mrow><mi>n</mi><mo>=</mo><mn>4</mn></mrow><annotation encoding="application/x-tex">n=4</annotation></semantics></math> for GRPO.</p>
+</div>
+</section>
+</section>
+<section id="S4.SS2.SSS2" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.2.2 </span>Results</h4>
+
+<figure id="S4.T3" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 3: </span>Evaluation results on five mathematical reasoning benchmarks in an offline reinforcement learning setting using reward signals from rejection sampling. DFT achieves the best overall performance, surpassing both offline (RFT, DPO) and online (PPO, GRPO) baselines, demonstrating its efficiency and strength as a simple yet effective fine-tuning strategy.</figcaption>
+<div class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:397.5pt;height:91.6pt;vertical-align:-44.1pt;"><span class="ltx_transformed_inner" style="transform:translate(-93.4pt,21.6pt) scale(0.680246700899954,0.680246700899954) ;">
+<table class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr class="ltx_tr">
+<th class="ltx_td ltx_th ltx_th_row ltx_border_tt" style="padding-top:1.5pt;padding-bottom:1.5pt;"></th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_tt" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold">Setting</span></th>
+<td class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold">Math500</span></td>
+<td class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold">Minerva Math</span></td>
+<td class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold">Olympiad Bench</span></td>
+<td class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold">AIME24</span></td>
+<td class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold">AMC23</span></td>
+<td class="ltx_td ltx_align_center ltx_border_tt" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold">Avg.</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">Qwen2.5-Math-1.5B</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">–</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">31.66</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">8.51</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">15.88</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">4.16</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">19.38</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">15.92</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">Qwen2.5-Math-1.5B w/SFT</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">SFT</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">43.14</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">11.64</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">13.41</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">1.03</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">14.84</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">16.81</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:1.5pt;padding-bottom:1.5pt;">Qwen2.5-Math-1.5B w/iw-SFT</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:1.5pt;padding-bottom:1.5pt;">SFT</th>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">59.38</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">17.08</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">26.82</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">8.13</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">40.00</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">30.28</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">Qwen2.5-Math-1.5B w/DFT</span></th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">SFT</span></th>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">62.50</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">22.94</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">26.87</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">7.31</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">33.75</span></td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">30.67</span></td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">Qwen2.5-Math-1.5B w/DPO</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">Offline</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">46.89</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">11.53</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">22.86</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">4.58</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">30.16</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">23.20</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:1.5pt;padding-bottom:1.5pt;">Qwen2.5-Math-1.5B w/RFT</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:1.5pt;padding-bottom:1.5pt;">Offline</th>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">48.23</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">14.19</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">22.29</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">4.37</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">30.78</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">23.97</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">Qwen2.5-Math-1.5B w/PPO</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">Online</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">56.10</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">15.41</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">26.33</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">7.50</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">37.97</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">28.66</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:1.5pt;padding-bottom:1.5pt;">Qwen2.5-Math-1.5B w/GRPO</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row" style="padding-top:1.5pt;padding-bottom:1.5pt;">Online</th>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">62.86</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">18.93</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">28.62</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">8.34</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">41.25</td>
+<td class="ltx_td ltx_align_center" style="padding-top:1.5pt;padding-bottom:1.5pt;">32.00</td>
+</tr>
+<tr class="ltx_tr">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">Qwen2.5-Math-1.5B w/iw-SFT</th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">Offline</th>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">60.80</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">18.13</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">27.83</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">8.33</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">44.21</td>
+<td class="ltx_td ltx_align_center ltx_border_t" style="padding-top:1.5pt;padding-bottom:1.5pt;">31.86</td>
+</tr>
+<tr class="ltx_tr" style="background-color:#E6E6E6;">
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">Qwen2.5-Math-1.5B w/DFT</span></th>
+<th class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_bb" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text" style="background-color:#E6E6E6;">Offline</span></th>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">64.71</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">25.16</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">30.93</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">7.93</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">48.44</span></td>
+<td class="ltx_td ltx_align_center ltx_border_bb" style="padding-top:1.5pt;padding-bottom:1.5pt;"><span class="ltx_text ltx_font_bold" style="background-color:#E6E6E6;">35.43</span></td>
+</tr>
+</tbody>
+</table>
+</span></div>
+</figure>
+<div id="S4.SS2.SSS2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p"><span class="ltx_text ltx_font_bold">DFT demonstrates best performance in the offline reinforcement learning setting, outperforming both offline and online RL baselines.</span> As shown in Table <a href="#S4.T3" title="Table 3 ‣ 4.2.2 Results ‣ 4.2 Exploratory Experiment - Offline RL Setting ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, DFT achieves an average score of 35.43, exceeding the best offline method RFT by +11.46 points (from 23.97 to 35.43), and even outperforming the strongest online RL algorithm GRPO by +3.43 points (from 32.00 to 35.43). Our model performs well across all five benchmarks. On Math500, DFT scores 64.71, slightly ahead of GRPO (62.86) and better than PPO (56.10) and RFT (48.23). The gains are notable on more challenging benchmarks: on AMC23, DFT achieves 48.44, a +7.19 point margin over GRPO and a +17.66 point gain over RFT. Similarly, on Minerva Math, DFT reaches 25.16, outperforming GRPO (18.93) by +6.23 points, PPO (15.41) by +9.75, and all offline baselines by a wider gap.</p>
+</div>
+<div id="S4.SS2.SSS2.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">We also compare against the concurrent iw-SFT <cite class="ltx_cite ltx_citemacro_citep">(Qin &amp; Springenberg, <a href="#bib.bib27" title="" class="ltx_ref">2025</a>)</cite> method under the offline setting. While iw-SFT performs competitively on certain datasets, achieving 60.80 on Math500 and 44.21 on AMC23, its overall average performance (31.86) still falls short of our method by a +3.57 point margin. Moreover, iw-SFT yields only marginal improvements compared to its own performance under the standard SFT setting, achieving an average score of 31.86 in the offline RL setting versus 30.28 with SFT. This modest gain of +1.58 points stands in stark contrast to the improvement achieved by DFT (+4.76, from 30.67 to 35.43). These results suggest that iw-SFT struggles to effectively leverage reward supervision under offline constraints, whereas DFT is able to consistently convert such signals into more robust generalization and higher task performance.</p>
+</div>
+<div id="S4.SS2.SSS2.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p">These results highlight the strength of DFT as a simple yet effective fine-tuning strategy. Despite its lack of iterative reward modeling or environment interaction, it provides a stronger learning signal than both offline methods like DPO/RFT and online policy optimization algorithms like PPO/GRPO in certain scale train set. This suggests that DFT can serve as a more efficient and scalable alternative to traditional RL pipelines, particularly in domains where preference supervision is available but reward modeling or online response sampling is expensive or impractical.</p>
+</div>
+</section>
+</section>
+<section id="S4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.3 </span>Ablation and Investigation</h3>
+
+<section id="S4.SS3.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.3.1 </span>Token Probability Distribution</h4>
+
+<figure id="S4.F2" class="ltx_figure"><img src="/html/2508.05629/assets/x2.png" id="S4.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="515" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 2: </span>Token probability distributions on the training set before training and after fine-tuning with DFT, SFT, and various RL methods including DPO, PPO, and GRPO. A logarithmic scale is used on the y-axis to improve visualization clarity.</figcaption>
+</figure>
+<div id="S4.SS3.SSS1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">To understand how the model trained by DFT is different from standard SFT and other RL methods, we look into the token probability distribution of the model’s output over the training set in Figure <a href="#S4.F2" title="Figure 2 ‣ 4.3.1 Token Probability Distribution ‣ 4.3 Ablation and Investigation ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>. The results reveal how the methods alter the probability landscape. SFT tends to uniformly increase token probabilities, shifting the entire distribution towards higher confidence, but mainly targeting the lower and lowest probability tokens. The highest probability token portion barely increases. In stark contrast, DFT exhibits a polarizing effect: it significantly boosts the probabilities of a subset of tokens while actively suppressing the probabilities of others. This leads to a bimodal distribution, with more tokens occupying both the highest and lowest probability bins. Other RL methods such as DPO, GPPO and PPO show the same trend as DFT, although the scale is much milder than it. We look into the words that belong to the lowest probability bin, and find that they are generally the conjuncative words or punctuations such as ‘the’, ‘let’, ‘,’, ‘.’ etc.</p>
+</div>
+<div id="S4.SS3.SSS1.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">These results suggest that for robust learning, models should not attempt to fit all tokens with uniform confidence. For large language models, it may be beneficial to deprioritize fitting tokens that serve grammatical functions rather than carrying primary semantic content. This concept is analogous to human pedagogy, where students are taught to focus on substantive concepts rather than perfecting the usage of common connective words.</p>
+</div>
+<figure id="S4.F3" class="ltx_figure"><img src="/html/2508.05629/assets/x3.png" id="S4.F3.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="253" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 3: </span>Ablation study of training hyper-parameters, learning rates and batch size, for DFT and SFT on Qwen2.5-Math-1.5B model.</figcaption>
+</figure>
+</section>
+<section id="S4.SS3.SSS2" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">4.3.2 </span>Training Hyper-Parameters Ablation</h4>
+
+<div id="S4.SS3.SSS2.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">To assess the robustness and sensitivity of our approach (DFT) with respect to key training hyperparameters, we conduct an ablation study focused on learning rate and batch size, using the Qwen2.5-Math-1.5B base model. This analysis aims to answer two central questions: (1) Is the performance gap between DFT and SFT due to a suboptimal hyperparameter configuration in SFT? (2) How sensitive are both methods to changes in learning rate and batch size?</p>
+</div>
+<div id="S4.SS3.SSS2.p2" class="ltx_para ltx_noindent">
+<p class="ltx_p">We evaluate both DFT and SFT across four learning rates: 2e-4, 1e-4, 5e-5, and 1e-5. As shown in Figure <a href="#S4.F3" title="Figure 3 ‣ 4.3.1 Token Probability Distribution ‣ 4.3 Ablation and Investigation ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> (left), both methods exhibit a certain degree of sensitivity to the learning rate. DFT consistently outperforms SFT under all configurations, suggesting that the performance gap cannot be attributed solely to suboptimal hyperparameter choices in SFT. For both methods, intermediate learning rates (1e-4 and 5e-5) yield the best results, while both lower (1e-5) and higher (2e-4) values lead to noticeable degradation. These findings highlight the importance of properly tuning the learning rate in gradient-based fine-tuning.</p>
+</div>
+<div id="S4.SS3.SSS2.p3" class="ltx_para ltx_noindent">
+<p class="ltx_p">We further assess the impact of batch size, sweeping values from 32 to 256. As shown in Figure <a href="#S4.F3" title="Figure 3 ‣ 4.3.1 Token Probability Distribution ‣ 4.3 Ablation and Investigation ‣ 4 Experiments ‣ On the Generalization of SFT: A Reinforcement Learning Perspective with Reward Rectification" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a> (right), both DFT and SFT exhibit relatively stable performance across the full range of batch sizes. While minor fluctuations are observed, there is no consistent trend indicating that larger or smaller batches significantly affect final accuracy. This suggests that batch size is not a dominant factor for either method in this setup. This suggests that batch size is not a dominant factor for either method in this setup, and default values may suffice in practice.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Conclusion</h2>
+
+<div id="S5.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">In this work, we address the well-documented generalization gap between Supervised Fine-Tuning and Reinforcement Learning. We provide a novel theoretical analysis, demonstrating that the standard SFT gradient is equivalent to a policy gradient update with an ill-posed implicit reward that is inversely proportional to the model’s confidence. This insight explains SFT’s tendency to overfit and its unstable optimization dynamics. Building on this analysis, we introduce DFT, a simple yet powerful method that rectifies this issue by dynamically reweighting the SFT loss with the token probability. This one-line modification stabilizes the learning process and promotes better generalization. Our extensive experiments show that DFT consistently and substantially outperforms standard SFT across various models and challenging mathematical reasoning benchmarks. Furthermore, when adapted to an offline RL setting, DFT surprisingly surpasses established online and offline RL algorithms, highlighting its effectiveness and efficiency. Our work provides both a deeper understanding of SFT and a practical, high-impact solution that significantly closes the performance gap with more complex RL methods.</p>
+</div>
+<section id="S5.SS0.SSS0.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Limitations.</h5>
+
+<div id="S5.SS0.SSS0.Px1.p1" class="ltx_para ltx_noindent">
+<p class="ltx_p">While our experiments demonstrate substantial gains from DFT on mathematical reasoning benchmarks, this evaluation is confined to math‐focused datasets and models up to 7 billion parameters. We have not yet assessed performance on other task domains (e.g., code generation, commonsense QA) or with larger LLMs (e.g., 13 B+). Moreover, our current study is limited to text‐only scenarios. In future work, we plan not only to extend our study to a broader range of text benchmarks and to scale DFT to state‐of‐the‐art models, but also to validate its effectiveness on vision‐language tasks to confirm its generality across modalities.</p>
+</div>
+</section>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Abdolmaleki et al. (2025)</span>
+<span class="ltx_bibblock">
+Abbas Abdolmaleki, Bilal Piot, Bobak Shahriari, Jost Tobias Springenberg, Tim Hertweck, Michael Bloesch, Rishabh Joshi, Thomas Lampe, Junhyuk Oh, Nicolas Heess, et al.
+
+</span>
+<span class="ltx_bibblock">Learning from negative feedback, or positive feedback or both.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">ICLR</em>, 2025.
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Ahn et al. (2024)</span>
+<span class="ltx_bibblock">
+Janice Ahn, Rishu Verma, Renze Lou, Di Liu, Rui Zhang, and Wenpeng Yin.
+
+</span>
+<span class="ltx_bibblock">Large language models for mathematical reasoning: Progresses and challenges.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Proceedings of the 18th Conference of the European Chapter of the Association for Computational Linguistics: Student Research Workshop</em>, pp.  225–237, 2024.
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">AI Mathematical Olympiad (2024)</span>
+<span class="ltx_bibblock">
+AI Mathematical Olympiad.
+
+</span>
+<span class="ltx_bibblock">Ai mathematical olympiad prize datasets, 2024.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://www.kaggle.com/competitions/ai-mathematical-olympiad-prize" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.kaggle.com/competitions/ai-mathematical-olympiad-prize</a>.
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">American Institute of Mathematics (2024)</span>
+<span class="ltx_bibblock">
+American Institute of Mathematics.
+
+</span>
+<span class="ltx_bibblock">Aime 2024 competition mathematical problems, 2024.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://www.maa.org/math-competitions/aime" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.maa.org/math-competitions/aime</a>.
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Bai et al. (2022)</span>
+<span class="ltx_bibblock">
+Yuntao Bai, Andy Jones, Kamal Ndousse, Amanda Askell, Anna Chen, Nova Dasgupta, Dawn Drain, Stanislav Fort, Deep Ganguli, Tom Hase, et al.
+
+</span>
+<span class="ltx_bibblock">Training a helpful and harmless assistant with reinforcement learning from human feedback.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2204.05862</em>, 2022.
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen et al. (2025a)</span>
+<span class="ltx_bibblock">
+Huayu Chen, Kaiwen Zheng, Qinsheng Zhang, Ganqu Cui, Yin Cui, Haotian Ye, Tsung-Yi Lin, Ming-Yu Liu, Jun Zhu, and Haoxiang Wang.
+
+</span>
+<span class="ltx_bibblock">Bridging supervised learning and reinforcement learning in math reasoning.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2505.18116</em>, 2025a.
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen et al. (2025b)</span>
+<span class="ltx_bibblock">
+Zhipeng Chen, Yingqian Min, Beichen Zhang, Jie Chen, Jinhao Jiang, Daixuan Cheng, Wayne Xin Zhao, Zheng Liu, Xu Miao, Yang Lu, Lei Fang, Zhongyuan Wang, and Ji-Rong Wen.
+
+</span>
+<span class="ltx_bibblock">An empirical study on eliciting and improving r1-like reasoning models.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2503.04548</em>, 2025b.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2503.04548" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2503.04548</a>.
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Christiano et al. (2017)</span>
+<span class="ltx_bibblock">
+Paul F Christiano, Jan Leike, Tom Brown, Miljan Martic, Shane Legg, and Dario Amodei.
+
+</span>
+<span class="ltx_bibblock">Deep reinforcement learning from human preferences.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, volume 30, 2017.
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">(9)</span>
+<span class="ltx_bibblock">
+Tianzhe Chu, Yuexiang Zhai, Jihan Yang, Shengbang Tong, Saining Xie, Dale Schuurmans, Quoc V Le, Sergey Levine, and Yi Ma.
+
+</span>
+<span class="ltx_bibblock">Sft memorizes, rl generalizes: A comparative study of foundation model post-training.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Forty-second International Conference on Machine Learning</em>.
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chung et al. (2024)</span>
+<span class="ltx_bibblock">
+Hyung Won Chung, Le Hou, Shayne Longpre, Barret Zoph, Yi Tay, William Fedus, Yunxuan Li, Xuezhi Wang, Mostafa Dehghani, Siddhartha Brahma, et al.
+
+</span>
+<span class="ltx_bibblock">Scaling instruction-finetuned language models.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Journal of Machine Learning Research</em>, 25(70):1–53, 2024.
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">DeepSeek-AI et al. (2025)</span>
+<span class="ltx_bibblock">
+DeepSeek-AI, Daya Guo, Dejian Yang, Haowei Zhang, Junxiao Song, Ruoyu Zhang, Runxin Xu, Qihao Zhu, Shirong Ma, Peiyi Wang, Xiao Bi, Xiaokang Zhang, Xingkai Yu, Yu Wu, Z. F. Wu, Zhibin Gou, Zhihong Shao, Zhuoshu Li, Ziyi Gao, Aixin Liu, Bing Xue, Bingxuan Wang, Bochao Wu, Bei Feng, Chengda Lu, Chenggang Zhao, Chengqi Deng, Chenyu Zhang, Chong Ruan, Damai Dai, Deli Chen, Dongjie Ji, Erhang Li, Fangyun Lin, Fucong Dai, Fuli Luo, Guangbo Hao, Guanting Chen, Guowei Li, H. Zhang, Han Bao, Hanwei Xu, Haocheng Wang, Honghui Ding, Huajian Xin, Huazuo Gao, Hui Qu, Hui Li, Jianzhong Guo, Jiashi Li, Jiawei Wang, Jingchang Chen, Jingyang Yuan, Junjie Qiu, Junlong Li, J. L. Cai, Jiaqi Ni, Jian Liang, Jin Chen, Kai Dong, Kai Hu, Kaige Gao, Kang Guan, Kexin Huang, Kuai Yu, Lean Wang, Lecong Zhang, Liang Zhao, Litong Wang, Liyue Zhang, Lei Xu, Leyi Xia, Mingchuan Zhang, Minghua Zhang, Minghui Tang, Meng Li, Miaojun Wang, Mingming Li, Ning Tian, Panpan Huang, Peng Zhang, Qiancheng Wang, Qinyu Chen, Qiushi Du, Ruiqi Ge, Ruisong
+Zhang, Ruizhe Pan, Runji Wang, R. J. Chen, R. L. Jin, Ruyi Chen, Shanghao Lu, Shangyan Zhou, Shanhuang Chen, Shengfeng Ye, Shiyu Wang, Shuiping Yu, Shunfeng Zhou, Shuting Pan, S. S. Li, Shuang Zhou, Shaoqing Wu, Shengfeng Ye, Tao Yun, Tian Pei, Tianyu Sun, T. Wang, Wangding Zeng, Wanjia Zhao, Wen Liu, Wenfeng Liang, Wenjun Gao, Wenqin Yu, Wentao Zhang, W. L. Xiao, Wei An, Xiaodong Liu, Xiaohan Wang, Xiaokang Chen, Xiaotao Nie, Xin Cheng, Xin Liu, Xin Xie, Xingchao Liu, Xinyu Yang, Xinyuan Li, Xuecheng Su, Xuheng Lin, X. Q. Li, Xiangyue Jin, Xiaojin Shen, Xiaosha Chen, Xiaowen Sun, Xiaoxiang Wang, Xinnan Song, Xinyi Zhou, Xianzu Wang, Xinxia Shan, Y. K. Li, Y. Q. Wang, Y. X. Wei, Yang Zhang, Yanhong Xu, Yao Li, Yao Zhao, Yaofeng Sun, Yaohui Wang, Yi Yu, Yichao Zhang, Yifan Shi, Yiliang Xiong, Ying He, Yishi Piao, Yisong Wang, Yixuan Tan, Yiyang Ma, Yiyuan Liu, Yongqiang Guo, Yuan Ou, Yuduan Wang, Yue Gong, Yuheng Zou, Yujia He, Yunfan Xiong, Yuxiang Luo, Yuxiang You, Yuxuan Liu, Yuyang Zhou, Y. X. Zhu,
+Yanhong Xu, Yanping Huang, Yaohui Li, Yi Zheng, Yuchen Zhu, Yunxian Ma, Ying Tang, Yukun Zha, Yuting Yan, Z. Z. Ren, Zehui Ren, Zhangli Sha, Zhe Fu, Zhean Xu, Zhenda Xie, Zhengyan Zhang, Zhewen Hao, Zhicheng Ma, Zhigang Yan, Zhiyu Wu, Zihui Gu, Zijia Zhu, Zijun Liu, Zilin Li, Ziwei Xie, Ziyang Song, Zizheng Pan, Zhen Huang, Zhipeng Xu, Zhongyu Zhang, and Zhen Zhang.
+
+</span>
+<span class="ltx_bibblock">Deepseek-r1: Incentivizing reasoning capability in llms via reinforcement learning, 2025.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2501.12948" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2501.12948</a>.
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Dong et al. (2023)</span>
+<span class="ltx_bibblock">
+Hanze Dong, Wei Xiong, Deepanshu Goyal, Yihan Zhang, Winnie Chow, Rui Pan, Shizhe Diao, Jipeng Zhang, Kashun Shum, and Tong Zhang.
+
+</span>
+<span class="ltx_bibblock">Raft: Reward ranked finetuning for generative foundation model alignment.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Transactions on Machine Learning Research</em>, 2023, 2023.
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Du et al. (2025)</span>
+<span class="ltx_bibblock">
+Yilun Du et al.
+
+</span>
+<span class="ltx_bibblock">Simplify rlhf as reward-weighted sft: A variational method.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2502.11026</em>, 2025.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2502.11026" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2502.11026</a>.
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Dubey et al. (2024)</span>
+<span class="ltx_bibblock">
+Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten, Amy Yang, Angela Fan, et al.
+
+</span>
+<span class="ltx_bibblock">The llama 3 herd of models.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2407.21783</em>, 2024.
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">(15)</span>
+<span class="ltx_bibblock">
+Dan Hendrycks, Collin Burns, Saurav Kadavath, Akul Arora, Steven Basart, Eric Tang, Dawn Song, and Jacob Steinhardt.
+
+</span>
+<span class="ltx_bibblock">Measuring mathematical problem solving with the math dataset.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Thirty-fifth Conference on Neural Information Processing Systems Datasets and Benchmarks Track (Round 2)</em>.
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Huan et al. (2025)</span>
+<span class="ltx_bibblock">
+Maggie Huan, Yuetai Li, Tuney Zheng, Xiaoyu Xu, Seungone Kim, Minxin Du, Radha Poovendran, Graham Neubig, and Xiang Yue.
+
+</span>
+<span class="ltx_bibblock">Does math reasoning improve general llm capabilities? understanding transferability of llm reasoning.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2507.00432</em>, 2025.
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">International Mathematical Olympiad (2024)</span>
+<span class="ltx_bibblock">
+International Mathematical Olympiad.
+
+</span>
+<span class="ltx_bibblock">Mathematical olympiad problems 2024, 2024.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://www.imo-official.org" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.imo-official.org</a>.
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Levine et al. (2020)</span>
+<span class="ltx_bibblock">
+Sergey Levine, Aviral Kumar, George Tucker, and Justin Fu.
+
+</span>
+<span class="ltx_bibblock">Offline reinforcement learning: Tutorial, review, and perspectives on open problems.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2005.01643</em>, 2020.
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lewkowycz et al. (2022)</span>
+<span class="ltx_bibblock">
+Aitor Lewkowycz, Anders Andreassen, David Dohan, Ethan Dyer, Henryk Michalewski, Vinay Ramasesh, Ambrose Slone, Cem Anil, Imanol Schlag, Theo Gutman-Solo, et al.
+
+</span>
+<span class="ltx_bibblock">Solving quantitative reasoning problems with language models.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Advances in neural information processing systems</em>, 35:3843–3857, 2022.
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">LI et al. (2024)</span>
+<span class="ltx_bibblock">
+Jia LI, Edward Beeching, Lewis Tunstall, Ben Lipkin, Roman Soletskyi, Shengyi Costa Huang, Kashif Rasul, Longhui Yu, Albert Jiang, Ziju Shen, Zihan Qin, Bin Dong, Li Zhou, Yann Fleureau, Guillaume Lample, and Stanislas Polu.
+
+</span>
+<span class="ltx_bibblock">Numinamath.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https://huggingface.co/collections/AI-MO/numina-math-models-and-datasets-66f94e8de52a7bfd5af7e28e" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://huggingface.co/collections/AI-MO/numina-math-models-and-datasets-66f94e8de52a7bfd5af7e28e</a>, 2024.
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lin et al. (2017)</span>
+<span class="ltx_bibblock">
+Tsung-Yi Lin, Priya Goyal, Ross Girshick, Kaiming He, and Piotr Dollár.
+
+</span>
+<span class="ltx_bibblock">Focal loss for dense object detection.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Proceedings of the IEEE International Conference on Computer Vision (ICCV)</em>, pp.  2999–3007, 2017.
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Liu et al. (2025)</span>
+<span class="ltx_bibblock">
+Mingyang Liu, Gabriele Farina, and Asuman Ozdaglar.
+
+</span>
+<span class="ltx_bibblock">Uft: Unifying supervised and reinforcement fine-tuning.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2505.16984</em>, 2025.
+
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Liu &amp; Yin (2024)</span>
+<span class="ltx_bibblock">
+Vivian Liu and Yiqiao Yin.
+
+</span>
+<span class="ltx_bibblock">Green ai: exploring carbon footprints, mitigation strategies, and trade offs in large language model training.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Discover Artificial Intelligence</em>, 4(49), 2024.
+
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Mandlekar et al. (2022)</span>
+<span class="ltx_bibblock">
+Ajay Mandlekar, Danfei Xu, Josiah Wong, Soroush Nasiriany, Chen Wang, Rohun Kulkarni, Li Fei-Fei, Silvio Savarese, Yuke Zhu, and Roberto Martín-Martín.
+
+</span>
+<span class="ltx_bibblock">What matters in learning from offline human demonstrations for robot manipulation.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Conference on Robot Learning</em>, pp.  1678–1690. PMLR, 2022.
+
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Mathematical Association of America (2023)</span>
+<span class="ltx_bibblock">
+Mathematical Association of America.
+
+</span>
+<span class="ltx_bibblock">Amc 2023 competition problems, 2023.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://www.maa.org/math-competitions" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.maa.org/math-competitions</a>.
+
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Ouyang et al. (2022)</span>
+<span class="ltx_bibblock">
+Long Ouyang, Jeffrey Wu, Xu Jiang, Diogo Almeida, Carroll Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, et al.
+
+</span>
+<span class="ltx_bibblock">Training language models to follow instructions with human feedback.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, 35:27730–27744, 2022.
+
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Qin &amp; Springenberg (2025)</span>
+<span class="ltx_bibblock">
+Chongli Qin and Jost Tobias Springenberg.
+
+</span>
+<span class="ltx_bibblock">Supervised fine tuning on curated data is reinforcement learning (and can be improved).
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2507.12856</em>, 2025.
+
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Qiu et al. (2025)</span>
+<span class="ltx_bibblock">
+Haibo Qiu, Xiaohan Lan, Fanfan Liu, Xiaohu Sun, Delian Ruan, Peng Shi, and Lin Ma.
+
+</span>
+<span class="ltx_bibblock">Metis-rise: Rl incentivizes and sft enhances multimodal reasoning model learning.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2506.13056</em>, 2025.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://www.arxiv.org/pdf/2506.13056" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.arxiv.org/pdf/2506.13056</a>.
+
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Qwen Team et al. (2024a)</span>
+<span class="ltx_bibblock">
+Qwen Team, An Yang, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chengyuan Li, Dayiheng Liu, Fei Huang, et al.
+
+</span>
+<span class="ltx_bibblock">Qwen2.5: A party of foundation models.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2412.15115</em>, 2024a.
+
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Qwen Team et al. (2024b)</span>
+<span class="ltx_bibblock">
+Qwen Team, An Yang, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chengyuan Li, Dayiheng Liu, Fei Huang, et al.
+
+</span>
+<span class="ltx_bibblock">Qwen2.5 technical report.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2412.15115</em>, 2024b.
+
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Rafailov et al. (2023)</span>
+<span class="ltx_bibblock">
+Rafael Rafailov, Archit Sharma, Eric Mitchell, Christopher D Manning, Stefano Ermon, and Chelsea Finn.
+
+</span>
+<span class="ltx_bibblock">Direct preference optimization: Your language model is secretly a reward model.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, volume 36, 2023.
+
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sammut (2011)</span>
+<span class="ltx_bibblock">
+Claude Sammut.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">Behavioral Cloning</em>.
+
+</span>
+<span class="ltx_bibblock">Springer, 2011.
+
+</span>
+</li>
+<li id="bib.bib33" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sanh et al. (2022)</span>
+<span class="ltx_bibblock">
+Victor Sanh, Albert Webson, Colin Raffel, Stephen Bach, Lintang Sutton, Zaid Alyafeai, Antoine Chaffin, Arnaud Stiegler, Teven Le Scao, Arun Raja, et al.
+
+</span>
+<span class="ltx_bibblock">Multitask prompted training enables zero-shot task generalization.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">International Conference on Learning Representations</em>, 2022.
+
+</span>
+</li>
+<li id="bib.bib34" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Schulman et al. (2017)</span>
+<span class="ltx_bibblock">
+John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov.
+
+</span>
+<span class="ltx_bibblock">Proximal policy optimization algorithms.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:1707.06347</em>, 2017.
+
+</span>
+</li>
+<li id="bib.bib35" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Shao et al. (2024)</span>
+<span class="ltx_bibblock">
+Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, YK Li, Yang Wu, et al.
+
+</span>
+<span class="ltx_bibblock">Deepseekmath: Pushing the limits of mathematical reasoning in open language models.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2402.03300</em>, 2024.
+
+</span>
+</li>
+<li id="bib.bib36" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sheng et al. (2025)</span>
+<span class="ltx_bibblock">
+Guangming Sheng, Chi Zhang, Zilingfeng Ye, Xibin Wu, Wang Zhang, Ru Zhang, Yanghua Peng, Haibin Lin, and Chuan Wu.
+
+</span>
+<span class="ltx_bibblock">Hybridflow: A flexible and efficient rlhf framework.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Proceedings of the Twentieth European Conference on Computer Systems</em>, pp.  1279–1297, 2025.
+
+</span>
+</li>
+<li id="bib.bib37" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Strubell et al. (2019)</span>
+<span class="ltx_bibblock">
+Emma Strubell, Ananya Ganesh, and Andrew McCallum.
+
+</span>
+<span class="ltx_bibblock">Energy and policy considerations for deep learning in nlp.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics</em>, pp.  3645–3650, 2019.
+
+</span>
+</li>
+<li id="bib.bib38" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Swamy et al. (2025)</span>
+<span class="ltx_bibblock">
+Gokul Swamy, Sanjiban Choudhury, Wen Sun, Zhiwei Steven Wu, and J Andrew Bagnell.
+
+</span>
+<span class="ltx_bibblock">All roads lead to likelihood: The value of reinforcement learning in fine-tuning.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2503.01067</em>, 2025.
+
+</span>
+</li>
+<li id="bib.bib39" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wang et al. (2025)</span>
+<span class="ltx_bibblock">
+Yifan Wang et al.
+
+</span>
+<span class="ltx_bibblock">Implicit reward as the bridge: A unified view of sft and dpo connections.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2507.00018</em>, 2025.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2507.00018" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2507.00018</a>.
+
+</span>
+</li>
+<li id="bib.bib40" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wei et al. (2022)</span>
+<span class="ltx_bibblock">
+Jason Wei, Maarten Bosma, Vincent Zhao, Kelvin Guu, Adams Wei Yu, Brian Lester, Nan Du, Andrew M Dai, and Quoc V Le.
+
+</span>
+<span class="ltx_bibblock">Finetuned language models are zero-shot learners.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+</li>
+<li id="bib.bib41" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Winsta (2025)</span>
+<span class="ltx_bibblock">
+Jenis Winsta.
+
+</span>
+<span class="ltx_bibblock">The hidden costs of ai: A review of energy, e-waste, and inequality in model development.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2507.09611</em>, 2025.
+
+</span>
+</li>
+<li id="bib.bib42" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhang et al. (2024)</span>
+<span class="ltx_bibblock">
+Shengyu Zhang, Linfeng Dong, Xiaoya Li, Sen Zhang, Xiaofei Sun, Shuhe Wang, Jiwei Li, Runyi Hu, Tianwei Zhang, Fei Wu, and Guoyin Wang.
+
+</span>
+<span class="ltx_bibblock">Instruction tuning for large language models: A survey.
+
+</span>
+<span class="ltx_bibblock"><em class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2308.10792</em>, 2024.
+
+</span>
+</li>
+<li id="bib.bib43" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhao et al. (2024)</span>
+<span class="ltx_bibblock">
+Yuze Zhao, Jintao Huang, Jinghan Hu, Xingjun Wang, Yunlin Mao, Daoze Zhang, Zeyinzi Jiang, Zhikai Wu, Baole Ai, Ang Wang, Wenmeng Zhou, and Yingda Chen.
+
+</span>
+<span class="ltx_bibblock">Swift:a scalable lightweight infrastructure for fine-tuning, 2024.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2408.05517" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2408.05517</a>.
+
+</span>
+</li>
+<li id="bib.bib44" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhou et al. (2023)</span>
+<span class="ltx_bibblock">
+Chunting Zhou, Pengfei Liu, Puxin Xu, Srinivasan Iyer, Jianfeng Sun, Yuning Mao, Xuezhe Ma, Avia Efrat, Ping Yu, Lili Yu, et al.
+
+</span>
+<span class="ltx_bibblock">Lima: Less is more for alignment.
+
+</span>
+<span class="ltx_bibblock">In <em class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, volume 36, 2023.
+
+</span>
+</li>
+</ul>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2508.05628" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2508.05629" class="ar5iv-text-button ar5iv-severity-warning">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2508.05629">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2508.05629" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2508.05630" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Fri Sep  5 14:20:10 2025 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

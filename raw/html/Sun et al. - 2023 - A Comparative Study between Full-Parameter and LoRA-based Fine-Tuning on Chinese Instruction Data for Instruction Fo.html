@@ -1,0 +1,1323 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2304.08109] A Comparative Study between Full-Parameter and LoRA-based Fine-Tuning on Chinese Instruction Data for Instruction Following Large Language Model</title><meta property="og:description" content="Recently, the instruction-tuning of large language models is a crucial area of research in the field of natural language processing. Due to resource and cost limitations, several researchers have employed parameter-eff…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="A Comparative Study between Full-Parameter and LoRA-based Fine-Tuning on Chinese Instruction Data for Instruction Following Large Language Model">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="A Comparative Study between Full-Parameter and LoRA-based Fine-Tuning on Chinese Instruction Data for Instruction Following Large Language Model">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2304.08109">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2304.08109">
+
+<!--Generated on Thu Feb 29 14:26:43 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_title_document">A Comparative Study between Full-Parameter and LoRA-based Fine-Tuning on Chinese Instruction Data for Instruction Following Large Language Model</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Xianghui Sun, Yunjie Ji, Baochang Ma*, Xiangang Li 
+<br class="ltx_break">Beike Inc., Beijing, China 
+<br class="ltx_break"><span id="id1.1.id1" class="ltx_text ltx_font_typewriter">{sunxianghui002,jiyunjie001,mabaochang001,lixiangang002}@ke.com</span>
+</span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id2.id1" class="ltx_p">Recently, the instruction-tuning of large language models is a crucial area of research in the field of natural language processing. Due to resource and cost limitations, several researchers have employed parameter-efficient tuning techniques, such as LoRA, for instruction tuning, and have obtained encouraging results. In comparison to full-parameter fine-tuning, LoRA-based tuning demonstrates salient benefits in terms of training costs. In this study, we undertook experimental comparisons between full-parameter fine-tuning and LoRA-based tuning methods, utilizing LLaMA as the base model.</p>
+<p id="id3.id2" class="ltx_p">The experimental results show that the selection of the foundational model, training dataset scale, learnable parameter quantity, and model training cost are all important factors. We hope that the experimental conclusions of this paper can provide inspiration for training large language models, especially in the field of Chinese, and help researchers find a better trade-off strategy between training cost and model performance.
+To facilitate the reproduction of the paper’s results, the dataset, model and code will be released.<sup id="id3.id2.1" class="ltx_sup">1</sup><span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup>
+<sup id="footnote1.1" class="ltx_sup">*</sup>Corresponding author 
+<br class="ltx_break"><sup id="footnote1.2" class="ltx_sup">1</sup>https://github.com/LianjiaTech/BELLE
+</span></span></span>.</p>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">The advent of language models such as ChatGPT<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx19" title="" class="ltx_ref">OpenAI, 2023a</a>]</cite> and GPT-4<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx20" title="" class="ltx_ref">OpenAI, 2023b</a>]</cite>, which exhibit human-like understanding and generation capabilities across various domains, has highlighted the importance of instruction tuning in enabling these models to better comprehend human instructions.
+Currently, there exist several open-source, large language models that have been fine-tuned on instructional data, including OPT<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx32" title="" class="ltx_ref">Zhang et al., 2022</a>]</cite>, BLOOM<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx26" title="" class="ltx_ref">Workshop et al., 2022</a>]</cite>, LLaMA<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx24" title="" class="ltx_ref">Touvron et al., 2023</a>]</cite>, and GLM<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx31" title="" class="ltx_ref">Zeng et al., 2023</a>]</cite>. These models have demonstrated exceptional performance on a range of language tasks, thereby underscoring the potential benefits of instruction tuning in enhancing language model performance.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">In the field of model training, two widely used methods are full-parameter fine-tuning and parameter-efficient tuning. Recently, researchers have conducted extensive experiments to compare the effectiveness of various parameter-efficient tuning methods such as Adapters <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx7" title="" class="ltx_ref">Houlsby et al., 2019</a>, <a href="#bib.bibx14" title="" class="ltx_ref">Lin et al., 2020</a>]</cite>, LoRA <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx8" title="" class="ltx_ref">Hu et al., 2022</a>]</cite>, and P-tuning <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx13" title="" class="ltx_ref">Li and Liang, 2021</a>, <a href="#bib.bibx12" title="" class="ltx_ref">Lester et al., 2021</a>, <a href="#bib.bibx16" title="" class="ltx_ref">Liu et al., 2021</a>]</cite> against full-parameter fine-tuning <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx6" title="" class="ltx_ref">Ding et al., 2023</a>]</cite>. The results of these experiments demonstrate that LoRA is a promising parameter-efficient tuning method and has been applied in many studies to fine-tune large language models with significant success <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx22" title="" class="ltx_ref">Stanford, 2023</a>, <a href="#bib.bibx29" title="" class="ltx_ref">Xu et al., 2023</a>]</cite>.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p">However, the effectiveness and efficiency of LoRA for finetuning a instruction-following model have not been well explored. In this paper, we examined the influence of two factors: base model and training data scale. Besides, we also compared LoRA with full-parameter finetuning from the perspective of model performance and training efficiency. We assessed these models on a evaluation set consisting of 1,000 samples, spanning across 9 real-word use cases. Finally we obtained the following important experimental results:</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<ul id="S1.I1" class="ltx_itemize">
+<li id="S1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i1.p1" class="ltx_para">
+<p id="S1.I1.i1.p1.1" class="ltx_p">The choice of the base model has a significant impact on the effectiveness of LoRA-based tuning.</p>
+</div>
+</li>
+<li id="S1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i2.p1" class="ltx_para">
+<p id="S1.I1.i2.p1.1" class="ltx_p">Increasing the amount of training data can continuously improve the model’s effectiveness</p>
+</div>
+</li>
+<li id="S1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i3.p1" class="ltx_para">
+<p id="S1.I1.i3.p1.1" class="ltx_p">LoRA-based tuning benefits from the number of model parameters</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="S1.p5" class="ltx_para">
+<p id="S1.p5.1" class="ltx_p">We hope that the experimental conclusions of this paper can provide inspiration for training large language models, especially in the field of Chinese, and help researchers find a better trade-off strategy between training cost and model performance.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Related work</h2>
+
+<section id="S2.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.1 </span>Instruction tuning</h3>
+
+<div id="S2.SS1.p1" class="ltx_para">
+<p id="S2.SS1.p1.1" class="ltx_p">Recent studies<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx4" title="" class="ltx_ref">Chowdhery et al., 2022</a>, <a href="#bib.bibx32" title="" class="ltx_ref">Zhang et al., 2022</a>]</cite> have found that by fine-tuning models on datasets with human-annotated prompts, known as instruction-tuning, models can execute new tasks by understanding task instructions, thereby improving their zero-shot and few-shot generalization abilities on unseen tasks. Early research focused on instruction tuning a general NLP task solver, and there is a trend towards converting more and more NLP datasets into a unified dataset and then conducting multi-task training <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx28" title="" class="ltx_ref">Xu et al., 2022</a>, <a href="#bib.bibx27" title="" class="ltx_ref">Xie et al., 2022</a>, <a href="#bib.bibx25" title="" class="ltx_ref">Wang et al., 2022</a>, <a href="#bib.bibx10" title="" class="ltx_ref">Khashabi et al., 2020</a>, <a href="#bib.bibx17" title="" class="ltx_ref">Min et al., 2021</a>, <a href="#bib.bibx30" title="" class="ltx_ref">Ye et al., 2021</a>, <a href="#bib.bibx15" title="" class="ltx_ref">Liu et al., 2019</a>, <a href="#bib.bibx33" title="" class="ltx_ref">Zhong et al., 2021</a>, <a href="#bib.bibx5" title="" class="ltx_ref">Chung et al., 2022</a>]</cite>. Some research efforts even employ reinforcement learning from human feedback (RLHF) strategies to make models more adherent to human instructions.<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx21" title="" class="ltx_ref">Ouyang et al., 2022</a>, <a href="#bib.bibx2" title="" class="ltx_ref">Bai et al., 2022</a>, <a href="#bib.bibx34" title="" class="ltx_ref">Ziegler et al., 2020</a>, <a href="#bib.bibx23" title="" class="ltx_ref">Stiennon et al., 2022</a>, <a href="#bib.bibx18" title="" class="ltx_ref">Nakano et al., 2022</a>, <a href="#bib.bibx11" title="" class="ltx_ref">Korbak et al., 2023</a>]</cite>
+Today, instruction tuning has had a profound impact on the field of natural language processing (NLP). The emergence of technologies such as ChatGPT<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx19" title="" class="ltx_ref">OpenAI, 2023a</a>]</cite> and GPT-4<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx20" title="" class="ltx_ref">OpenAI, 2023b</a>]</cite> has attracted more researchers to engage in the development of instruction tuning. Compared to English instruction data, there is currently less research on instruction tuning on Chinese instruction data, which to some extent hinders the development of large language models in the Chinese field.</p>
+</div>
+</section>
+<section id="S2.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.2 </span>Parameter-efficient tuning</h3>
+
+<div id="S2.SS2.p1" class="ltx_para">
+<p id="S2.SS2.p1.1" class="ltx_p">As the model size continues to increase, fine-tuning all parameters becomes more challenging since it is necessary to save the gradients and optimizer states for all parameters.
+Therefore, researchers have proposed parameter-efficient tuning, a low-resource and efficient tuning method that only tunes a small number of parameters or introduces additional trainable parameters. Prefix Tuning <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx12" title="" class="ltx_ref">Lester et al., 2021</a>, <a href="#bib.bibx13" title="" class="ltx_ref">Li and Liang, 2021</a>, <a href="#bib.bibx16" title="" class="ltx_ref">Liu et al., 2021</a>]</cite> add trainable virtual token embeddings and fix the whole model.
+Adapters<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx7" title="" class="ltx_ref">Houlsby et al., 2019</a>, <a href="#bib.bibx14" title="" class="ltx_ref">Lin et al., 2020</a>]</cite> inserting adapter layers between existing layers in neural networks and only fine-tuning the adapter network’s parameters.</p>
+</div>
+<div id="S2.SS2.p2" class="ltx_para">
+<p id="S2.SS2.p2.1" class="ltx_p"><cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx1" title="" class="ltx_ref">Aghajanyan et al., 2020</a>]</cite> show that the learned over-parametrized models in fact reside on a low intrinsic dimension. <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx8" title="" class="ltx_ref">Hu et al., 2022</a>]</cite> Inspired by this work and proposed LoRA approach, which suggests that weights update during model adaptation for downstream tasks should also have a low "intrinsic rank". Experimental results from <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx6" title="" class="ltx_ref">Ding et al., 2023</a>]</cite> suggest that LoRA is a relatively effective method among various parameter-efficient tuning approaches. It has been adopted by many recent open-source projects<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx22" title="" class="ltx_ref">Stanford, 2023</a>, <a href="#bib.bibx29" title="" class="ltx_ref">Xu et al., 2023</a>]</cite> for training large language models and achieved promising results. These research works only consider LoRA as a method of training models and does not have an in-depth analysis of factors affecting LoRA-based tuning results.</p>
+</div>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Method</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.1" class="ltx_p">In this section, we will provide a brief introduction to LoRA(Low-Rank Adaption)<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx8" title="" class="ltx_ref">Hu et al., 2022</a>]</cite>.</p>
+</div>
+<div id="S3.p2" class="ltx_para">
+<p id="S3.p2.1" class="ltx_p">For a pre-trained weight matrix <math id="S3.p2.1.m1.1" class="ltx_Math" alttext="W_{0}\in R^{d\times k}" display="inline"><semantics id="S3.p2.1.m1.1a"><mrow id="S3.p2.1.m1.1.1" xref="S3.p2.1.m1.1.1.cmml"><msub id="S3.p2.1.m1.1.1.2" xref="S3.p2.1.m1.1.1.2.cmml"><mi id="S3.p2.1.m1.1.1.2.2" xref="S3.p2.1.m1.1.1.2.2.cmml">W</mi><mn id="S3.p2.1.m1.1.1.2.3" xref="S3.p2.1.m1.1.1.2.3.cmml">0</mn></msub><mo id="S3.p2.1.m1.1.1.1" xref="S3.p2.1.m1.1.1.1.cmml">∈</mo><msup id="S3.p2.1.m1.1.1.3" xref="S3.p2.1.m1.1.1.3.cmml"><mi id="S3.p2.1.m1.1.1.3.2" xref="S3.p2.1.m1.1.1.3.2.cmml">R</mi><mrow id="S3.p2.1.m1.1.1.3.3" xref="S3.p2.1.m1.1.1.3.3.cmml"><mi id="S3.p2.1.m1.1.1.3.3.2" xref="S3.p2.1.m1.1.1.3.3.2.cmml">d</mi><mo lspace="0.222em" rspace="0.222em" id="S3.p2.1.m1.1.1.3.3.1" xref="S3.p2.1.m1.1.1.3.3.1.cmml">×</mo><mi id="S3.p2.1.m1.1.1.3.3.3" xref="S3.p2.1.m1.1.1.3.3.3.cmml">k</mi></mrow></msup></mrow><annotation-xml encoding="MathML-Content" id="S3.p2.1.m1.1b"><apply id="S3.p2.1.m1.1.1.cmml" xref="S3.p2.1.m1.1.1"><in id="S3.p2.1.m1.1.1.1.cmml" xref="S3.p2.1.m1.1.1.1"></in><apply id="S3.p2.1.m1.1.1.2.cmml" xref="S3.p2.1.m1.1.1.2"><csymbol cd="ambiguous" id="S3.p2.1.m1.1.1.2.1.cmml" xref="S3.p2.1.m1.1.1.2">subscript</csymbol><ci id="S3.p2.1.m1.1.1.2.2.cmml" xref="S3.p2.1.m1.1.1.2.2">𝑊</ci><cn type="integer" id="S3.p2.1.m1.1.1.2.3.cmml" xref="S3.p2.1.m1.1.1.2.3">0</cn></apply><apply id="S3.p2.1.m1.1.1.3.cmml" xref="S3.p2.1.m1.1.1.3"><csymbol cd="ambiguous" id="S3.p2.1.m1.1.1.3.1.cmml" xref="S3.p2.1.m1.1.1.3">superscript</csymbol><ci id="S3.p2.1.m1.1.1.3.2.cmml" xref="S3.p2.1.m1.1.1.3.2">𝑅</ci><apply id="S3.p2.1.m1.1.1.3.3.cmml" xref="S3.p2.1.m1.1.1.3.3"><times id="S3.p2.1.m1.1.1.3.3.1.cmml" xref="S3.p2.1.m1.1.1.3.3.1"></times><ci id="S3.p2.1.m1.1.1.3.3.2.cmml" xref="S3.p2.1.m1.1.1.3.3.2">𝑑</ci><ci id="S3.p2.1.m1.1.1.3.3.3.cmml" xref="S3.p2.1.m1.1.1.3.3.3">𝑘</ci></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.p2.1.m1.1c">W_{0}\in R^{d\times k}</annotation></semantics></math>, its updates can be represented by a low-rank decomposition:</p>
+<table id="S3.E1" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E1.m1.1" class="ltx_Math" alttext="W_{0}+\Delta W=W_{0}+BA" display="block"><semantics id="S3.E1.m1.1a"><mrow id="S3.E1.m1.1.1" xref="S3.E1.m1.1.1.cmml"><mrow id="S3.E1.m1.1.1.2" xref="S3.E1.m1.1.1.2.cmml"><msub id="S3.E1.m1.1.1.2.2" xref="S3.E1.m1.1.1.2.2.cmml"><mi id="S3.E1.m1.1.1.2.2.2" xref="S3.E1.m1.1.1.2.2.2.cmml">W</mi><mn id="S3.E1.m1.1.1.2.2.3" xref="S3.E1.m1.1.1.2.2.3.cmml">0</mn></msub><mo id="S3.E1.m1.1.1.2.1" xref="S3.E1.m1.1.1.2.1.cmml">+</mo><mrow id="S3.E1.m1.1.1.2.3" xref="S3.E1.m1.1.1.2.3.cmml"><mi mathvariant="normal" id="S3.E1.m1.1.1.2.3.2" xref="S3.E1.m1.1.1.2.3.2.cmml">Δ</mi><mo lspace="0em" rspace="0em" id="S3.E1.m1.1.1.2.3.1" xref="S3.E1.m1.1.1.2.3.1.cmml">​</mo><mi id="S3.E1.m1.1.1.2.3.3" xref="S3.E1.m1.1.1.2.3.3.cmml">W</mi></mrow></mrow><mo id="S3.E1.m1.1.1.1" xref="S3.E1.m1.1.1.1.cmml">=</mo><mrow id="S3.E1.m1.1.1.3" xref="S3.E1.m1.1.1.3.cmml"><msub id="S3.E1.m1.1.1.3.2" xref="S3.E1.m1.1.1.3.2.cmml"><mi id="S3.E1.m1.1.1.3.2.2" xref="S3.E1.m1.1.1.3.2.2.cmml">W</mi><mn id="S3.E1.m1.1.1.3.2.3" xref="S3.E1.m1.1.1.3.2.3.cmml">0</mn></msub><mo id="S3.E1.m1.1.1.3.1" xref="S3.E1.m1.1.1.3.1.cmml">+</mo><mrow id="S3.E1.m1.1.1.3.3" xref="S3.E1.m1.1.1.3.3.cmml"><mi id="S3.E1.m1.1.1.3.3.2" xref="S3.E1.m1.1.1.3.3.2.cmml">B</mi><mo lspace="0em" rspace="0em" id="S3.E1.m1.1.1.3.3.1" xref="S3.E1.m1.1.1.3.3.1.cmml">​</mo><mi id="S3.E1.m1.1.1.3.3.3" xref="S3.E1.m1.1.1.3.3.3.cmml">A</mi></mrow></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.E1.m1.1b"><apply id="S3.E1.m1.1.1.cmml" xref="S3.E1.m1.1.1"><eq id="S3.E1.m1.1.1.1.cmml" xref="S3.E1.m1.1.1.1"></eq><apply id="S3.E1.m1.1.1.2.cmml" xref="S3.E1.m1.1.1.2"><plus id="S3.E1.m1.1.1.2.1.cmml" xref="S3.E1.m1.1.1.2.1"></plus><apply id="S3.E1.m1.1.1.2.2.cmml" xref="S3.E1.m1.1.1.2.2"><csymbol cd="ambiguous" id="S3.E1.m1.1.1.2.2.1.cmml" xref="S3.E1.m1.1.1.2.2">subscript</csymbol><ci id="S3.E1.m1.1.1.2.2.2.cmml" xref="S3.E1.m1.1.1.2.2.2">𝑊</ci><cn type="integer" id="S3.E1.m1.1.1.2.2.3.cmml" xref="S3.E1.m1.1.1.2.2.3">0</cn></apply><apply id="S3.E1.m1.1.1.2.3.cmml" xref="S3.E1.m1.1.1.2.3"><times id="S3.E1.m1.1.1.2.3.1.cmml" xref="S3.E1.m1.1.1.2.3.1"></times><ci id="S3.E1.m1.1.1.2.3.2.cmml" xref="S3.E1.m1.1.1.2.3.2">Δ</ci><ci id="S3.E1.m1.1.1.2.3.3.cmml" xref="S3.E1.m1.1.1.2.3.3">𝑊</ci></apply></apply><apply id="S3.E1.m1.1.1.3.cmml" xref="S3.E1.m1.1.1.3"><plus id="S3.E1.m1.1.1.3.1.cmml" xref="S3.E1.m1.1.1.3.1"></plus><apply id="S3.E1.m1.1.1.3.2.cmml" xref="S3.E1.m1.1.1.3.2"><csymbol cd="ambiguous" id="S3.E1.m1.1.1.3.2.1.cmml" xref="S3.E1.m1.1.1.3.2">subscript</csymbol><ci id="S3.E1.m1.1.1.3.2.2.cmml" xref="S3.E1.m1.1.1.3.2.2">𝑊</ci><cn type="integer" id="S3.E1.m1.1.1.3.2.3.cmml" xref="S3.E1.m1.1.1.3.2.3">0</cn></apply><apply id="S3.E1.m1.1.1.3.3.cmml" xref="S3.E1.m1.1.1.3.3"><times id="S3.E1.m1.1.1.3.3.1.cmml" xref="S3.E1.m1.1.1.3.3.1"></times><ci id="S3.E1.m1.1.1.3.3.2.cmml" xref="S3.E1.m1.1.1.3.3.2">𝐵</ci><ci id="S3.E1.m1.1.1.3.3.3.cmml" xref="S3.E1.m1.1.1.3.3.3">𝐴</ci></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.E1.m1.1c">W_{0}+\Delta W=W_{0}+BA</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(1)</span></td>
+</tr></tbody>
+</table>
+<p id="S3.p2.5" class="ltx_p">where <math id="S3.p2.2.m1.1" class="ltx_Math" alttext="B\in R^{d\times r}" display="inline"><semantics id="S3.p2.2.m1.1a"><mrow id="S3.p2.2.m1.1.1" xref="S3.p2.2.m1.1.1.cmml"><mi id="S3.p2.2.m1.1.1.2" xref="S3.p2.2.m1.1.1.2.cmml">B</mi><mo id="S3.p2.2.m1.1.1.1" xref="S3.p2.2.m1.1.1.1.cmml">∈</mo><msup id="S3.p2.2.m1.1.1.3" xref="S3.p2.2.m1.1.1.3.cmml"><mi id="S3.p2.2.m1.1.1.3.2" xref="S3.p2.2.m1.1.1.3.2.cmml">R</mi><mrow id="S3.p2.2.m1.1.1.3.3" xref="S3.p2.2.m1.1.1.3.3.cmml"><mi id="S3.p2.2.m1.1.1.3.3.2" xref="S3.p2.2.m1.1.1.3.3.2.cmml">d</mi><mo lspace="0.222em" rspace="0.222em" id="S3.p2.2.m1.1.1.3.3.1" xref="S3.p2.2.m1.1.1.3.3.1.cmml">×</mo><mi id="S3.p2.2.m1.1.1.3.3.3" xref="S3.p2.2.m1.1.1.3.3.3.cmml">r</mi></mrow></msup></mrow><annotation-xml encoding="MathML-Content" id="S3.p2.2.m1.1b"><apply id="S3.p2.2.m1.1.1.cmml" xref="S3.p2.2.m1.1.1"><in id="S3.p2.2.m1.1.1.1.cmml" xref="S3.p2.2.m1.1.1.1"></in><ci id="S3.p2.2.m1.1.1.2.cmml" xref="S3.p2.2.m1.1.1.2">𝐵</ci><apply id="S3.p2.2.m1.1.1.3.cmml" xref="S3.p2.2.m1.1.1.3"><csymbol cd="ambiguous" id="S3.p2.2.m1.1.1.3.1.cmml" xref="S3.p2.2.m1.1.1.3">superscript</csymbol><ci id="S3.p2.2.m1.1.1.3.2.cmml" xref="S3.p2.2.m1.1.1.3.2">𝑅</ci><apply id="S3.p2.2.m1.1.1.3.3.cmml" xref="S3.p2.2.m1.1.1.3.3"><times id="S3.p2.2.m1.1.1.3.3.1.cmml" xref="S3.p2.2.m1.1.1.3.3.1"></times><ci id="S3.p2.2.m1.1.1.3.3.2.cmml" xref="S3.p2.2.m1.1.1.3.3.2">𝑑</ci><ci id="S3.p2.2.m1.1.1.3.3.3.cmml" xref="S3.p2.2.m1.1.1.3.3.3">𝑟</ci></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.p2.2.m1.1c">B\in R^{d\times r}</annotation></semantics></math>, <math id="S3.p2.3.m2.1" class="ltx_Math" alttext="A\in R^{r\times k}" display="inline"><semantics id="S3.p2.3.m2.1a"><mrow id="S3.p2.3.m2.1.1" xref="S3.p2.3.m2.1.1.cmml"><mi id="S3.p2.3.m2.1.1.2" xref="S3.p2.3.m2.1.1.2.cmml">A</mi><mo id="S3.p2.3.m2.1.1.1" xref="S3.p2.3.m2.1.1.1.cmml">∈</mo><msup id="S3.p2.3.m2.1.1.3" xref="S3.p2.3.m2.1.1.3.cmml"><mi id="S3.p2.3.m2.1.1.3.2" xref="S3.p2.3.m2.1.1.3.2.cmml">R</mi><mrow id="S3.p2.3.m2.1.1.3.3" xref="S3.p2.3.m2.1.1.3.3.cmml"><mi id="S3.p2.3.m2.1.1.3.3.2" xref="S3.p2.3.m2.1.1.3.3.2.cmml">r</mi><mo lspace="0.222em" rspace="0.222em" id="S3.p2.3.m2.1.1.3.3.1" xref="S3.p2.3.m2.1.1.3.3.1.cmml">×</mo><mi id="S3.p2.3.m2.1.1.3.3.3" xref="S3.p2.3.m2.1.1.3.3.3.cmml">k</mi></mrow></msup></mrow><annotation-xml encoding="MathML-Content" id="S3.p2.3.m2.1b"><apply id="S3.p2.3.m2.1.1.cmml" xref="S3.p2.3.m2.1.1"><in id="S3.p2.3.m2.1.1.1.cmml" xref="S3.p2.3.m2.1.1.1"></in><ci id="S3.p2.3.m2.1.1.2.cmml" xref="S3.p2.3.m2.1.1.2">𝐴</ci><apply id="S3.p2.3.m2.1.1.3.cmml" xref="S3.p2.3.m2.1.1.3"><csymbol cd="ambiguous" id="S3.p2.3.m2.1.1.3.1.cmml" xref="S3.p2.3.m2.1.1.3">superscript</csymbol><ci id="S3.p2.3.m2.1.1.3.2.cmml" xref="S3.p2.3.m2.1.1.3.2">𝑅</ci><apply id="S3.p2.3.m2.1.1.3.3.cmml" xref="S3.p2.3.m2.1.1.3.3"><times id="S3.p2.3.m2.1.1.3.3.1.cmml" xref="S3.p2.3.m2.1.1.3.3.1"></times><ci id="S3.p2.3.m2.1.1.3.3.2.cmml" xref="S3.p2.3.m2.1.1.3.3.2">𝑟</ci><ci id="S3.p2.3.m2.1.1.3.3.3.cmml" xref="S3.p2.3.m2.1.1.3.3.3">𝑘</ci></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.p2.3.m2.1c">A\in R^{r\times k}</annotation></semantics></math>, and the rank <math id="S3.p2.4.m3.3" class="ltx_Math" alttext="r\ll\min(d,k)" display="inline"><semantics id="S3.p2.4.m3.3a"><mrow id="S3.p2.4.m3.3.4" xref="S3.p2.4.m3.3.4.cmml"><mi id="S3.p2.4.m3.3.4.2" xref="S3.p2.4.m3.3.4.2.cmml">r</mi><mo id="S3.p2.4.m3.3.4.1" xref="S3.p2.4.m3.3.4.1.cmml">≪</mo><mrow id="S3.p2.4.m3.3.4.3.2" xref="S3.p2.4.m3.3.4.3.1.cmml"><mi id="S3.p2.4.m3.1.1" xref="S3.p2.4.m3.1.1.cmml">min</mi><mo id="S3.p2.4.m3.3.4.3.2a" xref="S3.p2.4.m3.3.4.3.1.cmml">⁡</mo><mrow id="S3.p2.4.m3.3.4.3.2.1" xref="S3.p2.4.m3.3.4.3.1.cmml"><mo stretchy="false" id="S3.p2.4.m3.3.4.3.2.1.1" xref="S3.p2.4.m3.3.4.3.1.cmml">(</mo><mi id="S3.p2.4.m3.2.2" xref="S3.p2.4.m3.2.2.cmml">d</mi><mo id="S3.p2.4.m3.3.4.3.2.1.2" xref="S3.p2.4.m3.3.4.3.1.cmml">,</mo><mi id="S3.p2.4.m3.3.3" xref="S3.p2.4.m3.3.3.cmml">k</mi><mo stretchy="false" id="S3.p2.4.m3.3.4.3.2.1.3" xref="S3.p2.4.m3.3.4.3.1.cmml">)</mo></mrow></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.p2.4.m3.3b"><apply id="S3.p2.4.m3.3.4.cmml" xref="S3.p2.4.m3.3.4"><csymbol cd="latexml" id="S3.p2.4.m3.3.4.1.cmml" xref="S3.p2.4.m3.3.4.1">much-less-than</csymbol><ci id="S3.p2.4.m3.3.4.2.cmml" xref="S3.p2.4.m3.3.4.2">𝑟</ci><apply id="S3.p2.4.m3.3.4.3.1.cmml" xref="S3.p2.4.m3.3.4.3.2"><min id="S3.p2.4.m3.1.1.cmml" xref="S3.p2.4.m3.1.1"></min><ci id="S3.p2.4.m3.2.2.cmml" xref="S3.p2.4.m3.2.2">𝑑</ci><ci id="S3.p2.4.m3.3.3.cmml" xref="S3.p2.4.m3.3.3">𝑘</ci></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.p2.4.m3.3c">r\ll\min(d,k)</annotation></semantics></math>.
+For a linear layer <math id="S3.p2.5.m4.1" class="ltx_Math" alttext="h=W_{0}x" display="inline"><semantics id="S3.p2.5.m4.1a"><mrow id="S3.p2.5.m4.1.1" xref="S3.p2.5.m4.1.1.cmml"><mi id="S3.p2.5.m4.1.1.2" xref="S3.p2.5.m4.1.1.2.cmml">h</mi><mo id="S3.p2.5.m4.1.1.1" xref="S3.p2.5.m4.1.1.1.cmml">=</mo><mrow id="S3.p2.5.m4.1.1.3" xref="S3.p2.5.m4.1.1.3.cmml"><msub id="S3.p2.5.m4.1.1.3.2" xref="S3.p2.5.m4.1.1.3.2.cmml"><mi id="S3.p2.5.m4.1.1.3.2.2" xref="S3.p2.5.m4.1.1.3.2.2.cmml">W</mi><mn id="S3.p2.5.m4.1.1.3.2.3" xref="S3.p2.5.m4.1.1.3.2.3.cmml">0</mn></msub><mo lspace="0em" rspace="0em" id="S3.p2.5.m4.1.1.3.1" xref="S3.p2.5.m4.1.1.3.1.cmml">​</mo><mi id="S3.p2.5.m4.1.1.3.3" xref="S3.p2.5.m4.1.1.3.3.cmml">x</mi></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.p2.5.m4.1b"><apply id="S3.p2.5.m4.1.1.cmml" xref="S3.p2.5.m4.1.1"><eq id="S3.p2.5.m4.1.1.1.cmml" xref="S3.p2.5.m4.1.1.1"></eq><ci id="S3.p2.5.m4.1.1.2.cmml" xref="S3.p2.5.m4.1.1.2">ℎ</ci><apply id="S3.p2.5.m4.1.1.3.cmml" xref="S3.p2.5.m4.1.1.3"><times id="S3.p2.5.m4.1.1.3.1.cmml" xref="S3.p2.5.m4.1.1.3.1"></times><apply id="S3.p2.5.m4.1.1.3.2.cmml" xref="S3.p2.5.m4.1.1.3.2"><csymbol cd="ambiguous" id="S3.p2.5.m4.1.1.3.2.1.cmml" xref="S3.p2.5.m4.1.1.3.2">subscript</csymbol><ci id="S3.p2.5.m4.1.1.3.2.2.cmml" xref="S3.p2.5.m4.1.1.3.2.2">𝑊</ci><cn type="integer" id="S3.p2.5.m4.1.1.3.2.3.cmml" xref="S3.p2.5.m4.1.1.3.2.3">0</cn></apply><ci id="S3.p2.5.m4.1.1.3.3.cmml" xref="S3.p2.5.m4.1.1.3.3">𝑥</ci></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.p2.5.m4.1c">h=W_{0}x</annotation></semantics></math>, the forward pass is modified to be to be:</p>
+<table id="S3.E2" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E2.m1.1" class="ltx_Math" alttext="h=W_{0}x+\Delta Wx=W_{0}x+BAx" display="block"><semantics id="S3.E2.m1.1a"><mrow id="S3.E2.m1.1.1" xref="S3.E2.m1.1.1.cmml"><mi id="S3.E2.m1.1.1.2" xref="S3.E2.m1.1.1.2.cmml">h</mi><mo id="S3.E2.m1.1.1.3" xref="S3.E2.m1.1.1.3.cmml">=</mo><mrow id="S3.E2.m1.1.1.4" xref="S3.E2.m1.1.1.4.cmml"><mrow id="S3.E2.m1.1.1.4.2" xref="S3.E2.m1.1.1.4.2.cmml"><msub id="S3.E2.m1.1.1.4.2.2" xref="S3.E2.m1.1.1.4.2.2.cmml"><mi id="S3.E2.m1.1.1.4.2.2.2" xref="S3.E2.m1.1.1.4.2.2.2.cmml">W</mi><mn id="S3.E2.m1.1.1.4.2.2.3" xref="S3.E2.m1.1.1.4.2.2.3.cmml">0</mn></msub><mo lspace="0em" rspace="0em" id="S3.E2.m1.1.1.4.2.1" xref="S3.E2.m1.1.1.4.2.1.cmml">​</mo><mi id="S3.E2.m1.1.1.4.2.3" xref="S3.E2.m1.1.1.4.2.3.cmml">x</mi></mrow><mo id="S3.E2.m1.1.1.4.1" xref="S3.E2.m1.1.1.4.1.cmml">+</mo><mrow id="S3.E2.m1.1.1.4.3" xref="S3.E2.m1.1.1.4.3.cmml"><mi mathvariant="normal" id="S3.E2.m1.1.1.4.3.2" xref="S3.E2.m1.1.1.4.3.2.cmml">Δ</mi><mo lspace="0em" rspace="0em" id="S3.E2.m1.1.1.4.3.1" xref="S3.E2.m1.1.1.4.3.1.cmml">​</mo><mi id="S3.E2.m1.1.1.4.3.3" xref="S3.E2.m1.1.1.4.3.3.cmml">W</mi><mo lspace="0em" rspace="0em" id="S3.E2.m1.1.1.4.3.1a" xref="S3.E2.m1.1.1.4.3.1.cmml">​</mo><mi id="S3.E2.m1.1.1.4.3.4" xref="S3.E2.m1.1.1.4.3.4.cmml">x</mi></mrow></mrow><mo id="S3.E2.m1.1.1.5" xref="S3.E2.m1.1.1.5.cmml">=</mo><mrow id="S3.E2.m1.1.1.6" xref="S3.E2.m1.1.1.6.cmml"><mrow id="S3.E2.m1.1.1.6.2" xref="S3.E2.m1.1.1.6.2.cmml"><msub id="S3.E2.m1.1.1.6.2.2" xref="S3.E2.m1.1.1.6.2.2.cmml"><mi id="S3.E2.m1.1.1.6.2.2.2" xref="S3.E2.m1.1.1.6.2.2.2.cmml">W</mi><mn id="S3.E2.m1.1.1.6.2.2.3" xref="S3.E2.m1.1.1.6.2.2.3.cmml">0</mn></msub><mo lspace="0em" rspace="0em" id="S3.E2.m1.1.1.6.2.1" xref="S3.E2.m1.1.1.6.2.1.cmml">​</mo><mi id="S3.E2.m1.1.1.6.2.3" xref="S3.E2.m1.1.1.6.2.3.cmml">x</mi></mrow><mo id="S3.E2.m1.1.1.6.1" xref="S3.E2.m1.1.1.6.1.cmml">+</mo><mrow id="S3.E2.m1.1.1.6.3" xref="S3.E2.m1.1.1.6.3.cmml"><mi id="S3.E2.m1.1.1.6.3.2" xref="S3.E2.m1.1.1.6.3.2.cmml">B</mi><mo lspace="0em" rspace="0em" id="S3.E2.m1.1.1.6.3.1" xref="S3.E2.m1.1.1.6.3.1.cmml">​</mo><mi id="S3.E2.m1.1.1.6.3.3" xref="S3.E2.m1.1.1.6.3.3.cmml">A</mi><mo lspace="0em" rspace="0em" id="S3.E2.m1.1.1.6.3.1a" xref="S3.E2.m1.1.1.6.3.1.cmml">​</mo><mi id="S3.E2.m1.1.1.6.3.4" xref="S3.E2.m1.1.1.6.3.4.cmml">x</mi></mrow></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.E2.m1.1b"><apply id="S3.E2.m1.1.1.cmml" xref="S3.E2.m1.1.1"><and id="S3.E2.m1.1.1a.cmml" xref="S3.E2.m1.1.1"></and><apply id="S3.E2.m1.1.1b.cmml" xref="S3.E2.m1.1.1"><eq id="S3.E2.m1.1.1.3.cmml" xref="S3.E2.m1.1.1.3"></eq><ci id="S3.E2.m1.1.1.2.cmml" xref="S3.E2.m1.1.1.2">ℎ</ci><apply id="S3.E2.m1.1.1.4.cmml" xref="S3.E2.m1.1.1.4"><plus id="S3.E2.m1.1.1.4.1.cmml" xref="S3.E2.m1.1.1.4.1"></plus><apply id="S3.E2.m1.1.1.4.2.cmml" xref="S3.E2.m1.1.1.4.2"><times id="S3.E2.m1.1.1.4.2.1.cmml" xref="S3.E2.m1.1.1.4.2.1"></times><apply id="S3.E2.m1.1.1.4.2.2.cmml" xref="S3.E2.m1.1.1.4.2.2"><csymbol cd="ambiguous" id="S3.E2.m1.1.1.4.2.2.1.cmml" xref="S3.E2.m1.1.1.4.2.2">subscript</csymbol><ci id="S3.E2.m1.1.1.4.2.2.2.cmml" xref="S3.E2.m1.1.1.4.2.2.2">𝑊</ci><cn type="integer" id="S3.E2.m1.1.1.4.2.2.3.cmml" xref="S3.E2.m1.1.1.4.2.2.3">0</cn></apply><ci id="S3.E2.m1.1.1.4.2.3.cmml" xref="S3.E2.m1.1.1.4.2.3">𝑥</ci></apply><apply id="S3.E2.m1.1.1.4.3.cmml" xref="S3.E2.m1.1.1.4.3"><times id="S3.E2.m1.1.1.4.3.1.cmml" xref="S3.E2.m1.1.1.4.3.1"></times><ci id="S3.E2.m1.1.1.4.3.2.cmml" xref="S3.E2.m1.1.1.4.3.2">Δ</ci><ci id="S3.E2.m1.1.1.4.3.3.cmml" xref="S3.E2.m1.1.1.4.3.3">𝑊</ci><ci id="S3.E2.m1.1.1.4.3.4.cmml" xref="S3.E2.m1.1.1.4.3.4">𝑥</ci></apply></apply></apply><apply id="S3.E2.m1.1.1c.cmml" xref="S3.E2.m1.1.1"><eq id="S3.E2.m1.1.1.5.cmml" xref="S3.E2.m1.1.1.5"></eq><share href="#S3.E2.m1.1.1.4.cmml" id="S3.E2.m1.1.1d.cmml" xref="S3.E2.m1.1.1"></share><apply id="S3.E2.m1.1.1.6.cmml" xref="S3.E2.m1.1.1.6"><plus id="S3.E2.m1.1.1.6.1.cmml" xref="S3.E2.m1.1.1.6.1"></plus><apply id="S3.E2.m1.1.1.6.2.cmml" xref="S3.E2.m1.1.1.6.2"><times id="S3.E2.m1.1.1.6.2.1.cmml" xref="S3.E2.m1.1.1.6.2.1"></times><apply id="S3.E2.m1.1.1.6.2.2.cmml" xref="S3.E2.m1.1.1.6.2.2"><csymbol cd="ambiguous" id="S3.E2.m1.1.1.6.2.2.1.cmml" xref="S3.E2.m1.1.1.6.2.2">subscript</csymbol><ci id="S3.E2.m1.1.1.6.2.2.2.cmml" xref="S3.E2.m1.1.1.6.2.2.2">𝑊</ci><cn type="integer" id="S3.E2.m1.1.1.6.2.2.3.cmml" xref="S3.E2.m1.1.1.6.2.2.3">0</cn></apply><ci id="S3.E2.m1.1.1.6.2.3.cmml" xref="S3.E2.m1.1.1.6.2.3">𝑥</ci></apply><apply id="S3.E2.m1.1.1.6.3.cmml" xref="S3.E2.m1.1.1.6.3"><times id="S3.E2.m1.1.1.6.3.1.cmml" xref="S3.E2.m1.1.1.6.3.1"></times><ci id="S3.E2.m1.1.1.6.3.2.cmml" xref="S3.E2.m1.1.1.6.3.2">𝐵</ci><ci id="S3.E2.m1.1.1.6.3.3.cmml" xref="S3.E2.m1.1.1.6.3.3">𝐴</ci><ci id="S3.E2.m1.1.1.6.3.4.cmml" xref="S3.E2.m1.1.1.6.3.4">𝑥</ci></apply></apply></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.E2.m1.1c">h=W_{0}x+\Delta Wx=W_{0}x+BAx</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(2)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S3.p3" class="ltx_para">
+<p id="S3.p3.1" class="ltx_p">Matrix A will be initialized by random Gaussian and B will be initialized by zero, making the initial value of <math id="S3.p3.1.m1.1" class="ltx_Math" alttext="\Delta W=BA" display="inline"><semantics id="S3.p3.1.m1.1a"><mrow id="S3.p3.1.m1.1.1" xref="S3.p3.1.m1.1.1.cmml"><mrow id="S3.p3.1.m1.1.1.2" xref="S3.p3.1.m1.1.1.2.cmml"><mi mathvariant="normal" id="S3.p3.1.m1.1.1.2.2" xref="S3.p3.1.m1.1.1.2.2.cmml">Δ</mi><mo lspace="0em" rspace="0em" id="S3.p3.1.m1.1.1.2.1" xref="S3.p3.1.m1.1.1.2.1.cmml">​</mo><mi id="S3.p3.1.m1.1.1.2.3" xref="S3.p3.1.m1.1.1.2.3.cmml">W</mi></mrow><mo id="S3.p3.1.m1.1.1.1" xref="S3.p3.1.m1.1.1.1.cmml">=</mo><mrow id="S3.p3.1.m1.1.1.3" xref="S3.p3.1.m1.1.1.3.cmml"><mi id="S3.p3.1.m1.1.1.3.2" xref="S3.p3.1.m1.1.1.3.2.cmml">B</mi><mo lspace="0em" rspace="0em" id="S3.p3.1.m1.1.1.3.1" xref="S3.p3.1.m1.1.1.3.1.cmml">​</mo><mi id="S3.p3.1.m1.1.1.3.3" xref="S3.p3.1.m1.1.1.3.3.cmml">A</mi></mrow></mrow><annotation-xml encoding="MathML-Content" id="S3.p3.1.m1.1b"><apply id="S3.p3.1.m1.1.1.cmml" xref="S3.p3.1.m1.1.1"><eq id="S3.p3.1.m1.1.1.1.cmml" xref="S3.p3.1.m1.1.1.1"></eq><apply id="S3.p3.1.m1.1.1.2.cmml" xref="S3.p3.1.m1.1.1.2"><times id="S3.p3.1.m1.1.1.2.1.cmml" xref="S3.p3.1.m1.1.1.2.1"></times><ci id="S3.p3.1.m1.1.1.2.2.cmml" xref="S3.p3.1.m1.1.1.2.2">Δ</ci><ci id="S3.p3.1.m1.1.1.2.3.cmml" xref="S3.p3.1.m1.1.1.2.3">𝑊</ci></apply><apply id="S3.p3.1.m1.1.1.3.cmml" xref="S3.p3.1.m1.1.1.3"><times id="S3.p3.1.m1.1.1.3.1.cmml" xref="S3.p3.1.m1.1.1.3.1"></times><ci id="S3.p3.1.m1.1.1.3.2.cmml" xref="S3.p3.1.m1.1.1.3.2">𝐵</ci><ci id="S3.p3.1.m1.1.1.3.3.cmml" xref="S3.p3.1.m1.1.1.3.3">𝐴</ci></apply></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.p3.1.m1.1c">\Delta W=BA</annotation></semantics></math> zero at the start of the training. <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx8" title="" class="ltx_ref">Hu et al., 2022</a>]</cite> only adapted the attention weights for downstream tasks and freeze the MLP modules, we follow Baize<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx29" title="" class="ltx_ref">Xu et al., 2023</a>]</cite> which applies LoRA to adapt all linear layers at the same time.</p>
+</div>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Experiments</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.1" class="ltx_p">We adopted the datasets constructed in our previous work<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx9" title="" class="ltx_ref">Ji et al., 2023b</a>]</cite>, selecting three data scales of 0.6M, 2M and 4M respectively. Combining these three datasets, we aim to investigate the impact of different training data sizes on the performance of LoRA-based tuning. To verify whether conducting LoRA-based tuning on the model after instruction tuning can further improve the model performance, we also selected the math_0.25M dataset, which is a dataset focusing on the mathematical problem-solving field.</p>
+</div>
+<div id="S4.p2" class="ltx_para">
+<p id="S4.p2.1" class="ltx_p">The evaluate set consists of 1,000 rigorously manually screened and processed data entries, covering nine categories, including translation, Open QA, closed QA, generation, and other tasks closely related to practical applications. Table <a href="#S4.T1" title="Table 1 ‣ 4 Experiments ‣ A Comparative Study between Full-Parameter and LoRA-based Fine-Tuning on Chinese Instruction Data for Instruction Following Large Language Model" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> demonstrates the number of samples in each category of the evaluate set and Figure <a href="#S4.F1" title="Figure 1 ‣ 4 Experiments ‣ A Comparative Study between Full-Parameter and LoRA-based Fine-Tuning on Chinese Instruction Data for Instruction Following Large Language Model" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>
+shows the length of evaluation samples. The category Other contains two types of data: math and code, where math refers to solving mathematical application problems and code refers to code generation</p>
+</div>
+<figure id="S4.T1" class="ltx_table">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">Table 1: </span>The number and average prompt length of each type of instructions</figcaption>
+<table id="S4.T1.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S4.T1.1.1" class="ltx_tr">
+<td id="S4.T1.1.1.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t"><span id="S4.T1.1.1.1.1" class="ltx_text ltx_font_bold">Use case</span></td>
+<td id="S4.T1.1.1.2" class="ltx_td ltx_align_center ltx_border_t"><span id="S4.T1.1.1.2.1" class="ltx_text ltx_font_bold">#Nums</span></td>
+</tr>
+<tr id="S4.T1.1.2" class="ltx_tr">
+<td id="S4.T1.1.2.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">Others</td>
+<td id="S4.T1.1.2.2" class="ltx_td ltx_align_center ltx_border_t">113</td>
+</tr>
+<tr id="S4.T1.1.3" class="ltx_tr">
+<td id="S4.T1.1.3.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">Open QA</td>
+<td id="S4.T1.1.3.2" class="ltx_td ltx_align_center ltx_border_t">285</td>
+</tr>
+<tr id="S4.T1.1.4" class="ltx_tr">
+<td id="S4.T1.1.4.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">Brainstorming</td>
+<td id="S4.T1.1.4.2" class="ltx_td ltx_align_center ltx_border_t">179</td>
+</tr>
+<tr id="S4.T1.1.5" class="ltx_tr">
+<td id="S4.T1.1.5.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">Classification</td>
+<td id="S4.T1.1.5.2" class="ltx_td ltx_align_center ltx_border_t">65</td>
+</tr>
+<tr id="S4.T1.1.6" class="ltx_tr">
+<td id="S4.T1.1.6.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">Generation</td>
+<td id="S4.T1.1.6.2" class="ltx_td ltx_align_center ltx_border_t">98</td>
+</tr>
+<tr id="S4.T1.1.7" class="ltx_tr">
+<td id="S4.T1.1.7.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">Summarization</td>
+<td id="S4.T1.1.7.2" class="ltx_td ltx_align_center ltx_border_t">40</td>
+</tr>
+<tr id="S4.T1.1.8" class="ltx_tr">
+<td id="S4.T1.1.8.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">Rewrite</td>
+<td id="S4.T1.1.8.2" class="ltx_td ltx_align_center ltx_border_t">131</td>
+</tr>
+<tr id="S4.T1.1.9" class="ltx_tr">
+<td id="S4.T1.1.9.1" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">Closed QA</td>
+<td id="S4.T1.1.9.2" class="ltx_td ltx_align_center ltx_border_t">52</td>
+</tr>
+<tr id="S4.T1.1.10" class="ltx_tr">
+<td id="S4.T1.1.10.1" class="ltx_td ltx_align_center ltx_border_b ltx_border_r ltx_border_t">Extract</td>
+<td id="S4.T1.1.10.2" class="ltx_td ltx_align_center ltx_border_b ltx_border_t">37</td>
+</tr>
+</table>
+</figure>
+<figure id="S4.F1" class="ltx_figure"><img src="/html/2304.08109/assets/x1.png" id="S4.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="362" height="124" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1: </span>(a) shows average length of instructions, (b) show average length of gold responses.</figcaption>
+</figure>
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Model Settings</h3>
+
+<div id="S4.SS1.p1" class="ltx_para">
+<p id="S4.SS1.p1.1" class="ltx_p">In this study, we selected LLaMA<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx24" title="" class="ltx_ref">Touvron et al., 2023</a>]</cite> as our foundational experimental models. LLaMA, released by Meta AI, is a collection of large-scale language models with four different parameter scales: 7B, 13B, 33B, and 65B. The performance of LLaMA model is outstanding, with empirical evidence showing that LLaMA-13B, with only 1/10 of the parameter scale, outperforms GPT-3 (175B)<cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx3" title="" class="ltx_ref">Brown et al., 2020</a>]</cite> in most benchmark evaluations. In this paper, we chose LLaMA-7B and LLaMA-13B as our base experimental models.</p>
+</div>
+<figure id="S4.T2" class="ltx_table">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">Table 2: </span>Hyper-parameter settings of full-parameters fine-tuning</figcaption>
+<table id="S4.T2.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S4.T2.1.1" class="ltx_tr">
+<td id="S4.T2.1.1.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t"><span id="S4.T2.1.1.1.1" class="ltx_text ltx_font_bold">Hyper parameter</span></td>
+<td id="S4.T2.1.1.2" class="ltx_td ltx_align_right ltx_border_t"><span id="S4.T2.1.1.2.1" class="ltx_text ltx_font_bold">Value</span></td>
+</tr>
+<tr id="S4.T2.1.2" class="ltx_tr">
+<td id="S4.T2.1.2.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Precision</td>
+<td id="S4.T2.1.2.2" class="ltx_td ltx_align_right ltx_border_t">bf16</td>
+</tr>
+<tr id="S4.T2.1.3" class="ltx_tr">
+<td id="S4.T2.1.3.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Epochs</td>
+<td id="S4.T2.1.3.2" class="ltx_td ltx_align_right ltx_border_t">3</td>
+</tr>
+<tr id="S4.T2.1.4" class="ltx_tr">
+<td id="S4.T2.1.4.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Batch size</td>
+<td id="S4.T2.1.4.2" class="ltx_td ltx_align_right ltx_border_t">32</td>
+</tr>
+<tr id="S4.T2.1.5" class="ltx_tr">
+<td id="S4.T2.1.5.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Learning rate</td>
+<td id="S4.T2.1.5.2" class="ltx_td ltx_align_right ltx_border_t">5e-6</td>
+</tr>
+<tr id="S4.T2.1.6" class="ltx_tr">
+<td id="S4.T2.1.6.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Warmup ratio</td>
+<td id="S4.T2.1.6.2" class="ltx_td ltx_align_right ltx_border_t">0.03</td>
+</tr>
+<tr id="S4.T2.1.7" class="ltx_tr">
+<td id="S4.T2.1.7.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">LR scheduler type</td>
+<td id="S4.T2.1.7.2" class="ltx_td ltx_align_right ltx_border_t">cosine</td>
+</tr>
+<tr id="S4.T2.1.8" class="ltx_tr">
+<td id="S4.T2.1.8.1" class="ltx_td ltx_align_left ltx_border_b ltx_border_r ltx_border_t">Max length</td>
+<td id="S4.T2.1.8.2" class="ltx_td ltx_align_right ltx_border_b ltx_border_t">1024</td>
+</tr>
+</table>
+</figure>
+<div id="S4.SS1.p2" class="ltx_para">
+<p id="S4.SS1.p2.1" class="ltx_p">For the full-parameters fine-tuning experiment, Table <a href="#S4.T2" title="Table 2 ‣ 4.1 Model Settings ‣ 4 Experiments ‣ A Comparative Study between Full-Parameter and LoRA-based Fine-Tuning on Chinese Instruction Data for Instruction Following Large Language Model" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> list the hyper-parameters of fine-tuning.</p>
+</div>
+<div id="S4.SS1.p3" class="ltx_para">
+<p id="S4.SS1.p3.1" class="ltx_p">For the LoRA experiment, we followed the hyper-parameters in <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bibx29" title="" class="ltx_ref">Xu et al., 2023</a>]</cite>, which set the rank in LoRA to 8 and apply LoRA to adapt attention weights and all linear layers, more details in list in Table <a href="#S4.T3" title="Table 3 ‣ 4.1 Model Settings ‣ 4 Experiments ‣ A Comparative Study between Full-Parameter and LoRA-based Fine-Tuning on Chinese Instruction Data for Instruction Following Large Language Model" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>. This experiment was conducted on 8 NVIDIA A100-40GB GPUs.</p>
+</div>
+<figure id="S4.T3" class="ltx_table">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">Table 3: </span>Hyper-parameter settings of LoRA-based tuning</figcaption>
+<table id="S4.T3.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S4.T3.1.1" class="ltx_tr">
+<td id="S4.T3.1.1.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t"><span id="S4.T3.1.1.1.1" class="ltx_text ltx_font_bold">Hyper parameter</span></td>
+<td id="S4.T3.1.1.2" class="ltx_td ltx_align_right ltx_border_t"><span id="S4.T3.1.1.2.1" class="ltx_text ltx_font_bold">Value</span></td>
+</tr>
+<tr id="S4.T3.1.2" class="ltx_tr">
+<td id="S4.T3.1.2.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Precision</td>
+<td id="S4.T3.1.2.2" class="ltx_td ltx_align_right ltx_border_t">fp16</td>
+</tr>
+<tr id="S4.T3.1.3" class="ltx_tr">
+<td id="S4.T3.1.3.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Epochs</td>
+<td id="S4.T3.1.3.2" class="ltx_td ltx_align_right ltx_border_t">4</td>
+</tr>
+<tr id="S4.T3.1.4" class="ltx_tr">
+<td id="S4.T3.1.4.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Batch size</td>
+<td id="S4.T3.1.4.2" class="ltx_td ltx_align_right ltx_border_t">128</td>
+</tr>
+<tr id="S4.T3.1.5" class="ltx_tr">
+<td id="S4.T3.1.5.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Learning rate</td>
+<td id="S4.T3.1.5.2" class="ltx_td ltx_align_right ltx_border_t">2e-4</td>
+</tr>
+<tr id="S4.T3.1.6" class="ltx_tr">
+<td id="S4.T3.1.6.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">Warmup steps</td>
+<td id="S4.T3.1.6.2" class="ltx_td ltx_align_right ltx_border_t">100</td>
+</tr>
+<tr id="S4.T3.1.7" class="ltx_tr">
+<td id="S4.T3.1.7.1" class="ltx_td ltx_align_left ltx_border_r ltx_border_t">LR scheduler type</td>
+<td id="S4.T3.1.7.2" class="ltx_td ltx_align_right ltx_border_t">cosine</td>
+</tr>
+<tr id="S4.T3.1.8" class="ltx_tr">
+<td id="S4.T3.1.8.1" class="ltx_td ltx_align_left ltx_border_b ltx_border_r ltx_border_t">Max length</td>
+<td id="S4.T3.1.8.2" class="ltx_td ltx_align_right ltx_border_b ltx_border_t">1024</td>
+</tr>
+</table>
+</figure>
+<figure id="S4.T4" class="ltx_table">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">Table 4: </span>Main results. In this table, LLaMA-13B + LoRA(2M) represents a model trained on 2M instruction data using LLaMA-13B as base model and LoRA training method, and LLaMA-7B + FT(2M) represents a model trained using full-parameters fine-tuning.
+LLaMA-7B + FT(2M) + LoRA(math_0.25M) represents a model trained on 0.25M mathematical instruction data using LLaMA-7B + FT(2M) as the base model and LoRA training method, and LLaMA-7B + FT(2M) + FT(math_0.25M) represents a model trained using incremental full-parameters fine-tuning.
+About the training time, all these experiments were conducted on 8 NVIDIA A100-40GB GPUs.</figcaption>
+<table id="S4.T4.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S4.T4.1.1" class="ltx_tr">
+<td id="S4.T4.1.1.1" class="ltx_td ltx_align_left ltx_border_t"><span id="S4.T4.1.1.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S4.T4.1.1.2" class="ltx_td ltx_align_center ltx_border_t"><span id="S4.T4.1.1.2.1" class="ltx_text ltx_font_bold">Average Score</span></td>
+<td id="S4.T4.1.1.3" class="ltx_td ltx_align_center ltx_border_t"><span id="S4.T4.1.1.3.1" class="ltx_text ltx_font_bold">Additional Param.</span></td>
+<td id="S4.T4.1.1.4" class="ltx_td ltx_align_center ltx_border_t"><span id="S4.T4.1.1.4.1" class="ltx_text ltx_font_bold">Training Time (Hour/epoch)</span></td>
+</tr>
+<tr id="S4.T4.1.2" class="ltx_tr">
+<td id="S4.T4.1.2.1" class="ltx_td ltx_align_left ltx_border_t">LLaMA-13B + LoRA(2M)</td>
+<td id="S4.T4.1.2.2" class="ltx_td ltx_align_center ltx_border_t">0.648</td>
+<td id="S4.T4.1.2.3" class="ltx_td ltx_align_center ltx_border_t">28M</td>
+<td id="S4.T4.1.2.4" class="ltx_td ltx_align_center ltx_border_t">10</td>
+</tr>
+<tr id="S4.T4.1.3" class="ltx_tr">
+<td id="S4.T4.1.3.1" class="ltx_td ltx_align_left">LLaMA-7B + LoRA(4M)</td>
+<td id="S4.T4.1.3.2" class="ltx_td ltx_align_center">0.624</td>
+<td id="S4.T4.1.3.3" class="ltx_td ltx_align_center">17.9M</td>
+<td id="S4.T4.1.3.4" class="ltx_td ltx_align_center">14</td>
+</tr>
+<tr id="S4.T4.1.4" class="ltx_tr">
+<td id="S4.T4.1.4.1" class="ltx_td ltx_align_left">LLaMA-7B + LoRA(2M)</td>
+<td id="S4.T4.1.4.2" class="ltx_td ltx_align_center">0.609</td>
+<td id="S4.T4.1.4.3" class="ltx_td ltx_align_center">17.9M</td>
+<td id="S4.T4.1.4.4" class="ltx_td ltx_align_center">7</td>
+</tr>
+<tr id="S4.T4.1.5" class="ltx_tr">
+<td id="S4.T4.1.5.1" class="ltx_td ltx_align_left">LLaMA-7B + LoRA(0.6M)</td>
+<td id="S4.T4.1.5.2" class="ltx_td ltx_align_center">0.589</td>
+<td id="S4.T4.1.5.3" class="ltx_td ltx_align_center">17.9M</td>
+<td id="S4.T4.1.5.4" class="ltx_td ltx_align_center">5</td>
+</tr>
+<tr id="S4.T4.1.6" class="ltx_tr">
+<td id="S4.T4.1.6.1" class="ltx_td ltx_align_left ltx_border_t">LLaMA-7B + FT(2M)</td>
+<td id="S4.T4.1.6.2" class="ltx_td ltx_align_center ltx_border_t">0.710</td>
+<td id="S4.T4.1.6.3" class="ltx_td ltx_align_center ltx_border_t">-</td>
+<td id="S4.T4.1.6.4" class="ltx_td ltx_align_center ltx_border_t">31</td>
+</tr>
+<tr id="S4.T4.1.7" class="ltx_tr">
+<td id="S4.T4.1.7.1" class="ltx_td ltx_align_left">LLaMA-7B + FT(0.6M)</td>
+<td id="S4.T4.1.7.2" class="ltx_td ltx_align_center">0.686</td>
+<td id="S4.T4.1.7.3" class="ltx_td ltx_align_center">-</td>
+<td id="S4.T4.1.7.4" class="ltx_td ltx_align_center">17</td>
+</tr>
+<tr id="S4.T4.1.8" class="ltx_tr">
+<td id="S4.T4.1.8.1" class="ltx_td ltx_align_left ltx_border_t">LLaMA-7B + FT(2M) + LoRA(math_0.25M)</td>
+<td id="S4.T4.1.8.2" class="ltx_td ltx_align_center ltx_border_t">0.729</td>
+<td id="S4.T4.1.8.3" class="ltx_td ltx_align_center ltx_border_t">17.9M</td>
+<td id="S4.T4.1.8.4" class="ltx_td ltx_align_center ltx_border_t">2</td>
+</tr>
+<tr id="S4.T4.1.9" class="ltx_tr">
+<td id="S4.T4.1.9.1" class="ltx_td ltx_align_left ltx_border_b">LLaMA-7B + FT(2M) + FT(math_0.25M)</td>
+<td id="S4.T4.1.9.2" class="ltx_td ltx_align_center ltx_border_b">0.738</td>
+<td id="S4.T4.1.9.3" class="ltx_td ltx_align_center ltx_border_b">-</td>
+<td id="S4.T4.1.9.4" class="ltx_td ltx_align_center ltx_border_b">4</td>
+</tr>
+</table>
+</figure>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Metrics</h3>
+
+<div id="S4.SS2.p1" class="ltx_para">
+<p id="S4.SS2.p1.1" class="ltx_p">ChatGPT is asked to evaluate responses generated by instruction-following models. For all instructions, ChatGPT gives a score between 0 and 1, where score 0 is the worst and score 1 is the best. In order to reduce randomness, we set the temperature to 0.001 for model generation. Evaluation is achieved by invoking gpt-3.5-turbo API at the time of April 15, 2023.
+We calculate model’s scores for each task category and derive its overall performance on the evaluation set using macro average across these categories.</p>
+</div>
+<div id="S4.SS2.p2" class="ltx_para">
+<p id="S4.SS2.p2.1" class="ltx_p">Given limitations of ChatGPT in evaluating mathematical and coding tasks, we compute the scores that include all categories (denoted as average_score). The detailed scores on each task category can be found in the Appendix.</p>
+</div>
+</section>
+<section id="S4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.3 </span>Comparison of Base Models and Dataset Scale for LoRA Tuning</h3>
+
+<div id="S4.SS3.p1" class="ltx_para">
+<p id="S4.SS3.p1.1" class="ltx_p">Firstly, we designed an experiment to compare the performance of LoRA-based instruct tuning on instruction datasets of different sizes. We selected datasets of 0.6M, 2M, and 4M, and the experimental results are presented in Table <a href="#S4.T4" title="Table 4 ‣ 4.1 Model Settings ‣ 4 Experiments ‣ A Comparative Study between Full-Parameter and LoRA-based Fine-Tuning on Chinese Instruction Data for Instruction Following Large Language Model" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>.
+As can be seen from the results, similar to most learning tasks, as the dataset size increases, the LoRA-based instruct tuned model exhibits better performance in instruction comprehension.</p>
+</div>
+<div id="S4.SS3.p2" class="ltx_para">
+<p id="S4.SS3.p2.1" class="ltx_p">In addition, we also compared the impact of different base models (LLaMA-7B and LLaMA-13B) on performance. It can be seen that the base model with a larger number of parameters brings a significant improvement in performance. Using LLaMA-7B+LoRA(2M) as the base, changing from 7B to 13B resulted in a larger improvement in performance compared to going from 2M to 4M.</p>
+</div>
+<div id="S4.SS3.p3" class="ltx_para">
+<p id="S4.SS3.p3.1" class="ltx_p">In terms of training time, it can also be observed that LLaMA-13B+LoRA(2M) has certain advantages over LLaMA-7B+LoRA(4M). Better training results were achieved with less training time. However, it should be noted that when using these two models for inference, the LLaMA-7B-based model has an advantage in terms of inference speed and cost due to its lower number of global parameters.</p>
+</div>
+</section>
+<section id="S4.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.4 </span>Comparison between Full-Parameter and LoRA-based Fine-Tuning</h3>
+
+<div id="S4.SS4.p1" class="ltx_para">
+<p id="S4.SS4.p1.1" class="ltx_p">How does the performance of LoRA-based models compare to full-parameters finetuning?
+As a comparison, we trained two models using full-parameters fine-tuning on instruction training data of 0.6M and 2M, and the results are shown in Table <a href="#S4.T4" title="Table 4 ‣ 4.1 Model Settings ‣ 4 Experiments ‣ A Comparative Study between Full-Parameter and LoRA-based Fine-Tuning on Chinese Instruction Data for Instruction Following Large Language Model" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>, which are shown as LLaMA-7B + FT(0.6M) and LLaMA-7B + FT(2M).
+It can be seen that full-parameters fine-tuning brings better experimental results.</p>
+</div>
+<div id="S4.SS4.p2" class="ltx_para">
+<p id="S4.SS4.p2.1" class="ltx_p">One intuitive understanding or analysis is that the pre-training large language model, which is trained to generate next word, requires a more complex learning task to switch to instruct following.
+LoRA’s learning method can only change a relatively small number of parameters, which is more challenging compared to changing all parameters.</p>
+</div>
+<div id="S4.SS4.p3" class="ltx_para">
+<p id="S4.SS4.p3.1" class="ltx_p">Sure, there is no free lunch in the world. Compared to LoRA fine-tuning, using full-parameters fine-tuning requires about 3-5 times the time cost to complete the training.</p>
+</div>
+</section>
+<section id="S4.SS5" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.5 </span>Performing LoRA Tuning for Specified Task</h3>
+
+<div id="S4.SS5.p1" class="ltx_para">
+<p id="S4.SS5.p1.1" class="ltx_p">According to our evaluation, details in the appendix, our models did not perform well on math tasks, with scores mostly below 0.5.
+To verify the adaptation capability of LoRA on specific tasks, we used incremental 0.25M math dataset (math_0.25M) to adapt the instruction-following large language model (We chose LLaMA-7B + FT(2M) as the base model).</p>
+</div>
+<div id="S4.SS5.p2" class="ltx_para">
+<p id="S4.SS5.p2.1" class="ltx_p">As a comparison, we used incremental fine-tuning with a learning rate of 5e-7 and trained for 2 epochs. So we got two models, one is the LLaMA-7B + FT(2M) + LoRA(math_0.25M), and the other is LLaMA-7B + FT(2M) + FT(math_0.25M).</p>
+</div>
+<div id="S4.SS5.p3" class="ltx_para">
+<p id="S4.SS5.p3.1" class="ltx_p">From the experimental results, it can be seen that incremental fine-tuning still showed better performance but took longer training time.
+Both LoRA and incremental fine-tuning improved the overall performance of the model.
+From the detailed data in the appendix, both LoRA and incremental fine-tuning showed significant improvements in the math task while only causing slight decreases in performance in other tasks.
+Specifically, the math task performance improved to 0.586 and 0.559 respectively.</p>
+</div>
+</section>
+<section id="S4.SS6" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.6 </span>Discussion and Conclusions</h3>
+
+<div id="S4.SS6.p1" class="ltx_para">
+<p id="S4.SS6.p1.1" class="ltx_p">In this article, we conducted an experimental comparison between full-parameter fine-tuning and LoRA-based tuning methods using LLaMA as the base model. We also explored the impact of different amounts of training data and model parameters on the effectiveness of LoRA-based tuning. From the experimental results comparison, some interesting ideas can observed:</p>
+</div>
+<div id="S4.SS6.p2" class="ltx_para">
+<p id="S4.SS6.p2.1" class="ltx_p">1) The choice of the base model has a significant impact on the effectiveness of LoRA-based tuning. Comparing LLaMA-7B+LoRA(0.6M) and LLaMA-7B+FT(0.6M), as well as LLaMA-7B+LoRA(2M) and LLaMA-7B+FT(2M), it is evident that LoRA-based tuning on a base model that has not undergone instruction tuning has limited effectiveness and is far less effective than full-parameter fine-tuning (averaging 10 points lower). However, by comparing LLaMA-7B+FT(2M)+FT(math_0.25M) and LLaMA-7B+FT(2M)+LoRA(math_0.25M), it can be seen that LoRA-based tuning on a model that has undergone instruction tuning can achieve comparable results to fine-tuning. This indicates that the choice of the base model is crucial to the effectiveness of the LoRA-based tuning method.</p>
+</div>
+<div id="S4.SS6.p3" class="ltx_para">
+<p id="S4.SS6.p3.1" class="ltx_p">2) Increasing the amount of training data can continuously improve the model’s effectiveness. Comparing LLaMA-7B+LoRA(0.6M), LLaMA-7B+LoRA(2M), and LLaMA-7B+LoRA(4M) shows that as the amount of training data increases, the model’s effectiveness improves (an average of approximately 2 points improvement for every doubling of data).</p>
+</div>
+<div id="S4.SS6.p4" class="ltx_para">
+<p id="S4.SS6.p4.1" class="ltx_p">3) LoRA-based tuning benefits from the number of model parameters. Comparing LLaMA-7B+LoRA(4M) and LLaMA-13B+LoRA(2M) shows that the number of model parameters has a greater impact on the effectiveness of LoRA-based tuning than the amount of training data.</p>
+</div>
+</section>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bibx1" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Aghajanyan et al., 2020] </span>
+<span class="ltx_bibblock">
+Armen Aghajanyan, Luke Zettlemoyer, and Sonal Gupta.
+
+</span>
+<span class="ltx_bibblock">2020.
+
+</span>
+<span class="ltx_bibblock">Intrinsic dimensionality explains the effectiveness of language model
+fine-tuning, December.
+
+</span>
+</li>
+<li id="bib.bibx2" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Bai et al., 2022] </span>
+<span class="ltx_bibblock">
+Yuntao Bai, Saurav Kadavath, Sandipan Kundu, et al.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+<span class="ltx_bibblock">Constitutional ai: Harmlessness from ai feedback, December.
+
+</span>
+</li>
+<li id="bib.bibx3" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Brown et al., 2020] </span>
+<span class="ltx_bibblock">
+Tom B. Brown, Benjamin Mann, Nick Ryder, et al.
+
+</span>
+<span class="ltx_bibblock">2020.
+
+</span>
+<span class="ltx_bibblock">Language models are few-shot learners, July.
+
+</span>
+</li>
+<li id="bib.bibx4" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Chowdhery et al., 2022] </span>
+<span class="ltx_bibblock">
+Aakanksha Chowdhery, Sharan Narang, Jacob Devlin, et al.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+<span class="ltx_bibblock">Palm: Scaling language modeling with pathways, October.
+
+</span>
+</li>
+<li id="bib.bibx5" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Chung et al., 2022] </span>
+<span class="ltx_bibblock">
+Hyung Won Chung, Le Hou, Shayne Longpre, et al.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+<span class="ltx_bibblock">Scaling instruction-finetuned language models, October.
+
+</span>
+</li>
+<li id="bib.bibx6" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Ding et al., 2023] </span>
+<span class="ltx_bibblock">
+Ning Ding, Yujia Qin, Guang Yang, et al.
+
+</span>
+<span class="ltx_bibblock">2023.
+
+</span>
+<span class="ltx_bibblock">Parameter-efficient fine-tuning of large-scale pre-trained language
+models, March.
+
+</span>
+</li>
+<li id="bib.bibx7" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Houlsby et al., 2019] </span>
+<span class="ltx_bibblock">
+Neil Houlsby, Andrei Giurgiu, Stanislaw Jastrzebski, et al.
+
+</span>
+<span class="ltx_bibblock">2019.
+
+</span>
+<span class="ltx_bibblock">Parameter-efficient transfer learning for nlp, June.
+
+</span>
+</li>
+<li id="bib.bibx8" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Hu et al., 2022] </span>
+<span class="ltx_bibblock">
+Edward Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean
+Wang, Lu Wang, and Weizhu Chen.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+<span class="ltx_bibblock">Lora: Low-rank adaptation of large language models, June.
+
+</span>
+</li>
+<li id="bib.bibx9" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Ji et al., 2023b] </span>
+<span class="ltx_bibblock">
+Yunjie Ji, Yong Deng, Yan Gong, Yiping Peng, Qiang Niu, Lei Zhang, Baochang Ma,
+and Xiangang Li.
+
+</span>
+<span class="ltx_bibblock">2023b.
+
+</span>
+<span class="ltx_bibblock">Exploring the impact of instruction data scaling on large language
+models: An empirical study on real-world use cases, March.
+
+</span>
+</li>
+<li id="bib.bibx10" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Khashabi et al., 2020] </span>
+<span class="ltx_bibblock">
+Daniel Khashabi, Sewon Min, Tushar Khot, Ashish Sabharwal, Oyvind Tafjord,
+Peter Clark, and Hannaneh Hajishirzi.
+
+</span>
+<span class="ltx_bibblock">2020.
+
+</span>
+<span class="ltx_bibblock">Unifiedqa: Crossing format boundaries with a single qa system.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bibx10.1.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2005.00700</span>.
+
+</span>
+</li>
+<li id="bib.bibx11" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Korbak et al., 2023] </span>
+<span class="ltx_bibblock">
+Tomasz Korbak, Kejian Shi, Angelica Chen, et al.
+
+</span>
+<span class="ltx_bibblock">2023.
+
+</span>
+<span class="ltx_bibblock">Pretraining language models with human preferences, February.
+
+</span>
+</li>
+<li id="bib.bibx12" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Lester et al., 2021] </span>
+<span class="ltx_bibblock">
+Brian Lester, Rami Al-Rfou, and Noah Constant.
+
+</span>
+<span class="ltx_bibblock">2021.
+
+</span>
+<span class="ltx_bibblock">The power of scale for parameter-efficient prompt tuning, April.
+
+</span>
+</li>
+<li id="bib.bibx13" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Li and Liang, 2021] </span>
+<span class="ltx_bibblock">
+Xiang Lisa Li and Percy Liang.
+
+</span>
+<span class="ltx_bibblock">2021.
+
+</span>
+<span class="ltx_bibblock">Prefix-tuning: Optimizing continuous prompts for generation, January.
+
+</span>
+</li>
+<li id="bib.bibx14" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Lin et al., 2020] </span>
+<span class="ltx_bibblock">
+Zhaojiang Lin, Andrea Madotto, and Pascale Fung.
+
+</span>
+<span class="ltx_bibblock">2020.
+
+</span>
+<span class="ltx_bibblock">Exploring versatile generative language model via parameter-efficient
+transfer learning.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bibx14.1.1" class="ltx_text ltx_font_italic">Findings of the Association for Computational Linguistics:
+EMNLP</span>.
+
+</span>
+</li>
+<li id="bib.bibx15" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Liu et al., 2019] </span>
+<span class="ltx_bibblock">
+Xiaodong Liu, Pengcheng He, Weizhu Chen, and Jianfeng Gao.
+
+</span>
+<span class="ltx_bibblock">2019.
+
+</span>
+<span class="ltx_bibblock">Multi-task deep neural networks for natural language understanding.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bibx15.1.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:1901.11504</span>.
+
+</span>
+</li>
+<li id="bib.bibx16" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Liu et al., 2021] </span>
+<span class="ltx_bibblock">
+Xiao Liu, Yanan Zheng, Zhengxiao Du, Ming Ding, et al.
+
+</span>
+<span class="ltx_bibblock">2021.
+
+</span>
+<span class="ltx_bibblock">Gpt understands, too.
+
+</span>
+</li>
+<li id="bib.bibx17" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Min et al., 2021] </span>
+<span class="ltx_bibblock">
+Sewon Min, Mike Lewis, Luke Zettlemoyer, and Hannaneh Hajishirzi.
+
+</span>
+<span class="ltx_bibblock">2021.
+
+</span>
+<span class="ltx_bibblock">Metaicl: Learning to learn in context.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bibx17.1.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2110.15943</span>.
+
+</span>
+</li>
+<li id="bib.bibx18" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Nakano et al., 2022] </span>
+<span class="ltx_bibblock">
+Reiichiro Nakano, Jacob Hilton, Suchir Balaji, et al.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+<span class="ltx_bibblock">Webgpt: Browser-assisted question-answering with human feedback,
+June.
+
+</span>
+</li>
+<li id="bib.bibx19" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[OpenAI, 2023a] </span>
+<span class="ltx_bibblock">
+OpenAI.
+
+</span>
+<span class="ltx_bibblock">2023a.
+
+</span>
+<span class="ltx_bibblock">Chatgpt: Optimizing language models for dialogue.
+
+</span>
+</li>
+<li id="bib.bibx20" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[OpenAI, 2023b] </span>
+<span class="ltx_bibblock">
+OpenAI.
+
+</span>
+<span class="ltx_bibblock">2023b.
+
+</span>
+<span class="ltx_bibblock">Gpt-4 technical report.
+
+</span>
+</li>
+<li id="bib.bibx21" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Ouyang et al., 2022] </span>
+<span class="ltx_bibblock">
+Long Ouyang, Jeff Wu, Xu Jiang, et al.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+<span class="ltx_bibblock">Training language models to follow instructions with human feedback,
+March.
+
+</span>
+</li>
+<li id="bib.bibx22" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Stanford, 2023] </span>
+<span class="ltx_bibblock">
+Stanford.
+
+</span>
+<span class="ltx_bibblock">2023.
+
+</span>
+<span class="ltx_bibblock">Alpaca-lora.
+
+</span>
+</li>
+<li id="bib.bibx23" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Stiennon et al., 2022] </span>
+<span class="ltx_bibblock">
+Nisan Stiennon, Long Ouyang, Jeff Wu, et al.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+<span class="ltx_bibblock">Learning to summarize from human feedback, February.
+
+</span>
+</li>
+<li id="bib.bibx24" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Touvron et al., 2023] </span>
+<span class="ltx_bibblock">
+Hugo Touvron, Thibaut Lavril, Gautier Izacard, et al.
+
+</span>
+<span class="ltx_bibblock">2023.
+
+</span>
+<span class="ltx_bibblock">Llama: Open and efficient foundation language models.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bibx24.1.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2302.13971</span>.
+
+</span>
+</li>
+<li id="bib.bibx25" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Wang et al., 2022] </span>
+<span class="ltx_bibblock">
+Yizhong Wang, Swaroop Mishra, Pegah Alipoormolabashi, Yeganeh Kordi, Amirreza
+Mirzaei, Atharva Naik, Arjun Ashok, Arut Selvan Dhanasekaran, Anjana
+Arunkumar, David Stap, et al.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+<span class="ltx_bibblock">Super-naturalinstructions: Generalization via declarative
+instructions on 1600+ nlp tasks.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bibx25.1.1" class="ltx_text ltx_font_italic">Proceedings of the 2022 Conference on Empirical Methods in
+Natural Language Processing</span>, pages 5085–5109.
+
+</span>
+</li>
+<li id="bib.bibx26" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Workshop et al., 2022] </span>
+<span class="ltx_bibblock">
+BigScience Workshop, Teven Le Scao, Angela Fan, et al.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+<span class="ltx_bibblock">Bloom: A 176b-parameter open-access multilingual language model,
+December.
+
+</span>
+</li>
+<li id="bib.bibx27" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Xie et al., 2022] </span>
+<span class="ltx_bibblock">
+Tianbao Xie, Chen Henry Wu, Peng Shi, Ruiqi Zhong, Torsten Scholak, Michihiro
+Yasunaga, Chien-Sheng Wu, Ming Zhong, Pengcheng Yin, Sida I Wang, et al.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+<span class="ltx_bibblock">Unifiedskg: Unifying and multi-tasking structured knowledge grounding
+with text-to-text language models.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bibx27.1.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2201.05966</span>.
+
+</span>
+</li>
+<li id="bib.bibx28" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Xu et al., 2022] </span>
+<span class="ltx_bibblock">
+Hanwei Xu, Yujun Chen, Yulun Du, Nan Shao, Yanggang Wang, Haiyu Li, and Zhilin
+Yang.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+<span class="ltx_bibblock">Zeroprompt: Scaling prompt-based pretraining to 1,000 tasks improves
+zero-shot generalization.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bibx28.1.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2201.06910</span>.
+
+</span>
+</li>
+<li id="bib.bibx29" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Xu et al., 2023] </span>
+<span class="ltx_bibblock">
+Canwen Xu, Daya Guo, Nan Duan, and Julian McAuley.
+
+</span>
+<span class="ltx_bibblock">2023.
+
+</span>
+<span class="ltx_bibblock">Baize: An open-source chat model with parameter-efficient tuning on
+self-chat data, April.
+
+</span>
+</li>
+<li id="bib.bibx30" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Ye et al., 2021] </span>
+<span class="ltx_bibblock">
+Qinyuan Ye, Bill Yuchen Lin, and Xiang Ren.
+
+</span>
+<span class="ltx_bibblock">2021.
+
+</span>
+<span class="ltx_bibblock">Crossfit: A few-shot learning challenge for cross-task generalization
+in nlp.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bibx30.1.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2104.08835</span>.
+
+</span>
+</li>
+<li id="bib.bibx31" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Zeng et al., 2023] </span>
+<span class="ltx_bibblock">
+Aohan Zeng, Xiao Liu, Zhengxiao Du, Zihan Wang, Hanyu Lai, Ming Ding, Zhuoyi
+Yang, Yifan Xu, Wendi Zheng, Xiao Xia, Weng Lam Tam, Zixuan Ma, Yufei Xue,
+Jidong Zhai, Wenguang Chen, Zhiyuan Liu, Peng Zhang, Yuxiao Dong, and Jie
+Tang.
+
+</span>
+<span class="ltx_bibblock">2023.
+
+</span>
+<span class="ltx_bibblock">GLM-130b: An open bilingual pre-trained model.
+
+</span>
+<span class="ltx_bibblock">In <span id="bib.bibx31.1.1" class="ltx_text ltx_font_italic">The Eleventh International Conference on Learning
+Representations (ICLR)</span>.
+
+</span>
+</li>
+<li id="bib.bibx32" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Zhang et al., 2022] </span>
+<span class="ltx_bibblock">
+Susan Zhang, Stephen Roller, Naman Goyal, et al.
+
+</span>
+<span class="ltx_bibblock">2022.
+
+</span>
+<span class="ltx_bibblock">Opt: Open pre-trained transformer language models, June.
+
+</span>
+</li>
+<li id="bib.bibx33" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Zhong et al., 2021] </span>
+<span class="ltx_bibblock">
+Ruiqi Zhong, Kristy Lee, Zheng Zhang, and Dan Klein.
+
+</span>
+<span class="ltx_bibblock">2021.
+
+</span>
+<span class="ltx_bibblock">Adapting language models for zero-shot learning by meta-tuning on
+dataset and prompt collections.
+
+</span>
+<span class="ltx_bibblock"><span id="bib.bibx33.1.1" class="ltx_text ltx_font_italic">arXiv preprint arXiv:2104.04670</span>.
+
+</span>
+</li>
+<li id="bib.bibx34" class="ltx_bibitem">
+<span class="ltx_tag ltx_tag_bibitem">[Ziegler et al., 2020] </span>
+<span class="ltx_bibblock">
+Daniel M. Ziegler, Nisan Stiennon, Jeffrey Wu, et al.
+
+</span>
+<span class="ltx_bibblock">2020.
+
+</span>
+<span class="ltx_bibblock">Fine-tuning language models from human preferences, January.
+
+</span>
+</li>
+</ul>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Appendix A</h2>
+
+<section id="S5.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.1 </span>Detailed evaluation scores</h3>
+
+<div id="S5.T5" class="ltx_table ltx_transformed_outer" style="width:265.6pt;height:702pt;vertical-align:-0.0pt;"><div class="ltx_transformed_inner" style="width:702.0pt;transform:translate(-218.2pt,-217.7pt) rotate(-90deg) ;"><figure>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 5: </span>Detailed scores on each task category. </figcaption>
+<table id="S5.T5.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S5.T5.1.1" class="ltx_tr">
+<td id="S5.T5.1.1.1" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S5.T5.1.1.1.1" class="ltx_text"></span><span id="S5.T5.1.1.1.2" class="ltx_text ltx_font_bold"> <span id="S5.T5.1.1.1.2.1" class="ltx_text">
+<span id="S5.T5.1.1.1.2.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.1.1.2.1.1.1" class="ltx_tr">
+<span id="S5.T5.1.1.1.2.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">Model</span></span>
+</span></span><span id="S5.T5.1.1.1.2.2" class="ltx_text"></span></span>
+</td>
+<td id="S5.T5.1.1.2" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S5.T5.1.1.2.1" class="ltx_text"></span><span id="S5.T5.1.1.2.2" class="ltx_text ltx_font_bold"> <span id="S5.T5.1.1.2.2.1" class="ltx_text">
+<span id="S5.T5.1.1.2.2.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.1.2.2.1.1.1" class="ltx_tr">
+<span id="S5.T5.1.1.2.2.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">Training</span></span>
+<span id="S5.T5.1.1.2.2.1.1.2" class="ltx_tr">
+<span id="S5.T5.1.1.2.2.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">data</span></span>
+</span></span><span id="S5.T5.1.1.2.2.2" class="ltx_text"></span></span>
+</td>
+<td id="S5.T5.1.1.3" class="ltx_td ltx_align_center ltx_border_t"><span id="S5.T5.1.1.3.1" class="ltx_text ltx_font_bold">others</span></td>
+<td id="S5.T5.1.1.4" class="ltx_td ltx_align_center ltx_border_t"><span id="S5.T5.1.1.4.1" class="ltx_text ltx_font_bold">rewrite</span></td>
+<td id="S5.T5.1.1.5" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S5.T5.1.1.5.1" class="ltx_text"></span><span id="S5.T5.1.1.5.2" class="ltx_text ltx_font_bold"> <span id="S5.T5.1.1.5.2.1" class="ltx_text">
+<span id="S5.T5.1.1.5.2.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.1.5.2.1.1.1" class="ltx_tr">
+<span id="S5.T5.1.1.5.2.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">classif-</span></span>
+<span id="S5.T5.1.1.5.2.1.1.2" class="ltx_tr">
+<span id="S5.T5.1.1.5.2.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">ication</span></span>
+</span></span><span id="S5.T5.1.1.5.2.2" class="ltx_text"></span></span>
+</td>
+<td id="S5.T5.1.1.6" class="ltx_td ltx_align_center ltx_border_t"><span id="S5.T5.1.1.6.1" class="ltx_text ltx_font_bold">generation</span></td>
+<td id="S5.T5.1.1.7" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S5.T5.1.1.7.1" class="ltx_text"></span><span id="S5.T5.1.1.7.2" class="ltx_text ltx_font_bold"> <span id="S5.T5.1.1.7.2.1" class="ltx_text">
+<span id="S5.T5.1.1.7.2.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.1.7.2.1.1.1" class="ltx_tr">
+<span id="S5.T5.1.1.7.2.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">summari-</span></span>
+<span id="S5.T5.1.1.7.2.1.1.2" class="ltx_tr">
+<span id="S5.T5.1.1.7.2.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">zation</span></span>
+</span></span><span id="S5.T5.1.1.7.2.2" class="ltx_text"></span></span>
+</td>
+<td id="S5.T5.1.1.8" class="ltx_td ltx_align_center ltx_border_t"><span id="S5.T5.1.1.8.1" class="ltx_text ltx_font_bold">extract</span></td>
+<td id="S5.T5.1.1.9" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S5.T5.1.1.9.1" class="ltx_text"></span><span id="S5.T5.1.1.9.2" class="ltx_text ltx_font_bold"> <span id="S5.T5.1.1.9.2.1" class="ltx_text">
+<span id="S5.T5.1.1.9.2.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.1.9.2.1.1.1" class="ltx_tr">
+<span id="S5.T5.1.1.9.2.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">open</span></span>
+<span id="S5.T5.1.1.9.2.1.1.2" class="ltx_tr">
+<span id="S5.T5.1.1.9.2.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">qa</span></span>
+</span></span><span id="S5.T5.1.1.9.2.2" class="ltx_text"></span></span>
+</td>
+<td id="S5.T5.1.1.10" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S5.T5.1.1.10.1" class="ltx_text"></span><span id="S5.T5.1.1.10.2" class="ltx_text ltx_font_bold"> <span id="S5.T5.1.1.10.2.1" class="ltx_text">
+<span id="S5.T5.1.1.10.2.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.1.10.2.1.1.1" class="ltx_tr">
+<span id="S5.T5.1.1.10.2.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">brain-</span></span>
+<span id="S5.T5.1.1.10.2.1.1.2" class="ltx_tr">
+<span id="S5.T5.1.1.10.2.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">storming</span></span>
+</span></span><span id="S5.T5.1.1.10.2.2" class="ltx_text"></span></span>
+</td>
+<td id="S5.T5.1.1.11" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S5.T5.1.1.11.1" class="ltx_text"></span><span id="S5.T5.1.1.11.2" class="ltx_text ltx_font_bold"> <span id="S5.T5.1.1.11.2.1" class="ltx_text">
+<span id="S5.T5.1.1.11.2.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.1.11.2.1.1.1" class="ltx_tr">
+<span id="S5.T5.1.1.11.2.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">closed</span></span>
+<span id="S5.T5.1.1.11.2.1.1.2" class="ltx_tr">
+<span id="S5.T5.1.1.11.2.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">qa</span></span>
+</span></span><span id="S5.T5.1.1.11.2.2" class="ltx_text"></span></span>
+</td>
+<td id="S5.T5.1.1.12" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S5.T5.1.1.12.1" class="ltx_text"></span><span id="S5.T5.1.1.12.2" class="ltx_text ltx_font_bold"> <span id="S5.T5.1.1.12.2.1" class="ltx_text">
+<span id="S5.T5.1.1.12.2.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.1.12.2.1.1.1" class="ltx_tr">
+<span id="S5.T5.1.1.12.2.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">macro</span></span>
+<span id="S5.T5.1.1.12.2.1.1.2" class="ltx_tr">
+<span id="S5.T5.1.1.12.2.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">ave</span></span>
+</span></span><span id="S5.T5.1.1.12.2.2" class="ltx_text"></span></span>
+</td>
+</tr>
+<tr id="S5.T5.1.2" class="ltx_tr">
+<td id="S5.T5.1.2.1" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S5.T5.1.2.1.1" class="ltx_text"></span> <span id="S5.T5.1.2.1.2" class="ltx_text">
+<span id="S5.T5.1.2.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.2.1.2.1.1" class="ltx_tr">
+<span id="S5.T5.1.2.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">LLaMA-7B+ LoRA</span></span>
+</span></span><span id="S5.T5.1.2.1.3" class="ltx_text"></span></td>
+<td id="S5.T5.1.2.2" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S5.T5.1.2.2.1" class="ltx_text"></span> <span id="S5.T5.1.2.2.2" class="ltx_text">
+<span id="S5.T5.1.2.2.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.2.2.2.1.1" class="ltx_tr">
+<span id="S5.T5.1.2.2.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">0.6M</span></span>
+</span></span><span id="S5.T5.1.2.2.3" class="ltx_text"></span></td>
+<td id="S5.T5.1.2.3" class="ltx_td ltx_align_center ltx_border_t">0.358</td>
+<td id="S5.T5.1.2.4" class="ltx_td ltx_align_center ltx_border_t">0.719</td>
+<td id="S5.T5.1.2.5" class="ltx_td ltx_align_center ltx_border_t">0.695</td>
+<td id="S5.T5.1.2.6" class="ltx_td ltx_align_center ltx_border_t">0.816</td>
+<td id="S5.T5.1.2.7" class="ltx_td ltx_align_center ltx_border_t">0.65</td>
+<td id="S5.T5.1.2.8" class="ltx_td ltx_align_center ltx_border_t">0.448</td>
+<td id="S5.T5.1.2.9" class="ltx_td ltx_align_center ltx_border_t">0.315</td>
+<td id="S5.T5.1.2.10" class="ltx_td ltx_align_center ltx_border_t">0.793</td>
+<td id="S5.T5.1.2.11" class="ltx_td ltx_align_center ltx_border_t">0.51</td>
+<td id="S5.T5.1.2.12" class="ltx_td ltx_align_center ltx_border_t">0.589</td>
+</tr>
+<tr id="S5.T5.1.3" class="ltx_tr">
+<td id="S5.T5.1.3.1" class="ltx_td ltx_align_center">
+<span id="S5.T5.1.3.1.1" class="ltx_text"></span> <span id="S5.T5.1.3.1.2" class="ltx_text">
+<span id="S5.T5.1.3.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.3.1.2.1.1" class="ltx_tr">
+<span id="S5.T5.1.3.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">LLaMA-7B+ LoRA</span></span>
+</span></span><span id="S5.T5.1.3.1.3" class="ltx_text"></span></td>
+<td id="S5.T5.1.3.2" class="ltx_td ltx_align_center">
+<span id="S5.T5.1.3.2.1" class="ltx_text"></span> <span id="S5.T5.1.3.2.2" class="ltx_text">
+<span id="S5.T5.1.3.2.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.3.2.2.1.1" class="ltx_tr">
+<span id="S5.T5.1.3.2.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">2M</span></span>
+</span></span><span id="S5.T5.1.3.2.3" class="ltx_text"></span></td>
+<td id="S5.T5.1.3.3" class="ltx_td ltx_align_center">0.364</td>
+<td id="S5.T5.1.3.4" class="ltx_td ltx_align_center">0.795</td>
+<td id="S5.T5.1.3.5" class="ltx_td ltx_align_center">0.676</td>
+<td id="S5.T5.1.3.6" class="ltx_td ltx_align_center">0.854</td>
+<td id="S5.T5.1.3.7" class="ltx_td ltx_align_center">0.617</td>
+<td id="S5.T5.1.3.8" class="ltx_td ltx_align_center">0.472</td>
+<td id="S5.T5.1.3.9" class="ltx_td ltx_align_center">0.369</td>
+<td id="S5.T5.1.3.10" class="ltx_td ltx_align_center">0.808</td>
+<td id="S5.T5.1.3.11" class="ltx_td ltx_align_center">0.531</td>
+<td id="S5.T5.1.3.12" class="ltx_td ltx_align_center">0.61</td>
+</tr>
+<tr id="S5.T5.1.4" class="ltx_tr">
+<td id="S5.T5.1.4.1" class="ltx_td ltx_align_center">
+<span id="S5.T5.1.4.1.1" class="ltx_text"></span> <span id="S5.T5.1.4.1.2" class="ltx_text">
+<span id="S5.T5.1.4.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.4.1.2.1.1" class="ltx_tr">
+<span id="S5.T5.1.4.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">LLaMA-7B+ LoRA</span></span>
+</span></span><span id="S5.T5.1.4.1.3" class="ltx_text"></span></td>
+<td id="S5.T5.1.4.2" class="ltx_td ltx_align_center">
+<span id="S5.T5.1.4.2.1" class="ltx_text"></span> <span id="S5.T5.1.4.2.2" class="ltx_text">
+<span id="S5.T5.1.4.2.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.4.2.2.1.1" class="ltx_tr">
+<span id="S5.T5.1.4.2.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">4M</span></span>
+</span></span><span id="S5.T5.1.4.2.3" class="ltx_text"></span></td>
+<td id="S5.T5.1.4.3" class="ltx_td ltx_align_center">0.341</td>
+<td id="S5.T5.1.4.4" class="ltx_td ltx_align_center">0.821</td>
+<td id="S5.T5.1.4.5" class="ltx_td ltx_align_center">0.677</td>
+<td id="S5.T5.1.4.6" class="ltx_td ltx_align_center">0.847</td>
+<td id="S5.T5.1.4.7" class="ltx_td ltx_align_center">0.645</td>
+<td id="S5.T5.1.4.8" class="ltx_td ltx_align_center">0.467</td>
+<td id="S5.T5.1.4.9" class="ltx_td ltx_align_center">0.374</td>
+<td id="S5.T5.1.4.10" class="ltx_td ltx_align_center">0.806</td>
+<td id="S5.T5.1.4.11" class="ltx_td ltx_align_center">0.639</td>
+<td id="S5.T5.1.4.12" class="ltx_td ltx_align_center">0.624</td>
+</tr>
+<tr id="S5.T5.1.5" class="ltx_tr">
+<td id="S5.T5.1.5.1" class="ltx_td ltx_align_center">
+<span id="S5.T5.1.5.1.1" class="ltx_text"></span> <span id="S5.T5.1.5.1.2" class="ltx_text">
+<span id="S5.T5.1.5.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.5.1.2.1.1" class="ltx_tr">
+<span id="S5.T5.1.5.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">LLaMA-13B+ LoRA</span></span>
+</span></span><span id="S5.T5.1.5.1.3" class="ltx_text"></span></td>
+<td id="S5.T5.1.5.2" class="ltx_td ltx_align_center">
+<span id="S5.T5.1.5.2.1" class="ltx_text"></span> <span id="S5.T5.1.5.2.2" class="ltx_text">
+<span id="S5.T5.1.5.2.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.5.2.2.1.1" class="ltx_tr">
+<span id="S5.T5.1.5.2.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">2M</span></span>
+</span></span><span id="S5.T5.1.5.2.3" class="ltx_text"></span></td>
+<td id="S5.T5.1.5.3" class="ltx_td ltx_align_center">0.422</td>
+<td id="S5.T5.1.5.4" class="ltx_td ltx_align_center">0.810</td>
+<td id="S5.T5.1.5.5" class="ltx_td ltx_align_center">0.696</td>
+<td id="S5.T5.1.5.6" class="ltx_td ltx_align_center">0.837</td>
+<td id="S5.T5.1.5.7" class="ltx_td ltx_align_center">0.700</td>
+<td id="S5.T5.1.5.8" class="ltx_td ltx_align_center">0.537</td>
+<td id="S5.T5.1.5.9" class="ltx_td ltx_align_center">0.435</td>
+<td id="S5.T5.1.5.10" class="ltx_td ltx_align_center">0.823</td>
+<td id="S5.T5.1.5.11" class="ltx_td ltx_align_center">0.577</td>
+<td id="S5.T5.1.5.12" class="ltx_td ltx_align_center">0.648</td>
+</tr>
+<tr id="S5.T5.1.6" class="ltx_tr">
+<td id="S5.T5.1.6.1" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S5.T5.1.6.1.1" class="ltx_text"></span> <span id="S5.T5.1.6.1.2" class="ltx_text">
+<span id="S5.T5.1.6.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.6.1.2.1.1" class="ltx_tr">
+<span id="S5.T5.1.6.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">LLaMA-7B+ FT</span></span>
+</span></span><span id="S5.T5.1.6.1.3" class="ltx_text"></span></td>
+<td id="S5.T5.1.6.2" class="ltx_td ltx_align_center ltx_border_t">0.6M</td>
+<td id="S5.T5.1.6.3" class="ltx_td ltx_align_center ltx_border_t">0.438</td>
+<td id="S5.T5.1.6.4" class="ltx_td ltx_align_center ltx_border_t">0.869</td>
+<td id="S5.T5.1.6.5" class="ltx_td ltx_align_center ltx_border_t">0.698</td>
+<td id="S5.T5.1.6.6" class="ltx_td ltx_align_center ltx_border_t">0.917</td>
+<td id="S5.T5.1.6.7" class="ltx_td ltx_align_center ltx_border_t">0.701</td>
+<td id="S5.T5.1.6.8" class="ltx_td ltx_align_center ltx_border_t">0.592</td>
+<td id="S5.T5.1.6.9" class="ltx_td ltx_align_center ltx_border_t">0.477</td>
+<td id="S5.T5.1.6.10" class="ltx_td ltx_align_center ltx_border_t">0.870</td>
+<td id="S5.T5.1.6.11" class="ltx_td ltx_align_center ltx_border_t">0.606</td>
+<td id="S5.T5.1.6.12" class="ltx_td ltx_align_center ltx_border_t">0.686</td>
+</tr>
+<tr id="S5.T5.1.7" class="ltx_tr">
+<td id="S5.T5.1.7.1" class="ltx_td ltx_align_center">
+<span id="S5.T5.1.7.1.1" class="ltx_text"></span> <span id="S5.T5.1.7.1.2" class="ltx_text">
+<span id="S5.T5.1.7.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.7.1.2.1.1" class="ltx_tr">
+<span id="S5.T5.1.7.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">LLaMA-7B+ FT</span></span>
+</span></span><span id="S5.T5.1.7.1.3" class="ltx_text"></span></td>
+<td id="S5.T5.1.7.2" class="ltx_td ltx_align_center">2M</td>
+<td id="S5.T5.1.7.3" class="ltx_td ltx_align_center">0.399</td>
+<td id="S5.T5.1.7.4" class="ltx_td ltx_align_center">0.871</td>
+<td id="S5.T5.1.7.5" class="ltx_td ltx_align_center">0.775</td>
+<td id="S5.T5.1.7.6" class="ltx_td ltx_align_center">0.920</td>
+<td id="S5.T5.1.7.7" class="ltx_td ltx_align_center">0.734</td>
+<td id="S5.T5.1.7.8" class="ltx_td ltx_align_center">0.603</td>
+<td id="S5.T5.1.7.9" class="ltx_td ltx_align_center">0.555</td>
+<td id="S5.T5.1.7.10" class="ltx_td ltx_align_center">0.900</td>
+<td id="S5.T5.1.7.11" class="ltx_td ltx_align_center">0.633</td>
+<td id="S5.T5.1.7.12" class="ltx_td ltx_align_center">0.710</td>
+</tr>
+<tr id="S5.T5.1.8" class="ltx_tr">
+<td id="S5.T5.1.8.1" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S5.T5.1.8.1.1" class="ltx_text"></span> <span id="S5.T5.1.8.1.2" class="ltx_text">
+<span id="S5.T5.1.8.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.8.1.2.1.1" class="ltx_tr">
+<span id="S5.T5.1.8.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">LLaMA-7B + FT(2M)</span></span>
+<span id="S5.T5.1.8.1.2.1.2" class="ltx_tr">
+<span id="S5.T5.1.8.1.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">+ LoRA</span></span>
+</span></span><span id="S5.T5.1.8.1.3" class="ltx_text"></span></td>
+<td id="S5.T5.1.8.2" class="ltx_td ltx_align_center ltx_border_t">math0.25M</td>
+<td id="S5.T5.1.8.3" class="ltx_td ltx_align_center ltx_border_t">0.560</td>
+<td id="S5.T5.1.8.4" class="ltx_td ltx_align_center ltx_border_t">0.863</td>
+<td id="S5.T5.1.8.5" class="ltx_td ltx_align_center ltx_border_t">0.758</td>
+<td id="S5.T5.1.8.6" class="ltx_td ltx_align_center ltx_border_t">0.915</td>
+<td id="S5.T5.1.8.7" class="ltx_td ltx_align_center ltx_border_t">0.754</td>
+<td id="S5.T5.1.8.8" class="ltx_td ltx_align_center ltx_border_t">0.651</td>
+<td id="S5.T5.1.8.9" class="ltx_td ltx_align_center ltx_border_t">0.518</td>
+<td id="S5.T5.1.8.10" class="ltx_td ltx_align_center ltx_border_t">0.886</td>
+<td id="S5.T5.1.8.11" class="ltx_td ltx_align_center ltx_border_t">0.656</td>
+<td id="S5.T5.1.8.12" class="ltx_td ltx_align_center ltx_border_t">0.729</td>
+</tr>
+<tr id="S5.T5.1.9" class="ltx_tr">
+<td id="S5.T5.1.9.1" class="ltx_td ltx_align_center ltx_border_b">
+<span id="S5.T5.1.9.1.1" class="ltx_text"></span> <span id="S5.T5.1.9.1.2" class="ltx_text">
+<span id="S5.T5.1.9.1.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S5.T5.1.9.1.2.1.1" class="ltx_tr">
+<span id="S5.T5.1.9.1.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">LLaMA-7B + FT(2M)</span></span>
+<span id="S5.T5.1.9.1.2.1.2" class="ltx_tr">
+<span id="S5.T5.1.9.1.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">+ FT</span></span>
+</span></span><span id="S5.T5.1.9.1.3" class="ltx_text"></span></td>
+<td id="S5.T5.1.9.2" class="ltx_td ltx_align_center ltx_border_b">math0.25M</td>
+<td id="S5.T5.1.9.3" class="ltx_td ltx_align_center ltx_border_b">0.586</td>
+<td id="S5.T5.1.9.4" class="ltx_td ltx_align_center ltx_border_b">0.887</td>
+<td id="S5.T5.1.9.5" class="ltx_td ltx_align_center ltx_border_b">0.763</td>
+<td id="S5.T5.1.9.6" class="ltx_td ltx_align_center ltx_border_b">0.955</td>
+<td id="S5.T5.1.9.7" class="ltx_td ltx_align_center ltx_border_b">0.749</td>
+<td id="S5.T5.1.9.8" class="ltx_td ltx_align_center ltx_border_b">0.658</td>
+<td id="S5.T5.1.9.9" class="ltx_td ltx_align_center ltx_border_b">0.523</td>
+<td id="S5.T5.1.9.10" class="ltx_td ltx_align_center ltx_border_b">0.872</td>
+<td id="S5.T5.1.9.11" class="ltx_td ltx_align_center ltx_border_b">0.652</td>
+<td id="S5.T5.1.9.12" class="ltx_td ltx_align_center ltx_border_b">0.738</td>
+</tr>
+</table>
+</figure></div></div>
+</section>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2304.08108" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2304.08109" class="ar5iv-text-button ar5iv-severity-ok">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2304.08109">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2304.08109" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2304.08110" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Thu Feb 29 14:26:43 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>
