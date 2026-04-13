@@ -11,7 +11,7 @@
 
 ## Summary
 
-- 当前已批量 ingest 207 篇 summary 页，按候选主题分组如下。
+- 当前已批量 ingest 211 篇 summary 页，按候选主题分组如下。
 
 ### Attention / Transformer
 
@@ -109,6 +109,10 @@
 - [Migacz - 2017 - Intro](./raw/summary/Migacz%20-%202017%20-%20Intro.md)：8-bit Inference with TensorRT Szymon Migacz, NVIDIA May 8, 2017 Intro...
 - [Pradhan, Moschitti, Uryupina - 2012 - CoNLL-2012 Shared Task Modeling Multilingual Unrestricted Coreference in OntoNotes](./raw/summary/Pradhan,%20Moschitti,%20Uryupina%20-%202012%20-%20CoNLL-2012%20Shared%20Task%20Modeling%20Multilingual%20Unrestricted%20Coreference%20in%20OntoNotes.md)：The CoNLL-2012 shared task involved pre- dicting coreference in Englis...
 - [Sakata et al. - 2019 - FAQ retrieval using query-question similarity and BERT-based query-answer relevance](./raw/summary/Sakata%20et%20al.%20-%202019%20-%20FAQ%20retrieval%20using%20query-question%20similarity%20and%20BERT-based%20query-answer%20relevance.md)：FAQ Retrieval using Query-Question Similarity and BERT-Based Query-Ans...
+- [Mitra, Craswell - 2019 - A Deep Look into Neural Ranking Models for Information Retrieval](./raw/summary/Mitra,%20Craswell%20-%202019%20-%20A%20Deep%20Look%20into%20Neural%20Ranking%20Models%20for%20Information%20Retrieval.md)：从 IR 结构、架构假设与学习目标维度系统回顾 neural ranking models。
+- [Nogueira, Cho - 2019 - Passage Re-ranking with BERT](./raw/summary/Nogueira,%20Cho%20-%202019%20-%20Passage%20Re-ranking%20with%20BERT.md)：`BERT` cross-encoder 将 passage reranking 推成 transformer 时代的核心精排接口。
+- [Khattab, Zaharia - 2020 - ColBERT Efficient and Effective Passage Search via Contextualized Late Interaction over BERT](./raw/summary/Khattab,%20Zaharia%20-%202020%20-%20ColBERT%20Efficient%20and%20Effective%20Passage%20Search%20via%20Contextualized%20Late%20Interaction%20over%20BERT.md)：`ColBERT` 用 late interaction 在 cross-encoder 与双塔之间建立效率-效果折中。
+- [Nogueira et al. - 2020 - Pretrained Transformers for Text Ranking BERT and Beyond](./raw/summary/Nogueira%20et%20al.%20-%202020%20-%20Pretrained%20Transformers%20for%20Text%20Ranking%20BERT%20and%20Beyond.md)：系统总结 transformer 排序中的 reranking、dense retrieval 与长文档/效率问题。
 - [Schick et al. - 2023 - Toolformer Language Models Can Teach Themselves to Use Tools](./raw/summary/Schick%20et%20al.%20-%202023%20-%20Toolformer%20Language%20Models%20Can%20Teach%20Themselves%20to%20Use%20Tools.md)：Language models (LMs) exhibit remarkable abilities to solve new tasks...
 - [Sciavolino et al. - 2021 - Simple Entity-Centric Questions Challenge Dense Retrievers](./raw/summary/Sciavolino%20et%20al.%20-%202021%20-%20Simple%20Entity-Centric%20Questions%20Challenge%20Dense%20Retrievers.md)：Open-domain question answering has ex- ploded in popularity recently d...
 - [Shen et al. - 2018 - Natural TTS Synthesis by Conditioning Wavenet on MEL Spectrogram Predictions](./raw/summary/Shen%20et%20al.%20-%202018%20-%20Natural%20TTS%20Synthesis%20by%20Conditioning%20Wavenet%20on%20MEL%20Spectrogram%20Predictions.md)：NATURAL TTS SYNTHESIS BY CONDITIONING WAVENET ON MEL SPECTROGRAM PREDI...
@@ -250,6 +254,7 @@
 
 - [注意力机制 Attention](./wiki/topics/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%20Attention.md)：围绕标准 attention、稀疏 / 线性近似、`KV cache` 优化与 `FlashAttention` 组织 attention 变体主线。
 - [BERT类双向Transformer语言模型](./wiki/topics/BERT%E7%B1%BB%E5%8F%8C%E5%90%91Transformer%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B.md)：围绕 BERT、RoBERTa、SpanBERT、句向量化与多语言编码器组织类 BERT 家族的正式 topic。
+- [搜索排序](./wiki/topics/%E6%90%9C%E7%B4%A2%E6%8E%92%E5%BA%8F.md)：围绕 neural ranking、BERT reranking、dense retrieval 与 late interaction 组织搜索排序主线。
 - [传统 NLP](传统%20NLP.md)：围绕编码器预训练、句向量、检索与摘要组织传统 NLP 的方法脉络。
 - [传统 CV](传统%20CV.md)：围绕视觉 Transformer、OCR 与文档理解组织非 LLM 中心的视觉总览主线。
 - [目标检测](./wiki/topics/目标检测.md)：围绕两阶段检测、set prediction、实时化约束与训练分配分歧组织独立检测主线。
@@ -330,6 +335,7 @@
 - [HuBERT](./wiki/concepts/HuBERT.md)：承接语音自监督表征学习路线的概念页。
 - [Dense Retrieval](./wiki/concepts/Dense%20Retrieval.md)：承接稠密检索方法主线的概念页。
 - [DPR](./wiki/concepts/DPR.md)：承接开放域问答双塔检索路线的概念页。
+- [ColBERT](./wiki/concepts/ColBERT.md)：承接 late interaction 搜索排序路线的概念页。
 - [SimCSE](./wiki/concepts/SimCSE.md)：承接句向量对比学习路线的概念页。
 - [Sentence-BERT](./wiki/concepts/Sentence-BERT.md)：承接 siamese BERT 句向量路线的概念页。
 - [Prompt Tuning](./wiki/concepts/Prompt%20Tuning.md)：承接轻量提示适配路线的概念页。

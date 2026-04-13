@@ -2,6 +2,79 @@
 
 本页是 LLM Wiki 的追加式操作日志。
 
+## [2026-04-14] lint | 全量扫描 topic / concept 关系并补链
+
+涉及页面：
+
+- [LLM 预训练](./wiki/topics/LLM%20预训练.md)
+- [LLM 基础脉络](./wiki/topics/LLM%20基础脉络.md)
+- [LLM RL](./wiki/topics/LLM%20RL.md)
+- [指令对齐与 post-training](./wiki/topics/%E6%8C%87%E4%BB%A4%E5%AF%B9%E9%BD%90%E4%B8%8E%20post-training.md)
+- [传统 CV](./wiki/topics/%E4%BC%A0%E7%BB%9F%20CV.md)
+- [传统 NLP](./wiki/topics/%E4%BC%A0%E7%BB%9F%20NLP.md)
+- [FLAN](./wiki/concepts/FLAN.md)
+- [LoRA](./wiki/concepts/LoRA.md)
+- [OPT-IML](./wiki/concepts/OPT-IML.md)
+- [Prompt Tuning](./wiki/concepts/Prompt%20Tuning.md)
+- [Toolformer](./wiki/concepts/Toolformer.md)
+- [Llama Guard](./wiki/concepts/Llama%20Guard.md)
+- [CLIP](./wiki/concepts/CLIP.md)
+- [Kosmos-2](./wiki/concepts/Kosmos-2.md)
+- [Kosmos-2.5](./wiki/concepts/Kosmos-2.5.md)
+- [MiniCPM](./wiki/concepts/MiniCPM.md)
+- [MiniCPM-V](./wiki/concepts/MiniCPM-V.md)
+- [OFA](./wiki/concepts/OFA.md)
+- [data2vec](./wiki/concepts/data2vec.md)
+- [HuBERT](./wiki/concepts/HuBERT.md)
+- [DocLayNet](./wiki/concepts/DocLayNet.md)
+- [PubTables-1M](./wiki/concepts/PubTables-1M.md)
+- [T5](./wiki/concepts/T5.md)
+- [Switch Transformer](./wiki/concepts/Switch%20Transformer.md)
+- [OPT](./wiki/concepts/OPT.md)
+- [mT5](./wiki/concepts/mT5.md)
+- [Gemma 3](./wiki/concepts/Gemma%203.md)
+
+关键变更：
+
+- 对全部 `wiki/topics/` 与 `wiki/concepts/` 执行关系扫描，统计 concept 是否被任何 topic 引用
+- 按 concept 页已有 `来源支持 / 关联页面` 反查 topic，优先补齐确定性漏链，而不凭空扩写新结论
+- 在 `指令对齐与 post-training`、`LLM RL` 中补入 `FLAN`、`LoRA`、`OPT-IML`、`Prompt Tuning`、`Toolformer`、`Llama Guard` 等后训练相关概念的导航
+- 在 `传统 CV` 中补入 `CLIP`、`DocLayNet`、`PubTables-1M`、`Kosmos-2`、`Kosmos-2.5`、`MiniCPM-V`、`OFA`、`data2vec`、`HuBERT`、`Tip-Adapter` 等视觉 / 文档 / 多模态相关概念的导航
+- 在 `LLM 预训练` 与 `LLM 基础脉络` 中补入 `OPT`、`T5`、`Switch Transformer`、`mT5`、`Gemma 3`、`MiniCPM`、`PaLM`、`DeepSeek` 等预训练主线相关概念
+- 扫描完成后，当前 `0` 个 concept 处于“未被任何 topic 引用”状态
+
+后续建议：
+
+- 后续新增 concept 时，可默认复用本次扫描思路：先看 concept 页的 `来源支持 / 关联页面`，再决定应补哪些 topic
+- 若后续新增多模态或语音 topic，可把当前暂挂在 `传统 CV` 下的部分概念再细分迁移，减少总览页负担
+
+## [2026-04-14] ingest | 新增搜索排序 topic
+
+涉及页面：
+
+- [搜索排序](./wiki/topics/%E6%90%9C%E7%B4%A2%E6%8E%92%E5%BA%8F.md)
+- [ColBERT](./wiki/concepts/ColBERT.md)
+- [传统 NLP](./wiki/topics/%E4%BC%A0%E7%BB%9F%20NLP.md)
+- [BERT类双向Transformer语言模型](./wiki/topics/BERT%E7%B1%BB%E5%8F%8C%E5%90%91Transformer%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B.md)
+- [Mitra, Craswell - 2019 - A Deep Look into Neural Ranking Models for Information Retrieval](./raw/summary/Mitra,%20Craswell%20-%202019%20-%20A%20Deep%20Look%20into%20Neural%20Ranking%20Models%20for%20Information%20Retrieval.md)
+- [Nogueira, Cho - 2019 - Passage Re-ranking with BERT](./raw/summary/Nogueira,%20Cho%20-%202019%20-%20Passage%20Re-ranking%20with%20BERT.md)
+- [Khattab, Zaharia - 2020 - ColBERT Efficient and Effective Passage Search via Contextualized Late Interaction over BERT](./raw/summary/Khattab,%20Zaharia%20-%202020%20-%20ColBERT%20Efficient%20and%20Effective%20Passage%20Search%20via%20Contextualized%20Late%20Interaction%20over%20BERT.md)
+- [Nogueira et al. - 2020 - Pretrained Transformers for Text Ranking BERT and Beyond](./raw/summary/Nogueira%20et%20al.%20-%202020%20-%20Pretrained%20Transformers%20for%20Text%20Ranking%20BERT%20and%20Beyond.md)
+- [index](./index.md)
+
+关键变更：
+
+- 新增 4 篇搜索排序相关原始来源，并补齐对应 `raw/pdfs/`、`raw/html/`、`raw/text/` 与精修版 `raw/summary/`
+- 新建正式 topic《搜索排序》，按 `neural ranking 背景 -> BERT reranking -> dense retrieval -> late interaction` 组织主线
+- 新增 `ColBERT` 概念页，承接搜索排序中介于 cross-encoder 与双塔之间的 late interaction 路线
+- 更新 `传统 NLP` 与 `BERT类双向Transformer语言模型` 的关联导航，避免新 topic 成为孤立页
+- 更新根级 `index.md`，补 summary 总数、新来源记录、topic 导航与 concept 导航
+
+后续建议：
+
+- 若继续补齐搜索排序主线，可优先加入 `RankNet / LambdaMART`、`ANCE`、`monoT5` 与更直接的 listwise reranking 来源
+- 若后续 summary 足够，可把“召回 vs 重排 vs late interaction”再拆成独立 comparison 页，避免 topic 过宽
+
 ## [2026-04-13] ingest | 新增注意力机制 Attention topic
 
 涉及页面：

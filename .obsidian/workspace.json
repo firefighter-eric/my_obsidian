@@ -11,14 +11,10 @@
             "id": "874a9549300d3987",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "wiki/topics/注意力机制 Attention.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "注意力机制 Attention"
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "关系图谱"
             }
           }
         ]
@@ -186,6 +182,25 @@
   "active": "874a9549300d3987",
   "lastOpenFiles": [
     "wiki/topics/注意力机制 Attention.md",
+    "wiki/topics/搜索排序.md",
+    "wiki/concepts/ColBERT.md",
+    "raw/summary/Khattab, Zaharia - 2020 - ColBERT Efficient and Effective Passage Search via Contextualized Late Interaction over BERT.md",
+    "raw/summary/Nogueira, Cho - 2019 - Passage Re-ranking with BERT.md",
+    "raw/summary/Nogueira et al. - 2020 - Pretrained Transformers for Text Ranking BERT and Beyond.md",
+    "raw/summary/Mitra, Craswell - 2019 - A Deep Look into Neural Ranking Models for Information Retrieval.md",
+    "raw/text/Nogueira et al. - 2020 - Pretrained Transformers for Text Ranking BERT and Beyond.md",
+    "raw/html/Nogueira et al. - 2020 - Pretrained Transformers for Text Ranking BERT and Beyond.html",
+    "raw/pdfs/Nogueira et al. - 2020 - Pretrained Transformers for Text Ranking BERT and Beyond.pdf",
+    "raw/text/Khattab, Zaharia - 2020 - ColBERT Efficient and Effective Passage Search via Contextualized Late Interaction over BERT.md",
+    "raw/html/Khattab, Zaharia - 2020 - ColBERT Efficient and Effective Passage Search via Contextualized Late Interaction over BERT.html",
+    "raw/text/Mitra, Craswell - 2019 - A Deep Look into Neural Ranking Models for Information Retrieval.md",
+    "raw/html/Mitra, Craswell - 2019 - A Deep Look into Neural Ranking Models for Information Retrieval.html",
+    "raw/text/Nogueira, Cho - 2019 - Passage Re-ranking with BERT.md",
+    "raw/html/Nogueira, Cho - 2019 - Passage Re-ranking with BERT.html",
+    "raw/pdfs/Khattab, Zaharia - 2020 - ColBERT Efficient and Effective Passage Search via Contextualized Late Interaction over BERT.pdf",
+    "raw/pdfs/Mitra, Craswell - 2019 - A Deep Look into Neural Ranking Models for Information Retrieval.pdf",
+    "raw/pdfs/Nogueira, Cho - 2019 - Passage Re-ranking with BERT.pdf",
+    "wiki/topics/指令对齐与 post-training.md",
     "wiki/concepts/Grouped-Query Attention.md",
     "wiki/concepts/FlashAttention.md",
     "raw/summary/Ainslie et al. - 2023 - GQA Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints.md",
@@ -201,28 +216,9 @@
     "raw/text/Dao et al. - 2022 - FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness.md",
     "raw/html/Dao et al. - 2022 - FlashAttention Fast and Memory-Efficient Exact Attention with IO-Awareness.html",
     "raw/text/Xiong et al. - 2021 - Nyströmformer A Nystrom-Based Algorithm for Approximating Self-Attention.md",
-    "raw/html/Xiong et al. - 2021 - Nyströmformer A Nystrom-Based Algorithm for Approximating Self-Attention.html",
     "raw/text/Kitaev, Kaiser, Levskaya - 2020 - Reformer The Efficient Transformer.md",
-    "raw/html/Kitaev, Kaiser, Levskaya - 2020 - Reformer The Efficient Transformer.html",
-    "raw/text/Wang et al. - 2020 - Linformer Self-Attention with Linear Complexity.md",
-    "raw/html/Wang et al. - 2020 - Linformer Self-Attention with Linear Complexity.html",
-    "raw/text/Shazeer - 2019 - Fast Transformer Decoding One Write-Head is All You Need.md",
-    "raw/html/Shazeer - 2019 - Fast Transformer Decoding One Write-Head is All You Need.html",
-    "raw/text/Ainslie et al. - 2023 - GQA Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints.md",
-    "raw/html/Ainslie et al. - 2023 - GQA Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints.html",
-    "raw/pdfs/Choromanski et al. - 2021 - Rethinking Attention with Performers.pdf",
-    "raw/text/Beltagy, Peters, Cohan - 2020 - Longformer The Long-Document Transformer.md",
-    "raw/html/Beltagy, Peters, Cohan - 2020 - Longformer The Long-Document Transformer.html",
-    "raw/pdfs/Xiong et al. - 2021 - Nyströmformer A Nystrom-Based Algorithm for Approximating Self-Attention.pdf",
     "未命名 1.canvas",
     "未命名.canvas",
-    "wiki/concepts/YOLO.md",
-    "raw/summary/Ultralytics - 2026 - Ultralytics YOLO Docs Home.md",
-    "raw/summary/Chen et al. - 2025 - A Comprehensive Survey of YOLO From YOLOv1 to YOLO11 and Beyond.md",
-    "raw/summary/Wang et al. - 2024 - YOLOv10 Real-Time End-to-End Object Detection.md",
-    "raw/summary/Bochkovskiy, Wang, Liao - 2020 - YOLOv4 Optimal Speed and Accuracy of Object Detection.md",
-    "raw/summary/Redmon, Farhadi - 2018 - YOLOv3 An Incremental Improvement.md",
-    "raw/summary/Redmon, Farhadi - 2016 - YOLO9000 Better Faster Stronger.md",
     "未命名 2.canvas"
   ]
 }

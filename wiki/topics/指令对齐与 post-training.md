@@ -39,8 +39,11 @@
 
 ## 代表页面
 
+- [FLAN](../concepts/FLAN.md)
 - [Instruction Tuning](../concepts/Instruction%20Tuning.md)
 - [InstructGPT](../concepts/InstructGPT.md)
+- [OPT-IML](../concepts/OPT-IML.md)
+- [LoRA](../concepts/LoRA.md)
 - [RLHF](../concepts/RLHF.md)
 - [DPO](../concepts/DPO.md)
 - [DeepSeek-R1](../concepts/DeepSeek-R1.md)
@@ -55,5 +58,7 @@
 
 - [LLM RL](./LLM%20RL.md)
 - [LLM 基础脉络](./LLM%20基础脉络.md)
+- [GPT-3](../concepts/GPT-3.md)
 - [RLHF](../concepts/RLHF.md)
 - [DPO](../concepts/DPO.md)
+- [Prompt Tuning](../concepts/Prompt%20Tuning.md)

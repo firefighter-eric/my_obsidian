@@ -57,3 +57,5 @@
 - [LLM RL](./LLM%20RL.md)
 - [Scaling 与 compute-optimal training](./Scaling%20与%20compute-optimal%20training.md)
 - [指令对齐与 post-training](./指令对齐与%20post-training.md)
+- [PaLM](../concepts/PaLM.md)
+- [DeepSeek](../concepts/DeepSeek.md)

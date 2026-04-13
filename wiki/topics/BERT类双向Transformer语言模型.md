@@ -73,6 +73,7 @@
 
 - [传统 NLP](传统%20NLP.md)
 - [LLM 预训练](LLM%20预训练.md)
+- [搜索排序](./搜索排序.md)
 - [BERT](../concepts/BERT.md)
 - [RoBERTa](../concepts/RoBERTa.md)
 - [SpanBERT](../concepts/SpanBERT.md)

@@ -59,6 +59,8 @@
 
 - [LLM 预训练](LLM%20预训练.md)
 - [BERT类双向Transformer语言模型](./BERT%E7%B1%BB%E5%8F%8C%E5%90%91Transformer%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B.md)
+- [搜索排序](./搜索排序.md)
 - [BERT](../concepts/BERT.md)
+- [Transformer](../concepts/Transformer.md)
 - [Sentence-BERT](../concepts/Sentence-BERT.md)
 - [Dense Retrieval](../concepts/Dense%20Retrieval.md)

@@ -149,6 +149,7 @@ ingest / topic / concept 联动规则：
 - 若新增 `wiki/topics/` 页面，必须同时引入新的 `raw` 来源材料；不得只基于现有 topic/concept 页面空转生成新 topic。
 - 若新增 topic，除整理对应 `raw`、`raw/text/`、`raw/summary/` 外，还应判断是否沉淀出高价值 `wiki/concepts/` 页面；若存在清晰、可复用、可稳定定义的概念，应一并总结。
 - 若新增 `wiki/concepts/` 页面，默认应从现有 `raw/summary/`、必要时结合 `raw/text/` 总结；不得在没有现有 raw 素材支撑时凭空创建稳定 concept。
+- 若新增 `wiki/concepts/` 页面，必须同时检查该 concept 与现有 `wiki/topics/` 是否存在直接关系；若它会补强某个 topic 的主线、方法分层、边界定义、关键争论、证据基础或代表页面，则必须同步更新对应 topic，而不是只新增 concept 页。
 - 若新增 `raw` 素材，不止要保存原始文件，还必须完成整理流程：补 `raw/text/`、补/更 `raw/summary/`，并同步判断和总结由该素材支撑的新 concept。
 - 严禁跳过原始层直接新增 `raw/summary/`：新增 raw 时必须满足 `raw/html 或 raw/pdfs -> raw/text -> raw/summary` 的顺序。
 - 简言之：`topic` 的新增以“新 raw 素材”为前提；`concept` 的新增以“现有 raw 素材可支撑”为前提；`raw` 的新增默认伴随整理与 concept 沉淀。
