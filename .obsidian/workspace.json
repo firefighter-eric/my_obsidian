@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "wiki/topics/传统 NLP.md",
+                "file": "AGENTS.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "传统 NLP"
+              "title": "AGENTS"
             }
           }
         ]
@@ -185,17 +185,22 @@
   },
   "active": "874a9549300d3987",
   "lastOpenFiles": [
+    "未命名 1.canvas",
+    "未命名.base",
     "未命名.canvas",
+    "wiki/topics/AI 智能问答与智能客服.md",
+    "wiki/authors/机构分析.md",
+    "wiki/topics/客服问题.md",
+    "wiki/topics/BERT类双向Transformer语言模型.md",
+    "wiki/topics/传统 NLP.md",
     "wiki/topics/Slide 理解与生成.md",
     "wiki/topics/传统 CV.md",
-    "wiki/topics/传统 NLP.md",
     "wiki/topics/LLM 基础脉络.md",
     "wiki/topics/LLM 预训练.md",
     "wiki/topics/Scaling 与 compute-optimal training.md",
     "wiki/concepts/OPT-IML.md",
     "wiki/topics/Slide相关.md",
     "wiki/topics/Slide 理解与生产.md",
-    "wiki/topics/BERT类双向Transformer语言模型.md",
     "wiki/topics/扩散模型与文生图.md",
     "wiki/topics/LLM RL.md",
     "wiki/concepts/DAPO.md",
@@ -210,18 +215,13 @@
     "raw/html/Yu et al. - 2025 - DAPO An Open-Source LLM Reinforcement Learning System at Scale.html",
     "raw/text/Shao et al. - 2024 - DeepSeekMath Pushing the Limits of Mathematical Reasoning in Open Language Models.md",
     "raw/html/Shao et al. - 2024 - DeepSeekMath Pushing the Limits of Mathematical Reasoning in Open Language Models.html",
-    "raw/text/Hong et al. - 2024 - ORPO Monolithic Preference Optimization without Reference Model.md",
     "raw/html/Hong et al. - 2024 - ORPO Monolithic Preference Optimization without Reference Model.html",
-    "raw/text/Ethayarajh et al. - 2024 - KTO Model Alignment as Prospect Theoretic Optimization.md",
     "raw/html/Ethayarajh et al. - 2024 - KTO Model Alignment as Prospect Theoretic Optimization.html",
     "raw/pdfs/Hong et al. - 2024 - ORPO Monolithic Preference Optimization without Reference Model.pdf",
     "raw/pdfs/Shao et al. - 2024 - DeepSeekMath Pushing the Limits of Mathematical Reasoning in Open Language Models.pdf",
     "raw/pdfs/Yu et al. - 2025 - DAPO An Open-Source LLM Reinforcement Learning System at Scale.pdf",
     "raw/pdfs/Ethayarajh et al. - 2024 - KTO Model Alignment as Prospect Theoretic Optimization.pdf",
-    "wiki/topics/Qwen 系列.md",
     "wiki/topics",
-    "wiki/timelines",
-    "未命名 1.canvas",
     "未命名 2.canvas"
   ]
 }
