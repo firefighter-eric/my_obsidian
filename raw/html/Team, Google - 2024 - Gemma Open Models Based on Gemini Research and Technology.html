@@ -1,0 +1,2064 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2403.08295] Gemma: Open Models Based on Gemini Research and Technology</title><meta property="og:description" content="This work introduces Gemma, a family of lightweight, state-of-the art open models built from the research and technology used to create Gemini models. Gemma models demonstrate strong performance across academic benchma…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Gemma: Open Models Based on Gemini Research and Technology">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="Gemma: Open Models Based on Gemini Research and Technology">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2403.08295">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2403.08295">
+
+<!--Generated on Fri Apr  5 15:34:57 2024 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<div id="p1" class="ltx_para">
+<span id="p1.1" class="ltx_ERROR undefined">\authfootnotetext</span>
+<p id="p1.2" class="ltx_p">1See Contributions and Acknowledgments section for full author list. Please send correspondence to <span id="p1.2.1" class="ltx_text ltx_font_typewriter">gemma-1-report@google.com</span>.</p>
+</div>
+<h1 class="ltx_title ltx_title_document">Gemma: Open Models Based on Gemini Research and Technology</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">Gemma Team
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">
+</span></span></span>
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname"> Google DeepMind<span id="id1.1.id1" class="ltx_ERROR undefined">\authfootnotemark</span>1
+</span><span class="ltx_author_notes">
+<span class="ltx_contact ltx_role_affiliation">
+</span></span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id2.id1" class="ltx_p">This work introduces Gemma, a family of lightweight, state-of-the art open models built from the research and technology used to create Gemini models. Gemma models demonstrate strong performance across academic benchmarks for language understanding, reasoning, and safety. We release two sizes of models (2 billion and 7 billion parameters), and provide both pretrained and fine-tuned checkpoints. Gemma outperforms similarly sized open models on 11 out of 18 text-based tasks, and we present comprehensive evaluations of safety and responsibility aspects of the models, alongside a detailed description of model development. We believe the responsible release of LLMs is critical for improving the safety of frontier models, and for enabling the next wave of LLM innovations.</p>
+</div>
+<section id="S1" class="ltx_section" lang="en">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">We present Gemma, a family of open models based on Google’s Gemini models <cite class="ltx_cite ltx_citemacro_citep">(Gemini Team, <a href="#bib.bib18" title="" class="ltx_ref">2023</a>)</cite>.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">We trained Gemma models on up to 6T tokens of text, using similar architectures, data, and training recipes as the Gemini model family. Like Gemini, these models achieve strong generalist capabilities in text domains, alongside state-of-the-art understanding and reasoning skills at scale. With this work, we release both pre-trained and fine-tuned checkpoints, as well as an open-source codebase for inference and serving.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p">Gemma comes in two sizes: a 7 billion parameter model for efficient deployment and development on GPU and TPU, and a 2 billion parameter model for CPU and on-device applications. Each size is designed to address different computational constraints, applications, and developer requirements. At each scale, we release raw, pretrained checkpoints, as well as checkpoints fine-tuned for dialogue, instruction-following, helpfulness, and safety. We thoroughly evaluate the shortcomings of our models on a suite of quantitative and qualitative benchmarks. We believe the release of both pretrained and fine-tuned checkpoints will enable thorough research and investigation into the impact of current instruction-tuning regimes, as well as the development of increasingly safe and responsible model development methodologies.</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p id="S1.p4.1" class="ltx_p">Gemma advances state-of-the-art performance relative to comparable-scale (and some larger), open models <cite class="ltx_cite ltx_citemacro_citep">(Jiang et al., <a href="#bib.bib22" title="" class="ltx_ref">2023</a>; Touvron et al., <a href="#bib.bib47" title="" class="ltx_ref">2023b</a>, <a href="#bib.bib46" title="" class="ltx_ref">a</a>; Almazrouei et al., <a href="#bib.bib1" title="" class="ltx_ref">2023</a>)</cite> across a wide range of domains including both automated benchmarks and human evaluation. Example domains include question answering <cite class="ltx_cite ltx_citemacro_citep">(Clark et al., <a href="#bib.bib13" title="" class="ltx_ref">2019</a>; Kwiatkowski et al., <a href="#bib.bib27" title="" class="ltx_ref">2019</a>)</cite>, commonsense reasoning <cite class="ltx_cite ltx_citemacro_citep">(Sakaguchi et al., <a href="#bib.bib37" title="" class="ltx_ref">2019</a>; Suzgun et al., <a href="#bib.bib44" title="" class="ltx_ref">2022</a>)</cite>, mathematics and science <cite class="ltx_cite ltx_citemacro_citep">(Cobbe et al., <a href="#bib.bib15" title="" class="ltx_ref">2021</a>; Hendrycks et al., <a href="#bib.bib19" title="" class="ltx_ref">2020</a>)</cite>, and coding <cite class="ltx_cite ltx_citemacro_citep">(Austin et al., <a href="#bib.bib4" title="" class="ltx_ref">2021</a>; Chen et al., <a href="#bib.bib10" title="" class="ltx_ref">2021</a>)</cite>. See complete details in the <a href="#S6" title="In Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref ltx_refmacro_nameref"><span class="ltx_text ltx_ref_title">Evaluation</span></a> section.</p>
+</div>
+<figure id="S1.F1" class="ltx_figure"><img src="/html/2403.08295/assets/x1.png" id="S1.F1.g1" class="ltx_graphics ltx_img_landscape" width="461" height="201" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1: </span>Language understanding and generation performance of Gemma 7B across
+different capabilities compared to similarly sized open models. We group together standard academic benchmark evaluations by capability and average the respective scores; see Table <a href="#S6.T6" title="Table 6 ‣ 6.2 Automated Benchmarks ‣ 6 Evaluation ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> for a detailed breakdown of performance.</figcaption>
+</figure>
+<div id="S1.p5" class="ltx_para">
+<p id="S1.p5.1" class="ltx_p">Like Gemini, Gemma builds on recent work on sequence models <cite class="ltx_cite ltx_citemacro_citep">(Sutskever et al., <a href="#bib.bib43" title="" class="ltx_ref">2014</a>)</cite> and transformers <cite class="ltx_cite ltx_citemacro_citep">(Vaswani et al., <a href="#bib.bib48" title="" class="ltx_ref">2017</a>)</cite>, deep learning methods based on neural networks <cite class="ltx_cite ltx_citemacro_citep">(LeCun et al., <a href="#bib.bib28" title="" class="ltx_ref">2015</a>)</cite>, and techniques for large-scale training on distributed systems <cite class="ltx_cite ltx_citemacro_citep">(Barham et al., <a href="#bib.bib6" title="" class="ltx_ref">2022</a>; Roberts et al., <a href="#bib.bib36" title="" class="ltx_ref">2023</a>; Dean et al., <a href="#bib.bib16" title="" class="ltx_ref">2012</a>)</cite>. Gemma also builds on Google’s long history of open models and ecosystems, including Word2Vec <cite class="ltx_cite ltx_citemacro_citep">(Mikolov et al., <a href="#bib.bib29" title="" class="ltx_ref">2013</a>)</cite>, the Transformer <cite class="ltx_cite ltx_citemacro_citep">(Vaswani et al., <a href="#bib.bib48" title="" class="ltx_ref">2017</a>)</cite>, BERT <cite class="ltx_cite ltx_citemacro_citep">(Devlin et al., <a href="#bib.bib17" title="" class="ltx_ref">2018</a>)</cite>, and T5 <cite class="ltx_cite ltx_citemacro_citep">(Raffel et al., <a href="#bib.bib34" title="" class="ltx_ref">2019</a>)</cite> and T5X <cite class="ltx_cite ltx_citemacro_citep">(Roberts et al., <a href="#bib.bib35" title="" class="ltx_ref">2022</a>)</cite>.</p>
+</div>
+<div id="S1.p6" class="ltx_para">
+<p id="S1.p6.1" class="ltx_p">We believe the responsible release of LLMs is critical for improving the safety of frontier models, for ensuring equitable access to this breakthrough technology, for enabling rigorous evaluation and analysis of current techniques, and for enabling the development of the next wave of innovations. While thorough testing of all Gemma models has been conducted, testing cannot cover all applications and scenarios in which Gemma may be used. With this in mind, all Gemma users should conduct rigorous safety testing specific to their use case before deployment or use. More details on our approach to safety can be found in section <a href="#S7" title="In Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref ltx_refmacro_nameref"><span class="ltx_text ltx_ref_title">Responsible Deployment</span></a>.</p>
+</div>
+<div id="S1.p7" class="ltx_para">
+<p id="S1.p7.1" class="ltx_p">In this technical report, we provide a detailed overview of the model architecture, training infrastructure, and pretraining and fine-tuning recipes for Gemma, followed by thorough evaluations of all checkpoints across a wide-variety of quantitative and qualitative benchmarks, as well as both standard academic benchmarks and human-preference evaluations. We then discuss in detail our approach to safe and responsible deployment. Finally, we outline the broader implications of Gemma, its limitations and advantages, and conclusions.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section" lang="en">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Model Architecture</h2>
+
+<div id="S2.p1" class="ltx_para">
+<p id="S2.p1.1" class="ltx_p">The Gemma model architecture is based on the transformer decoder <cite class="ltx_cite ltx_citemacro_citep">(Vaswani et al., <a href="#bib.bib48" title="" class="ltx_ref">2017</a>)</cite>. The core parameters of the architecture are summarized in Table <a href="#S2.T1" title="Table 1 ‣ 2 Model Architecture ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>. Models are trained on a context length of 8192 tokens.</p>
+</div>
+<figure id="S2.T1" class="ltx_table">
+<table id="S2.T1.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S2.T1.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.1" class="ltx_td ltx_align_left ltx_border_tt">Parameters</td>
+<td id="S2.T1.1.1.2" class="ltx_td ltx_align_right ltx_border_tt"><span id="S2.T1.1.1.2.1" class="ltx_text ltx_font_bold">2B</span></td>
+<td id="S2.T1.1.1.3" class="ltx_td ltx_align_right ltx_border_tt"><span id="S2.T1.1.1.3.1" class="ltx_text ltx_font_bold">7B</span></td>
+</tr>
+<tr id="S2.T1.1.2" class="ltx_tr">
+<td id="S2.T1.1.2.1" class="ltx_td ltx_align_left ltx_border_t">
+<span id="S2.T1.1.2.1.1" class="ltx_text ltx_font_italic">d</span>_model</td>
+<td id="S2.T1.1.2.2" class="ltx_td ltx_align_right ltx_border_t">2048</td>
+<td id="S2.T1.1.2.3" class="ltx_td ltx_align_right ltx_border_t">3072</td>
+</tr>
+<tr id="S2.T1.1.3" class="ltx_tr">
+<td id="S2.T1.1.3.1" class="ltx_td ltx_align_left">Layers</td>
+<td id="S2.T1.1.3.2" class="ltx_td ltx_align_right">18</td>
+<td id="S2.T1.1.3.3" class="ltx_td ltx_align_right">28</td>
+</tr>
+<tr id="S2.T1.1.4" class="ltx_tr">
+<td id="S2.T1.1.4.1" class="ltx_td ltx_align_left">Feedforward hidden dims</td>
+<td id="S2.T1.1.4.2" class="ltx_td ltx_align_right">32768</td>
+<td id="S2.T1.1.4.3" class="ltx_td ltx_align_right">49152</td>
+</tr>
+<tr id="S2.T1.1.5" class="ltx_tr">
+<td id="S2.T1.1.5.1" class="ltx_td ltx_align_left">Num heads</td>
+<td id="S2.T1.1.5.2" class="ltx_td ltx_align_right">8</td>
+<td id="S2.T1.1.5.3" class="ltx_td ltx_align_right">16</td>
+</tr>
+<tr id="S2.T1.1.6" class="ltx_tr">
+<td id="S2.T1.1.6.1" class="ltx_td ltx_align_left">Num KV heads</td>
+<td id="S2.T1.1.6.2" class="ltx_td ltx_align_right">1</td>
+<td id="S2.T1.1.6.3" class="ltx_td ltx_align_right">16</td>
+</tr>
+<tr id="S2.T1.1.7" class="ltx_tr">
+<td id="S2.T1.1.7.1" class="ltx_td ltx_align_left">Head size</td>
+<td id="S2.T1.1.7.2" class="ltx_td ltx_align_right">256</td>
+<td id="S2.T1.1.7.3" class="ltx_td ltx_align_right">256</td>
+</tr>
+<tr id="S2.T1.1.8" class="ltx_tr">
+<td id="S2.T1.1.8.1" class="ltx_td ltx_align_left ltx_border_bb">Vocab size</td>
+<td id="S2.T1.1.8.2" class="ltx_td ltx_align_right ltx_border_bb">256128</td>
+<td id="S2.T1.1.8.3" class="ltx_td ltx_align_right ltx_border_bb">256128</td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 1: </span>Key model parameters.</figcaption>
+</figure>
+<div id="S2.p2" class="ltx_para">
+<p id="S2.p2.1" class="ltx_p">We also utilize several improvements proposed after the original transformer paper. Below, we list the included improvements:</p>
+</div>
+<div id="S2.p3" class="ltx_para ltx_noindent">
+<p id="S2.p3.1" class="ltx_p"><span id="S2.p3.1.1" class="ltx_text ltx_font_bold">Multi-Query Attention</span> <cite class="ltx_cite ltx_citemacro_citep">(Shazeer, <a href="#bib.bib39" title="" class="ltx_ref">2019</a>)</cite>.
+Notably, the 7B model uses multi-head attention while the 2B checkpoints use multi-query attention (with <math id="S2.p3.1.m1.1" class="ltx_Math" alttext="num\_kv\_heads=1" display="inline"><semantics id="S2.p3.1.m1.1a"><mrow id="S2.p3.1.m1.1.1" xref="S2.p3.1.m1.1.1.cmml"><mrow id="S2.p3.1.m1.1.1.2" xref="S2.p3.1.m1.1.1.2.cmml"><mi id="S2.p3.1.m1.1.1.2.2" xref="S2.p3.1.m1.1.1.2.2.cmml">n</mi><mo lspace="0em" rspace="0em" id="S2.p3.1.m1.1.1.2.1" xref="S2.p3.1.m1.1.1.2.1.cmml">​</mo><mi id="S2.p3.1.m1.1.1.2.3" xref="S2.p3.1.m1.1.1.2.3.cmml">u</mi><mo lspace="0em" rspace="0em" id="S2.p3.1.m1.1.1.2.1a" xref="S2.p3.1.m1.1.1.2.1.cmml">​</mo><mi id="S2.p3.1.m1.1.1.2.4" xref="S2.p3.1.m1.1.1.2.4.cmml">m</mi><mo lspace="0em" rspace="0em" id="S2.p3.1.m1.1.1.2.1b" xref="S2.p3.1.m1.1.1.2.1.cmml">​</mo><mi mathvariant="normal" id="S2.p3.1.m1.1.1.2.5" xref="S2.p3.1.m1.1.1.2.5.cmml">_</mi><mo lspace="0em" rspace="0em" id="S2.p3.1.m1.1.1.2.1c" xref="S2.p3.1.m1.1.1.2.1.cmml">​</mo><mi id="S2.p3.1.m1.1.1.2.6" xref="S2.p3.1.m1.1.1.2.6.cmml">k</mi><mo lspace="0em" rspace="0em" id="S2.p3.1.m1.1.1.2.1d" xref="S2.p3.1.m1.1.1.2.1.cmml">​</mo><mi id="S2.p3.1.m1.1.1.2.7" xref="S2.p3.1.m1.1.1.2.7.cmml">v</mi><mo lspace="0em" rspace="0em" id="S2.p3.1.m1.1.1.2.1e" xref="S2.p3.1.m1.1.1.2.1.cmml">​</mo><mi mathvariant="normal" id="S2.p3.1.m1.1.1.2.8" xref="S2.p3.1.m1.1.1.2.8.cmml">_</mi><mo lspace="0em" rspace="0em" id="S2.p3.1.m1.1.1.2.1f" xref="S2.p3.1.m1.1.1.2.1.cmml">​</mo><mi id="S2.p3.1.m1.1.1.2.9" xref="S2.p3.1.m1.1.1.2.9.cmml">h</mi><mo lspace="0em" rspace="0em" id="S2.p3.1.m1.1.1.2.1g" xref="S2.p3.1.m1.1.1.2.1.cmml">​</mo><mi id="S2.p3.1.m1.1.1.2.10" xref="S2.p3.1.m1.1.1.2.10.cmml">e</mi><mo lspace="0em" rspace="0em" id="S2.p3.1.m1.1.1.2.1h" xref="S2.p3.1.m1.1.1.2.1.cmml">​</mo><mi id="S2.p3.1.m1.1.1.2.11" xref="S2.p3.1.m1.1.1.2.11.cmml">a</mi><mo lspace="0em" rspace="0em" id="S2.p3.1.m1.1.1.2.1i" xref="S2.p3.1.m1.1.1.2.1.cmml">​</mo><mi id="S2.p3.1.m1.1.1.2.12" xref="S2.p3.1.m1.1.1.2.12.cmml">d</mi><mo lspace="0em" rspace="0em" id="S2.p3.1.m1.1.1.2.1j" xref="S2.p3.1.m1.1.1.2.1.cmml">​</mo><mi id="S2.p3.1.m1.1.1.2.13" xref="S2.p3.1.m1.1.1.2.13.cmml">s</mi></mrow><mo id="S2.p3.1.m1.1.1.1" xref="S2.p3.1.m1.1.1.1.cmml">=</mo><mn id="S2.p3.1.m1.1.1.3" xref="S2.p3.1.m1.1.1.3.cmml">1</mn></mrow><annotation-xml encoding="MathML-Content" id="S2.p3.1.m1.1b"><apply id="S2.p3.1.m1.1.1.cmml" xref="S2.p3.1.m1.1.1"><eq id="S2.p3.1.m1.1.1.1.cmml" xref="S2.p3.1.m1.1.1.1"></eq><apply id="S2.p3.1.m1.1.1.2.cmml" xref="S2.p3.1.m1.1.1.2"><times id="S2.p3.1.m1.1.1.2.1.cmml" xref="S2.p3.1.m1.1.1.2.1"></times><ci id="S2.p3.1.m1.1.1.2.2.cmml" xref="S2.p3.1.m1.1.1.2.2">𝑛</ci><ci id="S2.p3.1.m1.1.1.2.3.cmml" xref="S2.p3.1.m1.1.1.2.3">𝑢</ci><ci id="S2.p3.1.m1.1.1.2.4.cmml" xref="S2.p3.1.m1.1.1.2.4">𝑚</ci><ci id="S2.p3.1.m1.1.1.2.5.cmml" xref="S2.p3.1.m1.1.1.2.5">_</ci><ci id="S2.p3.1.m1.1.1.2.6.cmml" xref="S2.p3.1.m1.1.1.2.6">𝑘</ci><ci id="S2.p3.1.m1.1.1.2.7.cmml" xref="S2.p3.1.m1.1.1.2.7">𝑣</ci><ci id="S2.p3.1.m1.1.1.2.8.cmml" xref="S2.p3.1.m1.1.1.2.8">_</ci><ci id="S2.p3.1.m1.1.1.2.9.cmml" xref="S2.p3.1.m1.1.1.2.9">ℎ</ci><ci id="S2.p3.1.m1.1.1.2.10.cmml" xref="S2.p3.1.m1.1.1.2.10">𝑒</ci><ci id="S2.p3.1.m1.1.1.2.11.cmml" xref="S2.p3.1.m1.1.1.2.11">𝑎</ci><ci id="S2.p3.1.m1.1.1.2.12.cmml" xref="S2.p3.1.m1.1.1.2.12">𝑑</ci><ci id="S2.p3.1.m1.1.1.2.13.cmml" xref="S2.p3.1.m1.1.1.2.13">𝑠</ci></apply><cn type="integer" id="S2.p3.1.m1.1.1.3.cmml" xref="S2.p3.1.m1.1.1.3">1</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S2.p3.1.m1.1c">num\_kv\_heads=1</annotation></semantics></math>), based on ablation studies that revealed respective attention variants improved performance at each scale <cite class="ltx_cite ltx_citemacro_citep">(Shazeer, <a href="#bib.bib39" title="" class="ltx_ref">2019</a>)</cite>.</p>
+</div>
+<div id="S2.p4" class="ltx_para ltx_noindent">
+<p id="S2.p4.1" class="ltx_p"><span id="S2.p4.1.1" class="ltx_text ltx_font_bold">RoPE Embeddings</span> <cite class="ltx_cite ltx_citemacro_citep">(Su et al., <a href="#bib.bib42" title="" class="ltx_ref">2021</a>)</cite>. Rather than using absolute positional embeddings, we use rotary positional embeddings in each layer; we also share embeddings across our inputs and outputs to reduce model size.</p>
+</div>
+<div id="S2.p5" class="ltx_para ltx_noindent">
+<p id="S2.p5.1" class="ltx_p"><span id="S2.p5.1.1" class="ltx_text ltx_font_bold">GeGLU Activations</span> <cite class="ltx_cite ltx_citemacro_citep">(Shazeer, <a href="#bib.bib40" title="" class="ltx_ref">2020</a>)</cite>. The standard ReLU non-linearity is replaced by the GeGLU activation function.</p>
+</div>
+<div id="S2.p6" class="ltx_para ltx_noindent">
+<p id="S2.p6.1" class="ltx_p"><span id="S2.p6.1.1" class="ltx_text ltx_font_bold">RMSNorm</span>. We normalize the input of each transformer sub-layer, the attention layer and the feedforward layer, with RMSNorm <cite class="ltx_cite ltx_citemacro_citep">(Zhang and Sennrich, <a href="#bib.bib54" title="" class="ltx_ref">2019</a>)</cite> .</p>
+</div>
+</section>
+<section id="S3" class="ltx_section" lang="en">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Training Infrastructure</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.1" class="ltx_p">We train the Gemma models using TPUv5e; TPUv5e are deployed in pods of 256 chips, configured into a 2D torus of 16 x 16 chips. For the 7B model, we train our model across 16 pods, totaling to 4096 TPUv5e.
+We pretrain the 2B model across 2 pods, totaling 512 TPUv5e.
+Within a pod, we use 16-way model sharding and 16-way data replication for the 7B model.
+For the 2B, we simply use 256-way data replication.
+The optimizer state is further sharded using techniques similar to ZeRO-3.
+Beyond a pod, we perform data-replica reduce over the data-center network, using Pathways approach of <cite class="ltx_cite ltx_citemacro_citep">(Barham et al., <a href="#bib.bib6" title="" class="ltx_ref">2022</a>)</cite>.</p>
+</div>
+<figure id="S3.T2" class="ltx_table">
+<table id="S3.T2.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S3.T2.1.1" class="ltx_tr">
+<td id="S3.T2.1.1.1" class="ltx_td ltx_align_left ltx_border_tt">Model</td>
+<td id="S3.T2.1.1.2" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T2.1.1.2.1" class="ltx_text"></span> <span id="S3.T2.1.1.2.2" class="ltx_text">
+<span id="S3.T2.1.1.2.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T2.1.1.2.2.1.1" class="ltx_tr">
+<span id="S3.T2.1.1.2.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">Embedding</span></span>
+<span id="S3.T2.1.1.2.2.1.2" class="ltx_tr">
+<span id="S3.T2.1.1.2.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">Parameters</span></span>
+</span></span><span id="S3.T2.1.1.2.3" class="ltx_text"></span>
+</td>
+<td id="S3.T2.1.1.3" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T2.1.1.3.1" class="ltx_text"></span> <span id="S3.T2.1.1.3.2" class="ltx_text">
+<span id="S3.T2.1.1.3.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T2.1.1.3.2.1.1" class="ltx_tr">
+<span id="S3.T2.1.1.3.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center">Non-embedding</span></span>
+<span id="S3.T2.1.1.3.2.1.2" class="ltx_tr">
+<span id="S3.T2.1.1.3.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center">Parameters</span></span>
+</span></span><span id="S3.T2.1.1.3.3" class="ltx_text"></span>
+</td>
+</tr>
+<tr id="S3.T2.1.2" class="ltx_tr">
+<td id="S3.T2.1.2.1" class="ltx_td ltx_align_left ltx_border_t"><span id="S3.T2.1.2.1.1" class="ltx_text ltx_font_bold">2B</span></td>
+<td id="S3.T2.1.2.2" class="ltx_td ltx_align_right ltx_border_t">524,550,144</td>
+<td id="S3.T2.1.2.3" class="ltx_td ltx_align_right ltx_border_t">1,981,884,416</td>
+</tr>
+<tr id="S3.T2.1.3" class="ltx_tr">
+<td id="S3.T2.1.3.1" class="ltx_td ltx_align_left ltx_border_bb"><span id="S3.T2.1.3.1.1" class="ltx_text ltx_font_bold">7B</span></td>
+<td id="S3.T2.1.3.2" class="ltx_td ltx_align_right ltx_border_bb">786,825,216</td>
+<td id="S3.T2.1.3.3" class="ltx_td ltx_align_right ltx_border_bb">7,751,248,896</td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 2: </span>Parameter counts for both sizes of Gemma models.</figcaption>
+</figure>
+<div id="S3.p2" class="ltx_para">
+<p id="S3.p2.1" class="ltx_p">As in Gemini, we leverage the ’single controller’ programming paradigm of Jax <cite class="ltx_cite ltx_citemacro_citep">(Roberts et al., <a href="#bib.bib36" title="" class="ltx_ref">2023</a>)</cite> and Pathways <cite class="ltx_cite ltx_citemacro_citep">(Barham et al., <a href="#bib.bib6" title="" class="ltx_ref">2022</a>)</cite> to simplify the development process by enabling a single Python process to orchestrate the entire training run; we also leverage the GSPMD partitioner <cite class="ltx_cite ltx_citemacro_citep">(Xu et al., <a href="#bib.bib53" title="" class="ltx_ref">2021</a>)</cite> for the training step computation and the MegaScale XLA compiler <cite class="ltx_cite ltx_citemacro_citep">(XLA, <a href="#bib.bib52" title="" class="ltx_ref">2019</a>)</cite>.</p>
+</div>
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1 </span>Carbon Footprint</h3>
+
+<div id="S3.SS1.p1" class="ltx_para">
+<p id="S3.SS1.p1.2" class="ltx_p">We estimate the carbon emissions from pretraining the Gemma models to be <math id="S3.SS1.p1.1.m1.1" class="ltx_Math" alttext="\sim 131" display="inline"><semantics id="S3.SS1.p1.1.m1.1a"><mrow id="S3.SS1.p1.1.m1.1.1" xref="S3.SS1.p1.1.m1.1.1.cmml"><mi id="S3.SS1.p1.1.m1.1.1.2" xref="S3.SS1.p1.1.m1.1.1.2.cmml"></mi><mo id="S3.SS1.p1.1.m1.1.1.1" xref="S3.SS1.p1.1.m1.1.1.1.cmml">∼</mo><mn id="S3.SS1.p1.1.m1.1.1.3" xref="S3.SS1.p1.1.m1.1.1.3.cmml">131</mn></mrow><annotation-xml encoding="MathML-Content" id="S3.SS1.p1.1.m1.1b"><apply id="S3.SS1.p1.1.m1.1.1.cmml" xref="S3.SS1.p1.1.m1.1.1"><csymbol cd="latexml" id="S3.SS1.p1.1.m1.1.1.1.cmml" xref="S3.SS1.p1.1.m1.1.1.1">similar-to</csymbol><csymbol cd="latexml" id="S3.SS1.p1.1.m1.1.1.2.cmml" xref="S3.SS1.p1.1.m1.1.1.2">absent</csymbol><cn type="integer" id="S3.SS1.p1.1.m1.1.1.3.cmml" xref="S3.SS1.p1.1.m1.1.1.3">131</cn></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p1.1.m1.1c">\sim 131</annotation></semantics></math> <math id="S3.SS1.p1.2.m2.1" class="ltx_Math" alttext="tCO_{2}eq" display="inline"><semantics id="S3.SS1.p1.2.m2.1a"><mrow id="S3.SS1.p1.2.m2.1.1" xref="S3.SS1.p1.2.m2.1.1.cmml"><mi id="S3.SS1.p1.2.m2.1.1.2" xref="S3.SS1.p1.2.m2.1.1.2.cmml">t</mi><mo lspace="0em" rspace="0em" id="S3.SS1.p1.2.m2.1.1.1" xref="S3.SS1.p1.2.m2.1.1.1.cmml">​</mo><mi id="S3.SS1.p1.2.m2.1.1.3" xref="S3.SS1.p1.2.m2.1.1.3.cmml">C</mi><mo lspace="0em" rspace="0em" id="S3.SS1.p1.2.m2.1.1.1a" xref="S3.SS1.p1.2.m2.1.1.1.cmml">​</mo><msub id="S3.SS1.p1.2.m2.1.1.4" xref="S3.SS1.p1.2.m2.1.1.4.cmml"><mi id="S3.SS1.p1.2.m2.1.1.4.2" xref="S3.SS1.p1.2.m2.1.1.4.2.cmml">O</mi><mn id="S3.SS1.p1.2.m2.1.1.4.3" xref="S3.SS1.p1.2.m2.1.1.4.3.cmml">2</mn></msub><mo lspace="0em" rspace="0em" id="S3.SS1.p1.2.m2.1.1.1b" xref="S3.SS1.p1.2.m2.1.1.1.cmml">​</mo><mi id="S3.SS1.p1.2.m2.1.1.5" xref="S3.SS1.p1.2.m2.1.1.5.cmml">e</mi><mo lspace="0em" rspace="0em" id="S3.SS1.p1.2.m2.1.1.1c" xref="S3.SS1.p1.2.m2.1.1.1.cmml">​</mo><mi id="S3.SS1.p1.2.m2.1.1.6" xref="S3.SS1.p1.2.m2.1.1.6.cmml">q</mi></mrow><annotation-xml encoding="MathML-Content" id="S3.SS1.p1.2.m2.1b"><apply id="S3.SS1.p1.2.m2.1.1.cmml" xref="S3.SS1.p1.2.m2.1.1"><times id="S3.SS1.p1.2.m2.1.1.1.cmml" xref="S3.SS1.p1.2.m2.1.1.1"></times><ci id="S3.SS1.p1.2.m2.1.1.2.cmml" xref="S3.SS1.p1.2.m2.1.1.2">𝑡</ci><ci id="S3.SS1.p1.2.m2.1.1.3.cmml" xref="S3.SS1.p1.2.m2.1.1.3">𝐶</ci><apply id="S3.SS1.p1.2.m2.1.1.4.cmml" xref="S3.SS1.p1.2.m2.1.1.4"><csymbol cd="ambiguous" id="S3.SS1.p1.2.m2.1.1.4.1.cmml" xref="S3.SS1.p1.2.m2.1.1.4">subscript</csymbol><ci id="S3.SS1.p1.2.m2.1.1.4.2.cmml" xref="S3.SS1.p1.2.m2.1.1.4.2">𝑂</ci><cn type="integer" id="S3.SS1.p1.2.m2.1.1.4.3.cmml" xref="S3.SS1.p1.2.m2.1.1.4.3">2</cn></apply><ci id="S3.SS1.p1.2.m2.1.1.5.cmml" xref="S3.SS1.p1.2.m2.1.1.5">𝑒</ci><ci id="S3.SS1.p1.2.m2.1.1.6.cmml" xref="S3.SS1.p1.2.m2.1.1.6">𝑞</ci></apply></annotation-xml><annotation encoding="application/x-tex" id="S3.SS1.p1.2.m2.1c">tCO_{2}eq</annotation></semantics></math>. This value is calculated based on the hourly energy usage reported directly from our TPU datacenters; we also scale this value to account for the additional energy expended to create and maintain the data center, giving us the total energy usage for our training experiments. We convert total energy usage to carbon emissions by joining our hourly energy usage against hourly per-cell carbon emission data reported by our data centers.</p>
+</div>
+<div id="S3.SS1.p2" class="ltx_para">
+<p id="S3.SS1.p2.1" class="ltx_p">In addition, Google data centers are carbon neutral, achieved through a combination of energy efficiency, renewable energy purchases, and carbon offsets. This carbon neutrality also applies to our experiments and the machines used to run them.</p>
+</div>
+</section>
+</section>
+<section id="S4" class="ltx_section" lang="en">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Pretraining</h2>
+
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Training Data</h3>
+
+<div id="S4.SS1.p1" class="ltx_para">
+<p id="S4.SS1.p1.1" class="ltx_p">Gemma 2B and 7B are trained on 2T and 6T tokens respectively of primarily-English data from web documents, mathematics, and code. Unlike Gemini, these models are not multimodal, nor are they trained for state-of-the-art performance on multilingual tasks.</p>
+</div>
+<div id="S4.SS1.p2" class="ltx_para">
+<p id="S4.SS1.p2.1" class="ltx_p">We use a subset of the SentencePiece tokenizer <cite class="ltx_cite ltx_citemacro_citep">(Kudo and Richardson, <a href="#bib.bib25" title="" class="ltx_ref">2018</a>)</cite> of Gemini for compatibility. It splits digits, does not remove extra whitespace, and relies on byte-level encodings for unknown tokens, following the techniques used for both <cite class="ltx_cite ltx_citemacro_citep">(Chowdhery et al., <a href="#bib.bib11" title="" class="ltx_ref">2022</a>)</cite> and <cite class="ltx_cite ltx_citemacro_citep">(Gemini Team, <a href="#bib.bib18" title="" class="ltx_ref">2023</a>)</cite>. The vocabulary size is 256k tokens.</p>
+</div>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Filtering</h3>
+
+<div id="S4.SS2.p1" class="ltx_para">
+<p id="S4.SS2.p1.1" class="ltx_p">We filter the pre-training dataset to reduce the risk of unwanted or unsafe utterances, and filter out certain personal information and other sensitive data. This includes using both heuristics and model-based classifiers to remove harmful or low-quality content. Further, we filter all evaluation sets from our pre-training data mixture, run targeted contamination analyses to check against evaluation set leakage, and reduce the risk of recitation by minimizing proliferation of sensitive outputs.</p>
+</div>
+<div id="S4.SS2.p2" class="ltx_para">
+<p id="S4.SS2.p2.1" class="ltx_p">The final data mixture was determined through a series of ablations on both the 2B and 7B models. Similar to the approach advocated in <cite class="ltx_cite ltx_citemacro_citep">(Gemini Team, <a href="#bib.bib18" title="" class="ltx_ref">2023</a>)</cite>, we stage training to alter the corpus mixture throughout training to increase the weight of relevant, high-quality data towards the end of training.</p>
+</div>
+</section>
+</section>
+<section id="S5" class="ltx_section" lang="en">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Instruction Tuning</h2>
+
+<div id="S5.p1" class="ltx_para">
+<p id="S5.p1.1" class="ltx_p">We finetune Gemma 2B and 7B with supervised fine-tuning (SFT) on a mix of text-only, English-only synthetic and human-generated prompt-response pairs and reinforcement learning from human feedback (RLHF) with the reward model trained on labelled English-only preference data and the policy based on a set of high-quality prompts. We find that both stages are important for improved performance on downstream automatic evaluations and human preference evaluations of model outputs.</p>
+</div>
+<section id="S5.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.1 </span>Supervised Fine-Tuning</h3>
+
+<div id="S5.SS1.p1" class="ltx_para">
+<p id="S5.SS1.p1.1" class="ltx_p">We selected our data mixtures for supervised fine-tuning based on LM-based side-by-side evaluations <cite class="ltx_cite ltx_citemacro_citep">(Zheng et al., <a href="#bib.bib55" title="" class="ltx_ref">2023</a>)</cite>.
+Given a set of held-out prompts, we generate responses from a test model, generate responses on the same prompts from a baseline model, shuffle these randomly, and ask a larger, high capability model to express a preference between two responses. Different prompt sets are constructed to highlight specific capabilities, such as instruction following, factuality, creativity, and safety. The different automatic LM-based judges we use employ a number of techniques, such as chain-of-thought prompting <cite class="ltx_cite ltx_citemacro_citep">(Wei et al., <a href="#bib.bib49" title="" class="ltx_ref">2022</a>)</cite> and use of rubrics and constitutions <cite class="ltx_cite ltx_citemacro_citep">(Bai et al., <a href="#bib.bib5" title="" class="ltx_ref">2022</a>)</cite>, to be aligned with human preferences.</p>
+</div>
+</section>
+<section id="S5.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.2 </span>Filtering</h3>
+
+<div id="S5.SS2.p1" class="ltx_para">
+<p id="S5.SS2.p1.1" class="ltx_p">When using synthetic data, we run several stages of filtering over it, removing examples that show certain personal information, unsafe or toxic model outputs, mistaken self-identification data, or duplicated examples. Following Gemini, we find that including subsets of data that encourage better in-context attribution, hedging, and refusals to minimize hallucinations can improve performance on several factuality metrics, without degrading model performance on other metrics.</p>
+</div>
+<div id="S5.SS2.p2" class="ltx_para">
+<p id="S5.SS2.p2.1" class="ltx_p">The final data mixtures and supervised fine-tuning recipe, which includes tuned hyperparameters, were chosen on the basis of improving helpfulness while minimizing model harms related to safety and hallucinations.</p>
+</div>
+</section>
+<section id="S5.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.3 </span>Formatting</h3>
+
+<div id="S5.SS3.p1" class="ltx_para">
+<p id="S5.SS3.p1.1" class="ltx_p">Instruction tuned models are trained with a specific formatter that annotates all instruction tuning examples with extra information, both at training and inference time. It has two purposes: 1) indicating roles in a conversation, such as the User role, and 2) delineating turns in a conversation, especially in a multi-turn conversation. Special control tokens are reserved in the tokenizer for this purpose. While it is possible to get coherent generations without the formatter, it will be out-of-distribution for the model, and will very likely produce worse generations.</p>
+</div>
+<div id="S5.SS3.p2" class="ltx_para">
+<p id="S5.SS3.p2.1" class="ltx_p">The relevant formatting control tokens are presented in Table <a href="#S5.T3" title="Table 3 ‣ 5.3 Formatting ‣ 5 Instruction Tuning ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, with a dialogue example presented in Table <a href="#S5.T4" title="Table 4 ‣ 5.3 Formatting ‣ 5 Instruction Tuning ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>.</p>
+</div>
+<figure id="S5.T3" class="ltx_table">
+<table id="S5.T3.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S5.T3.1.1" class="ltx_tr">
+<td id="S5.T3.1.1.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="S5.T3.1.1.1.1" class="ltx_text ltx_font_bold" style="font-size:80%;">Context</span></td>
+<td id="S5.T3.1.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S5.T3.1.1.2.1" class="ltx_text ltx_font_bold" style="font-size:80%;">Relevant Token</span></td>
+</tr>
+<tr id="S5.T3.1.2" class="ltx_tr">
+<td id="S5.T3.1.2.1" class="ltx_td ltx_align_left ltx_border_t"><span id="S5.T3.1.2.1.1" class="ltx_text" style="font-size:70%;">User turn</span></td>
+<td id="S5.T3.1.2.2" class="ltx_td ltx_align_center ltx_border_t"><span id="S5.T3.1.2.2.1" class="ltx_text ltx_font_typewriter" style="font-size:80%;color:#0F75FF;">user</span></td>
+</tr>
+<tr id="S5.T3.1.3" class="ltx_tr">
+<td id="S5.T3.1.3.1" class="ltx_td ltx_align_left ltx_border_t"><span id="S5.T3.1.3.1.1" class="ltx_text" style="font-size:70%;">Model turn</span></td>
+<td id="S5.T3.1.3.2" class="ltx_td ltx_align_center ltx_border_t"><span id="S5.T3.1.3.2.1" class="ltx_text ltx_font_typewriter" style="font-size:80%;color:#0F75FF;">model</span></td>
+</tr>
+<tr id="S5.T3.1.4" class="ltx_tr">
+<td id="S5.T3.1.4.1" class="ltx_td ltx_align_left ltx_border_t"><span id="S5.T3.1.4.1.1" class="ltx_text" style="font-size:70%;">Start of conversation turn</span></td>
+<td id="S5.T3.1.4.2" class="ltx_td ltx_align_center ltx_border_t"><span id="S5.T3.1.4.2.1" class="ltx_text ltx_font_typewriter" style="font-size:80%;color:#0F75FF;">&lt;start_of_turn&gt;</span></td>
+</tr>
+<tr id="S5.T3.1.5" class="ltx_tr">
+<td id="S5.T3.1.5.1" class="ltx_td ltx_align_left ltx_border_bb ltx_border_t"><span id="S5.T3.1.5.1.1" class="ltx_text" style="font-size:70%;">End of conversation turn</span></td>
+<td id="S5.T3.1.5.2" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t"><span id="S5.T3.1.5.2.1" class="ltx_text ltx_font_typewriter" style="font-size:80%;color:#0F75FF;">&lt;end_of_turn&gt;</span></td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:80%;"><span class="ltx_tag ltx_tag_table">Table 3: </span>Relevant formatting control tokens used for both SFT and RLHF of Gemma models.</figcaption>
+</figure>
+<figure id="S5.T4" class="ltx_table">
+<table id="S5.T4.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S5.T4.1.1" class="ltx_tr">
+<td id="S5.T4.1.1.1" class="ltx_td ltx_align_right ltx_border_tt">
+<span id="S5.T4.1.1.1.1" class="ltx_text" style="font-size:80%;">
+</span><span id="S5.T4.1.1.1.2" class="ltx_text ltx_font_bold" style="font-size:80%;">User:</span>
+</td>
+<td id="S5.T4.1.1.2" class="ltx_td ltx_align_left ltx_border_tt"><span id="S5.T4.1.1.2.1" class="ltx_text ltx_font_typewriter" style="font-size:80%;color:#0F75FF;">&lt;start_of_turn&gt;user</span></td>
+</tr>
+<tr id="S5.T4.1.2" class="ltx_tr">
+<td id="S5.T4.1.2.1" class="ltx_td"></td>
+<td id="S5.T4.1.2.2" class="ltx_td ltx_align_left"><span id="S5.T4.1.2.2.1" class="ltx_text ltx_font_typewriter" style="font-size:80%;">Knock knock.<span id="S5.T4.1.2.2.1.1" class="ltx_text" style="color:#0F75FF;">&lt;end_of_turn&gt;</span></span></td>
+</tr>
+<tr id="S5.T4.1.3" class="ltx_tr">
+<td id="S5.T4.1.3.1" class="ltx_td"></td>
+<td id="S5.T4.1.3.2" class="ltx_td ltx_align_left"><span id="S5.T4.1.3.2.1" class="ltx_text ltx_font_typewriter" style="font-size:80%;color:#0F75FF;">&lt;start_of_turn&gt;model</span></td>
+</tr>
+<tr id="S5.T4.1.4" class="ltx_tr">
+<td id="S5.T4.1.4.1" class="ltx_td ltx_align_right"><span id="S5.T4.1.4.1.1" class="ltx_text ltx_font_bold" style="font-size:80%;">Model:</span></td>
+<td id="S5.T4.1.4.2" class="ltx_td ltx_align_left"><span id="S5.T4.1.4.2.1" class="ltx_text ltx_font_typewriter" style="font-size:80%;">Who’s there?<span id="S5.T4.1.4.2.1.1" class="ltx_text" style="color:#0F75FF;">&lt;end_of_turn&gt;</span></span></td>
+</tr>
+<tr id="S5.T4.1.5" class="ltx_tr">
+<td id="S5.T4.1.5.1" class="ltx_td ltx_align_right"><span id="S5.T4.1.5.1.1" class="ltx_text ltx_font_bold" style="font-size:80%;">User:</span></td>
+<td id="S5.T4.1.5.2" class="ltx_td ltx_align_left"><span id="S5.T4.1.5.2.1" class="ltx_text ltx_font_typewriter" style="font-size:80%;color:#0F75FF;">&lt;start_of_turn&gt;user</span></td>
+</tr>
+<tr id="S5.T4.1.6" class="ltx_tr">
+<td id="S5.T4.1.6.1" class="ltx_td"></td>
+<td id="S5.T4.1.6.2" class="ltx_td ltx_align_left"><span id="S5.T4.1.6.2.1" class="ltx_text ltx_font_typewriter" style="font-size:80%;">Gemma.<span id="S5.T4.1.6.2.1.1" class="ltx_text" style="color:#0F75FF;">&lt;end_of_turn&gt;</span></span></td>
+</tr>
+<tr id="S5.T4.1.7" class="ltx_tr">
+<td id="S5.T4.1.7.1" class="ltx_td"></td>
+<td id="S5.T4.1.7.2" class="ltx_td ltx_align_left"><span id="S5.T4.1.7.2.1" class="ltx_text ltx_font_typewriter" style="font-size:80%;color:#0F75FF;">&lt;start_of_turn&gt;model</span></td>
+</tr>
+<tr id="S5.T4.1.8" class="ltx_tr">
+<td id="S5.T4.1.8.1" class="ltx_td ltx_align_right ltx_border_bb"><span id="S5.T4.1.8.1.1" class="ltx_text ltx_font_bold" style="font-size:80%;">Model:</span></td>
+<td id="S5.T4.1.8.2" class="ltx_td ltx_align_left ltx_border_bb"><span id="S5.T4.1.8.2.1" class="ltx_text ltx_font_typewriter" style="font-size:80%;">Gemma who?<span id="S5.T4.1.8.2.1.1" class="ltx_text" style="color:#0F75FF;">&lt;end_of_turn&gt;</span></span></td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:80%;"><span class="ltx_tag ltx_tag_table">Table 4: </span>Example dialogue with user and model control tokens.</figcaption>
+</figure>
+</section>
+<section id="S5.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.4 </span>Reinforcement Learning from Human Feedback</h3>
+
+<div id="S5.SS4.p1" class="ltx_para">
+<p id="S5.SS4.p1.1" class="ltx_p">We further finetuned the supervised fine-tuned model using RLHF <cite class="ltx_cite ltx_citemacro_citep">(Christiano et al., <a href="#bib.bib12" title="" class="ltx_ref">2017</a>; Ouyang et al., <a href="#bib.bib31" title="" class="ltx_ref">2022</a>)</cite>. We collected pairs of preferences from human raters and trained a reward function under the Bradley-Terry model <cite class="ltx_cite ltx_citemacro_citep">(Bradley and Terry, <a href="#bib.bib8" title="" class="ltx_ref">1952</a>)</cite>, similarly to Gemini. The policy was trained to optimize this reward function using a variant of REINFORCE <cite class="ltx_cite ltx_citemacro_citep">(Williams, <a href="#bib.bib51" title="" class="ltx_ref">1992</a>)</cite> with a Kullback–Leibler regularization term towards the initially tuned model. Similar to the SFT phase, and in order to tune hyperparameters and additionally mitigate reward hacking <cite class="ltx_cite ltx_citemacro_citep">(Amodei et al., <a href="#bib.bib2" title="" class="ltx_ref">2016</a>; Skalse et al., <a href="#bib.bib41" title="" class="ltx_ref">2022</a>)</cite> we relied on a high capacity model as an automatic rater and computed side-by-side comparisons against baseline models.</p>
+</div>
+</section>
+</section>
+<section id="S6" class="ltx_section" lang="en">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6 </span>Evaluation</h2>
+
+<div id="S6.p1" class="ltx_para">
+<p id="S6.p1.1" class="ltx_p">We evaluate Gemma across a broad range of domains, using both automated benchmarks and human evaluation.</p>
+</div>
+<section id="S6.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.1 </span>Human Preference Evaluations</h3>
+
+<div id="S6.SS1.p1" class="ltx_para">
+<p id="S6.SS1.p1.1" class="ltx_p">In addition to running standard academic benchmarks on the finetuned models, we sent final release candidates to human evaluation studies to be compared against the Mistral v0.2 7B Instruct model <cite class="ltx_cite ltx_citemacro_citep">(Jiang et al., <a href="#bib.bib22" title="" class="ltx_ref">2023</a>)</cite>.</p>
+</div>
+<div id="S6.SS1.p2" class="ltx_para">
+<p id="S6.SS1.p2.1" class="ltx_p">On a held-out collection of around 1000 prompts oriented toward asking models to follow instructions across creative writing tasks, coding, and following instructions, Gemma 7B IT has a 51.7% positive win rate and Gemma 2B IT has a 41.6% win rate over Mistral v0.2 7B Instruct. On a held-out collection of around 400 prompts oriented towards testing basic safety protocols, Gemma 7B IT has a 58% win rate, while Gemma 2B IT has a 56.5% win rate. We report the corresponding numbers in Table <a href="#S6.T5" title="Table 5 ‣ 6.1 Human Preference Evaluations ‣ 6 Evaluation ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>.</p>
+</div>
+<figure id="S6.T5" class="ltx_table">
+<table id="S6.T5.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S6.T5.1.1" class="ltx_tr">
+<td id="S6.T5.1.1.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="S6.T5.1.1.1.1" class="ltx_text" style="font-size:80%;">Model</span></td>
+<td id="S6.T5.1.1.2" class="ltx_td ltx_align_right ltx_border_tt"><span id="S6.T5.1.1.2.1" class="ltx_text" style="font-size:80%;">Safety</span></td>
+<td id="S6.T5.1.1.3" class="ltx_td ltx_align_right ltx_border_tt"><span id="S6.T5.1.1.3.1" class="ltx_text" style="font-size:80%;">Instruction Following</span></td>
+</tr>
+<tr id="S6.T5.1.2" class="ltx_tr">
+<td id="S6.T5.1.2.1" class="ltx_td ltx_align_left ltx_border_t"><span id="S6.T5.1.2.1.1" class="ltx_text ltx_font_bold" style="font-size:80%;">Gemma 7B IT</span></td>
+<td id="S6.T5.1.2.2" class="ltx_td ltx_align_right ltx_border_t"><span id="S6.T5.1.2.2.1" class="ltx_text ltx_font_bold" style="font-size:80%;">58%</span></td>
+<td id="S6.T5.1.2.3" class="ltx_td ltx_align_right ltx_border_t"><span id="S6.T5.1.2.3.1" class="ltx_text ltx_font_bold" style="font-size:80%;">51.7%</span></td>
+</tr>
+<tr id="S6.T5.1.3" class="ltx_tr">
+<td id="S6.T5.1.3.1" class="ltx_td ltx_align_left"><span id="S6.T5.1.3.1.1" class="ltx_text ltx_font_italic" style="font-size:50%;">95% Conf. Interval</span></td>
+<td id="S6.T5.1.3.2" class="ltx_td ltx_align_right"><span id="S6.T5.1.3.2.1" class="ltx_text" style="font-size:50%;">[55.9%, 60.1%]</span></td>
+<td id="S6.T5.1.3.3" class="ltx_td ltx_align_right"><span id="S6.T5.1.3.3.1" class="ltx_text" style="font-size:50%;">[49.6%, 53.8%]</span></td>
+</tr>
+<tr id="S6.T5.1.4" class="ltx_tr">
+<td id="S6.T5.1.4.1" class="ltx_td ltx_align_left"><span id="S6.T5.1.4.1.1" class="ltx_text ltx_font_italic" style="font-size:50%;">Win / Tie / Loss</span></td>
+<td id="S6.T5.1.4.2" class="ltx_td ltx_align_right"><span id="S6.T5.1.4.2.1" class="ltx_text" style="font-size:50%;">42.9% / 30.2% / 26.9%</span></td>
+<td id="S6.T5.1.4.3" class="ltx_td ltx_align_right"><span id="S6.T5.1.4.3.1" class="ltx_text" style="font-size:50%;">42.5% / 18.4% / 39.1%</span></td>
+</tr>
+<tr id="S6.T5.1.5" class="ltx_tr">
+<td id="S6.T5.1.5.1" class="ltx_td ltx_align_left"><span id="S6.T5.1.5.1.1" class="ltx_text ltx_font_bold" style="font-size:80%;">Gemma 2B IT</span></td>
+<td id="S6.T5.1.5.2" class="ltx_td ltx_align_right"><span id="S6.T5.1.5.2.1" class="ltx_text ltx_font_bold" style="font-size:80%;">56.5%</span></td>
+<td id="S6.T5.1.5.3" class="ltx_td ltx_align_right"><span id="S6.T5.1.5.3.1" class="ltx_text" style="font-size:80%;">41.6%</span></td>
+</tr>
+<tr id="S6.T5.1.6" class="ltx_tr">
+<td id="S6.T5.1.6.1" class="ltx_td ltx_align_left"><span id="S6.T5.1.6.1.1" class="ltx_text ltx_font_italic" style="font-size:50%;">95% Conf. Interval</span></td>
+<td id="S6.T5.1.6.2" class="ltx_td ltx_align_right"><span id="S6.T5.1.6.2.1" class="ltx_text" style="font-size:50%;">[54.4%, 58.6%]</span></td>
+<td id="S6.T5.1.6.3" class="ltx_td ltx_align_right"><span id="S6.T5.1.6.3.1" class="ltx_text" style="font-size:50%;">[39.5%, 43.7%]</span></td>
+</tr>
+<tr id="S6.T5.1.7" class="ltx_tr">
+<td id="S6.T5.1.7.1" class="ltx_td ltx_align_left ltx_border_bb"><span id="S6.T5.1.7.1.1" class="ltx_text ltx_font_italic" style="font-size:50%;">Win / Tie / Loss</span></td>
+<td id="S6.T5.1.7.2" class="ltx_td ltx_align_right ltx_border_bb"><span id="S6.T5.1.7.2.1" class="ltx_text" style="font-size:50%;">44.8% / 22.9% / 32.3%</span></td>
+<td id="S6.T5.1.7.3" class="ltx_td ltx_align_right ltx_border_bb"><span id="S6.T5.1.7.3.1" class="ltx_text" style="font-size:50%;">32.7% / 17.8% / 49.5%</span></td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering" style="font-size:80%;"><span class="ltx_tag ltx_tag_table">Table 5: </span>Win rate of Gemma models versus Mistral 7B v0.2 Instruct with 95% confidence intervals. We report breakdowns of wins, ties, and losses, and we break ties evenly when reporting the final win rate.</figcaption>
+</figure>
+</section>
+<section id="S6.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.2 </span>Automated Benchmarks</h3>
+
+<figure id="S6.T6" class="ltx_table">
+<table id="S6.T6.15" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S6.T6.15.16" class="ltx_tr">
+<td id="S6.T6.15.16.1" class="ltx_td ltx_border_tt"></td>
+<td id="S6.T6.15.16.2" class="ltx_td ltx_border_tt"></td>
+<td id="S6.T6.15.16.3" class="ltx_td ltx_align_center ltx_border_tt" colspan="2">LLaMA-2</td>
+<td id="S6.T6.15.16.4" class="ltx_td ltx_align_center ltx_border_tt">Mistral</td>
+<td id="S6.T6.15.16.5" class="ltx_td ltx_align_center ltx_border_tt" colspan="2">Gemma</td>
+</tr>
+<tr id="S6.T6.15.17" class="ltx_tr">
+<td id="S6.T6.15.17.1" class="ltx_td ltx_align_left">Benchmark</td>
+<td id="S6.T6.15.17.2" class="ltx_td ltx_align_center">            metric</td>
+<td id="S6.T6.15.17.3" class="ltx_td ltx_align_center ltx_border_t">7B</td>
+<td id="S6.T6.15.17.4" class="ltx_td ltx_align_center ltx_border_t">13B</td>
+<td id="S6.T6.15.17.5" class="ltx_td ltx_align_center ltx_border_t">7B</td>
+<td id="S6.T6.15.17.6" class="ltx_td ltx_align_center ltx_border_t">2B</td>
+<td id="S6.T6.15.17.7" class="ltx_td ltx_align_center ltx_border_t">7B</td>
+</tr>
+<tr id="S6.T6.15.18" class="ltx_tr">
+<td id="S6.T6.15.18.1" class="ltx_td ltx_align_left ltx_border_t">MMLU</td>
+<td id="S6.T6.15.18.2" class="ltx_td ltx_align_center ltx_border_t">5-shot, top-1</td>
+<td id="S6.T6.15.18.3" class="ltx_td ltx_align_center ltx_border_t">45.3</td>
+<td id="S6.T6.15.18.4" class="ltx_td ltx_align_center ltx_border_t">54.8</td>
+<td id="S6.T6.15.18.5" class="ltx_td ltx_align_center ltx_border_t">62.5</td>
+<td id="S6.T6.15.18.6" class="ltx_td ltx_align_center ltx_border_t">42.3</td>
+<td id="S6.T6.15.18.7" class="ltx_td ltx_align_center ltx_border_t"><span id="S6.T6.15.18.7.1" class="ltx_text ltx_font_bold">64.3</span></td>
+</tr>
+<tr id="S6.T6.15.19" class="ltx_tr">
+<td id="S6.T6.15.19.1" class="ltx_td ltx_align_left ltx_border_t">HellaSwag</td>
+<td id="S6.T6.15.19.2" class="ltx_td ltx_align_center ltx_border_t">0-shot</td>
+<td id="S6.T6.15.19.3" class="ltx_td ltx_align_center ltx_border_t">77.2</td>
+<td id="S6.T6.15.19.4" class="ltx_td ltx_align_center ltx_border_t">80.7</td>
+<td id="S6.T6.15.19.5" class="ltx_td ltx_align_center ltx_border_t">81.0</td>
+<td id="S6.T6.15.19.6" class="ltx_td ltx_align_center ltx_border_t">71.4</td>
+<td id="S6.T6.15.19.7" class="ltx_td ltx_align_center ltx_border_t"><span id="S6.T6.15.19.7.1" class="ltx_text ltx_font_bold">81.2</span></td>
+</tr>
+<tr id="S6.T6.15.20" class="ltx_tr">
+<td id="S6.T6.15.20.1" class="ltx_td ltx_align_left">PIQA</td>
+<td id="S6.T6.15.20.2" class="ltx_td ltx_align_center">0-shot</td>
+<td id="S6.T6.15.20.3" class="ltx_td ltx_align_center">78.8</td>
+<td id="S6.T6.15.20.4" class="ltx_td ltx_align_center">80.5</td>
+<td id="S6.T6.15.20.5" class="ltx_td ltx_align_center"><span id="S6.T6.15.20.5.1" class="ltx_text ltx_font_bold">82.2</span></td>
+<td id="S6.T6.15.20.6" class="ltx_td ltx_align_center">77.3</td>
+<td id="S6.T6.15.20.7" class="ltx_td ltx_align_center">81.2</td>
+</tr>
+<tr id="S6.T6.2.2" class="ltx_tr">
+<td id="S6.T6.2.2.3" class="ltx_td ltx_align_left">SIQA</td>
+<td id="S6.T6.2.2.4" class="ltx_td ltx_align_center">0-shot</td>
+<td id="S6.T6.2.2.5" class="ltx_td ltx_align_center">48.3</td>
+<td id="S6.T6.2.2.6" class="ltx_td ltx_align_center">50.3</td>
+<td id="S6.T6.2.2.2" class="ltx_td ltx_align_center">
+<span id="S6.T6.1.1.1.1" class="ltx_text ltx_phantom"><span style="visibility:hidden"><sup id="S6.T6.1.1.1.1.1" class="ltx_sup">∗</sup></span></span>47.0<sup id="S6.T6.2.2.2.2" class="ltx_sup">∗</sup>
+</td>
+<td id="S6.T6.2.2.7" class="ltx_td ltx_align_center">49.7</td>
+<td id="S6.T6.2.2.8" class="ltx_td ltx_align_center"><span id="S6.T6.2.2.8.1" class="ltx_text ltx_font_bold">51.8</span></td>
+</tr>
+<tr id="S6.T6.4.4" class="ltx_tr">
+<td id="S6.T6.4.4.3" class="ltx_td ltx_align_left">Boolq</td>
+<td id="S6.T6.4.4.4" class="ltx_td ltx_align_center">0-shot</td>
+<td id="S6.T6.4.4.5" class="ltx_td ltx_align_center">77.4</td>
+<td id="S6.T6.4.4.6" class="ltx_td ltx_align_center">81.7</td>
+<td id="S6.T6.4.4.2" class="ltx_td ltx_align_center">
+<span id="S6.T6.3.3.1.1" class="ltx_text ltx_phantom"><span style="visibility:hidden"><sup id="S6.T6.3.3.1.1.1" class="ltx_sup">∗</sup></span></span><span id="S6.T6.4.4.2.2" class="ltx_text ltx_font_bold">83.2<sup id="S6.T6.4.4.2.2.1" class="ltx_sup"><span id="S6.T6.4.4.2.2.1.1" class="ltx_text ltx_font_medium">∗</span></sup></span>
+</td>
+<td id="S6.T6.4.4.7" class="ltx_td ltx_align_center">69.4</td>
+<td id="S6.T6.4.4.8" class="ltx_td ltx_align_center"><span id="S6.T6.4.4.8.1" class="ltx_text ltx_font_bold">83.2</span></td>
+</tr>
+<tr id="S6.T6.15.21" class="ltx_tr">
+<td id="S6.T6.15.21.1" class="ltx_td ltx_align_left">Winogrande</td>
+<td id="S6.T6.15.21.2" class="ltx_td ltx_align_center">partial scoring</td>
+<td id="S6.T6.15.21.3" class="ltx_td ltx_align_center">69.2</td>
+<td id="S6.T6.15.21.4" class="ltx_td ltx_align_center">72.8</td>
+<td id="S6.T6.15.21.5" class="ltx_td ltx_align_center"><span id="S6.T6.15.21.5.1" class="ltx_text ltx_font_bold">74.2</span></td>
+<td id="S6.T6.15.21.6" class="ltx_td ltx_align_center">65.4</td>
+<td id="S6.T6.15.21.7" class="ltx_td ltx_align_center">72.3</td>
+</tr>
+<tr id="S6.T6.6.6" class="ltx_tr">
+<td id="S6.T6.6.6.3" class="ltx_td ltx_align_left">CQA</td>
+<td id="S6.T6.6.6.4" class="ltx_td ltx_align_center">7-shot</td>
+<td id="S6.T6.6.6.5" class="ltx_td ltx_align_center">57.8</td>
+<td id="S6.T6.6.6.6" class="ltx_td ltx_align_center">67.3</td>
+<td id="S6.T6.6.6.2" class="ltx_td ltx_align_center">
+<span id="S6.T6.5.5.1.1" class="ltx_text ltx_phantom"><span style="visibility:hidden"><sup id="S6.T6.5.5.1.1.1" class="ltx_sup">∗</sup></span></span>66.3<sup id="S6.T6.6.6.2.2" class="ltx_sup">∗</sup>
+</td>
+<td id="S6.T6.6.6.7" class="ltx_td ltx_align_center">65.3</td>
+<td id="S6.T6.6.6.8" class="ltx_td ltx_align_center"><span id="S6.T6.6.6.8.1" class="ltx_text ltx_font_bold">71.3</span></td>
+</tr>
+<tr id="S6.T6.15.22" class="ltx_tr">
+<td id="S6.T6.15.22.1" class="ltx_td ltx_align_left">OBQA</td>
+<td id="S6.T6.15.22.2" class="ltx_td"></td>
+<td id="S6.T6.15.22.3" class="ltx_td ltx_align_center"><span id="S6.T6.15.22.3.1" class="ltx_text ltx_font_bold">58.6</span></td>
+<td id="S6.T6.15.22.4" class="ltx_td ltx_align_center">57.0</td>
+<td id="S6.T6.15.22.5" class="ltx_td ltx_align_center">52.2</td>
+<td id="S6.T6.15.22.6" class="ltx_td ltx_align_center">47.8</td>
+<td id="S6.T6.15.22.7" class="ltx_td ltx_align_center">52.8</td>
+</tr>
+<tr id="S6.T6.15.23" class="ltx_tr">
+<td id="S6.T6.15.23.1" class="ltx_td ltx_align_left">ARC-e</td>
+<td id="S6.T6.15.23.2" class="ltx_td"></td>
+<td id="S6.T6.15.23.3" class="ltx_td ltx_align_center">75.2</td>
+<td id="S6.T6.15.23.4" class="ltx_td ltx_align_center">77.3</td>
+<td id="S6.T6.15.23.5" class="ltx_td ltx_align_center">80.5</td>
+<td id="S6.T6.15.23.6" class="ltx_td ltx_align_center">73.2</td>
+<td id="S6.T6.15.23.7" class="ltx_td ltx_align_center"><span id="S6.T6.15.23.7.1" class="ltx_text ltx_font_bold">81.5</span></td>
+</tr>
+<tr id="S6.T6.15.24" class="ltx_tr">
+<td id="S6.T6.15.24.1" class="ltx_td ltx_align_left">ARC-c</td>
+<td id="S6.T6.15.24.2" class="ltx_td"></td>
+<td id="S6.T6.15.24.3" class="ltx_td ltx_align_center">45.9</td>
+<td id="S6.T6.15.24.4" class="ltx_td ltx_align_center">49.4</td>
+<td id="S6.T6.15.24.5" class="ltx_td ltx_align_center"><span id="S6.T6.15.24.5.1" class="ltx_text ltx_font_bold">54.9</span></td>
+<td id="S6.T6.15.24.6" class="ltx_td ltx_align_center">42.1</td>
+<td id="S6.T6.15.24.7" class="ltx_td ltx_align_center">53.2</td>
+</tr>
+<tr id="S6.T6.15.25" class="ltx_tr">
+<td id="S6.T6.15.25.1" class="ltx_td ltx_align_left ltx_border_t">TriviaQA</td>
+<td id="S6.T6.15.25.2" class="ltx_td ltx_align_center ltx_border_t">5-shot</td>
+<td id="S6.T6.15.25.3" class="ltx_td ltx_align_center ltx_border_t">72.1</td>
+<td id="S6.T6.15.25.4" class="ltx_td ltx_align_center ltx_border_t"><span id="S6.T6.15.25.4.1" class="ltx_text ltx_font_bold">79.6</span></td>
+<td id="S6.T6.15.25.5" class="ltx_td ltx_align_center ltx_border_t">62.5</td>
+<td id="S6.T6.15.25.6" class="ltx_td ltx_align_center ltx_border_t">53.2</td>
+<td id="S6.T6.15.25.7" class="ltx_td ltx_align_center ltx_border_t">63.4</td>
+</tr>
+<tr id="S6.T6.15.26" class="ltx_tr">
+<td id="S6.T6.15.26.1" class="ltx_td ltx_align_left">NQ</td>
+<td id="S6.T6.15.26.2" class="ltx_td ltx_align_center">5-shot</td>
+<td id="S6.T6.15.26.3" class="ltx_td ltx_align_center">25.7</td>
+<td id="S6.T6.15.26.4" class="ltx_td ltx_align_center"><span id="S6.T6.15.26.4.1" class="ltx_text ltx_font_bold">31.2</span></td>
+<td id="S6.T6.15.26.5" class="ltx_td ltx_align_center">23.2</td>
+<td id="S6.T6.15.26.6" class="ltx_td ltx_align_center">12.5</td>
+<td id="S6.T6.15.26.7" class="ltx_td ltx_align_center">23.0</td>
+</tr>
+<tr id="S6.T6.15.27" class="ltx_tr">
+<td id="S6.T6.15.27.1" class="ltx_td ltx_align_left ltx_border_t">HumanEval</td>
+<td id="S6.T6.15.27.2" class="ltx_td ltx_align_center ltx_border_t">pass@1</td>
+<td id="S6.T6.15.27.3" class="ltx_td ltx_align_center ltx_border_t">12.8</td>
+<td id="S6.T6.15.27.4" class="ltx_td ltx_align_center ltx_border_t">18.3</td>
+<td id="S6.T6.15.27.5" class="ltx_td ltx_align_center ltx_border_t">26.2</td>
+<td id="S6.T6.15.27.6" class="ltx_td ltx_align_center ltx_border_t">22.0</td>
+<td id="S6.T6.15.27.7" class="ltx_td ltx_align_center ltx_border_t"><span id="S6.T6.15.27.7.1" class="ltx_text ltx_font_bold">32.3</span></td>
+</tr>
+<tr id="S6.T6.9.9" class="ltx_tr">
+<td id="S6.T6.7.7.1" class="ltx_td ltx_align_left">MBPP<sup id="S6.T6.7.7.1.1" class="ltx_sup"><span id="S6.T6.7.7.1.1.1" class="ltx_text ltx_font_italic">†</span></sup>
+</td>
+<td id="S6.T6.9.9.4" class="ltx_td ltx_align_center">3-shot</td>
+<td id="S6.T6.9.9.5" class="ltx_td ltx_align_center">20.8</td>
+<td id="S6.T6.9.9.6" class="ltx_td ltx_align_center">30.6</td>
+<td id="S6.T6.9.9.3" class="ltx_td ltx_align_center">
+<span id="S6.T6.8.8.2.1" class="ltx_text ltx_phantom"><span style="visibility:hidden"><sup id="S6.T6.8.8.2.1.1" class="ltx_sup">∗</sup></span></span>40.2<sup id="S6.T6.9.9.3.2" class="ltx_sup">∗</sup>
+</td>
+<td id="S6.T6.9.9.7" class="ltx_td ltx_align_center">29.2</td>
+<td id="S6.T6.9.9.8" class="ltx_td ltx_align_center"><span id="S6.T6.9.9.8.1" class="ltx_text ltx_font_bold">44.4</span></td>
+</tr>
+<tr id="S6.T6.11.11" class="ltx_tr">
+<td id="S6.T6.11.11.3" class="ltx_td ltx_align_left">GSM8K</td>
+<td id="S6.T6.11.11.4" class="ltx_td ltx_align_center">maj@1</td>
+<td id="S6.T6.11.11.5" class="ltx_td ltx_align_center">14.6</td>
+<td id="S6.T6.11.11.6" class="ltx_td ltx_align_center">28.7</td>
+<td id="S6.T6.11.11.2" class="ltx_td ltx_align_center">
+<span id="S6.T6.10.10.1.1" class="ltx_text ltx_phantom"><span style="visibility:hidden"><sup id="S6.T6.10.10.1.1.1" class="ltx_sup">∗</sup></span></span>35.4<sup id="S6.T6.11.11.2.2" class="ltx_sup">∗</sup>
+</td>
+<td id="S6.T6.11.11.7" class="ltx_td ltx_align_center">17.7</td>
+<td id="S6.T6.11.11.8" class="ltx_td ltx_align_center"><span id="S6.T6.11.11.8.1" class="ltx_text ltx_font_bold">46.4</span></td>
+</tr>
+<tr id="S6.T6.15.28" class="ltx_tr">
+<td id="S6.T6.15.28.1" class="ltx_td ltx_align_left">MATH</td>
+<td id="S6.T6.15.28.2" class="ltx_td ltx_align_center">4-shot</td>
+<td id="S6.T6.15.28.3" class="ltx_td ltx_align_center">2.5</td>
+<td id="S6.T6.15.28.4" class="ltx_td ltx_align_center">3.9</td>
+<td id="S6.T6.15.28.5" class="ltx_td ltx_align_center">12.7</td>
+<td id="S6.T6.15.28.6" class="ltx_td ltx_align_center">11.8</td>
+<td id="S6.T6.15.28.7" class="ltx_td ltx_align_center"><span id="S6.T6.15.28.7.1" class="ltx_text ltx_font_bold">24.3</span></td>
+</tr>
+<tr id="S6.T6.13.13" class="ltx_tr">
+<td id="S6.T6.13.13.3" class="ltx_td ltx_align_left ltx_border_t">AGIEval</td>
+<td id="S6.T6.13.13.4" class="ltx_td ltx_border_t"></td>
+<td id="S6.T6.13.13.5" class="ltx_td ltx_align_center ltx_border_t">29.3</td>
+<td id="S6.T6.13.13.6" class="ltx_td ltx_align_center ltx_border_t">39.1</td>
+<td id="S6.T6.13.13.2" class="ltx_td ltx_align_center ltx_border_t">
+<span id="S6.T6.12.12.1.1" class="ltx_text ltx_phantom"><span style="visibility:hidden"><sup id="S6.T6.12.12.1.1.1" class="ltx_sup">∗</sup></span></span>41.2<sup id="S6.T6.13.13.2.2" class="ltx_sup">∗</sup>
+</td>
+<td id="S6.T6.13.13.7" class="ltx_td ltx_align_center ltx_border_t">24.2</td>
+<td id="S6.T6.13.13.8" class="ltx_td ltx_align_center ltx_border_t"><span id="S6.T6.13.13.8.1" class="ltx_text ltx_font_bold">41.7</span></td>
+</tr>
+<tr id="S6.T6.15.15" class="ltx_tr">
+<td id="S6.T6.15.15.3" class="ltx_td ltx_align_left">BBH</td>
+<td id="S6.T6.15.15.4" class="ltx_td"></td>
+<td id="S6.T6.15.15.5" class="ltx_td ltx_align_center">32.6</td>
+<td id="S6.T6.15.15.6" class="ltx_td ltx_align_center">39.4</td>
+<td id="S6.T6.15.15.2" class="ltx_td ltx_align_center">
+<span id="S6.T6.14.14.1.1" class="ltx_text ltx_phantom"><span style="visibility:hidden"><sup id="S6.T6.14.14.1.1.1" class="ltx_sup">∗</sup></span></span><span id="S6.T6.15.15.2.2" class="ltx_text ltx_font_bold">56.1<sup id="S6.T6.15.15.2.2.1" class="ltx_sup"><span id="S6.T6.15.15.2.2.1.1" class="ltx_text ltx_font_medium">∗</span></sup></span>
+</td>
+<td id="S6.T6.15.15.7" class="ltx_td ltx_align_center">35.2</td>
+<td id="S6.T6.15.15.8" class="ltx_td ltx_align_center">55.1</td>
+</tr>
+<tr id="S6.T6.15.29" class="ltx_tr">
+<td id="S6.T6.15.29.1" class="ltx_td ltx_align_left ltx_border_bb ltx_border_t">Average</td>
+<td id="S6.T6.15.29.2" class="ltx_td ltx_border_bb ltx_border_t"></td>
+<td id="S6.T6.15.29.3" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">47.0</td>
+<td id="S6.T6.15.29.4" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">52.2</td>
+<td id="S6.T6.15.29.5" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">54.0</td>
+<td id="S6.T6.15.29.6" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">44.9</td>
+<td id="S6.T6.15.29.7" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t"><span id="S6.T6.15.29.7.1" class="ltx_text ltx_font_bold">56.4</span></td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 6: </span>Academic benchmark results, compared to similarly sized, openly-available models trained on general English text data.
+<sup id="S6.T6.22.1" class="ltx_sup"><span id="S6.T6.22.1.1" class="ltx_text ltx_font_italic">†</span></sup> Mistral reports 50.2 on a different split for MBPP and on their split our 7B model achieves 54.5.
+<sup id="S6.T6.23.2" class="ltx_sup">∗</sup> evaluations run by us. Note that due to restrictive licensing, we were unable to run evals on LLaMA-2; all values above were previously reported in <cite class="ltx_cite ltx_citemacro_cite">Touvron et al. (<a href="#bib.bib47" title="" class="ltx_ref">2023b</a>)</cite>.
+</figcaption>
+</figure>
+<div id="S6.SS2.p1" class="ltx_para">
+<p id="S6.SS2.p1.1" class="ltx_p">We measure Gemma models’ performance on domains including physical reasoning <cite class="ltx_cite ltx_citemacro_citep">(Bisk et al., <a href="#bib.bib7" title="" class="ltx_ref">2019</a>)</cite>, social reasoning <cite class="ltx_cite ltx_citemacro_citep">(Sap et al., <a href="#bib.bib38" title="" class="ltx_ref">2019</a>)</cite>, question answering <cite class="ltx_cite ltx_citemacro_citep">(Clark et al., <a href="#bib.bib13" title="" class="ltx_ref">2019</a>; Kwiatkowski et al., <a href="#bib.bib27" title="" class="ltx_ref">2019</a>)</cite>, coding <cite class="ltx_cite ltx_citemacro_citep">(Austin et al., <a href="#bib.bib4" title="" class="ltx_ref">2021</a>; Chen et al., <a href="#bib.bib10" title="" class="ltx_ref">2021</a>)</cite>, mathematics <cite class="ltx_cite ltx_citemacro_citep">(Cobbe et al., <a href="#bib.bib15" title="" class="ltx_ref">2021</a>)</cite>, commonsense reasoning <cite class="ltx_cite ltx_citemacro_citep">(Sakaguchi et al., <a href="#bib.bib37" title="" class="ltx_ref">2019</a>)</cite>, language modeling <cite class="ltx_cite ltx_citemacro_citep">(Paperno et al., <a href="#bib.bib33" title="" class="ltx_ref">2016</a>)</cite>, reading comprehension <cite class="ltx_cite ltx_citemacro_citep">(Joshi et al., <a href="#bib.bib23" title="" class="ltx_ref">2017</a>)</cite>, and more.</p>
+</div>
+<figure id="S6.T7" class="ltx_table">
+<table id="S6.T7.1" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S6.T7.1.1" class="ltx_tr">
+<td id="S6.T7.1.1.1" class="ltx_td ltx_border_tt"></td>
+<td id="S6.T7.1.1.2" class="ltx_td ltx_align_center ltx_border_tt">Mistral</td>
+<td id="S6.T7.1.1.3" class="ltx_td ltx_align_center ltx_border_tt">Gemma</td>
+</tr>
+<tr id="S6.T7.1.2" class="ltx_tr">
+<td id="S6.T7.1.2.1" class="ltx_td ltx_align_left">Benchmark</td>
+<td id="S6.T7.1.2.2" class="ltx_td ltx_align_center">7B</td>
+<td id="S6.T7.1.2.3" class="ltx_td ltx_align_center">7B</td>
+</tr>
+<tr id="S6.T7.1.3" class="ltx_tr">
+<td id="S6.T7.1.3.1" class="ltx_td ltx_align_left ltx_border_t">ARC-c</td>
+<td id="S6.T7.1.3.2" class="ltx_td ltx_align_center ltx_border_t">60.0</td>
+<td id="S6.T7.1.3.3" class="ltx_td ltx_align_center ltx_border_t"><span id="S6.T7.1.3.3.1" class="ltx_text ltx_font_bold">61.9</span></td>
+</tr>
+<tr id="S6.T7.1.4" class="ltx_tr">
+<td id="S6.T7.1.4.1" class="ltx_td ltx_align_left">HellaSwag</td>
+<td id="S6.T7.1.4.2" class="ltx_td ltx_align_center"><span id="S6.T7.1.4.2.1" class="ltx_text ltx_font_bold">83.3</span></td>
+<td id="S6.T7.1.4.3" class="ltx_td ltx_align_center">82.2</td>
+</tr>
+<tr id="S6.T7.1.5" class="ltx_tr">
+<td id="S6.T7.1.5.1" class="ltx_td ltx_align_left">MMLU</td>
+<td id="S6.T7.1.5.2" class="ltx_td ltx_align_center">64.2</td>
+<td id="S6.T7.1.5.3" class="ltx_td ltx_align_center"><span id="S6.T7.1.5.3.1" class="ltx_text ltx_font_bold">64.6</span></td>
+</tr>
+<tr id="S6.T7.1.6" class="ltx_tr">
+<td id="S6.T7.1.6.1" class="ltx_td ltx_align_left">TruthfulQA</td>
+<td id="S6.T7.1.6.2" class="ltx_td ltx_align_center">42.2</td>
+<td id="S6.T7.1.6.3" class="ltx_td ltx_align_center"><span id="S6.T7.1.6.3.1" class="ltx_text ltx_font_bold">44.8</span></td>
+</tr>
+<tr id="S6.T7.1.7" class="ltx_tr">
+<td id="S6.T7.1.7.1" class="ltx_td ltx_align_left">Winogrande</td>
+<td id="S6.T7.1.7.2" class="ltx_td ltx_align_center">78.4</td>
+<td id="S6.T7.1.7.3" class="ltx_td ltx_align_center"><span id="S6.T7.1.7.3.1" class="ltx_text ltx_font_bold">79.0</span></td>
+</tr>
+<tr id="S6.T7.1.8" class="ltx_tr">
+<td id="S6.T7.1.8.1" class="ltx_td ltx_align_left">GSM8K</td>
+<td id="S6.T7.1.8.2" class="ltx_td ltx_align_center">37.8</td>
+<td id="S6.T7.1.8.3" class="ltx_td ltx_align_center"><span id="S6.T7.1.8.3.1" class="ltx_text ltx_font_bold">50.9</span></td>
+</tr>
+<tr id="S6.T7.1.9" class="ltx_tr">
+<td id="S6.T7.1.9.1" class="ltx_td ltx_align_left ltx_border_bb ltx_border_t">Average</td>
+<td id="S6.T7.1.9.2" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">61.0</td>
+<td id="S6.T7.1.9.3" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t"><span id="S6.T7.1.9.3.1" class="ltx_text ltx_font_bold">63.8</span></td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 7: </span>HuggingFace H6 benchmark.
+The performance of small models are sensitive to small modifications in prompts and we further validate the quality of our models on an independent implementation of multiple known benchmarks. All evaluations were run by HuggingFace.</figcaption>
+</figure>
+<div id="S6.SS2.p2" class="ltx_para">
+<p id="S6.SS2.p2.1" class="ltx_p">For most automated benchmarks we use the same evaluation methodology as in Gemini. Specifically for those where we report performance compared with Mistral, we replicated methodology from the Mistral technical report as closely as possible. These specific benchmarks are: ARC <cite class="ltx_cite ltx_citemacro_citep">(Clark et al., <a href="#bib.bib14" title="" class="ltx_ref">2018</a>)</cite>, CommonsenseQA <cite class="ltx_cite ltx_citemacro_citep">(Talmor et al., <a href="#bib.bib45" title="" class="ltx_ref">2019</a>)</cite>, Big Bench Hard <cite class="ltx_cite ltx_citemacro_citep">(Suzgun et al., <a href="#bib.bib44" title="" class="ltx_ref">2022</a>)</cite>, and AGI Eval (English-only) <cite class="ltx_cite ltx_citemacro_citep">(Zhong et al., <a href="#bib.bib56" title="" class="ltx_ref">2023</a>)</cite>. Due to restrictive licensing, we were unable to run any evaluations on LLaMA-2 and cite only those metrics previously reported <cite class="ltx_cite ltx_citemacro_citep">(Touvron et al., <a href="#bib.bib47" title="" class="ltx_ref">2023b</a>)</cite>.</p>
+</div>
+<div id="S6.SS2.p3" class="ltx_para">
+<p id="S6.SS2.p3.1" class="ltx_p">We compare Gemma 2B and 7B models to several external open-source (OSS) LLMs across a series of academic benchmarks, reported in Table <a href="#S6.T6" title="Table 6 ‣ 6.2 Automated Benchmarks ‣ 6 Evaluation ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> and Table <a href="#S6.T7" title="Table 7 ‣ 6.2 Automated Benchmarks ‣ 6 Evaluation ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">7</span></a>.</p>
+</div>
+<div id="S6.SS2.p4" class="ltx_para">
+<p id="S6.SS2.p4.1" class="ltx_p">On MMLU <cite class="ltx_cite ltx_citemacro_citep">(Hendrycks et al., <a href="#bib.bib19" title="" class="ltx_ref">2020</a>)</cite>, Gemma 7B outperforms all OSS alternatives at the same or smaller scale; it also outperforms several larger models, including LLaMA2 13B. However, human expert performance is gauged at 89.8% by the benchmark authors; as Gemini Ultra is the first model to exceed this threshold, there is significant room for continued improvements to achieve Gemini and human-level performance.</p>
+</div>
+<div id="S6.SS2.p5" class="ltx_para">
+<p id="S6.SS2.p5.1" class="ltx_p">Gemma models demonstrate particularly strong performance on mathematics and coding benchmarks. On mathematics tasks, which are often used to benchmark the general analytical capabilities of models, Gemma models outperform other models by at least 10 points on GSM8K <cite class="ltx_cite ltx_citemacro_citep">(Cobbe et al., <a href="#bib.bib15" title="" class="ltx_ref">2021</a>)</cite> and the more difficult MATH <cite class="ltx_cite ltx_citemacro_citep">(Hendrycks et al., <a href="#bib.bib20" title="" class="ltx_ref">2021</a>)</cite> benchmark. Similarly, they outperform alternate open models by at least 6 points on HumanEval <cite class="ltx_cite ltx_citemacro_citep">(Chen et al., <a href="#bib.bib10" title="" class="ltx_ref">2021</a>)</cite>. They even surpass the performance of the code-fine-tuned CodeLLaMA-7B models on MBPP (CodeLLaMA achieves a score of 41.4% where Gemma 7B achieves 44.4%).</p>
+</div>
+<figure id="S6.T8" class="ltx_table">
+<table id="S6.T8.3" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S6.T8.3.1" class="ltx_tr">
+<td id="S6.T8.3.1.1" class="ltx_td ltx_border_tt"></td>
+<td id="S6.T8.3.1.2" class="ltx_td ltx_border_tt"></td>
+<td id="S6.T8.3.1.3" class="ltx_td ltx_align_center ltx_border_tt">Mistral</td>
+<td id="S6.T8.3.1.4" class="ltx_td ltx_align_center ltx_border_tt" colspan="2">Gemma</td>
+</tr>
+<tr id="S6.T8.3.2" class="ltx_tr">
+<td id="S6.T8.3.2.1" class="ltx_td ltx_align_left">Benchmark</td>
+<td id="S6.T8.3.2.2" class="ltx_td ltx_align_center">metric</td>
+<td id="S6.T8.3.2.3" class="ltx_td ltx_align_center ltx_border_t">7B*</td>
+<td id="S6.T8.3.2.4" class="ltx_td ltx_align_center ltx_border_t">2B</td>
+<td id="S6.T8.3.2.5" class="ltx_td ltx_align_center ltx_border_t">7B</td>
+</tr>
+<tr id="S6.T8.3.3" class="ltx_tr">
+<td id="S6.T8.3.3.1" class="ltx_td ltx_align_left ltx_border_t">RealToxicity</td>
+<td id="S6.T8.3.3.2" class="ltx_td ltx_align_center ltx_border_t">avg</td>
+<td id="S6.T8.3.3.3" class="ltx_td ltx_align_center ltx_border_t">8.44</td>
+<td id="S6.T8.3.3.4" class="ltx_td ltx_align_center ltx_border_t"><span id="S6.T8.3.3.4.1" class="ltx_text ltx_font_bold">6.86</span></td>
+<td id="S6.T8.3.3.5" class="ltx_td ltx_align_center ltx_border_t">7.90</td>
+</tr>
+<tr id="S6.T8.3.4" class="ltx_tr">
+<td id="S6.T8.3.4.1" class="ltx_td ltx_align_left">BOLD</td>
+<td id="S6.T8.3.4.2" class="ltx_td"></td>
+<td id="S6.T8.3.4.3" class="ltx_td ltx_align_center">38.21</td>
+<td id="S6.T8.3.4.4" class="ltx_td ltx_align_center">45.57</td>
+<td id="S6.T8.3.4.5" class="ltx_td ltx_align_center"><span id="S6.T8.3.4.5.1" class="ltx_text ltx_font_bold">49.08</span></td>
+</tr>
+<tr id="S6.T8.3.5" class="ltx_tr">
+<td id="S6.T8.3.5.1" class="ltx_td ltx_align_left">CrowS-Pairs</td>
+<td id="S6.T8.3.5.2" class="ltx_td ltx_align_center">top-1</td>
+<td id="S6.T8.3.5.3" class="ltx_td ltx_align_center">32.76</td>
+<td id="S6.T8.3.5.4" class="ltx_td ltx_align_center">45.82</td>
+<td id="S6.T8.3.5.5" class="ltx_td ltx_align_center"><span id="S6.T8.3.5.5.1" class="ltx_text ltx_font_bold">51.33</span></td>
+</tr>
+<tr id="S6.T8.3.6" class="ltx_tr">
+<td id="S6.T8.3.6.1" class="ltx_td ltx_align_left">BBQ Ambig</td>
+<td id="S6.T8.3.6.2" class="ltx_td ltx_align_center">1-shot, top-1</td>
+<td id="S6.T8.3.6.3" class="ltx_td ltx_align_center"><span id="S6.T8.3.6.3.1" class="ltx_text ltx_font_bold">97.53</span></td>
+<td id="S6.T8.3.6.4" class="ltx_td ltx_align_center">62.58</td>
+<td id="S6.T8.3.6.5" class="ltx_td ltx_align_center">92.54</td>
+</tr>
+<tr id="S6.T8.3.7" class="ltx_tr">
+<td id="S6.T8.3.7.1" class="ltx_td ltx_align_left">BBQ Disambig</td>
+<td id="S6.T8.3.7.2" class="ltx_td ltx_align_center">top-1</td>
+<td id="S6.T8.3.7.3" class="ltx_td ltx_align_center"><span id="S6.T8.3.7.3.1" class="ltx_text ltx_font_bold">84.45</span></td>
+<td id="S6.T8.3.7.4" class="ltx_td ltx_align_center">54.62</td>
+<td id="S6.T8.3.7.5" class="ltx_td ltx_align_center">71.99</td>
+</tr>
+<tr id="S6.T8.3.8" class="ltx_tr">
+<td id="S6.T8.3.8.1" class="ltx_td ltx_align_left">Winogender</td>
+<td id="S6.T8.3.8.2" class="ltx_td ltx_align_center">top-1</td>
+<td id="S6.T8.3.8.3" class="ltx_td ltx_align_center"><span id="S6.T8.3.8.3.1" class="ltx_text ltx_font_bold">64.3</span></td>
+<td id="S6.T8.3.8.4" class="ltx_td ltx_align_center">51.25</td>
+<td id="S6.T8.3.8.5" class="ltx_td ltx_align_center">54.17</td>
+</tr>
+<tr id="S6.T8.3.9" class="ltx_tr">
+<td id="S6.T8.3.9.1" class="ltx_td ltx_align_left">TruthfulQA</td>
+<td id="S6.T8.3.9.2" class="ltx_td"></td>
+<td id="S6.T8.3.9.3" class="ltx_td ltx_align_center">44.2</td>
+<td id="S6.T8.3.9.4" class="ltx_td ltx_align_center"><span id="S6.T8.3.9.4.1" class="ltx_text ltx_font_bold">44.84</span></td>
+<td id="S6.T8.3.9.5" class="ltx_td ltx_align_center">31.81</td>
+</tr>
+<tr id="S6.T8.3.10" class="ltx_tr">
+<td id="S6.T8.3.10.1" class="ltx_td ltx_align_left">Winobias 1_2</td>
+<td id="S6.T8.3.10.2" class="ltx_td"></td>
+<td id="S6.T8.3.10.3" class="ltx_td ltx_align_center"><span id="S6.T8.3.10.3.1" class="ltx_text ltx_font_bold">65.72</span></td>
+<td id="S6.T8.3.10.4" class="ltx_td ltx_align_center">56.12</td>
+<td id="S6.T8.3.10.5" class="ltx_td ltx_align_center">59.09</td>
+</tr>
+<tr id="S6.T8.3.11" class="ltx_tr">
+<td id="S6.T8.3.11.1" class="ltx_td ltx_align_left">Winobias 2_2</td>
+<td id="S6.T8.3.11.2" class="ltx_td"></td>
+<td id="S6.T8.3.11.3" class="ltx_td ltx_align_center">84.53</td>
+<td id="S6.T8.3.11.4" class="ltx_td ltx_align_center">91.1</td>
+<td id="S6.T8.3.11.5" class="ltx_td ltx_align_center"><span id="S6.T8.3.11.5.1" class="ltx_text ltx_font_bold">92.23</span></td>
+</tr>
+<tr id="S6.T8.3.12" class="ltx_tr">
+<td id="S6.T8.3.12.1" class="ltx_td ltx_align_left ltx_border_bb">Toxigen</td>
+<td id="S6.T8.3.12.2" class="ltx_td ltx_border_bb"></td>
+<td id="S6.T8.3.12.3" class="ltx_td ltx_align_center ltx_border_bb">60.26</td>
+<td id="S6.T8.3.12.4" class="ltx_td ltx_align_center ltx_border_bb"><span id="S6.T8.3.12.4.1" class="ltx_text ltx_font_bold">29.77</span></td>
+<td id="S6.T8.3.12.5" class="ltx_td ltx_align_center ltx_border_bb">39.59</td>
+</tr>
+</table>
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 8: </span>Safety academic benchmark results, compared to similarly sized, openly-available models.
+<br class="ltx_break"><sup id="S6.T8.5.1" class="ltx_sup">∗</sup> evaluations run by us. Note that due to restrictive licensing, we were unable to run evals on LLaMA-2; we do not report previously-published LLaMA-2 numbers for TruthfulQA, as we use different, non-comparable evaluation set-ups (we use MC2, where LLaMA-2 uses GPT-Judge).
+</figcaption>
+</figure>
+</section>
+<section id="S6.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.3 </span>Memorization Evaluations</h3>
+
+<div id="S6.SS3.p1" class="ltx_para">
+<p id="S6.SS3.p1.1" class="ltx_p">Recent work has shown that aligned models may be vulnerable to new adversarial attacks that can bypass alignment <cite class="ltx_cite ltx_citemacro_citep">(Nasr et al., <a href="#bib.bib30" title="" class="ltx_ref">2023</a>)</cite>. These attacks can cause models to diverge, and sometimes regurgitate memorized training data in the process. We focus on discoverable memorization, which serves as a reasonable upper-bound on the memorization of a model <cite class="ltx_cite ltx_citemacro_citep">(Nasr et al., <a href="#bib.bib30" title="" class="ltx_ref">2023</a>)</cite> and has been the common definition used in several studies <cite class="ltx_cite ltx_citemacro_citep">(Carlini et al., <a href="#bib.bib9" title="" class="ltx_ref">2022</a>; Anil et al., <a href="#bib.bib3" title="" class="ltx_ref">2023</a>; Kudugunta et al., <a href="#bib.bib26" title="" class="ltx_ref">2023</a>)</cite>.</p>
+</div>
+<figure id="S6.F2" class="ltx_figure"><img src="/html/2403.08295/assets/x2.png" id="S6.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="461" height="267" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 2: </span>Comparing average memorization rates across model families. We compare the Gemma pretrained models to PaLM and PaLM 2 models of comparable size and find similarly low rates of memorization.</figcaption>
+</figure>
+<div id="S6.SS3.p2" class="ltx_para">
+<p id="S6.SS3.p2.1" class="ltx_p">We test for memorization<span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note">1</span>Our use of “memorization” relies on the definition of that term found at www.genlaw.org/glossary.html.</span></span></span> of the Gemma pretrained models with the same methodology performed in <cite class="ltx_cite ltx_citemacro_citet">Anil et al. (<a href="#bib.bib3" title="" class="ltx_ref">2023</a>)</cite>. We sample 10,000 documents from each corpus and use the first 50 tokens as a prompt for the model. We focus mainly on exact memorization, where we classify texts as memorized if the subsequent 50 tokens generated by the model exactly match the ground truth continuation in the text. However, to better capture potential paraphrased memorizations, we include approximate memorization <cite class="ltx_cite ltx_citemacro_citep">(Ippolito et al., <a href="#bib.bib21" title="" class="ltx_ref">2022</a>)</cite> using an 10% edit distance threshold. In Figure <a href="#S6.F2" title="Figure 2 ‣ 6.3 Memorization Evaluations ‣ 6 Evaluation ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, we compare the results of our evaluation with the closest sized PaLM <cite class="ltx_cite ltx_citemacro_citep">(Chowdhery et al., <a href="#bib.bib11" title="" class="ltx_ref">2022</a>)</cite> and PaLM 2 models <cite class="ltx_cite ltx_citemacro_citep">(Anil et al., <a href="#bib.bib3" title="" class="ltx_ref">2023</a>)</cite>.</p>
+</div>
+<section id="S6.SS3.SSS0.Px1" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Verbatim Memorization</h4>
+
+<div id="S6.SS3.SSS0.Px1.p1" class="ltx_para">
+<p id="S6.SS3.SSS0.Px1.p1.1" class="ltx_p">PaLM 2 compared with PaLM by evaluating on a shared subset of their training corpora. However, there is even less overlap between the Gemma pretraining data with the PaLM models, and so using this same methodology, we observe much lower memorization rates (Figure <a href="#S6.F2" title="Figure 2 ‣ 6.3 Memorization Evaluations ‣ 6 Evaluation ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> left). Instead, we find that estimating the “total memorization” across the entire pretraining dataset gives a more reliable estimate (Figure <a href="#S6.F2" title="Figure 2 ‣ 6.3 Memorization Evaluations ‣ 6 Evaluation ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> right) where we now find the Gemma memorizes training data at a comparable rate to PaLM.</p>
+</div>
+<figure id="S6.F3" class="ltx_figure"><img src="/html/2403.08295/assets/x3.png" id="S6.F3.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="461" height="265" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 3: </span>Measuring personal and sensitive data memorization rates. <span id="S6.F3.2.1" class="ltx_text ltx_font_bold">No sensitive data was memorized, hence it is omitted from the figure</span>.</figcaption>
+</figure>
+</section>
+<section id="S6.SS3.SSS0.Px2" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Personal Data</h4>
+
+<div id="S6.SS3.SSS0.Px2.p1" class="ltx_para">
+<p id="S6.SS3.SSS0.Px2.p1.1" class="ltx_p">Perhaps of higher importance is the possibility that personal data might be memorized. As part of making Gemma pre-trained models safe and reliable, we used automated techniques to filter out certain personal information and other sensitive data from training sets.</p>
+</div>
+<div id="S6.SS3.SSS0.Px2.p2" class="ltx_para">
+<p id="S6.SS3.SSS0.Px2.p2.1" class="ltx_p">To identify possible occurrences of personal data, we use Google Cloud Sensitive Data Protection<span id="footnote2" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">2</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">2</sup><span class="ltx_tag ltx_tag_note">2</span>Available at: <a target="_blank" href="https://cloud.google.com/sensitive-data-protection" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://cloud.google.com/sensitive-data-protection</a></span></span></span>. This tool outputs three severity levels based on many categories of personal data (e.g., names, emails, etc.). We classify the highest severity as “sensitive” and the remaining two as simply “personal”. Then, we measure how many memorized outputs contain any sensitive or personal data. As shown in Figure <a href="#S6.F3" title="Figure 3 ‣ Verbatim Memorization ‣ 6.3 Memorization Evaluations ‣ 6 Evaluation ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, <em id="S6.SS3.SSS0.Px2.p2.1.1" class="ltx_emph ltx_font_italic">we observe no cases of memorized sensitive data.</em> We do find that the model memorizes some data we have classified as potentially “personal” according to the above, though often at a much lower rate. Further, it is important to note that these tools are known to have many false positives (because they only match patterns and do not consider the context), meaning that our results are likely overestimates of the amount of personal data identified.</p>
+</div>
+<figure id="S6.F4" class="ltx_figure"><img src="/html/2403.08295/assets/x4.png" id="S6.F4.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="461" height="270" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 4: </span>Comparing exact and approximate memorization.</figcaption>
+</figure>
+</section>
+<section id="S6.SS3.SSS0.Px3" class="ltx_paragraph">
+<h4 class="ltx_title ltx_title_paragraph">Approximate Memorization</h4>
+
+<div id="S6.SS3.SSS0.Px3.p1" class="ltx_para">
+<p id="S6.SS3.SSS0.Px3.p1.1" class="ltx_p">In Figure <a href="#S6.F4" title="Figure 4 ‣ Personal Data ‣ 6.3 Memorization Evaluations ‣ 6 Evaluation ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>, we observe that roughly 50% more data is approximately memorized (note the log scale) and that this is nearly consistent across each of the different subcategories over the dataset.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S7" class="ltx_section" lang="en">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">7 </span>Responsible Deployment</h2>
+
+<div id="S7.p1" class="ltx_para">
+<p id="S7.p1.1" class="ltx_p">In line with previous releases of Google’s AI technologies <cite class="ltx_cite ltx_citemacro_citep">(Gemini Team, <a href="#bib.bib18" title="" class="ltx_ref">2023</a>; Kavukcuoglu et al., <a href="#bib.bib24" title="" class="ltx_ref">2022</a>)</cite>, we follow a structured approach to responsible development and deployment of our models, in order to identify, measure, and manage foreseeable downstream societal impacts. As with our recent Gemini release, these are informed by prior academic literature on language model risks <cite class="ltx_cite ltx_citemacro_citep">(Weidinger et al., <a href="#bib.bib50" title="" class="ltx_ref">2021</a>)</cite>, findings from similar prior exercises conducted across the industry <cite class="ltx_cite ltx_citemacro_citep">(Anil et al., <a href="#bib.bib3" title="" class="ltx_ref">2023</a>)</cite>, ongoing engagement with experts internally and externally, and unstructured attempts to discover new model vulnerabilities.</p>
+</div>
+<section id="S7.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.1 </span>Benefits</h3>
+
+<div id="S7.SS1.p1" class="ltx_para">
+<p id="S7.SS1.p1.1" class="ltx_p">We believe that openness in AI science and technology can bring significant benefits. Open-sourcing is a significant driver of science and innovation, and a responsible practice in most circumstances. But this needs to be balanced against the risk of providing actors with the tools to cause harm now or in the future.</p>
+</div>
+<div id="S7.SS1.p2" class="ltx_para">
+<p id="S7.SS1.p2.1" class="ltx_p">Google has long committed to providing broader access to successful research innovations (GraphCast, Transformer, BERT, T5, Word2Vec), and we believe that releasing Gemma into the AI development ecosystem will enable downstream developers to create a host of beneficial applications, in areas such as science, education and the arts. Our instruction-tuned offerings should encourage a range of developers to leverage Gemma’s chat and code capabilities to support their own beneficial applications, while allowing for custom fine-tuning to specialize the model’s capabilities for specific use cases. To ensure Gemma supports a wide range of developer needs, we are also releasing two model sizes to optimally support different environments, and have made these models available across a number of platforms (see <a target="_blank" href="https://www.kaggle.com/models/google/gemma/frameworks/flax/variations/7b-it" title="" class="ltx_ref ltx_href">Kaggle</a> for details). Providing broad access to Gemma in this way should reduce the economic and technical barriers that newer ventures or independent developers face when incorporating these technologies into their workstreams.</p>
+</div>
+<div id="S7.SS1.p3" class="ltx_para">
+<p id="S7.SS1.p3.1" class="ltx_p">As well as serving developers with our instruction-tuned models, we have also provided access to corresponding base pretrained models. By doing so, it is our intention to encourage further AI safety research and community innovation, providing a wider pool of models available to developers to build on various methods of transparency and interpretability research that the community has already benefited from <cite class="ltx_cite ltx_citemacro_citep">(Pacchiardi et al., <a href="#bib.bib32" title="" class="ltx_ref">2023</a>; Zou et al., <a href="#bib.bib57" title="" class="ltx_ref">2023</a>)</cite>.</p>
+</div>
+</section>
+<section id="S7.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.2 </span>Risks</h3>
+
+<div id="S7.SS2.p1" class="ltx_para">
+<p id="S7.SS2.p1.1" class="ltx_p">In addition to bringing benefits to the AI development ecosystem, we are aware that malicious uses of LLMs, such as the creation of deepfake imagery, AI-generated disinformation, and illegal and disturbing material can cause harm on both an individual and institutional levels <cite class="ltx_cite ltx_citemacro_citep">(Weidinger et al., <a href="#bib.bib50" title="" class="ltx_ref">2021</a>)</cite>. Moreover, providing access to model weights, rather than releasing models behind an API, raises new challenges for responsible deployment.</p>
+</div>
+<div id="S7.SS2.p2" class="ltx_para">
+<p id="S7.SS2.p2.1" class="ltx_p">First, we cannot prevent bad actors from fine tuning Gemma for malicious intent, despite their use being subject to Terms of Use that prohibit the use of Gemma models in ways that contravene our Gemma Prohibited Use Policy. However, we are cognizant that further work is required to build more robust mitigation strategies against intentional misuse of open systems, which Google DeepMind will continue to explore both internally and in collaboration with the wider AI community.</p>
+</div>
+<div id="S7.SS2.p3" class="ltx_para">
+<p id="S7.SS2.p3.1" class="ltx_p">The second challenge we face is protecting developers and downstream users against the unintended behaviours of open models, including generation of toxic language or perpetuation of discriminatory social harms, model hallucinations and leakage of personally identifiable information. When deploying models behind an API, these risks can be reduced via various filtering methods.</p>
+</div>
+</section>
+<section id="S7.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.3 </span>Mitigations</h3>
+
+<div id="S7.SS3.p1" class="ltx_para">
+<p id="S7.SS3.p1.1" class="ltx_p">Without this layer of defense for the Gemma family of models, we have endeavoured to safeguard against these risks by filtering and measuring biases in pre-training data in line with the Gemini approach, assessing safety through standardized AI safety benchmarks, internal red teaming to better understand the risks associated with external use of Gemma, and subjecting the models to rigorous ethics and safety evaluations, the results of which can be seen in <a href="#S6.T8" title="Table 8 ‣ 6.2 Automated Benchmarks ‣ 6 Evaluation ‣ Gemma: Open Models Based on Gemini Research and Technology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8</span></a>.</p>
+</div>
+<div id="S7.SS3.p2" class="ltx_para">
+<p id="S7.SS3.p2.1" class="ltx_p">While we’ve invested significantly in improving the model, we recognize its limitations. To ensure transparency for downstream users, we’ve published a detailed <a target="_blank" href="https://ai.google.dev/gemma/docs/model_card" title="" class="ltx_ref ltx_href">model card</a> to provide researchers with a more comprehensive understanding of Gemma.</p>
+</div>
+<div id="S7.SS3.p3" class="ltx_para">
+<p id="S7.SS3.p3.1" class="ltx_p">We have also released a Generative AI Responsible Toolkit to support developers to build AI responsibly. This encompasses a series of assets to help developers design and implement responsible AI best practices and keep their own users safe.</p>
+</div>
+<div id="S7.SS3.p4" class="ltx_para">
+<p id="S7.SS3.p4.1" class="ltx_p">The relative novelty of releasing open weights models means new uses, and misuses, of these models are still being discovered, which is why Google DeepMind is committed to the continuous research and development of robust mitigation strategies alongside future model development.</p>
+</div>
+</section>
+<section id="S7.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.4 </span>Assessment</h3>
+
+<div id="S7.SS4.p1" class="ltx_para">
+<p id="S7.SS4.p1.1" class="ltx_p">Ultimately, given the capabilities of larger systems accessible within the existing ecosystem, we believe the release of Gemma will have a negligible effect on the overall AI risk portfolio. In light of this, and given the utility of these models for research, auditing and downstream product development, we are confident that the benefit of Gemma to the AI community outweighs the risks described.</p>
+</div>
+</section>
+<section id="S7.SS5" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">7.5 </span>Going Forward</h3>
+
+<div id="S7.SS5.p1" class="ltx_para">
+<p id="S7.SS5.p1.1" class="ltx_p">As a guiding principle, Google DeepMind strives to adopt assessments and safety mitigations proportionate to the potential risks from our models. In this case, although we are confident that Gemma models will provide a net benefit to the community, our emphasis on safety stems from the irreversible nature of this release. As the harms resulting from open models are not yet well defined, nor does an established evaluation framework for such models exist, we will continue to follow this precedent and take a measured and cautionary approach to open model development. As capabilities advance, we may need to explore extended testing, staggered releases or alternative access mechanisms to ensure responsible AI development.</p>
+</div>
+<div id="S7.SS5.p2" class="ltx_para">
+<p id="S7.SS5.p2.1" class="ltx_p">As the ecosystem evolves, we urge the wider AI community to move beyond simplistic ’open vs. closed’ debates, and avoid either exaggerating or minimising potential harms, as we believe a nuanced, collaborative approach to risks and benefits is essential. At Google DeepMind we’re committed to developing high-quality evaluations and invite the community to join us in this effort for a deeper understanding of AI systems.</p>
+</div>
+</section>
+</section>
+<section id="S8" class="ltx_section" lang="en">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">8 </span>Discussion and Conclusion</h2>
+
+<div id="S8.p1" class="ltx_para">
+<p id="S8.p1.1" class="ltx_p">We present Gemma, an openly available family of generative language models for text and code. Gemma advances the state of the art of openly available language model performance, safety, and responsible development.</p>
+</div>
+<div id="S8.p2" class="ltx_para">
+<p id="S8.p2.1" class="ltx_p">In particular, we are confident that Gemma models will provide a net benefit to the community given our extensive safety evaluations and mitigations; however, we acknowledge that this release is irreversible and the harms resulting from open models are not yet well defined, so we continue to adopt assessments and safety mitigations proportionate to the potential risks of these models. In addition, our models outperform competitors on 6 standard safety benchmarks, and in human side-by-side evaluations.</p>
+</div>
+<div id="S8.p3" class="ltx_para">
+<p id="S8.p3.1" class="ltx_p">Gemma models improve performance on a broad range of domains including dialogue, reasoning, mathematics, and code generation. Results on MMLU (64.3%) and MBPP (44.4%) demonstrate both the high performance of Gemma, as well as the continued headroom in openly available LLM performance.</p>
+</div>
+<div id="S8.p4" class="ltx_para">
+<p id="S8.p4.1" class="ltx_p">Beyond state-of-the-art performance measures on benchmark tasks, we are excited to see what new use-cases arise from the community, and what new capabilities emerge as we advance the field together. We hope that researchers use Gemma to accelerate a broad array of research, and we hope that developers create beneficial new applications, user experiences, and other functionality.</p>
+</div>
+<div id="S8.p5" class="ltx_para">
+<p id="S8.p5.1" class="ltx_p">Gemma benefits from many learnings of the Gemini model program including code, data, architecture, instruction tuning, reinforcement learning from human feedback, and evaluations. As discussed in the Gemini technical report, we reiterate a non-exhaustive set of limitations to the use of LLMs. Even with great performance on benchmark tasks, further research is needed to create robust, safe models that reliably perform as intended. Example further research areas include factuality, alignment, complex reasoning, and robustness to adversarial input. As discussed by Gemini, we note the need for more challenging and robust benchmarks.</p>
+</div>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+<section id="S9" class="ltx_section" lang="en">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">9 </span>Contributions and Acknowledgments</h2>
+
+<div id="S9.p1" class="ltx_para ltx_noindent">
+<p id="S9.p1.1" class="ltx_p"><span id="S9.p1.1.1" class="ltx_text ltx_font_bold">Core Contributors</span> 
+<br class="ltx_break">Thomas Mesnard 
+<br class="ltx_break">Cassidy Hardin 
+<br class="ltx_break">Robert Dadashi 
+<br class="ltx_break">Surya Bhupatiraju 
+<br class="ltx_break">Shreya Pathak 
+<br class="ltx_break">Laurent Sifre 
+<br class="ltx_break">Morgane Rivière 
+<br class="ltx_break">Mihir Sanjay Kale 
+<br class="ltx_break">Juliette Love 
+<br class="ltx_break">Pouya Tafti 
+<br class="ltx_break">Léonard Hussenot</p>
+</div>
+<div id="S9.p2" class="ltx_para ltx_noindent">
+<p id="S9.p2.1" class="ltx_p"><span id="S9.p2.1.1" class="ltx_text ltx_font_bold">Contributors</span> 
+<br class="ltx_break">Aakanksha Chowdhery 
+<br class="ltx_break">Adam Roberts 
+<br class="ltx_break">Aditya Barua 
+<br class="ltx_break">Alex Botev 
+<br class="ltx_break">Alex Castro-Ros 
+<br class="ltx_break">Ambrose Slone 
+<br class="ltx_break">Amélie Héliou 
+<br class="ltx_break">Andrea Tacchetti 
+<br class="ltx_break">Anna Bulanova 
+<br class="ltx_break">Antonia Paterson 
+<br class="ltx_break">Beth Tsai 
+<br class="ltx_break">Bobak Shahriari 
+<br class="ltx_break">Charline Le Lan 
+<br class="ltx_break">Christopher A. Choquette-Choo 
+<br class="ltx_break">Clément Crepy 
+<br class="ltx_break">Daniel Cer 
+<br class="ltx_break">Daphne Ippolito 
+<br class="ltx_break">David Reid 
+<br class="ltx_break">Elena Buchatskaya 
+<br class="ltx_break">Eric Ni 
+<br class="ltx_break">Eric Noland 
+<br class="ltx_break">Geng Yan 
+<br class="ltx_break">George Tucker 
+<br class="ltx_break">George-Christian Muraru 
+<br class="ltx_break">Grigory Rozhdestvenskiy 
+<br class="ltx_break">Henryk Michalewski 
+<br class="ltx_break">Ian Tenney 
+<br class="ltx_break">Ivan Grishchenko 
+<br class="ltx_break">Jacob Austin 
+<br class="ltx_break">James Keeling 
+<br class="ltx_break">Jane Labanowski 
+<br class="ltx_break">Jean-Baptiste Lespiau 
+<br class="ltx_break">Jeff Stanway 
+<br class="ltx_break">Jenny Brennan 
+<br class="ltx_break">Jeremy Chen 
+<br class="ltx_break">Johan Ferret 
+<br class="ltx_break">Justin Chiu 
+<br class="ltx_break">Justin Mao-Jones 
+<br class="ltx_break">Katherine Lee 
+<br class="ltx_break">Kathy Yu 
+<br class="ltx_break">Katie Millican 
+<br class="ltx_break">Lars Lowe Sjoesund 
+<br class="ltx_break">Lisa Lee 
+<br class="ltx_break">Lucas Dixon 
+<br class="ltx_break">Machel Reid 
+<br class="ltx_break">Maciej Mikuła 
+<br class="ltx_break">Mateo Wirth 
+<br class="ltx_break">Michael Sharman 
+<br class="ltx_break">Nikolai Chinaev 
+<br class="ltx_break">Nithum Thain 
+<br class="ltx_break">Olivier Bachem 
+<br class="ltx_break">Oscar Chang 
+<br class="ltx_break">Oscar Wahltinez 
+<br class="ltx_break">Paige Bailey 
+<br class="ltx_break">Paul Michel 
+<br class="ltx_break">Petko Yotov 
+<br class="ltx_break">Pier Giuseppe Sessa 
+<br class="ltx_break">Rahma Chaabouni 
+<br class="ltx_break">Ramona Comanescu 
+<br class="ltx_break">Reena Jana 
+<br class="ltx_break">Rohan Anil 
+<br class="ltx_break">Ross McIlroy 
+<br class="ltx_break">Ruibo Liu 
+<br class="ltx_break">Ryan Mullins 
+<br class="ltx_break">Samuel L Smith 
+<br class="ltx_break">Sebastian Borgeaud 
+<br class="ltx_break">Sertan Girgin 
+<br class="ltx_break">Sholto Douglas 
+<br class="ltx_break">Shree Pandya 
+<br class="ltx_break">Siamak Shakeri 
+<br class="ltx_break">Soham De 
+<br class="ltx_break">Ted Klimenko 
+<br class="ltx_break">Tom Hennigan 
+<br class="ltx_break">Vlad Feinberg 
+<br class="ltx_break">Wojciech Stokowiec 
+<br class="ltx_break">Yu-hui Chen 
+<br class="ltx_break">Zafarali Ahmed 
+<br class="ltx_break">Zhitao Gong</p>
+</div>
+<div id="S9.p3" class="ltx_para ltx_noindent">
+<p id="S9.p3.1" class="ltx_p"><span id="S9.p3.1.1" class="ltx_text ltx_font_bold">Product Management</span> 
+<br class="ltx_break">Tris Warkentin 
+<br class="ltx_break">Ludovic Peran</p>
+</div>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<div id="S9.p4" class="ltx_para ltx_noindent">
+<p id="S9.p4.1" class="ltx_p"><span id="S9.p4.1.1" class="ltx_text ltx_font_bold">Program Management</span> 
+<br class="ltx_break">Minh Giang</p>
+</div>
+<div id="S9.p5" class="ltx_para ltx_noindent">
+<p id="S9.p5.1" class="ltx_p"><span id="S9.p5.1.1" class="ltx_text ltx_font_bold">Executive Sponsors</span> 
+<br class="ltx_break">Clément Farabet 
+<br class="ltx_break">Oriol Vinyals 
+<br class="ltx_break">Jeff Dean 
+<br class="ltx_break">Koray Kavukcuoglu 
+<br class="ltx_break">Demis Hassabis 
+<br class="ltx_break">Zoubin Ghahramani 
+<br class="ltx_break">Douglas Eck 
+<br class="ltx_break">Joelle Barral 
+<br class="ltx_break">Fernando Pereira 
+<br class="ltx_break">Eli Collins</p>
+</div>
+<div id="S9.p6" class="ltx_para ltx_noindent">
+<p id="S9.p6.1" class="ltx_p"><span id="S9.p6.1.1" class="ltx_text ltx_font_bold">Leads</span> 
+<br class="ltx_break">Armand Joulin 
+<br class="ltx_break">Noah Fiedel 
+<br class="ltx_break">Evan Senter</p>
+</div>
+<div id="S9.p7" class="ltx_para ltx_noindent">
+<p id="S9.p7.2" class="ltx_p"><span id="S9.p7.2.1" class="ltx_text ltx_font_bold">Tech Leads</span> 
+<br class="ltx_break">Alek Andreev<math id="S9.p7.1.m1.1" class="ltx_Math" alttext="\dagger{}" display="inline"><semantics id="S9.p7.1.m1.1a"><mo id="S9.p7.1.m1.1.1" xref="S9.p7.1.m1.1.1.cmml">†</mo><annotation-xml encoding="MathML-Content" id="S9.p7.1.m1.1b"><ci id="S9.p7.1.m1.1.1.cmml" xref="S9.p7.1.m1.1.1">†</ci></annotation-xml><annotation encoding="application/x-tex" id="S9.p7.1.m1.1c">\dagger{}</annotation></semantics></math> 
+<br class="ltx_break">Kathleen Kenealy<math id="S9.p7.2.m2.1" class="ltx_Math" alttext="\dagger{}" display="inline"><semantics id="S9.p7.2.m2.1a"><mo id="S9.p7.2.m2.1.1" xref="S9.p7.2.m2.1.1.cmml">†</mo><annotation-xml encoding="MathML-Content" id="S9.p7.2.m2.1b"><ci id="S9.p7.2.m2.1.1.cmml" xref="S9.p7.2.m2.1.1">†</ci></annotation-xml><annotation encoding="application/x-tex" id="S9.p7.2.m2.1c">\dagger{}</annotation></semantics></math>
+<span id="footnote3" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">†</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">†</sup><math id="footnote3.m1.1" class="ltx_Math" alttext="\dagger{}" display="inline"><semantics id="footnote3.m1.1b"><mo id="footnote3.m1.1.1" xref="footnote3.m1.1.1.cmml">†</mo><annotation-xml encoding="MathML-Content" id="footnote3.m1.1c"><ci id="footnote3.m1.1.1.cmml" xref="footnote3.m1.1.1">†</ci></annotation-xml><annotation encoding="application/x-tex" id="footnote3.m1.1d">\dagger{}</annotation></semantics></math> equal contribution.</span></span></span></p>
+</div>
+<div id="S9.p8" class="ltx_para ltx_noindent">
+<p id="S9.p8.1" class="ltx_p"><span id="S9.p8.1.1" class="ltx_text ltx_font_bold">Acknowledgements</span> 
+<br class="ltx_break">Our work is made possible by the dedication and efforts of numerous teams at Google. We
+would like to acknowledge the support from the following teams: Gemini, Gemini Safety, Gemini Infrastructure, Gemini Evaluation, Google Cloud, Google Research Responsible AI, Kaggle, and Keras.</p>
+</div>
+<div id="S9.p9" class="ltx_para">
+<p id="S9.p9.1" class="ltx_p">Special thanks and acknowledgment to Adrian Hutter, Andreas Terzis, Andrei Kulik, Angelos Filos, Anushan Fernando, Aurelien Boffy, Danila Sinopalnikov, Edouard Leurent, Gabriela Surita, Geoffrey Cideron, Jilin Chen, Karthik Raveendran, Kathy Meier-Hellstern, Kehang Han, Kevin Robinson, Kritika Muralidharan, Le Hou, Leonard Berrada, Lev Proleev, Luheng He, Marie Pellat, Mark Sherwood, Matt Hoffman, Matthias Grundmann, Nicola De Cao, Nikola Momchev, Nino Vieillard, Noah Constant, Peter Liu, Piotr Stanczyk, Qiao Zhang, Ruba Haroun, Seliem El-Sayed, Siddhartha Brahma, Tianhe (Kevin) Yu, Tom Le Paine, Yingjie Miao, Yuanzhong Xu, and Yuting Sun.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography" lang="en">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Almazrouei et al. (2023)</span>
+<span class="ltx_bibblock">
+E. Almazrouei, H. Alobeidli, A. Alshamsi, A. Cappelli, R. Cojocaru, M. Debbah,
+Étienne Goffinet, D. Hesslow, J. Launay, Q. Malartic, D. Mazzotta, B. Noune,
+B. Pannier, and G. Penedo.
+
+</span>
+<span class="ltx_bibblock">The falcon series of open language models, 2023.
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Amodei et al. (2016)</span>
+<span class="ltx_bibblock">
+D. Amodei, C. Olah, J. Steinhardt, P. Christiano, J. Schulman, and D. Mané.
+
+</span>
+<span class="ltx_bibblock">Concrete problems in AI safety.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib2.1.1" class="ltx_emph ltx_font_italic">arXiv preprint</em>, 2016.
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Anil et al. (2023)</span>
+<span class="ltx_bibblock">
+R. Anil, A. M. Dai, O. Firat, M. Johnson, D. Lepikhin, A. Passos, S. Shakeri,
+E. Taropa, P. Bailey, Z. Chen, et al.
+
+</span>
+<span class="ltx_bibblock">Palm 2 technical report.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib3.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2305.10403</em>, 2023.
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Austin et al. (2021)</span>
+<span class="ltx_bibblock">
+J. Austin, A. Odena, M. I. Nye, M. Bosma, H. Michalewski, D. Dohan, E. Jiang,
+C. J. Cai, M. Terry, Q. V. Le, and C. Sutton.
+
+</span>
+<span class="ltx_bibblock">Program synthesis with large language models.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib4.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/2108.07732, 2021.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2108.07732" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2108.07732</a>.
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Bai et al. (2022)</span>
+<span class="ltx_bibblock">
+Y. Bai, S. Kadavath, S. Kundu, A. Askell, J. Kernion, A. Jones, A. Chen,
+A. Goldie, A. Mirhoseini, C. McKinnon, C. Chen, C. Olsson, C. Olah,
+D. Hernandez, D. Drain, D. Ganguli, D. Li, E. Tran-Johnson, E. Perez,
+J. Kerr, J. Mueller, J. Ladish, J. Landau, K. Ndousse, K. Lukosuite,
+L. Lovitt, M. Sellitto, N. Elhage, N. Schiefer, N. Mercado, N. DasSarma,
+R. Lasenby, R. Larson, S. Ringer, S. Johnston, S. Kravec, S. E. Showk,
+S. Fort, T. Lanham, T. Telleen-Lawton, T. Conerly, T. Henighan, T. Hume,
+S. R. Bowman, Z. Hatfield-Dodds, B. Mann, D. Amodei, N. Joseph,
+S. McCandlish, T. Brown, and J. Kaplan.
+
+</span>
+<span class="ltx_bibblock">Constitutional ai: Harmlessness from ai feedback, 2022.
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Barham et al. (2022)</span>
+<span class="ltx_bibblock">
+P. Barham, A. Chowdhery, J. Dean, S. Ghemawat, S. Hand, D. Hurt, M. Isard,
+H. Lim, R. Pang, S. Roy, B. Saeta, P. Schuh, R. Sepassi, L. E. Shafey, C. A.
+Thekkath, and Y. Wu.
+
+</span>
+<span class="ltx_bibblock">Pathways: Asynchronous distributed dataflow for ml, 2022.
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Bisk et al. (2019)</span>
+<span class="ltx_bibblock">
+Y. Bisk, R. Zellers, R. L. Bras, J. Gao, and Y. Choi.
+
+</span>
+<span class="ltx_bibblock">PIQA: reasoning about physical commonsense in natural language.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib7.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/1911.11641, 2019.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1911.11641" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1911.11641</a>.
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Bradley and Terry (1952)</span>
+<span class="ltx_bibblock">
+R. A. Bradley and M. E. Terry.
+
+</span>
+<span class="ltx_bibblock">Rank analysis of incomplete block designs: I. the method of paired
+comparisons.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib8.1.1" class="ltx_emph ltx_font_italic">Biometrika</em>, 39, 1952.
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Carlini et al. (2022)</span>
+<span class="ltx_bibblock">
+N. Carlini, D. Ippolito, M. Jagielski, K. Lee, F. Tramer, and C. Zhang.
+
+</span>
+<span class="ltx_bibblock">Quantifying memorization across neural language models.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib9.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2202.07646</em>, 2022.
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen et al. (2021)</span>
+<span class="ltx_bibblock">
+M. Chen, J. Tworek, H. Jun, Q. Yuan, H. P. de Oliveira Pinto, J. Kaplan,
+H. Edwards, Y. Burda, N. Joseph, G. Brockman, A. Ray, R. Puri, G. Krueger,
+M. Petrov, H. Khlaaf, G. Sastry, P. Mishkin, B. Chan, S. Gray, N. Ryder,
+M. Pavlov, A. Power, L. Kaiser, M. Bavarian, C. Winter, P. Tillet, F. P.
+Such, D. Cummings, M. Plappert, F. Chantzis, E. Barnes, A. Herbert-Voss,
+W. H. Guss, A. Nichol, A. Paino, N. Tezak, J. Tang, I. Babuschkin, S. Balaji,
+S. Jain, W. Saunders, C. Hesse, A. N. Carr, J. Leike, J. Achiam, V. Misra,
+E. Morikawa, A. Radford, M. Knight, M. Brundage, M. Murati, K. Mayer,
+P. Welinder, B. McGrew, D. Amodei, S. McCandlish, I. Sutskever, and
+W. Zaremba.
+
+</span>
+<span class="ltx_bibblock">Evaluating large language models trained on code.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib10.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/2107.03374, 2021.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2107.03374" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2107.03374</a>.
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chowdhery et al. (2022)</span>
+<span class="ltx_bibblock">
+A. Chowdhery, S. Narang, J. Devlin, M. Bosma, G. Mishra, A. Roberts, P. Barham,
+H. W. Chung, C. Sutton, S. Gehrmann, P. Schuh, K. Shi, S. Tsvyashchenko,
+J. Maynez, A. Rao, P. Barnes, Y. Tay, N. Shazeer, V. Prabhakaran, E. Reif,
+N. Du, B. Hutchinson, R. Pope, J. Bradbury, J. Austin, M. Isard, G. Gur-Ari,
+P. Yin, T. Duke, A. Levskaya, S. Ghemawat, S. Dev, H. Michalewski, X. Garcia,
+V. Misra, K. Robinson, L. Fedus, D. Zhou, D. Ippolito, D. Luan, H. Lim,
+B. Zoph, A. Spiridonov, R. Sepassi, D. Dohan, S. Agrawal, M. Omernick, A. M.
+Dai, T. S. Pillai, M. Pellat, A. Lewkowycz, E. Moreira, R. Child, O. Polozov,
+K. Lee, Z. Zhou, X. Wang, B. Saeta, M. Diaz, O. Firat, M. Catasta, J. Wei,
+K. Meier-Hellstern, D. Eck, J. Dean, S. Petrov, and N. Fiedel.
+
+</span>
+<span class="ltx_bibblock">Palm: Scaling language modeling with pathways, 2022.
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Christiano et al. (2017)</span>
+<span class="ltx_bibblock">
+P. F. Christiano, J. Leike, T. Brown, M. Martic, S. Legg, and D. Amodei.
+
+</span>
+<span class="ltx_bibblock">Deep reinforcement learning from human preferences.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib12.1.1" class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, 30, 2017.
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Clark et al. (2019)</span>
+<span class="ltx_bibblock">
+C. Clark, K. Lee, M. Chang, T. Kwiatkowski, M. Collins, and K. Toutanova.
+
+</span>
+<span class="ltx_bibblock">Boolq: Exploring the surprising difficulty of natural yes/no
+questions.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib13.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/1905.10044, 2019.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1905.10044" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1905.10044</a>.
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Clark et al. (2018)</span>
+<span class="ltx_bibblock">
+P. Clark, I. Cowhey, O. Etzioni, T. Khot, A. Sabharwal, C. Schoenick, and
+O. Tafjord.
+
+</span>
+<span class="ltx_bibblock">Think you have solved question answering? try arc, the ai2 reasoning
+challenge, 2018.
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Cobbe et al. (2021)</span>
+<span class="ltx_bibblock">
+K. Cobbe, V. Kosaraju, M. Bavarian, M. Chen, H. Jun, L. Kaiser, M. Plappert,
+J. Tworek, J. Hilton, R. Nakano, C. Hesse, and J. Schulman.
+
+</span>
+<span class="ltx_bibblock">Training verifiers to solve math word problems.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib15.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/2110.14168, 2021.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2110.14168" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2110.14168</a>.
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Dean et al. (2012)</span>
+<span class="ltx_bibblock">
+J. Dean, G. Corrado, R. Monga, K. Chen, M. Devin, M. Mao, M. a. Ranzato,
+A. Senior, P. Tucker, K. Yang, Q. Le, and A. Ng.
+
+</span>
+<span class="ltx_bibblock">Large scale distributed deep networks.
+
+</span>
+<span class="ltx_bibblock">In F. Pereira, C. Burges, L. Bottou, and K. Weinberger, editors,
+<em id="bib.bib16.1.1" class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, volume 25. Curran
+Associates, Inc., 2012.
+
+</span>
+<span class="ltx_bibblock">URL
+<a target="_blank" href="https://proceedings.neurips.cc/paper_files/paper/2012/file/6aca97005c68f1206823815f66102863-Paper.pdf" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://proceedings.neurips.cc/paper_files/paper/2012/file/6aca97005c68f1206823815f66102863-Paper.pdf</a>.
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Devlin et al. (2018)</span>
+<span class="ltx_bibblock">
+J. Devlin, M. Chang, K. Lee, and K. Toutanova.
+
+</span>
+<span class="ltx_bibblock">BERT: pre-training of deep bidirectional transformers for language
+understanding.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib17.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/1810.04805, 2018.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1810.04805" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1810.04805</a>.
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Gemini Team (2023)</span>
+<span class="ltx_bibblock">
+Gemini Team.
+
+</span>
+<span class="ltx_bibblock">Gemini: A family of highly capable multimodal models, 2023.
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Hendrycks et al. (2020)</span>
+<span class="ltx_bibblock">
+D. Hendrycks, C. Burns, S. Basart, A. Zou, M. Mazeika, D. Song, and
+J. Steinhardt.
+
+</span>
+<span class="ltx_bibblock">Measuring massive multitask language understanding.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib19.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/2009.03300, 2020.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2009.03300" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2009.03300</a>.
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Hendrycks et al. (2021)</span>
+<span class="ltx_bibblock">
+D. Hendrycks, C. Burns, S. Kadavath, A. Arora, S. Basart, E. Tang, D. Song, and
+J. Steinhardt.
+
+</span>
+<span class="ltx_bibblock">Measuring mathematical problem solving with the math dataset.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib20.1.1" class="ltx_emph ltx_font_italic">NeurIPS</em>, 2021.
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Ippolito et al. (2022)</span>
+<span class="ltx_bibblock">
+D. Ippolito, F. Tramèr, M. Nasr, C. Zhang, M. Jagielski, K. Lee, C. A.
+Choquette-Choo, and N. Carlini.
+
+</span>
+<span class="ltx_bibblock">Preventing verbatim memorization in language models gives a false
+sense of privacy.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib21.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2210.17546</em>, 2022.
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Jiang et al. (2023)</span>
+<span class="ltx_bibblock">
+A. Q. Jiang, A. Sablayrolles, A. Mensch, C. Bamford, D. S. Chaplot, D. de las
+Casas, F. Bressand, G. Lengyel, G. Lample, L. Saulnier, L. R. Lavaud, M.-A.
+Lachaux, P. Stock, T. L. Scao, T. Lavril, T. Wang, T. Lacroix, and W. E.
+Sayed.
+
+</span>
+<span class="ltx_bibblock">Mistral 7b, 2023.
+
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Joshi et al. (2017)</span>
+<span class="ltx_bibblock">
+M. Joshi, E. Choi, D. S. Weld, and L. Zettlemoyer.
+
+</span>
+<span class="ltx_bibblock">Triviaqa: A large scale distantly supervised challenge dataset for
+reading comprehension.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib23.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/1705.03551, 2017.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1705.03551" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1705.03551</a>.
+
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kavukcuoglu et al. (2022)</span>
+<span class="ltx_bibblock">
+K. Kavukcuoglu, P. Kohli, L. Ibrahim, D. Bloxwich, and S. Brown.
+
+</span>
+<span class="ltx_bibblock">How our principles helped define alphafold’s release, 2022.
+
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kudo and Richardson (2018)</span>
+<span class="ltx_bibblock">
+T. Kudo and J. Richardson.
+
+</span>
+<span class="ltx_bibblock">SentencePiece: A simple and language independent subword
+tokenizer and detokenizer for neural text processing.
+
+</span>
+<span class="ltx_bibblock">In E. Blanco and W. Lu, editors, <em id="bib.bib25.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 2018
+Conference on Empirical Methods in Natural Language Processing: System
+Demonstrations</em>, pages 66–71, Brussels, Belgium, Nov. 2018. Association for
+Computational Linguistics.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https:/doi.org/10.18653/v1/D18-2012" title="" class="ltx_ref">10.18653/v1/D18-2012</a>.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://aclanthology.org/D18-2012" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://aclanthology.org/D18-2012</a>.
+
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kudugunta et al. (2023)</span>
+<span class="ltx_bibblock">
+S. Kudugunta, I. Caswell, B. Zhang, X. Garcia, C. A. Choquette-Choo, K. Lee,
+D. Xin, A. Kusupati, R. Stella, A. Bapna, et al.
+
+</span>
+<span class="ltx_bibblock">Madlad-400: A multilingual and document-level large audited dataset.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib26.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2309.04662</em>, 2023.
+
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kwiatkowski et al. (2019)</span>
+<span class="ltx_bibblock">
+T. Kwiatkowski, J. Palomaki, O. Redfield, M. Collins, A. Parikh, C. Alberti,
+D. Epstein, I. Polosukhin, J. Devlin, K. Lee, K. Toutanova, L. Jones,
+M. Kelcey, M.-W. Chang, A. M. Dai, J. Uszkoreit, Q. Le, and S. Petrov.
+
+</span>
+<span class="ltx_bibblock">Natural questions: A benchmark for question answering research.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib27.1.1" class="ltx_emph ltx_font_italic">Transactions of the Association for Computational Linguistics</em>,
+7:452–466, 2019.
+
+</span>
+<span class="ltx_bibblock"><a target="_blank" href="https:/doi.org/10.1162/tacl_a_00276" title="" class="ltx_ref">10.1162/tacl_a_00276</a>.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://aclanthology.org/Q19-1026" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://aclanthology.org/Q19-1026</a>.
+
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">LeCun et al. (2015)</span>
+<span class="ltx_bibblock">
+Y. LeCun, Y. Bengio, and G. Hinton.
+
+</span>
+<span class="ltx_bibblock">Deep learning.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib28.1.1" class="ltx_emph ltx_font_italic">nature</em>, 521(7553):436–444, 2015.
+
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Mikolov et al. (2013)</span>
+<span class="ltx_bibblock">
+T. Mikolov, K. Chen, G. Corrado, and J. Dean.
+
+</span>
+<span class="ltx_bibblock">Efficient estimation of word representations in vector space.
+
+</span>
+<span class="ltx_bibblock">In Y. Bengio and Y. LeCun, editors, <em id="bib.bib29.1.1" class="ltx_emph ltx_font_italic">1st International
+Conference on Learning Representations, ICLR 2013, Scottsdale, Arizona,
+USA, May 2-4, 2013, Workshop Track Proceedings</em>, 2013.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1301.3781" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1301.3781</a>.
+
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Nasr et al. (2023)</span>
+<span class="ltx_bibblock">
+M. Nasr, N. Carlini, J. Hayase, M. Jagielski, A. F. Cooper, D. Ippolito, C. A.
+Choquette-Choo, E. Wallace, F. Tramèr, and K. Lee.
+
+</span>
+<span class="ltx_bibblock">Scalable extraction of training data from (production) language
+models.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib30.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2311.17035</em>, 2023.
+
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Ouyang et al. (2022)</span>
+<span class="ltx_bibblock">
+L. Ouyang, J. Wu, X. Jiang, D. Almeida, C. Wainwright, P. Mishkin, C. Zhang,
+S. Agarwal, K. Slama, A. Ray, et al.
+
+</span>
+<span class="ltx_bibblock">Training language models to follow instructions with human feedback.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib31.1.1" class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, 35, 2022.
+
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Pacchiardi et al. (2023)</span>
+<span class="ltx_bibblock">
+L. Pacchiardi, A. J. Chan, S. Mindermann, I. Moscovitz, A. Y. Pan, Y. Gal,
+O. Evans, and J. Brauner.
+
+</span>
+<span class="ltx_bibblock">How to catch an ai liar: Lie detection in black-box llms by asking
+unrelated questions, 2023.
+
+</span>
+</li>
+<li id="bib.bib33" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Paperno et al. (2016)</span>
+<span class="ltx_bibblock">
+D. Paperno, G. Kruszewski, A. Lazaridou, Q. N. Pham, R. Bernardi, S. Pezzelle,
+M. Baroni, G. Boleda, and R. Fernández.
+
+</span>
+<span class="ltx_bibblock">The LAMBADA dataset: Word prediction requiring a broad discourse
+context.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib33.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/1606.06031, 2016.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1606.06031" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1606.06031</a>.
+
+</span>
+</li>
+<li id="bib.bib34" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Raffel et al. (2019)</span>
+<span class="ltx_bibblock">
+C. Raffel, N. Shazeer, A. Roberts, K. Lee, S. Narang, M. Matena, Y. Zhou,
+W. Li, and P. J. Liu.
+
+</span>
+<span class="ltx_bibblock">Exploring the limits of transfer learning with a unified text-to-text
+transformer.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib34.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/1910.10683, 2019.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1910.10683" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1910.10683</a>.
+
+</span>
+</li>
+<li id="bib.bib35" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Roberts et al. (2022)</span>
+<span class="ltx_bibblock">
+A. Roberts, H. W. Chung, A. Levskaya, G. Mishra, J. Bradbury, D. Andor,
+S. Narang, B. Lester, C. Gaffney, A. Mohiuddin, C. Hawthorne, A. Lewkowycz,
+A. Salcianu, M. van Zee, J. Austin, S. Goodman, L. B. Soares, H. Hu,
+S. Tsvyashchenko, A. Chowdhery, J. Bastings, J. Bulian, X. Garcia, J. Ni,
+A. Chen, K. Kenealy, J. H. Clark, S. Lee, D. Garrette, J. Lee-Thorp,
+C. Raffel, N. Shazeer, M. Ritter, M. Bosma, A. Passos, J. Maitin-Shepard,
+N. Fiedel, M. Omernick, B. Saeta, R. Sepassi, A. Spiridonov, J. Newlan, and
+A. Gesmundo.
+
+</span>
+<span class="ltx_bibblock">Scaling up models and data with <span id="bib.bib35.3.1" class="ltx_text ltx_markedasmath ltx_font_typewriter">t5x</span> and <span id="bib.bib35.4.2" class="ltx_text ltx_markedasmath ltx_font_typewriter">seqio</span>,
+2022.
+
+</span>
+</li>
+<li id="bib.bib36" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Roberts et al. (2023)</span>
+<span class="ltx_bibblock">
+A. Roberts, H. W. Chung, G. Mishra, A. Levskaya, J. Bradbury, D. Andor,
+S. Narang, B. Lester, C. Gaffney, A. Mohiuddin, et al.
+
+</span>
+<span class="ltx_bibblock">Scaling up models and data with t5x and seqio.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib36.1.1" class="ltx_emph ltx_font_italic">Journal of Machine Learning Research</em>, 24(377):1–8, 2023.
+
+</span>
+</li>
+<li id="bib.bib37" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sakaguchi et al. (2019)</span>
+<span class="ltx_bibblock">
+K. Sakaguchi, R. L. Bras, C. Bhagavatula, and Y. Choi.
+
+</span>
+<span class="ltx_bibblock">WINOGRANDE: an adversarial winograd schema challenge at scale.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib37.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/1907.10641, 2019.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1907.10641" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1907.10641</a>.
+
+</span>
+</li>
+<li id="bib.bib38" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sap et al. (2019)</span>
+<span class="ltx_bibblock">
+M. Sap, H. Rashkin, D. Chen, R. L. Bras, and Y. Choi.
+
+</span>
+<span class="ltx_bibblock">Socialiqa: Commonsense reasoning about social interactions.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib38.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/1904.09728, 2019.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1904.09728" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1904.09728</a>.
+
+</span>
+</li>
+<li id="bib.bib39" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Shazeer (2019)</span>
+<span class="ltx_bibblock">
+N. Shazeer.
+
+</span>
+<span class="ltx_bibblock">Fast transformer decoding: One write-head is all you need.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib39.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/1911.02150, 2019.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1911.02150" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1911.02150</a>.
+
+</span>
+</li>
+<li id="bib.bib40" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Shazeer (2020)</span>
+<span class="ltx_bibblock">
+N. Shazeer.
+
+</span>
+<span class="ltx_bibblock">GLU variants improve transformer.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib40.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/2002.05202, 2020.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2002.05202" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2002.05202</a>.
+
+</span>
+</li>
+<li id="bib.bib41" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Skalse et al. (2022)</span>
+<span class="ltx_bibblock">
+J. M. V. Skalse, N. H. R. Howe, D. Krasheninnikov, and D. Krueger.
+
+</span>
+<span class="ltx_bibblock">Defining and characterizing reward gaming.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib41.1.1" class="ltx_emph ltx_font_italic">NeurIPS</em>, 2022.
+
+</span>
+</li>
+<li id="bib.bib42" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Su et al. (2021)</span>
+<span class="ltx_bibblock">
+J. Su, Y. Lu, S. Pan, B. Wen, and Y. Liu.
+
+</span>
+<span class="ltx_bibblock">Roformer: Enhanced transformer with rotary position embedding.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib42.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/2104.09864, 2021.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2104.09864" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2104.09864</a>.
+
+</span>
+</li>
+<li id="bib.bib43" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sutskever et al. (2014)</span>
+<span class="ltx_bibblock">
+I. Sutskever, O. Vinyals, and Q. V. Le.
+
+</span>
+<span class="ltx_bibblock">Sequence to sequence learning with neural networks.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib43.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/1409.3215, 2014.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1409.3215" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1409.3215</a>.
+
+</span>
+</li>
+<li id="bib.bib44" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Suzgun et al. (2022)</span>
+<span class="ltx_bibblock">
+M. Suzgun, N. Scales, N. Schärli, S. Gehrmann, Y. Tay, H. W. Chung,
+A. Chowdhery, Q. V. Le, E. H. Chi, D. Zhou, and J. Wei.
+
+</span>
+<span class="ltx_bibblock">Challenging big-bench tasks and whether chain-of-thought can solve
+them, 2022.
+
+</span>
+</li>
+<li id="bib.bib45" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Talmor et al. (2019)</span>
+<span class="ltx_bibblock">
+A. Talmor, J. Herzig, N. Lourie, and J. Berant.
+
+</span>
+<span class="ltx_bibblock">Commonsenseqa: A question answering challenge targeting commonsense
+knowledge, 2019.
+
+</span>
+</li>
+<li id="bib.bib46" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Touvron et al. (2023a)</span>
+<span class="ltx_bibblock">
+H. Touvron, T. Lavril, G. Izacard, X. Martinet, M.-A. Lachaux, T. Lacroix,
+B. Rozière, N. Goyal, E. Hambro, F. Azhar, A. Rodriguez, A. Joulin,
+E. Grave, and G. Lample.
+
+</span>
+<span class="ltx_bibblock">Llama: Open and efficient foundation language models,
+2023a.
+
+</span>
+</li>
+<li id="bib.bib47" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Touvron et al. (2023b)</span>
+<span class="ltx_bibblock">
+H. Touvron, L. Martin, K. Stone, P. Albert, A. Almahairi, Y. Babaei,
+N. Bashlykov, S. Batra, P. Bhargava, S. Bhosale, D. Bikel, L. Blecher, C. C.
+Ferrer, M. Chen, G. Cucurull, D. Esiobu, J. Fernandes, J. Fu, W. Fu,
+B. Fuller, C. Gao, V. Goswami, N. Goyal, A. Hartshorn, S. Hosseini, R. Hou,
+H. Inan, M. Kardas, V. Kerkez, M. Khabsa, I. Kloumann, A. Korenev, P. S.
+Koura, M.-A. Lachaux, T. Lavril, J. Lee, D. Liskovich, Y. Lu, Y. Mao,
+X. Martinet, T. Mihaylov, P. Mishra, I. Molybog, Y. Nie, A. Poulton,
+J. Reizenstein, R. Rungta, K. Saladi, A. Schelten, R. Silva, E. M. Smith,
+R. Subramanian, X. E. Tan, B. Tang, R. Taylor, A. Williams, J. X. Kuan,
+P. Xu, Z. Yan, I. Zarov, Y. Zhang, A. Fan, M. Kambadur, S. Narang,
+A. Rodriguez, R. Stojnic, S. Edunov, and T. Scialom.
+
+</span>
+<span class="ltx_bibblock">Llama 2: Open foundation and fine-tuned chat models,
+2023b.
+
+</span>
+</li>
+<li id="bib.bib48" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Vaswani et al. (2017)</span>
+<span class="ltx_bibblock">
+A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez,
+L. Kaiser, and I. Polosukhin.
+
+</span>
+<span class="ltx_bibblock">Attention is all you need.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib48.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/1706.03762, 2017.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1706.03762" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1706.03762</a>.
+
+</span>
+</li>
+<li id="bib.bib49" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wei et al. (2022)</span>
+<span class="ltx_bibblock">
+J. Wei, X. Wang, D. Schuurmans, M. Bosma, E. H. Chi, Q. Le, and D. Zhou.
+
+</span>
+<span class="ltx_bibblock">Chain of thought prompting elicits reasoning in large language
+models.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib49.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/2201.11903, 2022.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2201.11903" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2201.11903</a>.
+
+</span>
+</li>
+<li id="bib.bib50" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Weidinger et al. (2021)</span>
+<span class="ltx_bibblock">
+L. Weidinger, J. Mellor, M. Rauh, C. Griffin, J. Uesato, P. Huang, M. Cheng,
+M. Glaese, B. Balle, A. Kasirzadeh, Z. Kenton, S. Brown, W. Hawkins,
+T. Stepleton, C. Biles, A. Birhane, J. Haas, L. Rimell, L. A. Hendricks,
+W. Isaac, S. Legassick, G. Irving, and I. Gabriel.
+
+</span>
+<span class="ltx_bibblock">Ethical and social risks of harm from language models.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib50.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/2112.04359, 2021.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2112.04359" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2112.04359</a>.
+
+</span>
+</li>
+<li id="bib.bib51" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Williams (1992)</span>
+<span class="ltx_bibblock">
+R. J. Williams.
+
+</span>
+<span class="ltx_bibblock">Simple statistical gradient-following algorithms for connectionist
+reinforcement learning.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib51.1.1" class="ltx_emph ltx_font_italic">Machine learning</em>, 8, 1992.
+
+</span>
+</li>
+<li id="bib.bib52" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">XLA (2019)</span>
+<span class="ltx_bibblock">
+XLA.
+
+</span>
+<span class="ltx_bibblock">Xla: Optimizing compiler for tensorflow, 2019.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://www.tensorflow.org/xla" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://www.tensorflow.org/xla</a>.
+
+</span>
+</li>
+<li id="bib.bib53" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Xu et al. (2021)</span>
+<span class="ltx_bibblock">
+Y. Xu, H. Lee, D. Chen, B. A. Hechtman, Y. Huang, R. Joshi, M. Krikun,
+D. Lepikhin, A. Ly, M. Maggioni, R. Pang, N. Shazeer, S. Wang, T. Wang,
+Y. Wu, and Z. Chen.
+
+</span>
+<span class="ltx_bibblock">GSPMD: general and scalable parallelization for ML computation
+graphs.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib53.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/2105.04663, 2021.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="https://arxiv.org/abs/2105.04663" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://arxiv.org/abs/2105.04663</a>.
+
+</span>
+</li>
+<li id="bib.bib54" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhang and Sennrich (2019)</span>
+<span class="ltx_bibblock">
+B. Zhang and R. Sennrich.
+
+</span>
+<span class="ltx_bibblock">Root mean square layer normalization.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib54.1.1" class="ltx_emph ltx_font_italic">CoRR</em>, abs/1910.07467, 2019.
+
+</span>
+<span class="ltx_bibblock">URL <a target="_blank" href="http://arxiv.org/abs/1910.07467" title="" class="ltx_ref ltx_url ltx_font_typewriter">http://arxiv.org/abs/1910.07467</a>.
+
+</span>
+</li>
+<li id="bib.bib55" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zheng et al. (2023)</span>
+<span class="ltx_bibblock">
+L. Zheng, W.-L. Chiang, Y. Sheng, S. Zhuang, Z. Wu, Y. Zhuang, Z. Lin, Z. Li,
+D. Li, E. P. Xing, H. Zhang, J. E. Gonzalez, and I. Stoica.
+
+</span>
+<span class="ltx_bibblock">Judging llm-as-a-judge with mt-bench and chatbot arena, 2023.
+
+</span>
+</li>
+<li id="bib.bib56" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhong et al. (2023)</span>
+<span class="ltx_bibblock">
+W. Zhong, R. Cui, Y. Guo, Y. Liang, S. Lu, Y. Wang, A. Saied, W. Chen, and
+N. Duan.
+
+</span>
+<span class="ltx_bibblock">Agieval: A human-centric benchmark for evaluating foundation models,
+2023.
+
+</span>
+</li>
+<li id="bib.bib57" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zou et al. (2023)</span>
+<span class="ltx_bibblock">
+A. Zou, L. Phan, S. Chen, J. Campbell, P. Guo, R. Ren, A. Pan, X. Yin,
+M. Mazeika, A.-K. Dombrowski, S. Goel, N. Li, M. J. Byun, Z. Wang, A. Mallen,
+S. Basart, S. Koyejo, D. Song, M. Fredrikson, J. Z. Kolter, and D. Hendrycks.
+
+</span>
+<span class="ltx_bibblock">Representation engineering: A top-down approach to ai transparency,
+2023.
+
+</span>
+</li>
+</ul>
+</section>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2403.08294" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2403.08295" class="ar5iv-text-button ar5iv-severity-error">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2403.08295">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2403.08295" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2403.08296" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Fri Apr  5 15:34:57 2024 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

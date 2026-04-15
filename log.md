@@ -2,6 +2,33 @@
 
 本页是 LLM Wiki 的追加式操作日志。
 
+## [2026-04-16] ingest | 扩充开放模型主线与 GLM Kimi 对照
+
+涉及页面：
+
+- [LLM 预训练](./wiki/topics/LLM%20预训练.md)
+- [开放模型家族与中国重要家族对照](./wiki/comparisons/%E5%BC%80%E6%94%BE%E6%A8%A1%E5%9E%8B%E5%AE%B6%E6%97%8F%E4%B8%8E%E4%B8%AD%E5%9B%BD%E9%87%8D%E8%A6%81%E5%AE%B6%E6%97%8F%E5%AF%B9%E7%85%A7.md)
+- [BLOOM](./wiki/concepts/BLOOM.md)
+- [Mistral 7B](./wiki/concepts/Mistral%207B.md)
+- [Mixtral](./wiki/concepts/Mixtral.md)
+- [Gemma](./wiki/concepts/Gemma.md)
+- [Gemma 2](./wiki/concepts/Gemma%202.md)
+- [DBRX](./wiki/concepts/DBRX.md)
+- [OpenELM](./wiki/concepts/OpenELM.md)
+- [Phi-3](./wiki/concepts/Phi-3.md)
+- [OLMo 2](./wiki/concepts/OLMo%202.md)
+- [GLM](./wiki/concepts/GLM.md)
+- [Kimi](./wiki/concepts/Kimi.md)
+- [index](./index.md)
+
+关键变更：
+
+- 新增 `BLOOM / MPT / Mistral 7B / Mixtral / Gemma / Gemma 2 / StarCoder2 / DBRX / OpenELM / Phi-3 / OLMo 2 / Falcon 3 / GLM / Kimi` 的原始来源链路，并补齐对应 `raw/html`、`raw/pdf` 与 `raw/text`
+- 为上述模型家族新增对应 `wiki/summaries/` 与 `wiki/concepts/` 页面，统一明确 `open-weight`、`开放发布但限制较多`、`API 或闭源` 的边界
+- 在 `LLM 预训练` 中补入开放模型家族阶段与中国重要家族对照节点的叙述，避免把 `GLM` 与 `Kimi` 混进同一种开放性类别
+- 新增 comparison 页 [开放模型家族与中国重要家族对照](./wiki/comparisons/%E5%BC%80%E6%94%BE%E6%A8%A1%E5%9E%8B%E5%AE%B6%E6%97%8F%E4%B8%8E%E4%B8%AD%E5%9B%BD%E9%87%8D%E8%A6%81%E5%AE%B6%E6%97%8F%E5%AF%B9%E7%85%A7.md)，承接开放性与家族角色的横向整理
+- 更新根级 `index.md`，把 summary 计数增至 `224`，并补齐新增 summary、concept 与 comparison 导航
+
 ## [2026-04-15] ingest | 并入并移除 LLM 基础脉络
 
 涉及页面：

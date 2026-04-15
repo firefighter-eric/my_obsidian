@@ -11,7 +11,7 @@
 
 ## Summary
 
-- 当前已批量 ingest 210 篇 summary 页，按候选主题分组如下。
+- 当前已批量 ingest 224 篇 summary 页，按候选主题分组如下。
 
 ### Attention / Transformer
 
@@ -39,6 +39,19 @@
 - [Touvron et al. - 2023 - LLaMA Open and Efficient Foundation Language Models](./wiki/summaries/Touvron%20et%20al.%20-%202023%20-%20LLaMA%20Open%20and%20Efficient%20Foundation%20Language%20Models.md)：LLaMA 是开放高质量基础语言模型主线的重要起点，强调公开数据与高效推理预算。
 - [Touvron et al. - 2023 - Llama 2 Open Foundation and Fine-Tuned Chat Models](./wiki/summaries/Touvron%20et%20al.%20-%202023%20-%20Llama%202%20Open%20Foundation%20and%20Fine-Tuned%20Chat%20Models.md)：Llama 2 将开放 foundation model 与 chat 对齐模型一起系统发布。
 - [Roziere et al. - 2023 - Code Llama Open Foundation Models for Code](./wiki/summaries/Roziere%20et%20al.%20-%202023%20-%20Code%20Llama%20Open%20Foundation%20Models%20for%20Code.md)：Code Llama 是以 Llama 2 为底座衍生出的代码专门模型家族。
+- [Scao et al. - 2022 - BLOOM A 176B-Parameter Open-Access Multilingual Language Model](./wiki/summaries/Scao%20et%20al.%20-%202022%20-%20BLOOM%20A%20176B-Parameter%20Open-Access%20Multilingual%20Language%20Model.md)：`BLOOM` 代表超大规模开放多语言模型与 BigScience 协作开放路线。
+- [MosaicML - 2023 - MPT-7B](./wiki/summaries/MosaicML%20-%202023%20-%20MPT-7B.md)：`MPT` 代表商用友好、工程平台驱动的开放模型路线。
+- [Jiang et al. - 2023 - Mistral 7B](./wiki/summaries/Jiang%20et%20al.%20-%202023%20-%20Mistral%207B.md)：`Mistral 7B` 把高效 dense 开放模型推成主流竞争节点。
+- [Jiang et al. - 2024 - Mixtral of Experts](./wiki/summaries/Jiang%20et%20al.%20-%202024%20-%20Mixtral%20of%20Experts.md)：`Mixtral` 代表开放模型中的 `MoE` 家族主线。
+- [Team, Google - 2024 - Gemma Open Models Based on Gemini Research and Technology](./wiki/summaries/Team,%20Google%20-%202024%20-%20Gemma%20Open%20Models%20Based%20on%20Gemini%20Research%20and%20Technology.md)：`Gemma` 是 Google 进入开放小模型家族竞争的起点。
+- [Team, Google DeepMind - 2024 - Gemma 2 Improving Open Language Models at a Practical Size](./wiki/summaries/Team,%20Google%20DeepMind%20-%202024%20-%20Gemma%202%20Improving%20Open%20Language%20Models%20at%20a%20Practical%20Size.md)：`Gemma 2` 代表 Google 开放家族在实用尺寸上的能力强化。
+- [Lozhkov et al. - 2024 - StarCoder 2 and The Stack v2 The Next Generation](./wiki/summaries/Lozhkov%20et%20al.%20-%202024%20-%20StarCoder%202%20and%20The%20Stack%20v2%20The%20Next%20Generation.md)：`StarCoder2` 承接开放代码模型与代码数据治理主线。
+- [Databricks - 2024 - DBRX A Highly Efficient Open LLM](./wiki/summaries/Databricks%20-%202024%20-%20DBRX%20A%20Highly%20Efficient%20Open%20LLM.md)：`DBRX` 是平台公司主导的高效开放大模型节点。
+- [Mehta et al. - 2024 - OpenELM An Efficient Language Model Family with Open Training and Inference Framework](./wiki/summaries/Mehta%20et%20al.%20-%202024%20-%20OpenELM%20An%20Efficient%20Language%20Model%20Family%20with%20Open%20Training%20and%20Inference%20Framework.md)：`OpenELM` 代表端侧效率与训练/推理框架开放路线。
+- [Abdin et al. - 2024 - Phi-3 Technical Report A Highly Capable Language Model Locally on Your Phone](./wiki/summaries/Abdin%20et%20al.%20-%202024%20-%20Phi-3%20Technical%20Report%20A%20Highly%20Capable%20Language%20Model%20Locally%20on%20Your%20Phone.md)：`Phi-3` 代表高能力密度小模型与本地部署路线。
+- [Ai2 - 2024 - OLMo 2 The Best Fully Open Language Model to Date](./wiki/summaries/Ai2%20-%202024%20-%20OLMo%202%20The%20Best%20Fully%20Open%20Language%20Model%20to%20Date.md)：`OLMo 2` 把 fully open research release 作为开放性主张推进。
+- [TII - 2024 - Falcon 3](./wiki/summaries/TII%20-%202024%20-%20Falcon%203.md)：`Falcon 3` 是国际开放模型版图中的重要补充家族。
+- [Zeng et al. - 2022 - GLM-130B An Open Bilingual Pre-trained Model](./wiki/summaries/Zeng%20et%20al.%20-%202022%20-%20GLM-130B%20An%20Open%20Bilingual%20Pre-trained%20Model.md)：`GLM-130B` 是中文重要双语开放大模型家族节点。
 - [Hoffmann et al. - 2022 - Training Compute-Optimal Large Language Models](./wiki/summaries/Hoffmann%20et%20al.%20-%202022%20-%20Training%20Compute-Optimal%20Large%20Language%20Models.md)：Training Compute-Optimal Large Language Models Jordan Hoﬀmann★, Sebast...
 - [Hu et al. - 2021 - LoRA Low-Rank Adaptation of Large Language Models](./wiki/summaries/Hu%20et%20al.%20-%202021%20-%20LoRA%20Low-Rank%20Adaptation%20of%20Large%20Language%20Models.md)：LORA: LOW-RANK ADAPTATION OF LARGE LAN- GUAGE MODELS Edward Hu∗ Yelong...
 - [Inan et al. - 2023 - Llama Guard LLM-based Input-Output Safeguard for Human-AI Conversations](./wiki/summaries/Inan%20et%20al.%20-%202023%20-%20Llama%20Guard%20LLM-based%20Input-Output%20Safeguard%20for%20Human-AI%20Conversations.md)：Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversatio...
@@ -49,6 +62,7 @@
 - [Unknown - 2024 - DeepSeek-R1 Incentivizing Reasoning Capability in LLMs via Reinforcement Learning](./wiki/summaries/Unknown%20-%202024%20-%20DeepSeek-R1%20Incentivizing%20Reasoning%20Capability%20in%20LLMs%20via%20Reinforcement%20Learning.md)：We introduce our first-generation reasoning models, DeepSeek-R1-Zero a...
 - [Unknown - 2024 - DeepSeek-V3 Technical Report](./wiki/summaries/Unknown%20-%202024%20-%20DeepSeek-V3%20Technical%20Report.md)：We present DeepSeek-V3, a strong Mixture-of-Experts (MoE) language mod...
 - [Wei et al. - 2021 - Finetuned Language Models Are Zero-Shot Learners](./wiki/summaries/Wei%20et%20al.%20-%202021%20-%20Finetuned%20Language%20Models%20Are%20Zero-Shot%20Learners.md)：Published as a conference paper at ICLR 2022 FINETUNED LANGUAGE MODELS...
+- [Kimi Team et al. - 2025 - Kimi k1.5 Scaling Reinforcement Learning with LLMs](./wiki/summaries/Kimi%20Team%20et%20al.%20-%202025%20-%20Kimi%20k1.5%20Scaling%20Reinforcement%20Learning%20with%20LLMs.md)：`Kimi k1.5` 是重要但非 `open-weight` 的中国推理家族对照节点。
 - [Qwen Team - 2025 - Qwen3 Think Deeper Act Faster](./wiki/summaries/Qwen%20Team%20-%202025%20-%20Qwen3%20Think%20Deeper%20Act%20Faster.md)：Qwen3 把 hybrid thinking、MoE 与 agent 能力整合成新一代 Qwen 主干。
 - [Qwen Team - 2026 - Qwen3.5 Towards Native Multimodal Agents](./wiki/summaries/Qwen%20Team%20-%202026%20-%20Qwen3.5%20Towards%20Native%20Multimodal%20Agents.md)：截至 2026-04-12，官方将 Qwen3.5 直接定义为 native multimodal agent 路线节点。
 - [Yuan et al. - 2023 - Scaling Relationship on Learning Mathematical Reasoning with Large Language Models](./wiki/summaries/Yuan%20et%20al.%20-%202023%20-%20Scaling%20Relationship%20on%20Learning%20Mathematical%20Reasoning%20with%20Large%20Language%20Models.md)：Preprint SCALING RELATIONSHIP ON LEARNING MATHEMATI- CAL REASONING WIT...
@@ -282,8 +296,22 @@
 - [Llama 2](./wiki/concepts/Llama%202.md)：承接开放 foundation + chat 一体发布路线的概念页。
 - [Code Llama](./wiki/concepts/Code%20Llama.md)：承接 Llama 家族代码专门分支的概念页。
 - [Llama 3](./wiki/concepts/Llama%203.md)：开放模型时代代表家族之一的概念页。
+- [BLOOM](./wiki/concepts/BLOOM.md)：承接超大规模开放多语言模型与 BigScience 协作路线的概念页。
+- [MPT](./wiki/concepts/MPT.md)：承接工程平台驱动、商用友好的开放模型路线。
+- [Mistral 7B](./wiki/concepts/Mistral%207B.md)：承接高效 dense 开放模型路线的关键节点。
+- [Mixtral](./wiki/concepts/Mixtral.md)：承接 Mistral 家族的 `MoE` 扩展与开放稀疏模型路线。
+- [Gemma](./wiki/concepts/Gemma.md)：承接 Google 开放小模型家族的总入口。
+- [Gemma 2](./wiki/concepts/Gemma%202.md)：承接 Gemma 家族在实用尺寸上的能力强化节点。
 - [DeepSeek](./wiki/concepts/DeepSeek.md)：连接 DeepSeek-V3 与 DeepSeek-R1 的模型家族概念页。
 - [DeepSeek-V3](./wiki/concepts/DeepSeek-V3.md)：承接开源大模型中的 MoE、高效训练与强基座能力。
+- [StarCoder2](./wiki/concepts/StarCoder2.md)：承接开放代码模型与 The Stack v2 数据治理路线。
+- [DBRX](./wiki/concepts/DBRX.md)：承接平台公司主导的高效开放大模型路线。
+- [OpenELM](./wiki/concepts/OpenELM.md)：承接端侧高效率开放模型与训练/推理框架开放路线。
+- [Phi-3](./wiki/concepts/Phi-3.md)：承接高能力密度小模型与本地部署路线。
+- [OLMo 2](./wiki/concepts/OLMo%202.md)：承接 fully open research release 取向的开放模型路线。
+- [Falcon 3](./wiki/concepts/Falcon%203.md)：承接国际开放模型版图中的重要补充家族。
+- [GLM](./wiki/concepts/GLM.md)：承接中文重要双语大模型家族与 `ChatGLM / GLM-4` 的上游节点。
+- [Kimi](./wiki/concepts/Kimi.md)：承接重要但非 `open-weight` 的中国推理家族对照节点。
 - [DeepSeek-R1](./wiki/concepts/DeepSeek-R1.md)：承接 reasoning-oriented RL 与后训练强化的代表概念页。
 - [InstructGPT](./wiki/concepts/InstructGPT.md)：承接早期 RLHF 管线与对齐转折点的概念页。
 - [DPO](./wiki/concepts/DPO.md)：承接偏好优化简化路线的概念页。
@@ -374,6 +402,7 @@
 ## Comparisons
 
 - [RLHF vs DPO vs ORPO vs KTO](./wiki/comparisons/RLHF%20vs%20DPO%20vs%20ORPO%20vs%20KTO.md)：比较经典 RLHF 管线与三条偏好优化简化路线的目标函数、数据接口与适用边界。
+- [开放模型家族与中国重要家族对照](./wiki/comparisons/%E5%BC%80%E6%94%BE%E6%A8%A1%E5%9E%8B%E5%AE%B6%E6%97%8F%E4%B8%8E%E4%B8%AD%E5%9B%BD%E9%87%8D%E8%A6%81%E5%AE%B6%E6%97%8F%E5%AF%B9%E7%85%A7.md)：比较开放模型主线与 `GLM / Kimi` 等中国重要家族节点在开放性、家族角色与技术主轴上的差异。
 
 ## Timelines
 
