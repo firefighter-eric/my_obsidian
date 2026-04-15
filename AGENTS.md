@@ -184,10 +184,11 @@ ingest 约束：
 回答问题时，默认顺序是：
 
 1. 先读取根级 `index.md`。
-2. 进入相关 `topics / concepts / comparisons / timelines` 页面。
-3. 必要时回溯到相关 `wiki/summaries/` 页面，确认核心判断的来源支持。
-4. 回答时明确依据来自哪些 wiki 页面。
-5. 若产生稳定知识产物，优先写回 `wiki/topics/`、`wiki/comparisons/` 或 `wiki/timelines/`，而不是只停留在对话里。
+2. 若 `index.md` 不足以定位页面，可使用本地搜索工具在 `index.md`、`wiki/` 与 `raw/text/` 中召回候选页。
+3. 优先进入相关 `topics / concepts / comparisons / timelines` 页面。
+4. 必要时回溯到相关 `wiki/summaries/` 页面，确认核心判断的来源支持。
+5. 回答时明确依据来自哪些 wiki 页面。
+6. 若产生稳定知识产物，优先写回 `wiki/topics/`、`wiki/comparisons/` 或 `wiki/timelines/`，而不是只停留在对话里。
 
 query 约束：
 
@@ -196,6 +197,9 @@ query 约束：
 - 若现有 topic 仍是“待建设 topic”或弱占位页，应明确说明其成熟度不足，不能把占位描述当成稳定结论。
 - 若 query 形成了有复用价值的比较、分析、框架、脉络梳理，应优先把它沉淀成新页面，而不是让高价值结论消失在聊天记录中。
 - 回答可引用 raw 层做补充核对，但默认不应绕开 wiki 重新做一次“从零 RAG”；优先使用 wiki，再在必要时向下回溯。
+- 搜索工具的职责是“召回候选页”，不是替代 `index.md`、`wiki/` 或 `wiki/summaries/` 的事实地位。
+- 搜索命中后，默认先打开 `wiki/topics/`、`wiki/concepts/`、`wiki/comparisons/`、`wiki/timelines/`；若涉及具体证据，再回到 `wiki/summaries/`。
+- `raw/text/` 只作为全文补查与核对层，不直接替代 `wiki/summaries/` 作为稳定依据。
 - 若查询暴露出现有 wiki 缺口，例如缺 summary、缺 concept、缺 cross-link、缺对比页，应优先补齐相关页面。
 
 ### Lint
@@ -228,6 +232,8 @@ query 约束：
 
 - `PyMuPDF`（Python 包名 `pymupdf`，代码中通常以 `fitz` 使用）：用于读取 `raw/pdf/` 中的 PDF，并抽取文本到 `raw/text/`。当前对应脚本是 `scripts/extract_pdf_text.py`。
 - `requests`：用于下载网页、arXiv PDF、arXiv HTML 等原始来源。当前对应脚本包括 `scripts/download_arxiv.py` 与 `scripts/fetch_web_text.py`。
+- `qmd` CLI：本地 markdown 检索工具，用于在 `query` 阶段对 `index.md`、`wiki/` 与 `raw/text/` 做候选页召回；它是检索层，不是事实层。
+- `scripts/search_wiki.py`：当前仓库的 `qmd` 包装入口，统一约束索引范围、结果分层与默认排序。
 - `scripts/fetch_web_text.py`：用于抓取普通网页，并把正文提取成 markdown；提取逻辑基于标准库 `html.parser` 与页面中的 JSON-LD 信息。
 - `scripts/download_arxiv.py`：用于把 arXiv 来源落到 `raw/pdf/`、`raw/html/`、`raw/text/` 三层，适合 arXiv ingest。
 - `scripts/extract_pdf_text.py`：用于把已有 PDF 批量或单篇转换为 `raw/text/` markdown。
@@ -237,6 +243,7 @@ query 约束：
 - 若来源同时存在 arXiv HTML 与 PDF，优先使用 HTML 提取 `raw/text/`；PDF 抽取作为后备方案。
 - 若只是为了读取本地 PDF 内容，优先使用 `PyMuPDF`，不要手工复制 PDF 文本。
 - 若只是为了抓取普通网页正文，优先复用 `scripts/fetch_web_text.py` 的现有提取逻辑，而不是每次从零写抓取代码。
+- 若需要在现有 wiki 中快速定位候选页，优先通过 `scripts/search_wiki.py` 调用 `qmd`，而不是在对话里手工枚举文件。
 
 历史脚本说明：
 

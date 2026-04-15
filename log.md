@@ -828,3 +828,46 @@
 
 - 在 ingest 的 topic 补充规则中明确：新增 topic 若使用新材料，必须先确认 `raw/html` 或 `raw/pdf` 中已保留原始文件
 - 若原始 HTML / PDF 缺失，先下载原始文件，再生成 `raw/text` 与 `wiki/summaries`，最后再纳入正式 topic
+
+## [2026-04-15] ingest | 补入 Qwen-Image-Layered 与 AlphaVAE
+
+涉及页面：
+
+- 新增 `raw/pdf/Yin et al. - 2025 - Qwen-Image-Layered Towards Inherent Editability via Layer Decomposition.pdf`
+- 新增 `raw/html/Yin et al. - 2025 - Qwen-Image-Layered Towards Inherent Editability via Layer Decomposition.html`
+- 新增 `raw/text/Yin et al. - 2025 - Qwen-Image-Layered Towards Inherent Editability via Layer Decomposition.md`
+- 新增 `wiki/summaries/Yin et al. - 2025 - Qwen-Image-Layered Towards Inherent Editability via Layer Decomposition.md`
+- 新增 `raw/pdf/Wang et al. - 2025 - AlphaVAE Unified End-to-End RGBA Image Reconstruction and Generation with Alpha-Aware Representation Learning.pdf`
+- 新增 `raw/html/Wang et al. - 2025 - AlphaVAE Unified End-to-End RGBA Image Reconstruction and Generation with Alpha-Aware Representation Learning.html`
+- 新增 `raw/text/Wang et al. - 2025 - AlphaVAE Unified End-to-End RGBA Image Reconstruction and Generation with Alpha-Aware Representation Learning.md`
+- 新增 `wiki/summaries/Wang et al. - 2025 - AlphaVAE Unified End-to-End RGBA Image Reconstruction and Generation with Alpha-Aware Representation Learning.md`
+- 新增 `wiki/concepts/Qwen-Image-Layered.md`
+- 新增 `wiki/concepts/AlphaVAE.md`
+- 新增 `wiki/concepts/RGBA 图层图像.md`
+- 更新 `wiki/concepts/Qwen-Image.md`
+- 更新 `wiki/topics/扩散模型与文生图.md`
+- 更新 `wiki/topics/Qwen 系列.md`
+- 更新 `index.md`
+
+关键变更：
+
+- 按 `raw/pdf or raw/html -> raw/text -> wiki/summaries` 顺序补齐两篇新来源的原始层与全文层
+- 将 `Qwen-Image-Layered` 组织为 Qwen 图像生成支线向 `RGBA` 图层分解扩展的节点
+- 将 `AlphaVAE` 组织为透明图像与 `RGBA` 潜表示学习的基础设施来源
+- 新增 `RGBA 图层图像` 概念页，把透明图像表征、图层分解与可编辑生成写成可复用中间层
+- 回写 `扩散模型与文生图` 与 `Qwen 系列`，使新来源不只停留在单篇 summary
+
+## [2026-04-15] query | 将 authors 目录收敛为可求证的全名作者与机构页面
+
+涉及页面：
+
+- 删除一批 `et al.` / 姓氏聚合式作者页
+- 新增多个可求证全名作者页与机构页面
+- 更新 [index](./index.md)
+
+关键变更：
+
+- 不再保留 `Wang et al.`、`Li et al.` 这类无法映射到单一真实作者的伪作者页
+- 将可稳定求证的人名改为全名作者页，例如 `Junyang Lin`、`Jingren Zhou`、`Hugo Touvron`、`Joseph Redmon`、`Ali Farhadi`
+- 表格结构识别相关作者页拆成 `Brandon Smock`、`Rohith Pesala`、`Robin Abraham` 三个独立作者页
+- 同步更新 `index.md` 的 Authors 区，使根级导航直接指向这些可求证的真实作者与机构页面

@@ -20,6 +20,13 @@
         "a": 1,
         "rgb": 15068302
       }
+    },
+    {
+      "query": "path:wiki/authors  ",
+      "color": {
+        "a": 1,
+        "rgb": 6080726
+      }
     }
   ],
   "collapse-display": false,
@@ -31,7 +38,7 @@
   "centerStrength": 0.367491319444444,
   "repelStrength": 13.5546875,
   "linkStrength": 0.815017361111111,
-  "linkDistance": 423,
+  "linkDistance": 372,
   "scale": 0.3056490975410947,
   "close": false
 }

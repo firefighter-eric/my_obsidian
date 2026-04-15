@@ -16,6 +16,7 @@ Qwen-Image 是 Qwen 家族首次明确推出的图像生成基础模型。在当
 - Qwen-Image 的差异化重点不是抽象地“图像质量更高”，而是把复杂文本渲染与一致性编辑做成核心能力。
 - 其 `20B MMDiT` 定位表明 Qwen 家族已经不只是在理解型多模态上扩展，也开始进入原生图像生成基础模型赛道。
 - 从知识组织角度看，Qwen-Image 既属于扩散/文生图研究线，也应被放回 `Qwen 系列` 中理解家族分叉。
+- 随着 `Qwen-Image-Layered` 出现，Qwen 图像生成分支已经不只关注 RGB 出图与编辑，也开始向 `RGBA` 图层表示和可编辑工作流延伸。
 
 ## 来源支持
 
@@ -24,6 +25,8 @@ Qwen-Image 是 Qwen 家族首次明确推出的图像生成基础模型。在当
 ## 关联页面
 
 - [Qwen](./Qwen.md)
+- [Qwen-Image-Layered](./Qwen-Image-Layered.md)
+- [RGBA 图层图像](./RGBA%20%E5%9B%BE%E5%B1%82%E5%9B%BE%E5%83%8F.md)
 - [Qwen2.5-Omni](./Qwen2.5-Omni.md)
 - [Qwen3.5-Omni](./Qwen3.5-Omni.md)
 - [Stable Diffusion](./Stable%20Diffusion.md)

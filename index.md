@@ -11,7 +11,7 @@
 
 ## Summary
 
-- 当前已批量 ingest 208 篇 summary 页，按候选主题分组如下。
+- 当前已批量 ingest 210 篇 summary 页，按候选主题分组如下。
 
 ### Attention / Transformer
 
@@ -67,6 +67,8 @@
 - [Stability AI - 2022 - Stable Diffusion Launch Announcement](./wiki/summaries/Stability%20AI%20-%202022%20-%20Stable%20Diffusion%20Launch%20Announcement.md)：Stable Diffusion 将 latent diffusion 工程化为开放、可在消费级 GPU 上运行的文生图模型。
 - [Black Forest Labs - 2026 - FLUX.2 Overview](./wiki/summaries/Black%20Forest%20Labs%20-%202026%20-%20FLUX.2%20Overview.md)：FLUX.2 把多参考编辑、文本渲染与生产级控制整合成图像生成家族。
 - [Qwen Team - 2025 - Qwen-Image Crafting with Native Text Rendering](./wiki/summaries/Qwen%20Team%20-%202025%20-%20Qwen-Image%20Crafting%20with%20Native%20Text%20Rendering.md)：Qwen-Image 以复杂文本渲染与精确编辑为核心，打开 Qwen 的图像生成分支。
+- [Wang et al. - 2025 - AlphaVAE Unified End-to-End RGBA Image Reconstruction and Generation with Alpha-Aware Representation Learning](./wiki/summaries/Wang%20et%20al.%20-%202025%20-%20AlphaVAE%20Unified%20End-to-End%20RGBA%20Image%20Reconstruction%20and%20Generation%20with%20Alpha-Aware%20Representation%20Learning.md)：AlphaVAE 把透明图像的 RGBA VAE 与 benchmark 作为独立基础设施问题补齐。
+- [Yin et al. - 2025 - Qwen-Image-Layered Towards Inherent Editability via Layer Decomposition](./wiki/summaries/Yin%20et%20al.%20-%202025%20-%20Qwen-Image-Layered%20Towards%20Inherent%20Editability%20via%20Layer%20Decomposition.md)：Qwen-Image-Layered 把单张 RGB 图像分解为多层 RGBA 表示，强调 inherent editability。
 
 ### LLM RL
 
@@ -323,6 +325,9 @@
 - [Stable Diffusion](./wiki/concepts/Stable%20Diffusion.md)：承接开放扩散模型从 latent diffusion 论文走向消费级文生图生态的关键家族。
 - [FLUX.2](./wiki/concepts/FLUX.2.md)：承接生产级图像生成与多参考编辑路线的代表家族。
 - [Qwen-Image](./wiki/concepts/Qwen-Image.md)：承接 Qwen 首个图像生成基础模型与文本渲染分支。
+- [Qwen-Image-Layered](./wiki/concepts/Qwen-Image-Layered.md)：承接 Qwen 图像生成支线向可编辑图层分解扩展的节点。
+- [AlphaVAE](./wiki/concepts/AlphaVAE.md)：承接透明图像与 RGBA 潜表示学习的基础设施节点。
+- [RGBA 图层图像](./wiki/concepts/RGBA%20%E5%9B%BE%E5%B1%82%E5%9B%BE%E5%83%8F.md)：承接透明图像、图层分解与可编辑生成之间的中间概念页。
 - [Florence-2](./wiki/concepts/Florence-2.md)：承接统一视觉表示路线的概念页。
 - [Kosmos-2](./wiki/concepts/Kosmos-2.md)：承接 grounding-oriented 多模态模型路线的概念页。
 - [Kosmos-2.5](./wiki/concepts/Kosmos-2.5.md)：承接文档阅读型多模态模型路线的概念页。
@@ -344,8 +349,27 @@
 
 ## Authors
 
-- [作者分析](./wiki/authors/作者分析.md)：聚合高置信作者实体、代表来源与相关主题，作为作者导航入口。
-- [机构分析](./wiki/authors/机构分析.md)：聚合高置信机构实体、代表来源与相关主题，作为机构导航入口。
+- [Qwen Team](./wiki/authors/Qwen%20Team.md)：Qwen 家族的核心团队作者入口，连接 LLM、VL、Omni 与 Image 支线。
+- [Junyang Lin](./wiki/authors/Junyang%20Lin.md)：Alibaba / Qwen 多模态与统一建模主线的高频真实作者页。
+- [Jingren Zhou](./wiki/authors/Jingren%20Zhou.md)：Alibaba / Qwen 多模态与图像生成主线的高频真实作者页。
+- [Jinze Bai](./wiki/authors/Jinze%20Bai.md)：Qwen 技术报告主线中的真实作者页。
+- [Shuai Bai](./wiki/authors/Shuai%20Bai.md)：Qwen / Alibaba 统一建模与多模态路线的真实作者页。
+- [Hugo Touvron](./wiki/authors/Hugo%20Touvron.md)：LLaMA 家族的核心真实作者页。
+- [Joseph Redmon](./wiki/authors/Joseph%20Redmon.md)：YOLO 早期主线的核心真实作者页。
+- [Ali Farhadi](./wiki/authors/Ali%20Farhadi.md)：YOLO 早期主线的核心真实作者页。
+- [Brandon Smock](./wiki/authors/Brandon%20Smock.md)：表格结构识别方向的真实作者页。
+- [Rohith Pesala](./wiki/authors/Rohith%20Pesala.md)：表格结构识别方向的真实作者页。
+- [Robin Abraham](./wiki/authors/Robin%20Abraham.md)：表格结构识别方向的真实作者页。
+- [Qwen Team - Alibaba](./wiki/authors/Qwen%20Team%20-%20Alibaba.md)：Qwen 家族最完整的机构 / 团队入口。
+- [Meta AI](./wiki/authors/Meta%20AI.md)：LLaMA、Llama 2、Llama 3 与 Code Llama 主线的机构入口。
+- [OpenAI](./wiki/authors/OpenAI.md)：对齐、human feedback 与 agent 叙事的核心机构入口。
+- [Microsoft Research](./wiki/authors/Microsoft%20Research.md)：LoRA、Kosmos 与 Florence 路线的机构入口。
+- [Google Research](./wiki/authors/Google%20Research.md)：Transformer、BERT、T5 与 PaLM 主线的机构入口。
+- [DeepMind](./wiki/authors/DeepMind.md)：Gemma 与 compute-optimal training 路线的机构入口。
+- [DeepSeek](./wiki/authors/DeepSeek.md)：开放推理模型与 reasoning RL 主线的机构入口。
+- [MiniCPM - ModelBest](./wiki/authors/MiniCPM%20-%20ModelBest.md)：小模型与轻量多模态支线的机构入口。
+- [Stability AI](./wiki/authors/Stability%20AI.md)：开放扩散模型主线的机构入口。
+- [Black Forest Labs](./wiki/authors/Black%20Forest%20Labs.md)：`FLUX.2` 图像生成路线的机构入口。
 
 ## Comparisons
 
