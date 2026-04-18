@@ -11,7 +11,7 @@
 
 ## Summary
 
-- 当前已批量 ingest 224 篇 summary 页，按候选主题分组如下。
+- 当前已批量 ingest 228 篇 summary 页，按候选主题分组如下。
 
 ### Attention / Transformer
 
@@ -83,6 +83,10 @@
 - [Qwen Team - 2025 - Qwen-Image Crafting with Native Text Rendering](./wiki/summaries/Qwen%20Team%20-%202025%20-%20Qwen-Image%20Crafting%20with%20Native%20Text%20Rendering.md)：Qwen-Image 以复杂文本渲染与精确编辑为核心，打开 Qwen 的图像生成分支。
 - [Wang et al. - 2025 - AlphaVAE Unified End-to-End RGBA Image Reconstruction and Generation with Alpha-Aware Representation Learning](./wiki/summaries/Wang%20et%20al.%20-%202025%20-%20AlphaVAE%20Unified%20End-to-End%20RGBA%20Image%20Reconstruction%20and%20Generation%20with%20Alpha-Aware%20Representation%20Learning.md)：AlphaVAE 把透明图像的 RGBA VAE 与 benchmark 作为独立基础设施问题补齐。
 - [Yin et al. - 2025 - Qwen-Image-Layered Towards Inherent Editability via Layer Decomposition](./wiki/summaries/Yin%20et%20al.%20-%202025%20-%20Qwen-Image-Layered%20Towards%20Inherent%20Editability%20via%20Layer%20Decomposition.md)：Qwen-Image-Layered 把单张 RGB 图像分解为多层 RGBA 表示，强调 inherent editability。
+- [Yang et al. - 2025 - Generative Image Layer Decomposition with Visual Effects](./wiki/summaries/Yang%20et%20al.%20-%202025%20-%20Generative%20Image%20Layer%20Decomposition%20with%20Visual%20Effects.md)：Adobe 的 `LayerDecomp` 聚焦保留阴影与反射的两层分解接口，服务 object removal 与 spatial editing。
+- [Luo et al. - 2024 - IntrinsicDiffusion Joint Intrinsic Layers from Latent Diffusion Models](./wiki/summaries/Luo%20et%20al.%20-%202024%20-%20IntrinsicDiffusion%20Joint%20Intrinsic%20Layers%20from%20Latent%20Diffusion%20Models.md)：Adobe 用 foundation model 联合预测 intrinsic layers，把 layered 推向材质/光照/几何分解。
+- [Khan et al. - 2026 - Step-by-step Layered Design Generation](./wiki/summaries/Khan%20et%20al.%20-%202026%20-%20Step-by-step%20Layered%20Design%20Generation.md)：`SLEDGE` 把设计生成改写成逐步、可叠加、带 metadata 的 layered workflow。
+- [Maruani et al. - 2026 - Illustrator's Depth Monocular Layer Index Prediction for Image Decomposition](./wiki/summaries/Maruani%20et%20al.%20-%202026%20-%20Illustrator's%20Depth%20Monocular%20Layer%20Index%20Prediction%20for%20Image%20Decomposition.md)：Adobe 将分层重写为面向编辑的全局 layer index，服务矢量化与插画工作流。
 
 ### LLM RL
 
@@ -288,6 +292,7 @@
 - [指令对齐与 post-training](./wiki/topics/指令对齐与%20post-training.md)：围绕 instruction tuning、RLHF 与偏好优化组织 post-training 方法主线。
 - [Qwen 系列](./wiki/topics/Qwen%20系列.md)：围绕 Qwen1 到 Qwen3.5 的 LLM、VL、Omni 与 native multimodal agent 演进组织家族级综述。
 - [扩散模型与文生图](./wiki/topics/%E6%89%A9%E6%95%A3%E6%A8%A1%E5%9E%8B%E4%B8%8E%E6%96%87%E7%94%9F%E5%9B%BE.md)：围绕 latent diffusion、开放文生图与生产级图像生成控制组织独立研究主线。
+- [图像分层 layered](./wiki/topics/%E5%9B%BE%E5%83%8F%E5%88%86%E5%B1%82%20layered.md)：围绕 `RGBA` 图层、intrinsic layers、设计分步更新与矢量层级排序组织 layered 主线。
 - [视频生成](./wiki/topics/视频生成.md)：围绕 Sora、Veo、Kling、Wan、Vidu 与 Seedance 组织开放域视频生成、reference-to-video 与音视频联合生成主线。
 
 ## Concepts

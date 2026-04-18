@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "wiki/comparisons/开放模型家族与中国重要家族对照.md",
+                "file": "wiki/topics/图像分层 layered.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "开放模型家族与中国重要家族对照"
+              "title": "图像分层 layered"
             }
           }
         ]
@@ -185,6 +185,7 @@
   },
   "active": "4e202d434fa0be83",
   "lastOpenFiles": [
+    "wiki/comparisons/开放模型家族与中国重要家族对照.md",
     "wiki/topics/扩散模型与文生图.md",
     "wiki/topics/视频生成.md",
     "wiki/authors/ShengShu Technology.md",
@@ -200,7 +201,6 @@
     "wiki/summaries/Kuaishou Technology - 2026 - Kling VIDEO 3.0 Omni Model User Guide.md",
     "wiki/summaries/Google DeepMind - 2026 - Veo.md",
     "wiki/summaries/OpenAI - 2025 - Sora 2 is here.md",
-    "wiki/comparisons/开放模型家族与中国重要家族对照.md",
     "wiki/concepts/Kimi.md",
     "wiki/topics/LLM 预训练.md",
     "wiki/concepts/AlphaVAE.md",

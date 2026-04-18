@@ -7,55 +7,53 @@
 
 ## 主题定义
 
-本页讨论与 AI 直接相关的智能问答、智能客服与 support assistant 问题：用户围绕产品、服务、订单、规则、故障、售后与常见问题发起咨询，系统需要在多轮对话中理解意图、检索知识、生成回复，并在必要时调用工具或触发人工转接。这里的重点不是通用闲聊，也不是呼叫中心排班、纯语音识别或情感计算，而是“问答系统、客服机器人与 LLM assistant 如何成为可控、可追溯、可落地的企业服务系统”。
+本页讨论 **AI 驱动的智能问答与智能客服系统**：用户围绕产品、政策、订单、故障、售后和流程发起咨询，系统需要在多轮交互中完成意图理解、知识召回、回复生成、风险控制，以及在必要时触发工具调用或人工转接。这个主题的核心不是“模型能否把一句话答得通顺”，而是 **企业服务场景中的问答系统如何成为可控、可追溯、可运营的服务接口**。
 
-与 [指令对齐与 post-training](./指令对齐与%20post-training.md) 相比，本页更强调客服场景中的系统分层与应用约束；与 [传统 NLP](./传统%20NLP.md) 相比，本页不只关心检索或分类本身，而是关心这些能力如何拼成客服链路；与 [LLM RL](./LLM%20RL.md) 相比，本页把偏好优化与安全看作客服系统中的行为控制层，而不是独立算法主题。
+它与 [传统 NLP](./传统%20NLP.md) 的边界在于：后者讨论检索、编码器、句向量等基础方法谱系，而本页讨论这些能力如何被组织成客服链路。它与 [搜索排序](./搜索排序.md) 的边界在于：排序是客服系统中的一个中间层，本页关心的是从召回到回答再到执行的完整服务回路。它与 [指令对齐与 post-training](./指令对齐与%20post-training.md) 及 [LLM RL](./LLM%20RL.md) 的边界在于：对齐与偏好优化在这里被视为客服系统的行为约束层，而不是独立算法终点。
+
+因此，这个 topic 不应被理解为“客服版 LLM 应用合集”。更准确地说，它是一个 **由 FAQ 检索、对话状态建模、知识增强生成、工具调用、偏好对齐与安全护栏共同构成的系统问题域**。只讨论其中任一子模块，都不足以支撑“智能客服已经成立”的结论。
 
 ## 核心问题
 
-- 高频标准问答、长尾知识问答与事务型客服请求，分别适合 FAQ 检索、RAG 生成，还是工具调用。
-- 多轮智能客服对话中的历史轮次如何建模，哪些上下文应被保留，哪些应被忽略。
-- 通用 LLM 如何通过 instruction tuning、偏好学习与安全护栏转成企业可用的智能问答 / 智能客服助手。
-- 智能客服回复的正确性、可执行性、礼貌性、合规性与拒答边界应如何同时优化。
-- 智能问答与智能客服系统应如何评测，才能避免只看离线 NLP 指标却忽视真实业务风险。
+- **高频标准问答、长尾知识问答与事务型请求的边界如何划分**：哪些问题适合 FAQ 检索，哪些需要 RAG，哪些本质上已经是工具执行而不是问答。
+- **多轮对话中的有效上下文如何选择**：客服历史轮次并非越长越好，系统需要判断哪些历史信息构成任务状态，哪些只是噪声或礼貌性过渡。
+- **企业知识如何进入模型**：通用 LLM 的语言能力并不自动等于企业知识能力，知识接入方式决定了正确性、可解释性与更新成本。
+- **客服行为如何被约束**：礼貌、拒答、澄清、风险规避、工具调用和人工升级并非同一目标，需要不同层次的行为控制。
+- **客服系统到底如何评测**：离线准确率、人工偏好和线上业务指标之间并不天然一致，当前很多“效果提升”只覆盖了局部能力。
 
 ## 主线脉络 / 方法分层
 
-- FAQ 检索起点：`Sakata et al. 2019` 把客服问题首先建模为 FAQ pair 检索，而不是自由生成。它同时考虑 `query-question similarity` 与 `query-answer relevance`，说明客服场景不能只比“用户问得像不像历史问题”，还要比“候选答案是否真能解决当前诉求”。这一路线对高频、标准化、答案边界清晰的问题最有效，优点是稳定、可控、易审计，缺点是对组合式、跨文档、需要状态更新的长尾问题覆盖有限。
-- 多轮对话建模层：`Vlasov et al. 2019` 的 Dialogue Transformers 把对话状态表示建立在 turn-level self-attention 上，核心含义不是“把更强模型塞进客服”，而是指出客服对话历史并非都同样重要。真实客服里常见主题跳转、补充信息、纠错与插话，Transformer 对不同 turn 的选择性关注比简单 RNN 汇总更贴近客服对话结构。但该路线主要解决“如何编码对话状态”，并不自动解决事实依据与企业知识接入。
-- 语义检索取代词匹配：`Karpukhin et al. 2020` 用 DPR 证明 dense retrieval 可以显著超过 BM25 式稀疏检索。对客服而言，这意味着知识库召回不应只依赖关键词重叠，因为用户往往用口语、错误术语或模糊表述提问。DPR 的贡献在于把“问法变化”从规则问题转成表征问题，为后续 RAG 型客服提供了知识入口层。
-- 领域匹配检索强化：`Oğuz et al. 2021` 进一步说明，检索能力在客服里不是拿通用 embedding 就够了，领域匹配的预训练任务会明显影响效果。论文使用合成问题与对话式 post-comment 数据提升 IR 与 dialogue retrieval，背后的客服含义很直接：企业 FAQ、工单、聊天记录和知识文章本身就是关键训练资源，客服检索的瓶颈往往不只是模型结构，而是有没有把“本域问法”灌进去。
-- 从检索到知识增强客服：`Wang - PIKE-RAG` 把工业场景下的 RAG 问题进一步拆成 specialized knowledge extraction、task decomposition 与 rationale construction，说明复杂客服已不只是“召回一段文档再复述”。当问题涉及规则组合、异常情况解释或多条件判断时，客服系统需要把知识拆解、重组并逐步形成可解释回答。这一方向更接近复杂企业 support，而不只是通用开放问答。
-- 通用指令能力层：`Wei et al. 2021` 的 FLAN 说明 instruction tuning 能显著提升未见任务上的 zero-shot 泛化。对客服来说，这一层解决的是“模型能否理解工单改写、道歉、解释、澄清、总结、转接建议等多种指令样式”，从而摆脱完全基于固定 intent schema 的旧式客服机器人。
-- 指令数据设计层：`Iyer et al. 2022` 的 OPT-IML 不只是重复 FLAN 结论，而是把 instruction tuning 的决策变量拆开分析，包括任务多样性、采样策略、是否加入 demonstrations、是否加入 specialized dialogue / reasoning 数据。它对客服的启发是：企业要做客服模型，不只是“多喂点指令数据”，还要关心客服专属数据是否被当作独立分布建模，否则模型容易在泛化上看似很强，在真实客服对话里却不稳。
-- 对齐与服务风格层：`Ouyang et al. 2022` 的 InstructGPT 明确指出，大模型更大并不自动更 helpful、truthful、harmless。客服场景尤其依赖这一点，因为“回答得像人”不等于“回答得可交付”。该论文把 demonstrations、preference ranking 与 RLHF 连成完整管线，提供了把通用模型塑造成服务型交互代理的工程框架。
-- 偏好优化简化层：`Rafailov et al. 2023` 的 DPO 说明，很多客服风格偏好其实可以通过偏好对直接优化，而不必总是走 reward model + PPO 的重管线。论文中它在 summarization 和 single-turn dialogue 上表现良好，对客服团队的现实意义是：如果企业已有“更好的客服回复 vs 更差的客服回复”这类排序数据，就能以较低工程复杂度做行为塑形。
-- 工具使用层：`Schick et al. 2023` 的 Toolformer 表明模型可以学会何时调用外部 API。客服问题里，很多真正高价值场景不是回答知识，而是查订单、查物流、算赔付、查日程、创建工单。它提醒我们，生成式客服若没有工具层，常常只能停留在“解释型客服”；而要进入“处理型客服”，必须把工具调用纳入主线。
-- 安全与护栏层：`Inan et al. 2023` 的 Llama Guard 将 Human-AI conversation 中的输入与输出安全审查建模成专门 safeguard 任务。对客服系统来说，这意味着安全不应完全寄托在主模型“自觉守规矩”上，而应有独立的门控层处理越权请求、敏感内容、违规建议与危险回复。
-- 评测与治理层：`Liang et al. 2022` 的 HELM 说明语言模型评测不能只看单一准确率，而应把鲁棒性、公平性、毒性、校准与效率等维度同时纳入。客服系统尤其需要这种 holistic evaluation，因为真实业务里的失败往往不是“答错一道题”，而是“答得很像对、但在合规或行动层面出错”。
+- **FAQ 检索底座层**：`Sakata et al. 2019` 把客服首先建模为 FAQ pair retrieval，并同时考虑 `query-question similarity` 与 `query-answer relevance`。这说明客服最早、也最稳定的一层并不是自由生成，而是 **把用户问题映射到已有标准答案**。这一路线对高频、规范、答案边界清晰的问题最有效，因为它天然可审计、可回放、可复核。它的局限同样明确：一旦问题跨多个文档、涉及条件组合、账户状态或异常情形，FAQ 匹配就会迅速退化。
+- **对话状态建模层**：`Vlasov et al. 2019` 的 Dialogue Transformers 代表“客服不是单轮检索”的证据。客服对话里经常出现补充说明、上下文修正、用户情绪波动和主题切换，简单把所有历史文本拼接起来并不能稳定表示真正的任务状态。这个层次解决的是 **历史轮次的结构化编码问题**，即模型如何知道“哪一句历史还有效”。但这层只解决对话状态，不自动提供事实依据，也不能替代企业知识接入。
+- **语义检索与领域匹配层**：`Karpukhin et al. 2020` 的 DPR 和 `Oğuz et al. 2021` 的 domain-matched retrieval 共同把客服系统推进到 **“检索不再依赖词项重合，而依赖语义表征与领域数据匹配”** 的阶段。它们的重要性不只在于性能提升，而在于改变了客服知识入口的基本假设：用户会使用口语、错词、泛称和跨文档问题描述，因此企业知识召回必须先解决“说法不一样但需求相同”的问题。与此同时，`Oğuz et al. 2021` 又提醒，客服检索不是拿一个通用 embedding 就能解决，领域语料和任务匹配仍然决定上限。
+- **知识增强问答层**：`Wang - PIKE-RAG` 代表客服从“找到答案”走向“组织答案”的转折。复杂客服场景中的难点，常常不是缺某一条知识，而是缺 **对多条知识进行拆解、组合、解释和约束的能力**。例如退款规则、异常处理或多条件政策判断，往往要求系统先抽取专门知识，再按任务步骤组织 rationale。也正因此，RAG 在客服里真正解决的不是“让回答更像有依据”，而是 **让复杂服务问题从单文档回忆转成可解释的知识编排问题**。
+- **指令泛化层**：`Wei et al. 2021` 和 `Iyer et al. 2022` 说明，客服系统不能只依赖固定 intent schema。真实客服涉及解释、安抚、澄清、重述、总结、转接、礼貌拒答和流程引导，这些行为接口更接近 instruction following，而不是传统 FAQ 分类。这里的关键判断是：**instruction tuning 解决的是任务接口统一问题，而不是事实正确性问题**。它让模型更像一个通用服务代理，但并不保证其掌握企业知识或遵守企业策略。
+- **偏好对齐与服务风格层**：`Ouyang et al. 2022` 的 InstructGPT 与 `Rafailov et al. 2023` 的 DPO 共同支撑一个更系统的判断：客服中的“好回答”不是纯语义正确，而是 **正确、礼貌、可信、可执行、不过度承诺** 的复合目标。RLHF 提供了更完整的 demonstration + ranking + policy optimization 路线，DPO 则说明很多服务风格约束可以直接通过偏好对进行较轻量优化。两者并非简单替代，更像是在不同工程复杂度下实现行为塑形的两种路径。
+- **工具执行层**：`Schick et al. 2023` 的 Toolformer 指出，很多客服请求本质上不是知识问答，而是 **订单查询、流程触发、状态核验、工单创建、赔付计算** 之类的外部操作。没有工具层，生成式客服常常只能充当解释器；引入工具层后，系统才有可能从“回答型客服”进入“处理型客服”。这一区分非常关键，因为它决定了客服系统最终是停留在文本交互，还是能够闭环完成用户任务。
+- **安全门控与系统治理层**：`Inan et al. 2023` 的 Llama Guard 和 `Liang et al. 2022` 的 HELM 共同提醒，客服系统不能把安全和评测完全内化为主模型的一部分。客服风险包括违规承诺、危险建议、越权访问、误导性解释和不当执行。`Llama Guard` 代表的是 **独立 safeguard 层**，而 `HELM` 代表的是 **多维系统评测框架**。这两层共同说明，企业客服的可靠性来自系统分层治理，而不是单一模型“更聪明”。
 
 ## 关键争论与分歧
 
-- 客服应以检索为主还是生成为主：`Sakata 2019` 更接近“先找标准答案”，`Karpukhin 2020` 与 `PIKE-RAG` 则把客服推进到“检索后生成”。当前证据更支持把两者视为分层关系，而不是二选一替代。
-- 多轮对话能力是否足以代表客服能力：`Vlasov 2019` 说明上下文编码很关键，但客服失败常常并不发生在上下文建模，而是发生在知识缺失、政策执行错误或工具无法调用。
-- 指令微调是否足够：`Wei 2021` 与 `Iyer 2022` 说明 instruction tuning 能显著提升客服泛化，但 `Ouyang 2022` 与 `Rafailov 2023` 表明，若要稳定地符合企业偏好与服务风格，偏好优化仍然常常必要。
-- 安全应由主模型内化还是外部护栏承担：`Ouyang 2022` 倾向于通过对齐改善主模型行为，`Inan 2023` 则说明独立 safeguard 模型在系统层仍有不可替代性。
-- 评测应看离线基准还是业务指标：`Liang 2022` 支持多维评测，但客服落地还需要把首次解决率、升级率、误拒率、错误执行率与人工接管成本纳入评估；这部分在当前知识库里仍缺少更直接的 summary 支撑。
+- **客服系统应以检索为中心，还是以生成为中心**：现有证据并不支持二选一。`Sakata et al. 2019` 证明高频标准问题非常适合 FAQ 检索；`PIKE-RAG` 则说明复杂问题需要知识重组和解释。更稳健的结论是：**检索与生成对应的是不同复杂度层级的问题**。只有当问题跨文档、跨条件、需要整合说明时，生成层才真正成立；否则，检索式标准答案往往更可靠。
+- **多轮对话能力是否等于客服能力**：`Vlasov et al. 2019` 支撑“上下文选择很重要”，但这并不意味着把对话历史编码得更好，就足以构成客服系统优势。很多客服失败发生在事实依据错误、工具不可用、权限边界不清或政策执行失误上。因而“多轮能力很强”只能在 **知识层和执行层已成立** 的前提下，才转化为真正的客服收益。
+- **instruction tuning 是否足够支撑企业客服**：`Wei et al. 2021` 和 `Iyer et al. 2022` 支撑其在任务泛化上的价值，但 `Ouyang et al. 2022` 与 `Rafailov et al. 2023` 同时表明，若系统需要稳定符合企业服务风格、拒答边界和风险偏好，仅靠 instruction tuning 往往不够。这个争论成立的条件在于：**当客服目标从“会回答”转向“按组织要求回答”时，偏好优化的重要性显著上升**。
+- **安全应主要靠主模型内化，还是靠外部护栏系统**：`InstructGPT` 代表“通过对齐改善模型本身”，`Llama Guard` 代表“通过外部 safeguard 单独拦截风险”。当前更稳健的系统判断是：在客服这类高约束场景中，**外部护栏通常不是可选增强，而是必要分层**。只有在风险成本极低的场景下，才可能更多依赖主模型内化。
+- **客服评测应看离线基准、人工偏好还是线上业务指标**：`HELM` 已经说明单指标不足，但当前知识库中的 summary 对业务指标支撑仍明显不足。因此本页能较确定地说“需要多维评测”，却还不能较确定地说“哪些线上指标构成最优主指标”。这不是写作保守，而是 **证据基础尚不够覆盖企业运营层评价**。
 
 ## 证据基础
 
-- [Sakata et al. - 2019 - FAQ retrieval using query-question similarity and BERT-based query-answer relevance](../../wiki/summaries/Sakata%20et%20al.%20-%202019%20-%20FAQ%20retrieval%20using%20query-question%20similarity%20and%20BERT-based%20query-answer%20relevance.md)：支撑“高频标准客服问题首先可被建模为 FAQ 检索”的起点。
-- [Vlasov, Mosig, Nichol - 2019 - Dialogue Transformers](../../wiki/summaries/Vlasov,%20Mosig,%20Nichol%20-%202019%20-%20Dialogue%20Transformers.md)：支撑“客服需要多轮上下文选择性编码，而不是简单串接历史”。
-- [Karpukhin et al. - 2020 - Dense passage retrieval for open-domain question answering](../../wiki/summaries/Karpukhin%20et%20al.%20-%202020%20-%20Dense%20passage%20retrieval%20for%20open-domain%20question%20answering.md)：支撑“客服知识召回从词匹配转向语义检索”的关键方法节点。
-- [Oğuz et al. - 2021 - Domain-matched Pre-training Tasks for Dense Retrieval](../../wiki/summaries/O%C4%9Fuz%20et%20al.%20-%202021%20-%20Domain-matched%20Pre-training%20Tasks%20for%20Dense%20Retrieval.md)：支撑“客服检索效果高度依赖领域匹配数据与预训练任务”。
-- [Wei et al. - 2021 - Finetuned Language Models Are Zero-Shot Learners](../../wiki/summaries/Wei%20et%20al.%20-%202021%20-%20Finetuned%20Language%20Models%20Are%20Zero-Shot%20Learners.md)：支撑“指令微调可把通用模型拉向客服式任务接口”。
-- [Iyer et al. - 2022 - OPT-IML Scaling Language Model Instruction Meta Learning through the Lens of Generalization](../../wiki/summaries/Iyer%20et%20al.%20-%202022%20-%20OPT-IML%20Scaling%20Language%20Model%20Instruction%20Meta%20Learning%20through%20the%20Lens%20of%20Generalization.md)：支撑“客服型 instruction tuning 的关键在任务规模、分布与 specialized dialogue 数据设计”。
-- [Ouyang et al. - 2022 - Training language models to follow instructions with human feedback](../../wiki/summaries/Ouyang%20et%20al.%20-%202022%20-%20Training%20language%20models%20to%20follow%20instructions%20with%20human%20feedback.md)：支撑“客服助手需要 helpful / truthful / harmless 风格对齐”的核心框架。
-- [Liang et al. - 2022 - Holistic Evaluation of Language Models](../../wiki/summaries/Liang%20et%20al.%20-%202022%20-%20Holistic%20Evaluation%20of%20Language%20Models.md)：支撑“客服评测不能只看单一任务准确率”。
-- [Rafailov, Mitchell, Jul - 2023 - Direct Preference Optimization Your Language Model is Secretly a Reward Model](../../wiki/summaries/Rafailov,%20Mitchell,%20Jul%20-%202023%20-%20Direct%20Preference%20Optimization%20Your%20Language%20Model%20is%20Secretly%20a%20Reward%20Model.md)：支撑“客服风格偏好可通过更轻量的偏好优化实现”。
-- [Schick et al. - 2023 - Toolformer Language Models Can Teach Themselves to Use Tools](../../wiki/summaries/Schick%20et%20al.%20-%202023%20-%20Toolformer%20Language%20Models%20Can%20Teach%20Themselves%20to%20Use%20Tools.md)：支撑“客服从回答型代理走向处理型代理需要工具调用层”。
-- [Inan et al. - 2023 - Llama Guard LLM-based Input-Output Safeguard for Human-AI Conversations](../../wiki/summaries/Inan%20et%20al.%20-%202023%20-%20Llama%20Guard%20LLM-based%20Input-Output%20Safeguard%20for%20Human-AI%20Conversations.md)：支撑“客服系统需要独立的输入输出安全门控”。
-- [Wang - Unknown - PIKE-RAG sPecIalized KnowledgE and Rationale Augmented Generation](../../wiki/summaries/Wang%20-%20Unknown%20-%20PIKE-RAG%20sPecIalized%20KnowledgE%20and%20Rationale%20Augmented%20Generation.md)：支撑“工业客服中的复杂知识应用与分解式 RAG”。
+- [Sakata et al. - 2019 - FAQ retrieval using query-question similarity and BERT-based query-answer relevance](../../wiki/summaries/Sakata%20et%20al.%20-%202019%20-%20FAQ%20retrieval%20using%20query-question%20similarity%20and%20BERT-based%20query-answer%20relevance.md)：支撑客服以 FAQ 检索为稳定起点，以及问答相似度与答案相关性需要分开建模。
+- [Vlasov, Mosig, Nichol - 2019 - Dialogue Transformers](../../wiki/summaries/Vlasov,%20Mosig,%20Nichol%20-%202019%20-%20Dialogue%20Transformers.md)：支撑多轮客服对话需要选择性建模历史上下文，而不是简单拼接全部轮次。
+- [Karpukhin et al. - 2020 - Dense passage retrieval for open-domain question answering](../../wiki/summaries/Karpukhin%20et%20al.%20-%202020%20-%20Dense%20passage%20retrieval%20for%20open-domain%20question%20answering.md)：支撑客服知识入口从词项匹配走向语义检索。
+- [Oğuz et al. - 2021 - Domain-matched Pre-training Tasks for Dense Retrieval](../../wiki/summaries/O%C4%9Fuz%20et%20al.%20-%202021%20-%20Domain-matched%20Pre-training%20Tasks%20for%20Dense%20Retrieval.md)：支撑客服检索上限受领域语料和领域匹配预训练显著影响。
+- [Wei et al. - 2021 - Finetuned Language Models Are Zero-Shot Learners](../../wiki/summaries/Wei%20et%20al.%20-%202021%20-%20Finetuned%20Language%20Models%20Are%20Zero-Shot%20Learners.md)：支撑 instruction tuning 能把通用模型转成统一任务接口。
+- [Iyer et al. - 2022 - OPT-IML Scaling Language Model Instruction Meta Learning through the Lens of Generalization](../../wiki/summaries/Iyer%20et%20al.%20-%202022%20-%20OPT-IML%20Scaling%20Language%20Model%20Instruction%20Meta%20Learning%20through%20the%20Lens%20of%20Generalization.md)：支撑客服型指令能力与任务分布、采样方式和 specialized dialogue 数据设计相关。
+- [Ouyang et al. - 2022 - Training language models to follow instructions with human feedback](../../wiki/summaries/Ouyang%20et%20al.%20-%202022%20-%20Training%20language%20models%20to%20follow%20instructions%20with%20human%20feedback.md)：支撑客服助手需要 helpful、truthful、harmless 的服务型行为对齐。
+- [Liang et al. - 2022 - Holistic Evaluation of Language Models](../../wiki/summaries/Liang%20et%20al.%20-%202022%20-%20Holistic%20Evaluation%20of%20Language%20Models.md)：支撑客服评测不能只看单一正确率，而要考虑多维治理指标。
+- [Rafailov, Mitchell, Jul - 2023 - Direct Preference Optimization Your Language Model is Secretly a Reward Model](../../wiki/summaries/Rafailov,%20Mitchell,%20Jul%20-%202023%20-%20Direct%20Preference%20Optimization%20Your%20Language%20Model%20is%20Secretly%20a%20Reward%20Model.md)：支撑客服风格偏好可通过较轻量的偏好对直接优化。
+- [Schick et al. - 2023 - Toolformer Language Models Can Teach Themselves to Use Tools](../../wiki/summaries/Schick%20et%20al.%20-%202023%20-%20Toolformer%20Language%20Models%20Can%20Teach%20Themselves%20to%20Use%20Tools.md)：支撑客服从回答型代理走向处理型代理必须引入工具调用层。
+- [Inan et al. - 2023 - Llama Guard LLM-based Input-Output Safeguard for Human-AI Conversations](../../wiki/summaries/Inan%20et%20al.%20-%202023%20-%20Llama%20Guard%20LLM-based%20Input-Output%20Safeguard%20for%20Human-AI%20Conversations.md)：支撑客服系统中独立输入输出安全门控的必要性。
+- [Wang - Unknown - PIKE-RAG sPecIalized KnowledgE and Rationale Augmented Generation](../../wiki/summaries/Wang%20-%20Unknown%20-%20PIKE-RAG%20sPecIalized%20KnowledgE%20and%20Rationale%20Augmented%20Generation.md)：支撑复杂企业问答需要 specialized knowledge extraction、task decomposition 与 rationale construction。
 
 ## 代表页面
 
@@ -71,10 +69,10 @@
 
 ## 未解决问题
 
-- 当前知识库还缺少直接围绕工单分流、人工转接决策、客服行动执行与 CRM 集成的 summary，因此“客服代理如何可靠闭环”仍未形成稳定结论。
-- 多轮记忆与账户级个性化如何与知识检索、安全审查共同工作，当前证据仍偏方法碎片，缺少一条完整系统线。
-- 客服中的拒答、澄清、追问与升级到人工之间应如何做最优策略切换，现有页面能说明必要性，但不足以支撑成熟方法学。
-- 业务评测仍是明显空白：首次解决率、重复来访率、误操作率、投诉风险与人工节省之间的关系，当前尚无足够 `wiki/summaries/` 可作为结论基座。
+- **客服闭环执行仍缺关键证据**：当前 summary 已足以支撑“检索、生成、对齐、护栏、工具”这些模块为何重要，但还不足以支撑“企业客服如何稳定完成端到端事务闭环”的成熟结论，因为工单分流、CRM 集成、权限控制、人工接管策略等环节在知识库中仍缺更直接 summary。
+- **线上业务指标与模型指标之间的映射尚未建立**：本页可以较稳地说离线准确率不足，但还不能较稳地说首次解决率、升级率、投诉率、误拒率与模型子能力之间如何对应，因为当前证据基础没有覆盖完整的业务评测链。
+- **多轮记忆、个性化与合规之间的联动仍不清楚**：现有 summary 能分别说明对话建模、知识检索和安全门控的重要性，但尚不足以证明三者如何在真实企业环境中形成兼容机制。
+- **澄清、拒答、追问与转人工的最优策略仍属开放问题**：现有证据能说明这些动作必要，却不足以支撑它们的决策边界已经清晰。因此这里必须保留为未解决问题，而不是泛化成“未来可继续优化”的空泛表述。
 
 ## 关联页面
 

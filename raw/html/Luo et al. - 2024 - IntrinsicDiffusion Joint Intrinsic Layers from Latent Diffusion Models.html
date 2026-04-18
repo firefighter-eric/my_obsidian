@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en-US" class="no-js page">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!--[if lt IE 9]>
+    <script src="https://research.adobe.com/wp-content/themes/adoberesearch.com/js/html5.js"></script>
+    <![endif]-->
+
+<script>
+		  window.alloy_all = window.alloy_all || {};
+		  window.alloy_all.data = window.alloy_all.data || {};
+		  window.alloy_all.data._adobe_corpnew = window.alloy_all.data._adobe_corpnew || {};
+		  window.alloy_all.data._adobe_corpnew.digitalData = window.alloy_all.data._adobe_corpnew.digitalData || {};
+		  window.alloy_all.data._adobe_corpnew.digitalData.page =   window.alloy_all.data._adobe_corpnew.digitalData.page || {};
+		  window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo = window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo || {};
+		  window.alloy_all.data._adobe_corpnew.digitalData.page.pageInfo.language = 'eng-US'; // language related to geo
+</script>		  
+<script>	  
+var launchURL = "https://assets.adobedtm.com/d4d114c60e50/a0e989131fd5/launch-5dd5dd2177e6.min.js";
+edgeConfigId = '72b074a6-76d2-43de-a210-124acc734f1c'; // varies as per site
+
+/* 
+if( Site is stage){
+  edgeConfigId = '72b074a6-76d2-43de-a210-124acc734f1c'; // varies as per site
+  launchURL = "https://assets.adobedtm.com/d4d114c60e50/a0e989131fd5/launch-2c94beadc94f-development.min.js";
+}
+*/
+ window.marketingtech = {
+    adobe: {
+      launch: {
+        url: launchURL ,
+        controlPageLoad :true,   // If pageload is controlled by page and Launch will wait for 10 seconds to listen a pageload call from page
+        disablePageUnload: false // Need to be set true if page unload call is not needed
+       },
+      alloy: {
+        edgeConfigId: edgeConfigId,
+      },
+      target: true,
+      audienceManager: true
+  },
+  sophia:false,
+  marketingTags: {
+    disableGlobalTags: false,   // Need to be set true if third party pixels are not needed
+    disableContentsquare: false // Need to be set true if Contentsquare is not needed
+  }
+  };
+ </script>
+ 
+<script src="https://www.adobe.com/marketingtech/main.standard.min.js"></script>
+<script>
+//If any custom properties needs to be added for pageload, we need to send those details in secondary parameter in pageload call as shown below.
+ 
+_satellite.track('pageload', {
+  xdm: {},
+  data: {
+    _adobe_corpnew: {
+      digitalData: {} // any custom properties needed for pageload call needs to be added inside digitalData
+    }
+  }
+});
+ 
+ 
+//If there is no specific custom properties needed for pageload call use below code to make pageload call or 
+
+_satellite.track('pageload')
+
+</script>
+
+<script src="https://use.typekit.net/sxd6aqj.js"></script>
+<script>try{Typekit.load({ async: true });}catch(e){}</script>
+
+    <title>
+	Adobe Research &raquo; IntrinsicDiffusion: Joint Intrinsic Layers from Latent Diffusion Models	</title>
+		
+    <meta name="description" content="  IntrinsicDiffusion: Joint Intrinsic Layers from Latent Diffusion Models">
+    <meta name="copyright" content="Copyright (c)2025 Adobe Systems Incorporated. All rights reserved." />
+    <meta charset="UTF-8">
+    <meta content="initial-scale=1, minimum-scale=1, width=device-width" name="viewport">
+	
+ 		
+		<meta name="twitter:card" content="summary_large_image">
+		<meta name="twitter:site" content="@AdobeResearch">
+		<meta name="twitter:creator" content="@AdobeResearch">
+		<meta name="twitter:title" content="IntrinsicDiffusion: Joint Intrinsic Layers from Latent Diffusion Models">
+		<meta name="twitter:description" content="Jundan Luo Duygu Ceylan Jae Shin Yoon Nanxuan Zhao Julien Philip Anna Frühstück Wenbin Li Christian Richardt Tuanfeng Y. Wang SIGGRAPH 2024">	
+		<meta name="twitter:player" content="" />
+		<meta name="twitter:image" content="https://research.adobe.com/wp-content/themes/adoberesearch.com/images/facebook-default.jpg">
+		<meta property="og:title" content="IntrinsicDiffusion: Joint Intrinsic Layers from Latent Diffusion Models" />
+		<meta property="og:image:alt" content="IntrinsicDiffusion: Joint Intrinsic Layers from Latent Diffusion Models" />
+		<meta property="og:image" content="https://research.adobe.com/wp-content/themes/adoberesearch.com/images/facebook-default.jpg" />
+		<meta property="og:type" content="article" />
+		<meta property="og:video" content="" />
+		<meta property="og:description" content="Jundan Luo Duygu Ceylan Jae Shin Yoon Nanxuan Zhao Julien Philip Anna Frühstück Wenbin Li Christian Richardt Tuanfeng Y. Wang SIGGRAPH 2024" />
+		<meta property="og:url" content="https://research.adobe.com/publication/intrinsicdiffusion-joint-intrinsic-layers-from-latent-diffusion-models" />
+		<meta property="og:site_name" content="Adobe Research" />	
+    <meta name='robots' content='max-image-preview:large' />
+	<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style>
+	<link rel='dns-prefetch' href='//ajax.googleapis.com' />
+<link rel='stylesheet' id='wp-block-library-css' href='https://research.adobe.com/wp-includes/css/dist/block-library/style.min.css?ver=6.8.3' type='text/css' media='all' />
+<style id='classic-theme-styles-inline-css' type='text/css'>
+/*! This file is auto-generated */
+.wp-block-button__link{color:#fff;background-color:#32373c;border-radius:9999px;box-shadow:none;text-decoration:none;padding:calc(.667em + 2px) calc(1.333em + 2px);font-size:1.125em}.wp-block-file__button{background:#32373c;color:#fff;text-decoration:none}
+</style>
+<style id='elasticpress-related-posts-style-inline-css' type='text/css'>
+.editor-styles-wrapper .wp-block-elasticpress-related-posts ul,.wp-block-elasticpress-related-posts ul{list-style-type:none;padding:0}.editor-styles-wrapper .wp-block-elasticpress-related-posts ul li a>div{display:inline}
+
+</style>
+<style id='global-styles-inline-css' type='text/css'>
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgba(255, 255, 255, 1), 6px 6px rgba(0, 0, 0, 1);--wp--preset--shadow--crisp: 6px 6px 0px rgba(0, 0, 0, 1);}:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-post-template.is-layout-flex){gap: 1.25em;}:where(.wp-block-post-template.is-layout-grid){gap: 1.25em;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}:where(.wp-block-columns.is-layout-grid){gap: 2em;}
+:root :where(.wp-block-pullquote){font-size: 1.5em;line-height: 1.6;}
+</style>
+<link rel='stylesheet' id='style-css' href='https://research.adobe.com/wp-content/themes/adoberesearch.com/style.css?ver=6.8.3' type='text/css' media='all' />
+<link rel='stylesheet' id='elasticpress-facets-css' href='https://research.adobe.com/wp-content/plugins/elasticpress/dist/css/facets-styles.css?ver=5797fb4036fc4007a87a' type='text/css' media='all' />
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js?ver=6.8.3" id="jquery-js"></script>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.11.3/jquery-ui.min.js?ver=6.8.3" id="jquery-ui-js"></script>
+<script type="text/javascript" src="https://research.adobe.com/wp-content/themes/adoberesearch.com/js/all-min.js?ver=6.8.3" id="mainAll-js"></script>
+
+<script>
+if (self.location.hostname == "research.adobe.com") {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-74885207-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+
+<style type="text/css">.broken_link, a.broken_link {
+	/*text-decoration: line-through;*/
+}</style><link rel="icon" href="https://research.adobe.com/wp-content/uploads/2016/03/cropped-favicon-32x32.png" sizes="32x32" />
+<link rel="icon" href="https://research.adobe.com/wp-content/uploads/2016/03/cropped-favicon-192x192.png" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://research.adobe.com/wp-content/uploads/2016/03/cropped-favicon-180x180.png" />
+<meta name="msapplication-TileImage" content="https://research.adobe.com/wp-content/uploads/2016/03/cropped-favicon-270x270.png" />
+</head>
+
+<body class="wp-singular publication-template-default single single-publication postid-26737 wp-theme-adoberesearchcom" data-spy="scroll" data-target=".navbar" data-offset="1">
+
+<div id="top" class="site">
+
+<div class="container blue_dark" id="header">
+        <div class="flex_content header">
+            <div class="content">
+                <div class="header_fill"></div>
+                <ul class="custom-navigation-color">
+				
+                    <li title="Menu" id="header-menu"></li>
+                    <li id="homeNav" title="Home" class=" top-menu-selected"><a href="https://research.adobe.com/">Adobe Research</a></li>
+                    <li id="peopleNav" title="People" class=""><a href="https://research.adobe.com/people">People</a></li>
+                    <li id="researchNav" title="Research" class=""><a href="https://research.adobe.com/research">Research</a></li>
+                    <li id="publicationsNav" title="Publications" class="selected"><a href="https://research.adobe.com/publications">Publications</a></li>
+                    <li id="newsNav" title="News" class=""><a href="https://research.adobe.com/news">News</a></li>
+                    <li id="careersNav" title="Careers" class=""><a href="https://research.adobe.com/careers">Careers</a></li>
+                    <li id="programsNav" title="Programs" class=""><a href="https://research.adobe.com/programs">Programs</a></li>
+					<li id="videoNav" title="Videos" class=""><a href="https://research.adobe.com/videos">Videos</a></li>					
+                    <li id="aboutNav" title="About Adobe Research" class=""><a href="https://research.adobe.com/about-adobe-research">About</a></li>
+					<li id="searchNav" title="Search" class="seach-nav "><a href="#" onclick="return onSearchClick();"><span class="search-label">Search</span> <svg width='15' height='15'><use xlink:href='#white-search-icon' /></svg></a></li>
+                </ul>
+									<div class="search-icon-wrapper">
+						<form id="searchFormMobile" style="padding: 0px; background-color: transparent; display: flex" action="https://research.adobe.com/" method="get">
+							<input type="text" name="s" id="search-mobile" class="search-input-box" value="" onblur="searchFocusOut(event)" placeholder="Search"/>
+							<svg width='18' height='18' id="search-button-mobile" class="search-button" onclick="onMobileSearchClick()"><use xlink:href='#grey-search-input-icon' /></svg>
+							<svg width='18' height='18' id="cancel-button-mobile" class="search-cancel-button"  onclick="onMobileSearchCancelClick()"><use xlink:href='#grey-search-cancel-input-icon' /></svg>
+						</form>
+					</div>
+					<div id="searchFormDiv" class="header-search-box">
+						<form id="searchForm" style="padding: 0px; background-color: transparent; display: flex" action="https://research.adobe.com/" method="get">			
+							<input type="text" name="s" id="search" class="search-input-box" value="" onblur="searchFocusOut(event)"  placeholder="Search"/>
+							<svg width='18' height='18' class="search-button" onclick="onDoSearchClick()"><use xlink:href='#grey-search-input-icon' /></svg>
+							<svg width='18' height='18' class="search-cancel-button"><use xlink:href='#grey-search-cancel-input-icon' /></svg>
+						</form>
+					</div>
+				                <a href="https://www.adobe.com"><div class="adobe-white adobe-white-tab adobe-logo-mobile"></div></a>
+            </div>
+        </div>
+    </div>
+<svg display="none">
+  <symbol width="15" height="15" viewBox="0 0 18 15" id="grey-search-icon">
+	<rect id="Canvas" fill="#fff" opacity="0" width="18" height="18" /><path fill="#999" d="M16.5865,15.107,12.7,11.2215A6.413,6.413,0,1,0,11.2215,12.7l3.886,3.886a1.05,1.05,0,0,0,1.479-1.479ZM3,7.5A4.5,4.5,0,1,1,7.5,12,4.5,4.5,0,0,1,3,7.5Z" />
+  </symbol>
+
+  <symbol width="15" height="15" viewBox="0 0 18 15" width="15" id="white-search-icon">
+	<rect id="Canvas" fill="#fff" opacity="0" width="18" height="18" /><path fill="#fff" d="M16.5865,15.107,12.7,11.2215A6.413,6.413,0,1,0,11.2215,12.7l3.886,3.886a1.05,1.05,0,0,0,1.479-1.479ZM3,7.5A4.5,4.5,0,1,1,7.5,12,4.5,4.5,0,0,1,3,7.5Z" />
+  </symbol>
+
+  <symbol width="15" height="15" viewBox="0 0 18 15" id="red-search-icon">
+	<rect id="Canvas" fill="#fff" opacity="0" width="18" height="18" /><path fill="#f00" d="M16.5865,15.107,12.7,11.2215A6.413,6.413,0,1,0,11.2215,12.7l3.886,3.886a1.05,1.05,0,0,0,1.479-1.479ZM3,7.5A4.5,4.5,0,1,1,7.5,12,4.5,4.5,0,0,1,3,7.5Z" />
+  </symbol>
+  
+  <symbol width="18" height="20" viewBox="0 2 18 18" id="grey-search-input-icon">
+	<rect id="Canvas" fill="#fff" opacity="0" width="18" height="18" /><path fill="#999" d="M16.5865,15.107,12.7,11.2215A6.413,6.413,0,1,0,11.2215,12.7l3.886,3.886a1.05,1.05,0,0,0,1.479-1.479ZM3,7.5A4.5,4.5,0,1,1,7.5,12,4.5,4.5,0,0,1,3,7.5Z" />
+  </symbol>
+  
+  <symbol width="18" height="18" viewBox="2 2 18 18" id="grey-search-cancel-input-icon">
+	<rect id="Canvas" fill="#ff13dc" opacity="0" width="18" height="18" /><path fill="#999" d="M13.2425,3.343,9,7.586,4.7575,3.343a.5.5,0,0,0-.707,0L3.343,4.05a.5.5,0,0,0,0,.707L7.586,9,3.343,13.2425a.5.5,0,0,0,0,.707l.707.7075a.5.5,0,0,0,.707,0L9,10.414l4.2425,4.243a.5.5,0,0,0,.707,0l.7075-.707a.5.5,0,0,0,0-.707L10.414,9l4.243-4.2425a.5.5,0,0,0,0-.707L13.95,3.343a.5.5,0,0,0-.70711-.00039Z" />
+  </symbol>
+</svg>
+
+<script>
+function onMobileSearchClick()
+{
+	document.getElementById("search-mobile").style.display = "block";
+	document.getElementById("cancel-button-mobile").style.display = "block";
+	document.getElementById("search-button-mobile").src = "/wp-content/uploads/2020/02/search1.png";
+	document.getElementById("search-mobile").focus();
+}
+function onMobileSearchCancelClick()
+{
+	document.getElementById("search-mobile").style.display = "none";
+	document.getElementById("cancel-button-mobile").style.display = "none";
+	document.getElementById("search-button-mobile").src = "<svg width='15' height='15'><use xlink:href='#white-search-icon' /></svg>";
+}
+var searchClicked = false;
+function onSearchClick()
+{	
+	searchClicked = false;
+		
+	document.getElementById("searchFormDiv").style.display = "block";	
+	document.getElementById("search").focus();	
+	
+	addClassToElement("peopleNav", "hidden");
+	addClassToElement("researchNav", "hidden");
+	addClassToElement("publicationsNav", "hidden");
+	addClassToElement("newsNav", "hidden");
+	addClassToElement("careersNav", "hidden");
+	addClassToElement("programsNav", "hidden");
+	addClassToElement("aboutNav", "hidden");
+	addClassToElement("searchNav", "hidden");
+}
+function searchFocusOut(event)
+{	
+	setTimeout(function(){ if(!searchClicked)
+							document.getElementById("searchFormDiv").style.display = "none"; 
+							removeClassFromElement("peopleNav", "hidden");
+							removeClassFromElement("researchNav", "hidden");
+							removeClassFromElement("publicationsNav", "hidden");
+							removeClassFromElement("newsNav", "hidden");
+							removeClassFromElement("careersNav", "hidden");
+							removeClassFromElement("programsNav", "hidden");
+							removeClassFromElement("aboutNav", "hidden");
+							removeClassFromElement("searchNav", "hidden");
+						}, 100);
+		
+}
+function onDoSearchClick()
+{
+	searchClicked = true;
+	document.getElementById("searchFormDiv").style.display = "block";	
+	document.getElementById("searchForm").submit();
+}
+function addClassToElement(elementId, className) {
+  var element, name, arr;
+  element = document.getElementById(elementId);  
+  arr = element.className.split(" ");
+  if (arr.indexOf(className) == -1) {
+    element.className += (arr.length>0?" ":"") + className;
+  }
+}
+function removeClassFromElement(elementId, className) {
+  var element, name, arr;
+  element = document.getElementById(elementId);  
+  arr = element.className.split(" ");
+  var classList = "";
+  for(var i=0; i<arr.length; arr++) {
+	  if (className == arr[i]) {
+		continue;
+	  }
+	  classList += " "+arr[i];
+  }
+  element.className = classList.trim();
+}
+</script>
+
+<div id="content" class="site-content content">
+
+
+<div id="top" class="container blue_dark small wrap align_center" style="background-image: url('http://research.adobe.com/wp-content/uploads/2019/12/publications-banner.png');">
+        <div class="flex_content textFirst full_height wrap  content_space">            
+            <div class="column4 paddingSuper_top custom-banner-heading-people">                
+                <h1>Publications</h1>                	
+            </div>
+        </div>
+</div>
+
+			<div class="container column3 white wrap">
+					<div class="flex_content wrap max_column paddingMed_top">
+					<div class="column5 paddingMed_left paddingMed_right paddingMed_top">						    <div class="content">
+								<h1>
+									IntrinsicDiffusion: Joint Intrinsic Layers from Latent Diffusion Models								</h1>
+								<h3>SIGGRAPH 2024</h3><h6>Publication date: August 2, 2024</h6><h3>Jundan Luo, <a href="https://research.adobe.com/person/duygu-ceylan">Duygu Ceylan</a>, <a href="https://research.adobe.com/person/jae-shin-yoon">Jae Shin Yoon</a>, Nanxuan Zhao, Julien Philip, <a href="https://research.adobe.com/person/anna-fruehstueck">Anna Frühstück</a>, Wenbin Li, Christian Richardt, <a href="https://research.adobe.com/person/tuanfeng-y-wang">Tuanfeng Y. Wang</a></h3>							</div>
+						</div>
+												
+						<div class="column3 paddingMed_top">
+							<div class="content">
+								<img alt="Adobe Research thumbnail image" class="image240 image-background" 
+								src="https://research.adobe.com/wp-content/uploads/2024/07/Screenshot-2024-07-15-at-17.45.08.png" />
+							</div>
+						</div>
+											</div>
+					</div>
+					
+					<div class="container column3 wrap">
+						<div class="flex_content pad_top">
+								<div class="column8" style="padding-left:0px; padding-right:0px;">
+									<div class="content paddingMed_left  paddingMed_right" style="text-align:left;width: 100%">
+										
+											<p>Reasoning about the intrinsic properties of an image, such as albedo, illumination, and surface geometry, is a long-standing problem with many applications in image editing and compositing. Existing solutions to this ill-posed problem either heavily rely on manually designed priors or learn priors from limited datasets that lack diversity. Hence, they fall short in generalizing to in-the-wild test scenarios. In this paper, we show that a large-scale text-to-image generation model trained on a massive amount of visual data can implicitly learn intrinsic image priors. In particular, we introduce a novel conditioning mechanism built on top of a pre-trained foundational image generation model to jointly predict multiple intrinsic modalities from an input image. We demonstrate that predicting different modalities in a collaborative manner improves the overall quality. This design also enables mixing datasets with annotations of only a subset of the modalities during training, contributing to the generalizability of our approach. Our method achieves state-of-the-art performance in intrinsic image decomposition, both qualitatively and quantitatively. We also demonstrate downstream image editing applications, such as relighting and retexturing.</p>										<a href="https://dl.acm.org/doi/10.1145/3641519.3657472" class="button large blue">Learn More</a>							
+									</div></div></div></div>
+							<div class="container column3 wrap">
+								<div class="flex_content">							
+																</div></div>
+						
+						<div class="container column3 wrap">
+							<div class="flex_content pad_top pad_bottom">	
+								<div class="column8" style="padding-left:0px; padding-right:0px;">
+									<div class="content 
+									paddingMed_left 
+									paddingMed_right" style="text-align:left;width: 100%">							
+		 
+			 <div class="paddingMed_top">
+				<hr>
+				<h3 style="padding-top:1rem;">Research Areas:&nbsp; <a href="https://research.adobe.com/research/artificial-intelligence-machine-learning/" style="color:#2098F6; padding-right:6px;"><img alt="Adobe Research icon"AI &amp; Machine Learning" style="vertical-align: middle; padding-right: 6px; width:3.2rem; height:3.2rem;" src="https://research.adobe.com/wp-content/themes/adoberesearch.com/images/tag-icons/ai-machine-learning-icon.png" />AI &amp; Machine Learning</a> <a href="https://research.adobe.com/research/computer-vision-imaging-video/" style="color:#2098F6; padding-left:6px;padding-right:6px;"><img alt="Adobe Research icon"Computer Vision, Imaging &amp; Video" style="vertical-align: middle; padding-right: 6px; width:3.2rem; height:3.2rem;" src="https://research.adobe.com/wp-content/themes/adoberesearch.com/images/tag-icons/computer-vision.png" />Computer Vision, Imaging &amp; Video</a> <a href="https://research.adobe.com/research/graphics-2d-3d/" style="color:#2098F6; padding-left:6px;padding-right:6px;"><img alt="Adobe Research icon"Graphics (2D &amp; 3D)" style="vertical-align: middle; padding-right: 6px; width:3.2rem; height:3.2rem;" src="https://research.adobe.com/wp-content/themes/adoberesearch.com/images/tag-icons/graphics-2d-3d.png" />Graphics (2D &amp; 3D)</a> </h3>
+			   </div>		</div></div></div></div>
+
+	<div class="container footer" id="footer">
+		<div class="flex_content footer-content">
+			<div class="footer-left-column"
+			 style='padding-left:0rem !important;'>
+				<ul>
+					<li style="padding-top: 0rem !important; "> 						<a target=_blank href="https://twitter.com/AdobeResearch" style="width:21px;">
+							<img style="background: grey; border: 2px solid grey; border-radius: 6px; width: 21px !important; height: 21px !important;" src="https://research.adobe.com/wp-content/themes/adoberesearch.com/images/social-icon-twitter.png">
+						</a>
+					</li>
+					
+					<li style="padding-top: 0rem !important;">
+						<a target=_blank href="https://www.facebook.com/AdobeResearch/" style="width:24px;">
+							<img alt="Adobe Research Facebook icon" style="width:inherit;" 
+								 src="https://research.adobe.com/wp-content/themes/adoberesearch.com/images/social-icon-facebook.svg">
+						</a>
+					</li>					
+				</ul>
+				
+			</div>
+			<div class="footer-right-column">
+				<ul>                    
+					<li id="footer-products"><a href="https://www.adobe.com/products/catalog/software.html">Products</a></li>
+					<li id="footer-downloads"><a href="https://www.adobe.com/downloads.html">Downloads</a></li>
+					<li id="footer-learn_support"><a href="https://helpx.adobe.com/support.html">Learn &amp; Support</a></li>
+					
+					<li id="footer-tos"><a href="https://www.adobe.com/legal/terms.html">Terms of Use</a></li>
+					<li id="footer-privacy"><a href="https://www.adobe.com/privacy.html">Privacy</a></li>
+					<li id="footer-cookies"><a href="https://www.adobe.com/privacy/cookies.html">Cookies</a></li>
+					<li id="footer-copyright" class="copyright-custom">Copyright &copy; 2026 Adobe. All rights reserved.</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"\/*"},{"not":{"href_matches":["\/wp-*.php","\/wp-admin\/*","\/wp-content\/uploads\/*","\/wp-content\/*","\/wp-content\/plugins\/*","\/wp-content\/themes\/adoberesearch.com\/*","\/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+</body>
+</html>

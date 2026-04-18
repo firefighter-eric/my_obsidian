@@ -1,0 +1,1670 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2512.03335] Step-by-step Layered Design Generation</title><meta property="og:description" content="Design generation, in its essence, is a step-by-step process where designers progressively refine and enhance their work through careful modifications. Despite this fundamental characteristic, existing approaches mainl…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Step-by-step Layered Design Generation">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="Step-by-step Layered Design Generation">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2512.03335">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2512.03335">
+
+<!--Generated on Tue Jan  6 05:50:27 2026 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document ltx_authors_1line">
+<h1 class="ltx_title ltx_title_document">Step-by-step Layered Design Generation</h1>
+<div class="ltx_authors">
+<span class="ltx_creator ltx_role_author">
+<span class="ltx_personname">
+Faizan Farooq Khan<sup id="id1.1.id1" class="ltx_sup">1</sup>, K J Joseph<sup id="id2.2.id2" class="ltx_sup">2</sup>, Koustava Goswami<sup id="id3.3.id3" class="ltx_sup">2</sup>, 
+<br class="ltx_break">Mohamed Elhoseiny<sup id="id4.4.id4" class="ltx_sup">1</sup>, Balaji Vasan Srinivasan<sup id="id5.5.id5" class="ltx_sup">2</sup> 
+<br class="ltx_break">
+</span></span>
+</div>
+
+<div class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p id="id6.id1" class="ltx_p">Design generation, in its essence, is a step-by-step process where designers progressively refine and enhance their work through careful modifications. Despite this fundamental characteristic, existing approaches mainly treat design synthesis as a single-step generation problem, significantly underestimating the inherent complexity of the creative process.
+To bridge this gap, we propose a novel problem setting called Step-by-Step Layered Design Generation, which tasks a machine learning model with generating a design that adheres to a sequence of instructions from a designer.
+Leveraging recent advancements in multi-modal LLMs, we propose SLEDGE: Step-by-step LayEred Design GEnerator to model each update to a design as an atomic, layered change over its previous state, while being grounded in the instruction. To complement our new problem setting, we introduce a new evaluation suite, including a dataset and a benchmark. Our exhaustive experimental analysis and comparison with state-of-the-art approaches tailored to our new setup demonstrate the efficacy of our approach.
+We hope our work will attract attention to this pragmatic and under-explored research area.</p>
+</div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para">
+<p id="S1.p1.1" class="ltx_p">Design generation is a key application at the intersection of computer vision and creative intelligence. A design is a composition of textual and visual elements harmoniously interleaved to convey intended semantics. The typical design workflow of a designer begins with a sequence of steps (see Step 1 to Step 4 in <span class="ltx_ref ltx_missing_label ltx_ref_self">LABEL:fig:teaser</span>) and uses generation tools to bring the plan to life. These tools let designers manipulate element locations and modify attributes like font size. The ability to review and update is essential in the design generation cycle.</p>
+</div>
+<div id="S1.p2" class="ltx_para">
+<p id="S1.p2.1" class="ltx_p">Advances in Multi-modal Large Language Models (MLLMs) <cite class="ltx_cite ltx_citemacro_citep">(Wu et al. <a href="#bib.bib48" title="" class="ltx_ref">2023</a>; Chen et al. <a href="#bib.bib7" title="" class="ltx_ref">2023</a>; Zhang et al. <a href="#bib.bib54" title="" class="ltx_ref">2024b</a>; Zhu et al. <a href="#bib.bib57" title="" class="ltx_ref">2023</a>; Liu et al. <a href="#bib.bib34" title="" class="ltx_ref">2023</a>)</cite> and diffusion-based generative models <cite class="ltx_cite ltx_citemacro_citep">(Yang et al. <a href="#bib.bib51" title="" class="ltx_ref">2024</a>; Ruiz et al. <a href="#bib.bib43" title="" class="ltx_ref">2022</a>; Dhariwal and Nichol <a href="#bib.bib11" title="" class="ltx_ref">2021</a>; Ho, Jain, and Abbeel <a href="#bib.bib19" title="" class="ltx_ref">2020</a>)</cite> have had unprecedented success in generating graphic designs <cite class="ltx_cite ltx_citemacro_citep">(Jia et al. <a href="#bib.bib24" title="" class="ltx_ref">2024</a>; Inoue et al. <a href="#bib.bib23" title="" class="ltx_ref">2024</a>)</cite> from textual prompts. In contrast to layout generation approaches <cite class="ltx_cite ltx_citemacro_citep">(Lin et al. <a href="#bib.bib31" title="" class="ltx_ref">2023a</a>; Luo et al. <a href="#bib.bib36" title="" class="ltx_ref">2024</a>; Levi et al. <a href="#bib.bib29" title="" class="ltx_ref">2023</a>; Inoue et al. <a href="#bib.bib22" title="" class="ltx_ref">2023b</a>; Cheng et al. <a href="#bib.bib9" title="" class="ltx_ref">2024</a>)</cite> which proposes only the location of elements, design generation approaches like COLE <cite class="ltx_cite ltx_citemacro_citep">(Jia et al. <a href="#bib.bib24" title="" class="ltx_ref">2024</a>)</cite>, and Open-COLE <cite class="ltx_cite ltx_citemacro_citep">(Inoue et al. <a href="#bib.bib23" title="" class="ltx_ref">2024</a>)</cite> proposes the content along with their layout information, making it much more closer to creating consumable designs.
+Two key aspects that would further improve their applicability would be: 1) the ability to consume step-by-step instructions, similar to human workflows, and 2) the ability to create layered generations, enhancing the editability of the design.
+These would facilitate the human-AI co-creation of graphic designs, where human creativity can be augmented with generative models.</p>
+</div>
+<div id="S1.p3" class="ltx_para">
+<p id="S1.p3.1" class="ltx_p">Towards this end, we formalize and introduce the problem-setting of
+<span id="S1.p3.1.1" class="ltx_text ltx_font_italic">Step-by-step Layered Design Generation</span>, inspired by how humans carry out design workflows. Given a canvas state and a natural language instruction of the intended change from a designer, the design generator should be able to generate a modified canvas aligning with the instruction. To enhance the editability of designs, each modification should be atomic and layered on top of the previous state of the canvas. Textual elements should have their attribute metadata like font size, font type, and color predicted by the model, to enhance user control.</p>
+</div>
+<div id="S1.p4" class="ltx_para">
+<p id="S1.p4.1" class="ltx_p">Though intuitive, iterative design generation presents a significant challenge in practice due to its dual requirements of maintaining editability and generating cohesive content. The complexity lies not only in adding new content but also in accurately preserving various design elements, shapes, and textual components of the original canvas. As demonstrated in our experiments, existing editing models <cite class="ltx_cite ltx_citemacro_citep">(Li et al. <a href="#bib.bib30" title="" class="ltx_ref">2024</a>; Feng et al. <a href="#bib.bib14" title="" class="ltx_ref">2024</a>)</cite> often struggle to generate content beyond localized adjustments, leading to suboptimal results in scenarios requiring holistic updates.
+Also, an ideal iterative design generator should be able to consume multi-modal input (canvas state and instructions) and generate multi-modal output (modified canvas state and metadata for the modification). These characteristics make the problem setup unique, and straightforward adaptation of existing approaches fails to provide acceptable fidelity as validated in <a href="#S5" title="5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">section</span> <span class="ltx_text ltx_ref_tag">5</span></a>.</p>
+</div>
+<div id="S1.p5" class="ltx_para">
+<p id="S1.p5.8" class="ltx_p">To bridge this gap, we present <span id="S1.p5.8.1" class="ltx_text ltx_font_italic">SLEDGE: Step-by-step Layered Design Generator</span>, a novel framework by leveraging the complementary strengths of MLLMs and diffusion models to enable controlled, layerwise, iterative design generation. Our critical insight is that combining the high-level semantic understanding of MLLMs with the fine-grained generation capabilities of diffusion models enables more precise control over the design generation process. A key challenge involved in training such a composite model is curating training data. We introduce <span id="S1.p5.8.2" class="ltx_text ltx_font_italic">IDeation</span>: <span id="S1.p5.8.3" class="ltx_text ltx_framed ltx_framed_underline">I</span>terative <span id="S1.p5.8.4" class="ltx_text ltx_framed ltx_framed_underline">De</span>sign gener<span id="S1.p5.8.5" class="ltx_text ltx_framed ltx_framed_underline">ation</span> dataset containing triplets of current canvas state, edit instruction, and target canvas state. IDeation Dataset lets the MLLM learn a unified representational space that can interoperate between the current state of the canvas <math id="S1.p5.1.m1" class="ltx_Math" alttext="\mathbf{C}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{C}_{t}</annotation></semantics></math>, the modification instruction <math id="S1.p5.2.m2" class="ltx_Math" alttext="\mathbf{I}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐈</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{I}_{t}</annotation></semantics></math>, the new state of the canvas <math id="S1.p5.3.m3" class="ltx_Math" alttext="\mathbf{C}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{C}_{t+1}</annotation></semantics></math> and the associated meta-data for modification <math id="S1.p5.4.m4" class="ltx_Math" alttext="\mathbf{M}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐌</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{M}_{t+1}</annotation></semantics></math>. <math id="S1.p5.5.m5" class="ltx_Math" alttext="\mathbf{M}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐌</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{M}_{t+1}</annotation></semantics></math> corresponding to the textual changes that can be layered on top of <math id="S1.p5.6.m6" class="ltx_Math" alttext="\mathbf{C}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{C}_{t}</annotation></semantics></math> via deterministic text-rendering techniques, while new images added in <math id="S1.p5.7.m7" class="ltx_Math" alttext="\mathbf{C}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{C}_{t+1}</annotation></semantics></math> are extracted and harmoniously integrated into <math id="S1.p5.8.m8" class="ltx_Math" alttext="\mathbf{C}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{C}_{t}</annotation></semantics></math>. See <a href="#S3" title="3 Step-by-step Layered Design Generation ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">section</span> <span class="ltx_text ltx_ref_tag">3</span></a> for details.</p>
+</div>
+<div id="S1.p6" class="ltx_para">
+<p id="S1.p6.1" class="ltx_p">In order to evaluate the model on its ability to generate designs from a sequence of instructions across a diverse set of topics, we introduce <span id="S1.p6.1.1" class="ltx_text ltx_font_italic">IDeation benchmark</span>, containing instructions across <math id="S1.p6.1.m1" class="ltx_Math" alttext="1000" display="inline" intent=":literal"><semantics><mn>1000</mn><annotation encoding="application/x-tex">1000</annotation></semantics></math> varied topics. We adapt recent state-of-the-art iterative editing approaches to the problem setup and rigorously compare against them in <a href="#S5" title="5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">section</span> <span class="ltx_text ltx_ref_tag">5</span></a>. We find that SLEDGE is able to maintain improved fidelity and semantic consistency when compared to them.</p>
+</div>
+<div id="S1.p7" class="ltx_para ltx_noindent">
+<p id="S1.p7.1" class="ltx_p">To summarize, the key highlights of our work are:</p>
+<ul id="S1.I1" class="ltx_itemize">
+<li id="S1.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i1.p1" class="ltx_para">
+<p id="S1.I1.i1.p1.1" class="ltx_p">We introduce a novel problem: <span id="S1.I1.i1.p1.1.1" class="ltx_text ltx_font_italic">Step-by-step Layered Design Generation</span>, where graphic designs would be generated and updated based on sequential user instructions.</p>
+</div>
+</li>
+<li id="S1.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i2.p1" class="ltx_para">
+<p id="S1.I1.i2.p1.1" class="ltx_p">We propose <span id="S1.I1.i2.p1.1.1" class="ltx_text ltx_font_italic">SLEDGE: Step-by-step Layered Design Generator</span>, a novel approach to address this task, leveraging multi-modal LLMs and diffusion models to achieve high-quality layered step-by-step design updates.</p>
+</div>
+</li>
+<li id="S1.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i3.p1" class="ltx_para">
+<p id="S1.I1.i3.p1.2" class="ltx_p">We present a large-scale dataset
+consisting of over <math id="S1.I1.i3.p1.1.m1" class="ltx_Math" alttext="150,000" display="inline" intent=":literal"><semantics><mrow><mn>150</mn><mo>,</mo><mn>000</mn></mrow><annotation encoding="application/x-tex">150,000</annotation></semantics></math> edit instructions for training and over <math id="S1.I1.i3.p1.2.m2" class="ltx_Math" alttext="20,000" display="inline" intent=":literal"><semantics><mrow><mn>20</mn><mo>,</mo><mn>000</mn></mrow><annotation encoding="application/x-tex">20,000</annotation></semantics></math> instructions for testing, specifically designed to support iterative design generation.</p>
+</div>
+</li>
+<li id="S1.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i4.p1" class="ltx_para">
+<p id="S1.I1.i4.p1.2" class="ltx_p">We introduce an evaluation benchmark with more than <math id="S1.I1.i4.p1.1.m1" class="ltx_Math" alttext="1,000" display="inline" intent=":literal"><semantics><mrow><mn>1</mn><mo>,</mo><mn>000</mn></mrow><annotation encoding="application/x-tex">1,000</annotation></semantics></math> unique themes and over <math id="S1.I1.i4.p1.2.m2" class="ltx_Math" alttext="10,000" display="inline" intent=":literal"><semantics><mrow><mn>10</mn><mo>,</mo><mn>000</mn></mrow><annotation encoding="application/x-tex">10,000</annotation></semantics></math> detailed edit instructions to assess the design generation performance.</p>
+</div>
+</li>
+<li id="S1.I1.i5" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S1.I1.i5.p1" class="ltx_para">
+<p id="S1.I1.i5.p1.1" class="ltx_p">We establish a rigorous evaluation protocol to comprehensively assess the quality of generated designs across various models, both qualitatively and quantitatively.</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Related Work</h2>
+
+<figure id="S2.F1" class="ltx_figure"><img src="/html/2512.03335/assets/x1.png" id="S2.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="920" height="455" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1: </span>
+The figure provides an overview of SLEDGE: Step-by-step Layered Design Generator. The current state of the canvas <math id="S2.F1.5.m1" class="ltx_Math" alttext="\mathbf{C}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{C}_{t}</annotation></semantics></math>, the instruction from the user <math id="S2.F1.6.m2" class="ltx_Math" alttext="\mathbf{I}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐈</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{I}_{t}</annotation></semantics></math>, and an optional image to be inserted <math id="S2.F1.7.m3" class="ltx_Math" alttext="\mathbf{U}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐔</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{U}_{t}</annotation></semantics></math> is provided to the framework. A MLLM unifies these signals to generate the next state of the <math id="S2.F1.8.m4" class="ltx_Math" alttext="\mathbf{C}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{C}_{t+1}</annotation></semantics></math>, along with the associated metadata, enabling layer-by-layer generation.
+</figcaption>
+</figure>
+<div id="S2.p1" class="ltx_para ltx_noindent">
+<p id="S2.p1.1" class="ltx_p"><span id="S2.p1.1.1" class="ltx_text ltx_font_bold">Design Generation Approaches</span>: Layout generation methods <cite class="ltx_cite ltx_citemacro_citep">(Chai et al. <a href="#bib.bib5" title="" class="ltx_ref">2023</a>; Hsu, He, and Peng <a href="#bib.bib20" title="" class="ltx_ref">2023</a>; Lin et al. <a href="#bib.bib33" title="" class="ltx_ref">2023b</a>; Shimoda et al. <a href="#bib.bib44" title="" class="ltx_ref">2024</a>; Yamaguchi <a href="#bib.bib50" title="" class="ltx_ref">2021</a>; Inoue et al. <a href="#bib.bib21" title="" class="ltx_ref">2023a</a>; Chen et al. <a href="#bib.bib6" title="" class="ltx_ref">2024</a>; Cheng et al. <a href="#bib.bib8" title="" class="ltx_ref">2023</a>; Guerreiro et al. <a href="#bib.bib16" title="" class="ltx_ref">2025</a>; Cheng et al. <a href="#bib.bib9" title="" class="ltx_ref">2024</a>)</cite> predict element placements either conditionally or unconditionally, producing only bounding boxes with class labels (e.g., <span id="S2.p1.1.2" class="ltx_text ltx_font_typewriter">text</span>, <span id="S2.p1.1.3" class="ltx_text ltx_font_typewriter">image</span>, <span id="S2.p1.1.4" class="ltx_text ltx_font_typewriter">background</span>). They do not generate actual content. With MLLMs, COLE <cite class="ltx_cite ltx_citemacro_citep">(Jia et al. <a href="#bib.bib24" title="" class="ltx_ref">2024</a>)</cite>, and Open-COLE <cite class="ltx_cite ltx_citemacro_citep">(Inoue et al. <a href="#bib.bib23" title="" class="ltx_ref">2024</a>)</cite> generate full designs from a caption in a single step, but cannot process sequential instructions due to their fixed input format. In contrast, our work is among the first to enable full-spectrum design generation driven by step-by-step designer instructions.</p>
+</div>
+<div id="S2.p2" class="ltx_para ltx_noindent">
+<p id="S2.p2.1" class="ltx_p"><span id="S2.p2.1.1" class="ltx_text ltx_font_bold">Iterative Generation Approaches</span>:
+Diffusion models <cite class="ltx_cite ltx_citemacro_citep">(Ho, Jain, and Abbeel <a href="#bib.bib19" title="" class="ltx_ref">2020</a>)</cite> excel in generative tasks and have been adapted for iterative generation and editing <cite class="ltx_cite ltx_citemacro_citep">(Joseph et al. <a href="#bib.bib25" title="" class="ltx_ref">2023</a>; Feng et al. <a href="#bib.bib14" title="" class="ltx_ref">2024</a>; Li et al. <a href="#bib.bib30" title="" class="ltx_ref">2024</a>)</cite>. ZONE <cite class="ltx_cite ltx_citemacro_citep">(Li et al. <a href="#bib.bib30" title="" class="ltx_ref">2024</a>)</cite>, extending frameworks like Instruct Pix2Pix <cite class="ltx_cite ltx_citemacro_citep">(Brooks, Holynski, and Efros <a href="#bib.bib4" title="" class="ltx_ref">2023</a>; Zhang et al. <a href="#bib.bib52" title="" class="ltx_ref">2023</a>)</cite>, supports layer-by-layer edits and serves as a key baseline for our study. Integrating LLMs with diffusion models has led to significant progress <cite class="ltx_cite ltx_citemacro_citep">(Xia et al. <a href="#bib.bib49" title="" class="ltx_ref">2025</a>; Zhou et al. <a href="#bib.bib56" title="" class="ltx_ref">2024</a>; Feng et al. <a href="#bib.bib14" title="" class="ltx_ref">2024</a>; Sun et al. <a href="#bib.bib45" title="" class="ltx_ref">2024</a>; Ge et al. <a href="#bib.bib15" title="" class="ltx_ref">2024</a>)</cite>. RANNI <cite class="ltx_cite ltx_citemacro_citep">(Feng et al. <a href="#bib.bib14" title="" class="ltx_ref">2024</a>)</cite> uses an LLM as a planner to guide a layout-conditioned diffusion model, while LLMGA <cite class="ltx_cite ltx_citemacro_citep">(Xia et al. <a href="#bib.bib49" title="" class="ltx_ref">2025</a>)</cite> refines prompts via LLMs and applies task-specific diffusion models for editing, inpainting, and T2I. We compare with both in <a href="#S5" title="5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">section</span> <span class="ltx_text ltx_ref_tag">5</span></a>.</p>
+</div>
+<div id="S2.p3" class="ltx_para ltx_noindent">
+<p id="S2.p3.1" class="ltx_p"><span id="S2.p3.1.1" class="ltx_text ltx_font_bold">Evaluation Metrics for Generated Designs</span>:
+Evaluating generated designs is challenging. Traditional metrics focus on technical aspects like layout balance <cite class="ltx_cite ltx_citemacro_citep">(Purchase, Freeman, and Hamer <a href="#bib.bib40" title="" class="ltx_ref">2012</a>; Ngo, Teo, and Byrne <a href="#bib.bib37" title="" class="ltx_ref">2003</a>)</cite>, while recent studies emphasize perceptual and aesthetic quality. FID <cite class="ltx_cite ltx_citemacro_citep">(Heusel et al. <a href="#bib.bib18" title="" class="ltx_ref">2018</a>)</cite> is widely used but has known issues: sensitivity to noise <cite class="ltx_cite ltx_citemacro_citep">(Parmar, Zhang, and Zhu <a href="#bib.bib38" title="" class="ltx_ref">2022</a>)</cite>, diversity bias <cite class="ltx_cite ltx_citemacro_citep">(Kynkäänniemi et al. <a href="#bib.bib27" title="" class="ltx_ref">2023</a>)</cite>, reliance on pre-trained models <cite class="ltx_cite ltx_citemacro_citep">(Borji <a href="#bib.bib3" title="" class="ltx_ref">2022</a>)</cite>, and poor alignment with human perception <cite class="ltx_cite ltx_citemacro_citep">(Chong and Forsyth <a href="#bib.bib10" title="" class="ltx_ref">2020</a>)</cite>. To address this, we primarily adopt MLLM-based evaluation, which better captures multimodal content and aligns with human preferences <cite class="ltx_cite ltx_citemacro_citep">(Lin et al. <a href="#bib.bib32" title="" class="ltx_ref">2024</a>)</cite>. Haraguchi <em id="S2.p3.1.2" class="ltx_emph ltx_font_italic">et al</em>.<span id="S2.p3.1.3" class="ltx_text"></span> <cite class="ltx_cite ltx_citemacro_citep">(Haraguchi et al. <a href="#bib.bib17" title="" class="ltx_ref">2024</a>)</cite> further support this choice by showing strong correlation between MLLM evaluations and human judgment. Sec. <a href="#S5.SS2" title="5.2 Evaluation Protocol ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5.2</span></a> details our MLLM-based evaluation protocol. For completeness, we also report FID scores.</p>
+</div>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Step-by-step Layered Design Generation</h2>
+
+<div id="S3.p1" class="ltx_para">
+<p id="S3.p1.7" class="ltx_p">We focus on the novel task of generating a graphic design by consuming step-by-step instructions from a designer. At each step of the design generation process, the current canvas state <math id="S3.p1.1.m1" class="ltx_Math" alttext="\mathbf{C}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{C}_{t}</annotation></semantics></math>, represented as an image,
+a user instruction <math id="S3.p1.2.m2" class="ltx_Math" alttext="\mathbf{I}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐈</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{I}_{t}</annotation></semantics></math>, and optionally an image to be inserted <math id="S3.p1.3.m3" class="ltx_Math" alttext="\mathbf{U}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐔</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{U}_{t}</annotation></semantics></math> is passed to our approach SLEDGE, denoted by <math id="S3.p1.4.m4" class="ltx_Math" alttext="\mathcal{F}(\mathbf{C}_{t},\mathbf{I}_{t},\mathbf{U}_{t};{\boldsymbol{\theta}})" display="inline" intent=":literal"><semantics><mrow><mi class="ltx_font_mathcaligraphic">ℱ</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><msub><mi>𝐂</mi><mi>t</mi></msub><mo>,</mo><msub><mi>𝐈</mi><mi>t</mi></msub><mo>,</mo><msub><mi>𝐔</mi><mi>t</mi></msub><mo>;</mo><mi>𝜽</mi><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{F}(\mathbf{C}_{t},\mathbf{I}_{t},\mathbf{U}_{t};{\boldsymbol{\theta}})</annotation></semantics></math> which generates the updated canvas <math id="S3.p1.5.m5" class="ltx_Math" alttext="\mathbf{C}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{C}_{t+1}</annotation></semantics></math> along with its metadata <math id="S3.p1.6.m6" class="ltx_Math" alttext="\mathbf{M}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐌</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{M}_{t+1}</annotation></semantics></math>. As shown in <a href="#S2.F1" title="In 2 Related Work ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">1</span></a>, the metadata contains bounding-box information of its location on the canvas. Text elements additionally include content and font information.
+The first canvas <math id="S3.p1.7.m7" class="ltx_Math" alttext="\mathbf{C}_{0}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mn>0</mn></msub><annotation encoding="application/x-tex">\mathbf{C}_{0}</annotation></semantics></math> is initialized blank.</p>
+</div>
+<div id="S3.p2" class="ltx_para">
+<p id="S3.p2.1" class="ltx_p">Design generation necessitates a rich understanding of the interplay between the images, text, their locations, and visual aspects like color and spacing. Recent advances in multi-modal learning <cite class="ltx_cite ltx_citemacro_citep">(Zhang et al. <a href="#bib.bib53" title="" class="ltx_ref">2024a</a>; Liu et al. <a href="#bib.bib34" title="" class="ltx_ref">2023</a>; Zhu et al. <a href="#bib.bib57" title="" class="ltx_ref">2023</a>; Chen et al. <a href="#bib.bib7" title="" class="ltx_ref">2023</a>; Sun et al. <a href="#bib.bib45" title="" class="ltx_ref">2024</a>)</cite>, which learns a unified representation space for multi-modal entities, can provide the ideal implicit bias towards modeling designs. Hence, for instantiating <math id="S3.p2.1.m1" class="ltx_Math" alttext="\mathcal{F}(\mathbf{C}_{t},\mathbf{I}_{t},\mathbf{U}_{t};{\boldsymbol{\theta}})" display="inline" intent=":literal"><semantics><mrow><mi class="ltx_font_mathcaligraphic">ℱ</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><msub><mi>𝐂</mi><mi>t</mi></msub><mo>,</mo><msub><mi>𝐈</mi><mi>t</mi></msub><mo>,</mo><msub><mi>𝐔</mi><mi>t</mi></msub><mo>;</mo><mi>𝜽</mi><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{F}(\mathbf{C}_{t},\mathbf{I}_{t},\mathbf{U}_{t};{\boldsymbol{\theta}})</annotation></semantics></math>, we propose to use a Multi-modal LLM architecture, explained next.</p>
+</div>
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1 </span>Modeling Each Canvas Generation Step</h3>
+
+<div id="S3.SS1.p1" class="ltx_para">
+<p id="S3.SS1.p1.3" class="ltx_p">An LLM is primarily trained to process text tokens for both input and output. However, for our specific application, we require the ability to incorporate both <math id="S3.SS1.p1.1.m1" class="ltx_Math" alttext="\mathbf{C}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{C}_{t}</annotation></semantics></math> (canvas representations) and <math id="S3.SS1.p1.2.m2" class="ltx_Math" alttext="\mathbf{I}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐈</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{I}_{t}</annotation></semantics></math> (text instructions) into the LLM’s workflow while also generating <math id="S3.SS1.p1.3.m3" class="ltx_Math" alttext="\mathbf{C}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{C}_{t+1}</annotation></semantics></math> as part of its outputs. This necessitates a unified representational space where visual elements (canvas) can be effectively integrated with textual information. The LLM must be able to interpret, manipulate, and condition on this shared space to generate coherent updates. We propose a three-step pipeline to achieve this:</p>
+</div>
+<div id="S3.SS1.p2" class="ltx_para ltx_noindent">
+<p id="S3.SS1.p2.2" class="ltx_p"><span id="S3.SS1.p2.2.1" class="ltx_text ltx_font_bold">Step 1</span> <span id="S3.SS1.p2.2.2" class="ltx_text ltx_framed ltx_framed_underline">Aligning Visual Encoder and Decoder</span>: We encode the visual data in our pipeline using a pre-trained Vision Transformer <cite class="ltx_cite ltx_citemacro_citep">(Dosovitskiy et al. <a href="#bib.bib12" title="" class="ltx_ref">2021</a>)</cite> based image encoder, denoted by <math id="S3.SS1.p2.1.m1" class="ltx_Math" alttext="\mathcal{V}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒱</mi><annotation encoding="application/x-tex">\mathcal{V}</annotation></semantics></math>. The encoded visual data by <math id="S3.SS1.p2.2.m2" class="ltx_Math" alttext="\mathcal{V}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒱</mi><annotation encoding="application/x-tex">\mathcal{V}</annotation></semantics></math> goes via the
+<br class="ltx_break"></p>
+</div>
+<div id="S3.SS1.1" class="ltx_para ltx_minipage ltx_align_top" style="width:55.6pt;">
+<p id="S3.SS1.1.1" class="ltx_p">alignment module <math id="S3.SS1.1.1.m1" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math> and is then passed onto the pre-trained</p>
+</div>
+<div id="S3.SS1.3" class="ltx_logical-block ltx_minipage ltx_align_top" style="width:172.0pt;">
+<div id="S3.SS1.3.p1" class="ltx_para">
+<img src="/html/2512.03335/assets/x2.png" id="S3.SS1.2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="191" alt="[Uncaptioned image]">
+</div>
+<figure id="S3.F2" class="ltx_figure ltx_align_center">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure">Figure 2: </span>Aligning encoder and decoder.</figcaption>
+</figure>
+</div>
+<div id="S3.SS1.p3" class="ltx_para">
+<p id="S3.SS1.p3.6" class="ltx_p">SD-XL decoder <cite class="ltx_cite ltx_citemacro_citep">(Podell et al. <a href="#bib.bib39" title="" class="ltx_ref">2023</a>)</cite> , denoted by <math id="S3.SS1.p3.1.m1" class="ltx_math_unparsed" alttext="\mathcal{G}(.)" display="inline" intent=":literal"><semantics><mrow><mi class="ltx_font_mathcaligraphic">𝒢</mi><mrow><mo stretchy="false">(</mo><mo lspace="0em" rspace="0.167em">.</mo><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{G}(.)</annotation></semantics></math>. Output of <math id="S3.SS1.p3.2.m2" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math> replaces the textual prompts passed as input to the cross-attention layers of <math id="S3.SS1.p3.3.m3" class="ltx_Math" alttext="\mathcal{G}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒢</mi><annotation encoding="application/x-tex">\mathcal{G}</annotation></semantics></math> to generate back the original canvas. The parameters of both <math id="S3.SS1.p3.4.m4" class="ltx_Math" alttext="\mathcal{V}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒱</mi><annotation encoding="application/x-tex">\mathcal{V}</annotation></semantics></math> and <math id="S3.SS1.p3.5.m5" class="ltx_math_unparsed" alttext="\mathcal{G}(.)" display="inline" intent=":literal"><semantics><mrow><mi class="ltx_font_mathcaligraphic">𝒢</mi><mrow><mo stretchy="false">(</mo><mo lspace="0em" rspace="0.167em">.</mo><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{G}(.)</annotation></semantics></math> are frozen, while <math id="S3.SS1.p3.6.m6" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math> is trained with reconstruction loss, ensuring a common space for the images to be projected and generated.</p>
+</div>
+<div id="S3.SS1.p4" class="ltx_para ltx_noindent">
+<p id="S3.SS1.p4.12" class="ltx_p"><span id="S3.SS1.p4.12.1" class="ltx_text ltx_font_bold">Step 2</span> <span id="S3.SS1.p4.12.2" class="ltx_text ltx_framed ltx_framed_underline">Aligning Visual Encoding to MLLM’s Encoding</span>: In this stage, we finetune the MLLM to start consuming the canvas latents from <math id="S3.SS1.p4.1.m1" class="ltx_Math" alttext="\mathcal{V}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒱</mi><annotation encoding="application/x-tex">\mathcal{V}</annotation></semantics></math> along with textual data. We start off by sampling a random canvas state <math id="S3.SS1.p4.2.m2" class="ltx_Math" alttext="\mathbf{C}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{C}_{t}</annotation></semantics></math>, the text instruction <math id="S3.SS1.p4.3.m3" class="ltx_Math" alttext="\mathbf{I}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐈</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{I}_{t}</annotation></semantics></math>, and the image to be inserted <math id="S3.SS1.p4.4.m4" class="ltx_Math" alttext="\mathbf{U}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐔</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{U}_{t}</annotation></semantics></math>.
+Note that <math id="S3.SS1.p4.5.m5" class="ltx_Math" alttext="\mathbf{U}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐔</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{U}_{t}</annotation></semantics></math> is optional.
+To simulate this during the training process, it is sampled with a probability of 0.5 and fed to <math id="S3.SS1.p4.6.m6" class="ltx_Math" alttext="\mathcal{F}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">ℱ</mi><annotation encoding="application/x-tex">\mathcal{F}</annotation></semantics></math>. This mechanism enables <math id="S3.SS1.p4.7.m7" class="ltx_Math" alttext="\mathcal{F}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">ℱ</mi><annotation encoding="application/x-tex">\mathcal{F}</annotation></semantics></math> to accept additional input at inference and can act solely as a design planner. <math id="S3.SS1.p4.8.m8" class="ltx_Math" alttext="\mathbf{C}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{C}_{t}</annotation></semantics></math> and <math id="S3.SS1.p4.9.m9" class="ltx_Math" alttext="\mathbf{U}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐔</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{U}_{t}</annotation></semantics></math> are fed to <math id="S3.SS1.p4.10.m10" class="ltx_Math" alttext="\mathcal{V}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒱</mi><annotation encoding="application/x-tex">\mathcal{V}</annotation></semantics></math> to get the corresponding visual embeddings before being passed onto the MLLM, as illustrated in <a href="#S2.F1" title="In 2 Related Work ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">1</span></a>.
+The MLLM predicts both the metadata <math id="S3.SS1.p4.11.m11" class="ltx_Math" alttext="\hat{\mathbf{M}}_{t+1}" display="inline" intent=":literal"><semantics><msub><mover accent="true"><mi>𝐌</mi><mo>^</mo></mover><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\hat{\mathbf{M}}_{t+1}</annotation></semantics></math> and the visual embeddings of the updated canvas state <math id="S3.SS1.p4.12.m12" class="ltx_Math" alttext="\mathcal{V}(\hat{\mathbf{C}}_{t+1})" display="inline" intent=":literal"><semantics><mrow><mi class="ltx_font_mathcaligraphic">𝒱</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><msub><mover accent="true"><mi>𝐂</mi><mo>^</mo></mover><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{V}(\hat{\mathbf{C}}_{t+1})</annotation></semantics></math>. The metadata allows for extracting the layer information as explained in <a href="#S3.SS2" title="3.2 Facilitating Layered Generation ‣ 3 Step-by-step Layered Design Generation ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">section</span> <span class="ltx_text ltx_ref_tag">3.2</span></a>.</p>
+</div>
+<div id="S3.SS1.p5" class="ltx_para">
+<p id="S3.SS1.p5.2" class="ltx_p">Our training approach treats metadata and visual embeddings differently. The metadata tokens, being textual in nature, are learned through next-token prediction with a cross-entropy loss. At the same time, visual embeddings use a Mean Squared Error (MSE) loss between the predicted embeddings and the embeddings of the ground truth updated canvas extracted from the ViT used to encode the initial canvas, shown in <a href="#S3.E1" title="In 3.1 Modeling Each Canvas Generation Step ‣ 3 Step-by-step Layered Design Generation ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">eq.</span> <span class="ltx_text ltx_ref_tag">1</span></a>. To maintain a clear separation between visual and textual embeddings, we utilize a special <math id="S3.SS1.p5.1.m1" class="ltx_Math" alttext="\langle" display="inline" intent=":literal"><semantics><mo stretchy="false">⟨</mo><annotation encoding="application/x-tex">\langle</annotation></semantics></math><span id="S3.SS1.p5.2.1" class="ltx_text ltx_font_typewriter">img<math id="S3.SS1.p5.2.1.m1" class="ltx_Math" alttext="\rangle" display="inline" intent=":literal"><semantics><mo stretchy="false">⟩</mo><annotation encoding="application/x-tex">\rangle</annotation></semantics></math></span> token that frames start and end of visual embeddings.</p>
+</div>
+<div id="S3.SS1.p6" class="ltx_para">
+<table id="S3.E1" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E1.m1" class="ltx_Math" alttext="\begin{split}L=L_{mse}&amp;(\mathcal{V}(\hat{\mathbf{C}}_{t+1}),\mathcal{V}({\mathbf{C}}_{t+1}))\\
+&amp;+L_{bce}(\hat{\mathbf{M}}_{t+1},\mathbf{M}_{t+1})\end{split}" display="block" intent=":literal"><semantics><mtable columnspacing="0pt" displaystyle="true" rowspacing="0pt"><mtr><mtd class="ltx_align_right" columnalign="right"><mrow><mi>L</mi><mo>=</mo><msub><mi>L</mi><mrow><mi>m</mi><mo lspace="0em" rspace="0em">​</mo><mi>s</mi><mo lspace="0em" rspace="0em">​</mo><mi>e</mi></mrow></msub></mrow></mtd><mtd class="ltx_align_left" columnalign="left"><mrow><mo stretchy="false">(</mo><mrow><mi class="ltx_font_mathcaligraphic">𝒱</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><msub><mover accent="true"><mi>𝐂</mi><mo>^</mo></mover><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo></mrow></mrow><mo>,</mo><mrow><mi class="ltx_font_mathcaligraphic">𝒱</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><msub><mi>𝐂</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo></mrow></mrow><mo stretchy="false">)</mo></mrow></mtd></mtr><mtr><mtd></mtd><mtd class="ltx_align_left" columnalign="left"><mrow><mo>+</mo><mrow><msub><mi>L</mi><mrow><mi>b</mi><mo lspace="0em" rspace="0em">​</mo><mi>c</mi><mo lspace="0em" rspace="0em">​</mo><mi>e</mi></mrow></msub><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><msub><mover accent="true"><mi>𝐌</mi><mo>^</mo></mover><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>,</mo><msub><mi>𝐌</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo></mrow></mrow></mrow></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{split}L=L_{mse}&amp;(\mathcal{V}(\hat{\mathbf{C}}_{t+1}),\mathcal{V}({\mathbf{C}}_{t+1}))\\
+&amp;+L_{bce}(\hat{\mathbf{M}}_{t+1},\mathbf{M}_{t+1})\end{split}</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(1)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S3.SS1.p7" class="ltx_para ltx_noindent">
+<p id="S3.SS1.p7.3" class="ltx_p"><span id="S3.SS1.p7.3.1" class="ltx_text ltx_font_bold">Step 3</span> <span id="S3.SS1.p7.3.2" class="ltx_text ltx_framed ltx_framed_underline">Enhancing Latent Compatibility</span>: In this training stage, we freeze the MLLM parameters and focus on adapting the <math id="S3.SS1.p7.1.m1" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math> module to the MLLM’s output. The function of <math id="S3.SS1.p7.2.m2" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math> is to translate the MLLM’s output into a format interpretable by <math id="S3.SS1.p7.3.m3" class="ltx_math_unparsed" alttext="\mathcal{G}(.)" display="inline" intent=":literal"><semantics><mrow><mi class="ltx_font_mathcaligraphic">𝒢</mi><mrow><mo stretchy="false">(</mo><mo lspace="0em" rspace="0.167em">.</mo><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{G}(.)</annotation></semantics></math>, and is initially trained in Step 1. This learnable mod-</p>
+</div>
+<div id="S3.SS1.4.p1" class="ltx_para ltx_minipage ltx_align_top" style="width:60.7pt;">
+<p id="S3.SS1.4.p1.1" class="ltx_p">ule effectively enables us to utilize <math id="S3.SS1.4.p1.1.m1" class="ltx_math_unparsed" alttext="\mathcal{G}(.)" display="inline" intent=":literal"><semantics><mrow><mi class="ltx_font_mathcaligraphic">𝒢</mi><mrow><mo stretchy="false">(</mo><mo lspace="0em" rspace="0.167em">.</mo><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{G}(.)</annotation></semantics></math> with MLLM’s multimodal o-</p>
+</div>
+<div id="S3.SS1.6" class="ltx_logical-block ltx_minipage ltx_align_top" style="width:161.9pt;">
+<div id="S3.SS1.6.p1" class="ltx_para">
+<img src="/html/2512.03335/assets/x3.png" id="S3.SS1.5.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="181" alt="[Uncaptioned image]">
+</div>
+<figure id="S3.F3" class="ltx_figure ltx_align_center">
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_figure">Figure 3: </span>Aligning MLLM and decoder.</figcaption>
+</figure>
+</div>
+<div id="S3.SS1.p8" class="ltx_para">
+<p id="S3.SS1.p8.8" class="ltx_p">utput, allowing us to process and integrate the information necessary for image synthesis. We finetune <math id="S3.SS1.p8.1.m1" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math> by freezing the MLLM and <math id="S3.SS1.p8.2.m2" class="ltx_math_unparsed" alttext="\mathcal{G}(.)" display="inline" intent=":literal"><semantics><mrow><mi class="ltx_font_mathcaligraphic">𝒢</mi><mrow><mo stretchy="false">(</mo><mo lspace="0em" rspace="0.167em">.</mo><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{G}(.)</annotation></semantics></math> parameters and propagating the reconstruction loss between <math id="S3.SS1.p8.3.m3" class="ltx_Math" alttext="\hat{C}" display="inline" intent=":literal"><semantics><mover accent="true"><mi>C</mi><mo>^</mo></mover><annotation encoding="application/x-tex">\hat{C}</annotation></semantics></math> and <math id="S3.SS1.p8.4.m4" class="ltx_Math" alttext="\mathcal{C_{GT}}" display="inline" intent=":literal"><semantics><msub><mi class="ltx_font_mathcaligraphic">𝒞</mi><mrow><mi class="ltx_font_mathcaligraphic">𝒢</mi><mo lspace="0em" rspace="0em">​</mo><mi class="ltx_font_mathcaligraphic">𝒯</mi></mrow></msub><annotation encoding="application/x-tex">\mathcal{C_{GT}}</annotation></semantics></math> only through the layers of <math id="S3.SS1.p8.5.m5" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math>. During training, <math id="S3.SS1.p8.6.m6" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math> starts to understand the visual embeddings <math id="S3.SS1.p8.7.m7" class="ltx_Math" alttext="\mathcal{V}(\hat{\mathbf{C}}_{t+1})" display="inline" intent=":literal"><semantics><mrow><mi class="ltx_font_mathcaligraphic">𝒱</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><msub><mover accent="true"><mi>𝐂</mi><mo>^</mo></mover><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{V}(\hat{\mathbf{C}}_{t+1})</annotation></semantics></math> from the MLLM while also transforming them in a manner that can be understood by <math id="S3.SS1.p8.8.m8" class="ltx_math_unparsed" alttext="\mathcal{G}(.)" display="inline" intent=":literal"><semantics><mrow><mi class="ltx_font_mathcaligraphic">𝒢</mi><mrow><mo stretchy="false">(</mo><mo lspace="0em" rspace="0.167em">.</mo><mo stretchy="false">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathcal{G}(.)</annotation></semantics></math>, thus acting as a bridge between MLLM and generator.</p>
+</div>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.2 </span>Facilitating Layered Generation</h3>
+
+<div id="S3.SS2.p1" class="ltx_para">
+<p id="S3.SS2.p1.1" class="ltx_p">While editing a design step-by-step, only those areas that need to be modified should be altered. The rest of the design should be consistent with the previous version of the canvas.</p>
+</div>
+<div id="S3.SS2.p2" class="ltx_para ltx_noindent">
+<p id="S3.SS2.p2.6" class="ltx_p"><span id="S3.SS2.p2.6.1" class="ltx_text ltx_font_bold">Generating the Image Layer: </span>
+To preserve the content of <math id="S3.SS2.p2.1.m1" class="ltx_Math" alttext="\mathbf{C}_{t}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathbf{C}_{t}</annotation></semantics></math> while incorporating new images from <math id="S3.SS2.p2.2.m2" class="ltx_Math" alttext="\mathbf{C}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{C}_{t+1}</annotation></semantics></math>, we selectively extract only the edited region from <math id="S3.SS2.p2.3.m3" class="ltx_Math" alttext="\mathbf{C}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{C}_{t+1}</annotation></semantics></math>. For this, we leverage the bounding-box coordinates <math id="S3.SS2.p2.4.m4" class="ltx_Math" alttext="B" display="inline" intent=":literal"><semantics><mi>B</mi><annotation encoding="application/x-tex">B</annotation></semantics></math> predicted by the MLLM as guidance. Using these coordinates, we generate an initial binary mask <math id="S3.SS2.p2.5.m5" class="ltx_Math" alttext="\mathbf{M}" display="inline" intent=":literal"><semantics><mi>𝐌</mi><annotation encoding="application/x-tex">\mathbf{M}</annotation></semantics></math> as defined in  <a href="#S3.E2" title="In 3.2 Facilitating Layered Generation ‣ 3 Step-by-step Layered Design Generation ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">eq.</span> <span class="ltx_text ltx_ref_tag">2</span></a>, which segments the modified area from the updated canvas <math id="S3.SS2.p2.6.m6" class="ltx_Math" alttext="\mathbf{C}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{C}_{t+1}</annotation></semantics></math>.</p>
+</div>
+<div id="S3.SS2.p3" class="ltx_para">
+<table id="S3.E2" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E2.m1" class="ltx_Math" alttext="M(i,j)=\begin{cases}1,&amp;\text{if }M(i,j)\text{ is inside }B,\\
+0,&amp;\text{otherwise}.\end{cases}" display="block" intent=":literal"><semantics><mrow><mrow><mi>M</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="false">)</mo></mrow></mrow><mo>=</mo><mrow><mo>{</mo><mtable columnspacing="5pt" displaystyle="true" rowspacing="0pt"><mtr><mtd class="ltx_align_left" columnalign="left"><mrow><mn>1</mn><mo>,</mo></mrow></mtd><mtd class="ltx_align_left" columnalign="left"><mrow><mrow><mtext>if </mtext><mo lspace="0em" rspace="0em">​</mo><mi>M</mi><mo lspace="0em" rspace="0em">​</mo><mrow><mo stretchy="false">(</mo><mi>i</mi><mo>,</mo><mi>j</mi><mo stretchy="false">)</mo></mrow><mo lspace="0em" rspace="0em">​</mo><mtext> is inside </mtext><mo lspace="0em" rspace="0em">​</mo><mi>B</mi></mrow><mo>,</mo></mrow></mtd></mtr><mtr><mtd class="ltx_align_left" columnalign="left"><mrow><mn>0</mn><mo>,</mo></mrow></mtd><mtd class="ltx_align_left" columnalign="left"><mrow><mtext>otherwise</mtext><mo lspace="0em">.</mo></mrow></mtd></mtr></mtable></mrow></mrow><annotation encoding="application/x-tex">M(i,j)=\begin{cases}1,&amp;\text{if }M(i,j)\text{ is inside }B,\\
+0,&amp;\text{otherwise}.\end{cases}</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(2)</span></td>
+</tr></tbody>
+</table>
+</div>
+<div id="S3.SS2.p4" class="ltx_para">
+<p id="S3.SS2.p4.2" class="ltx_p">However, masks from predicted bounding boxes are often coarse and may include unintended regions. To refine them, we use Segment Anything Model (SAM) <cite class="ltx_cite ltx_citemacro_citep">(Kirillov et al. <a href="#bib.bib26" title="" class="ltx_ref">2023</a>)</cite> to generate high-quality masks. For each predicted mask, we compute the mean Intersection over Union(IoU) with the <math id="S3.SS2.p4.1.m1" class="ltx_Math" alttext="\mathbf{M}{=}1" display="inline" intent=":literal"><semantics><mrow><mi>𝐌</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\mathbf{M}{=}1</annotation></semantics></math> region and select the one with the highest score, filtering out spurious outputs. We then dilate the selected mask to smooth the mask boundaries. The final canvas <math id="S3.SS2.p4.2.m2" class="ltx_Math" alttext="\mathbf{C}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐂</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{C}_{t+1}</annotation></semantics></math> is generated by blending the original and edited regions by:</p>
+<table id="S3.E3" class="ltx_equation ltx_eqn_table">
+
+<tbody><tr class="ltx_equation ltx_eqn_row ltx_align_baseline">
+<td class="ltx_eqn_cell ltx_eqn_center_padleft"></td>
+<td class="ltx_eqn_cell ltx_align_center"><math id="S3.E3.m1" class="ltx_Math" alttext="\mathbf{C}_{t+1}=\mathbf{C}_{t}\odot(1-\mathbf{M})+\mathbf{C}_{t+1}\odot\mathbf{M}," display="block" intent=":literal"><semantics><mrow><mrow><msub><mi>𝐂</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo>=</mo><mrow><mrow><msub><mi>𝐂</mi><mi>t</mi></msub><mo lspace="0.222em" rspace="0.222em">⊙</mo><mrow><mo stretchy="false">(</mo><mrow><mn>1</mn><mo>−</mo><mi>𝐌</mi></mrow><mo stretchy="false">)</mo></mrow></mrow><mo>+</mo><mrow><msub><mi>𝐂</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><mo lspace="0.222em" rspace="0.222em">⊙</mo><mi>𝐌</mi></mrow></mrow></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">\mathbf{C}_{t+1}=\mathbf{C}_{t}\odot(1-\mathbf{M})+\mathbf{C}_{t+1}\odot\mathbf{M},</annotation></semantics></math></td>
+<td class="ltx_eqn_cell ltx_eqn_center_padright"></td>
+<td rowspan="1" class="ltx_eqn_cell ltx_eqn_eqno ltx_align_middle ltx_align_right"><span class="ltx_tag ltx_tag_equation ltx_align_right">(3)</span></td>
+</tr></tbody>
+</table>
+<p id="S3.SS2.p4.3" class="ltx_p">This intuitive approach ensures that only the target edit region is modified while preserving the rest of the canvas.</p>
+</div>
+<div id="S3.SS2.p5" class="ltx_para ltx_noindent">
+<p id="S3.SS2.p5.1" class="ltx_p"><span id="S3.SS2.p5.1.1" class="ltx_text ltx_font_bold">Generating the Text Layer: </span>
+Rendering text via diffusion models is challenging, often resulting in poor legibility <cite class="ltx_cite ltx_citemacro_citep">(Ramesh et al. <a href="#bib.bib42" title="" class="ltx_ref">2022</a>)</cite>. Given the importance of text in design, we adopt a deterministic text rendering module <cite class="ltx_cite ltx_citemacro_citep">(Inoue et al. <a href="#bib.bib23" title="" class="ltx_ref">2024</a>)</cite>, bypassing generative methods. It overlays text using font and positional cues from the MLLM, ensuring clear, layout-aligned text rendering. This ensures legible text in generated images and precise alignment with the MLLM’s predicted layout.</p>
+</div>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>IDeation Dataset and Benchmark</h2>
+
+<div id="S4.p1" class="ltx_para">
+<p id="S4.p1.4" class="ltx_p">To train and evaluate our novel problem setup, we propose <span id="S4.p1.4.1" class="ltx_text ltx_font_italic">IDeation</span>: <span id="S4.p1.4.2" class="ltx_text ltx_framed ltx_framed_underline">I</span>terative <span id="S4.p1.4.3" class="ltx_text ltx_framed ltx_framed_underline">De</span>sign gener<span id="S4.p1.4.4" class="ltx_text ltx_framed ltx_framed_underline">ation</span> dataset and benchmark suite. The dataset contains <math id="S4.p1.1.m1" class="ltx_Math" alttext="182,552" display="inline" intent=":literal"><semantics><mrow><mn>182</mn><mo>,</mo><mn>552</mn></mrow><annotation encoding="application/x-tex">182,552</annotation></semantics></math> datapoints for training, complemented by <math id="S4.p1.2.m2" class="ltx_Math" alttext="22,881" display="inline" intent=":literal"><semantics><mrow><mn>22</mn><mo>,</mo><mn>881</mn></mrow><annotation encoding="application/x-tex">22,881</annotation></semantics></math> datapoints for testing. Each data point is a triplet containing the initial state of the canvas, edit instruction, and the corresponding modified canvas. Further, in order to capture the variety of themes in which designers would create designs, we introduce a benchmark containing <math id="S4.p1.3.m3" class="ltx_Math" alttext="10,976" display="inline" intent=":literal"><semantics><mrow><mn>10</mn><mo>,</mo><mn>976</mn></mrow><annotation encoding="application/x-tex">10,976</annotation></semantics></math> instructions across <math id="S4.p1.4.m4" class="ltx_Math" alttext="1,066" display="inline" intent=":literal"><semantics><mrow><mn>1</mn><mo>,</mo><mn>066</mn></mrow><annotation encoding="application/x-tex">1,066</annotation></semantics></math> design themes. We provide more details below:</p>
+</div>
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>IDeation Dataset</h3>
+
+<div id="S4.SS1.p1" class="ltx_para">
+<p id="S4.SS1.p1.1" class="ltx_p">We augment the data points in the Crello dataset <cite class="ltx_cite ltx_citemacro_citep">(Yamaguchi <a href="#bib.bib50" title="" class="ltx_ref">2021</a>)</cite> with turn-by-turn edit instructions to create IDeation Dataset. Crello dataset is a comprehensive resource for visual design elements sourced from the VistaCreate platform, designed to support visual synthesis tasks and layout analysis. The dataset contains over <math id="S4.SS1.p1.1.m1" class="ltx_Math" alttext="23,000" display="inline" intent=":literal"><semantics><mrow><mn>23</mn><mo>,</mo><mn>000</mn></mrow><annotation encoding="application/x-tex">23,000</annotation></semantics></math> unique design renditions, making it one of the most extensive resources for exploring structured design composition. The dataset contains various design elements, including templates, images, icons, fonts, and layout configurations. Each design rendition is accompanied by all the individual elements associated with it.
+We extract and present to GPT-4o <cite class="ltx_cite ltx_citemacro_citep">(et al. <a href="#bib.bib13" title="" class="ltx_ref">2024</a>)</cite> all the individual elements and the final composite image for each design rendition in Crello. The model is then prompted to deduce the order in which elements should be placed on an empty canvas to reconstruct the design step-by-step. Alongside deciding the order of elements, GPT-4o is asked to generate textual instructions detailing each incremental update, thereby providing a dynamic reconstruction path for the final design rendition.
+Please refer to the overview of the data-generation approach in Fig. <a href="#S4.F4" title="Figure 4 ‣ 4.1 IDeation Dataset ‣ 4 IDeation Dataset and Benchmark ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>.</p>
+</div>
+<div id="S4.SS1.p2" class="ltx_para">
+<p id="S4.SS1.p2.1" class="ltx_p">As a precursor to large-scale data generation, we sampled 100 design examples and manually reviewed their generated edit instructions for coherence and logical sequencing. We updated the prompts to improve the quality of the generations. Once we ensured that the generations are good for this control set, we scaled up and generated comprehensive instructions for the entire Crello <cite class="ltx_cite ltx_citemacro_citep">(Yamaguchi <a href="#bib.bib50" title="" class="ltx_ref">2021</a>)</cite> dataset.</p>
+</div>
+<figure id="S4.F4" class="ltx_figure"><img src="/html/2512.03335/assets/x4.png" id="S4.F4.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="455" height="240" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 4: </span>The figure illustrates our data generation pipeline, where each design element, along with its final composition, is processed using GPT-4o <cite class="ltx_cite ltx_citemacro_citep">(et al. <a href="#bib.bib13" title="" class="ltx_ref">2024</a>)</cite>. This process generates a structured mapping of layer order and detailed textual instructions that describe the transformation applied from one layer to the subsequent one.</figcaption>
+</figure>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>IDeation Benchmark</h3>
+
+<div id="S4.SS2.p1" class="ltx_para">
+<p id="S4.SS2.p1.1" class="ltx_p">While the Crello <cite class="ltx_cite ltx_citemacro_citep">(Yamaguchi <a href="#bib.bib50" title="" class="ltx_ref">2021</a>)</cite> dataset offers a strong base for iterative design generation, it lacks topic diversity. Its evaluation set includes only <math id="S4.SS2.p1.1.m1" class="ltx_Math" alttext="\sim" display="inline" intent=":literal"><semantics><mo>∼</mo><annotation encoding="application/x-tex">\sim</annotation></semantics></math>2,000 samples across 24 categories. To address this, we propose a broader benchmark with over 1,066 unique themes and 10,000+ detailed instructions, enabling more rigorous and diverse evaluation of model generalization across varied design scenarios.</p>
+</div>
+<div id="S4.SS2.p2" class="ltx_para">
+<p id="S4.SS2.p2.2" class="ltx_p">Towards creating the IDeation Benchmark, we prompt different closed-source models to generate a set of unique design themes. Specifically, we prompt Gemini <cite class="ltx_cite ltx_citemacro_citep">(Team et al. <a href="#bib.bib46" title="" class="ltx_ref">2023</a>)</cite>, GPT-4o <cite class="ltx_cite ltx_citemacro_citep">(et al. <a href="#bib.bib13" title="" class="ltx_ref">2024</a>)</cite>, and Claude-Sonnet <cite class="ltx_cite ltx_citemacro_citep">(Anthropic <a href="#bib.bib1" title="" class="ltx_ref">2024</a>)</cite> each to give 500 different themes that can be used to create designs. We prompt different models to ensure we have a diverse set of themes. From the <math id="S4.SS2.p2.1.m1" class="ltx_Math" alttext="1,500" display="inline" intent=":literal"><semantics><mrow><mn>1</mn><mo>,</mo><mn>500</mn></mrow><annotation encoding="application/x-tex">1,500</annotation></semantics></math> themes generated, we remove duplicates or similar themes to end-up with <math id="S4.SS2.p2.2.m2" class="ltx_Math" alttext="1,066" display="inline" intent=":literal"><semantics><mrow><mn>1</mn><mo>,</mo><mn>066</mn></mrow><annotation encoding="application/x-tex">1,066</annotation></semantics></math> themes. They vary from “Climate Change Awareness” to “Tropical Beach Vacation”.</p>
+</div>
+<div id="S4.SS2.p3" class="ltx_para">
+<p id="S4.SS2.p3.1" class="ltx_p">Once we have the themes, we use in-context learning and prompt GPT-4o <cite class="ltx_cite ltx_citemacro_citep">(et al. <a href="#bib.bib13" title="" class="ltx_ref">2024</a>)</cite> to generate edit instructions. In this way, for each theme, we have a set of instructions that we can use to generate design renditions. We evaluate the quality of edit instructions in the Ideation benchmark using GPT-4o, which confirmed <math id="S4.SS2.p3.1.m1" class="ltx_Math" alttext="99.7\%" display="inline" intent=":literal"><semantics><mrow><mn>99.7</mn><mo>%</mo></mrow><annotation encoding="application/x-tex">99.7\%</annotation></semantics></math> of all instructions as meaningful. The remaining instructions were removed. We provide the generation prompt, in-context examples, and evaluation prompts in supplementary.</p>
+</div>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Experiments and Results</h2>
+
+<figure id="S5.F5" class="ltx_figure"><img src="/html/2512.03335/assets/x5.png" id="S5.F5.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="920" height="162" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 5: </span>Performance comparison averaged across both datasets on three key aspects: theme adherence, aesthetic quality, and edit
+compliance. Each baseline is compared with SLEDGE, using GPT-4o and InternLM-XComposer as the evaluators.</figcaption>
+</figure>
+<section id="S5.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.1 </span>Baseline Methods</h3>
+
+<div id="S5.SS1.p1" class="ltx_para">
+<p id="S5.SS1.p1.1" class="ltx_p">As we introduce a novel problem setting, we adapt existing baselines to the new task and provide qualitative and quantitative comparisons with them. First, we adapt the state-of-the-art text-to-design approach Open-COLE <cite class="ltx_cite ltx_citemacro_citep">(Inoue et al. <a href="#bib.bib23" title="" class="ltx_ref">2024</a>)</cite> to our setting in two ways, which we refer to as iCOLE and cCOLE. We also adapt sota iterative image editing methods to our setting. We explain them next:</p>
+</div>
+<div id="S5.SS1.p2" class="ltx_para ltx_noindent">
+<p id="S5.SS1.p2.1" class="ltx_p"><span id="S5.SS1.p2.1.1" class="ltx_text ltx_font_bold">iCOLE</span>: We replace text-to-image module in OpenCOLE <cite class="ltx_cite ltx_citemacro_citep">(Inoue et al. <a href="#bib.bib23" title="" class="ltx_ref">2024</a>)</cite> with iterative editing module from Zone <cite class="ltx_cite ltx_citemacro_citep">(Li et al. <a href="#bib.bib30" title="" class="ltx_ref">2024</a>)</cite>, for step-by-step generation.
+<br class="ltx_break"><span id="S5.SS1.p2.1.2" class="ltx_text ltx_font_bold">cCOLE</span>: Here, the step-by-step instructions are concatenated, and passed together into OpenCOLE <cite class="ltx_cite ltx_citemacro_citep">(Inoue et al. <a href="#bib.bib23" title="" class="ltx_ref">2024</a>)</cite>. Please note that cCOLE is not iterative like other baselines. Therefore, we compare cCOLE using metrics that measure the quality of the final rendered design in <a href="#S5.T2" title="In 5.2 Evaluation Protocol ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">table</span> <span class="ltx_text ltx_ref_tag">2</span></a>.
+
+<br class="ltx_break"><span id="S5.SS1.p2.1.3" class="ltx_text ltx_font_bold">Ranni <cite class="ltx_cite ltx_citemacro_citep">(Feng et al. <a href="#bib.bib14" title="" class="ltx_ref">2024</a>)</cite></span>: combines an LLM and a diffusion model, where the LLM acts as a planner and the diffusion model as a generator. The generator is conditioned on the layout generated by the planner. It can do step-by-step editing by preserving the latents of the previous generation.
+
+<br class="ltx_break"><span id="S5.SS1.p2.1.4" class="ltx_text ltx_font_bold">ZONE <cite class="ltx_cite ltx_citemacro_citep">(Li et al. <a href="#bib.bib30" title="" class="ltx_ref">2024</a>)</cite></span>: builds upon InstructPix2Pix <cite class="ltx_cite ltx_citemacro_citep">(Brooks, Holynski, and Efros <a href="#bib.bib4" title="" class="ltx_ref">2023</a>)</cite>
+and MagicBrush <cite class="ltx_cite ltx_citemacro_citep">(Zhang et al. <a href="#bib.bib52" title="" class="ltx_ref">2023</a>)</cite> where localization information in attention maps are combined with SAM <cite class="ltx_cite ltx_citemacro_citep">(Kirillov et al. <a href="#bib.bib26" title="" class="ltx_ref">2023</a>)</cite> for layer-wise editing.
+
+<br class="ltx_break"><span id="S5.SS1.p2.1.5" class="ltx_text ltx_font_bold">LLMGA <cite class="ltx_cite ltx_citemacro_citep">(Xia et al. <a href="#bib.bib49" title="" class="ltx_ref">2025</a>)</cite></span>: learns to refine input prompts, which is passed into diffusion models that can do inpainting, editing, and text-to-image generation. Using the image-editing part of LLMGA in a step-by-step manner for designs does not work well. This is because their editing model is optimized for localized edits and struggles when tasked with generating entirely new components. To alleviate this, we use their text-to-image model for the first step and then use the editing model. We refer to this as T2I+LLMGA. Please note that this is an <span id="S5.SS1.p2.1.6" class="ltx_text ltx_font_italic">unfair advantage</span> to this baseline as all other baselines and our approach SLEDGE, starts off by editing the blank canvas.</p>
+</div>
+<figure id="S5.F6" class="ltx_figure"><img src="/html/2512.03335/assets/x6.png" id="S5.F6.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="871" height="436" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 6: </span>Illustration of iterative design generation using our method in the top row. For each design, the starting point is a blank canvas. The rest are additional final renditions from our model. Please refer to our supplementary for more examples. </figcaption>
+</figure>
+</section>
+<section id="S5.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.2 </span>Evaluation Protocol</h3>
+
+<div id="S5.SS2.p1" class="ltx_para">
+<p id="S5.SS2.p1.1" class="ltx_p">We evaluate SLEDGE and baselines on three properties: 1) <span id="S5.SS2.p1.1.1" class="ltx_text ltx_font_italic">theme adherence</span>, checking alignment between the final design and the theme; 2) <span id="S5.SS2.p1.1.2" class="ltx_text ltx_font_italic">aesthetic quality</span>, evaluating the final design’s aesthetics; and 3) <span id="S5.SS2.p1.1.3" class="ltx_text ltx_font_italic">edit compliance</span>, assessing how well generations follow editing instructions. These are measured either as absolute scores on a five-point Likert scale (1=poor to 5=perfect) or as relative comparisons between SLEDGE and baselines.</p>
+</div>
+<div id="S5.SS2.p2" class="ltx_para">
+<p id="S5.SS2.p2.1" class="ltx_p">Following findings in <cite class="ltx_cite ltx_citemacro_citep">(Haraguchi et al. <a href="#bib.bib17" title="" class="ltx_ref">2024</a>)</cite> that MLLM evaluations align well with human judgments, we adopt state-of-the-art MLLMs GPT-4o and InternLM-XComposer-2.5 <cite class="ltx_cite ltx_citemacro_citep">(Zhang et al. <a href="#bib.bib53" title="" class="ltx_ref">2024a</a>)</cite> as evaluators. For theme adherence, the MLLM receives the final design and associated design theme; for aesthetics, only the final design; and for edit compliance, the current canvas, updated canvas, and instructions. Prompts are in supplementary.</p>
+</div>
+<div id="S5.SS2.p3" class="ltx_para">
+<p id="S5.SS2.p3.1" class="ltx_p">MLLM evaluators may exhibit ordering biases <cite class="ltx_cite ltx_citemacro_citep">(Zheng et al. <a href="#bib.bib55" title="" class="ltx_ref">2024</a>)</cite>. To mitigate this, we use a circular evaluation strategy: each method pair is evaluated twice per output with flipped image order. This controls for bias, ensuring preferences are not order-dependent. If the MLLM’s response remains unchanged, we treat the outputs as equal.</p>
+</div>
+<div id="S5.SS2.p4" class="ltx_para">
+<p id="S5.SS2.p4.1" class="ltx_p">To enhance evaluation rigor, we use traditional metrics. <span id="S5.SS2.p4.1.1" class="ltx_text ltx_font_italic">FID</span> assesses visual quality of the final design. <span id="S5.SS2.p4.1.2" class="ltx_text ltx_font_italic">Aesthetic Score</span> is computed using a CLIP <cite class="ltx_cite ltx_citemacro_citep">(Radford et al. <a href="#bib.bib41" title="" class="ltx_ref">2021</a>)</cite> model fine-tuned on LAION-Aesthetics <cite class="ltx_cite ltx_citemacro_citep">(LAION-AI <a href="#bib.bib28" title="" class="ltx_ref">2025</a>)</cite>. <span id="S5.SS2.p4.1.3" class="ltx_text ltx_font_italic">Text Accuracy</span> measures CLIP similarity between predicted and reference text. <span id="S5.SS2.p4.1.4" class="ltx_text ltx_font_italic">IoU</span> evaluates alignment between predicted and ground-truth text positions.</p>
+</div>
+<figure id="S5.T1" class="ltx_table">
+<div id="S5.T1.30" class="ltx_inline-block ltx_transformed_outer" style="width:433.6pt;height:58.1pt;vertical-align:-27.3pt;"><span class="ltx_transformed_inner" style="transform:translate(-101.1pt,13.5pt) scale(0.681960657408104,0.681960657408104) ;">
+<table id="S5.T1.30.30" class="ltx_tabular ltx_align_middle">
+<tbody class="ltx_tbody">
+<tr id="S5.T1.30.30.31.1" class="ltx_tr">
+<td id="S5.T1.30.30.31.1.1" class="ltx_td ltx_border_t"></td>
+<td id="S5.T1.30.30.31.1.2" class="ltx_td ltx_align_center ltx_border_t" colspan="3">IDeation Benchmark</td>
+<td id="S5.T1.30.30.31.1.3" class="ltx_td ltx_align_center ltx_border_t" colspan="2">Crello</td>
+</tr>
+<tr id="S5.T1.5.5.5" class="ltx_tr">
+<td id="S5.T1.5.5.5.6" class="ltx_td"></td>
+<td id="S5.T1.1.1.1.1" class="ltx_td ltx_align_center">TA(<math id="S5.T1.1.1.1.1.m1" class="ltx_Math" alttext="\uparrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>)</td>
+<td id="S5.T1.2.2.2.2" class="ltx_td ltx_align_center">AQ(<math id="S5.T1.2.2.2.2.m1" class="ltx_Math" alttext="\uparrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>)</td>
+<td id="S5.T1.3.3.3.3" class="ltx_td ltx_align_center ltx_border_r">EC(<math id="S5.T1.3.3.3.3.m1" class="ltx_Math" alttext="\uparrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>)</td>
+<td id="S5.T1.4.4.4.4" class="ltx_td ltx_align_center">AQ(<math id="S5.T1.4.4.4.4.m1" class="ltx_Math" alttext="\uparrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>)</td>
+<td id="S5.T1.5.5.5.5" class="ltx_td ltx_align_center">EC(<math id="S5.T1.5.5.5.5.m1" class="ltx_Math" alttext="\uparrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>)</td>
+</tr>
+<tr id="S5.T1.10.10.10" class="ltx_tr">
+<td id="S5.T1.10.10.10.6" class="ltx_td ltx_align_left ltx_border_t">ZONE <cite class="ltx_cite ltx_citemacro_citep">(Li et al. <a href="#bib.bib30" title="" class="ltx_ref">2024</a>)</cite>
+</td>
+<td id="S5.T1.6.6.6.1" class="ltx_td ltx_align_center ltx_border_t">1.23(<math id="S5.T1.6.6.6.1.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.66)</td>
+<td id="S5.T1.7.7.7.2" class="ltx_td ltx_align_center ltx_border_t">1.37(<math id="S5.T1.7.7.7.2.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.61)</td>
+<td id="S5.T1.8.8.8.3" class="ltx_td ltx_align_center ltx_border_r ltx_border_t">1.84(<math id="S5.T1.8.8.8.3.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>1.43)</td>
+<td id="S5.T1.9.9.9.4" class="ltx_td ltx_align_center ltx_border_t">2.22(<math id="S5.T1.9.9.9.4.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>1.08)</td>
+<td id="S5.T1.10.10.10.5" class="ltx_td ltx_align_center ltx_border_t">1.84(<math id="S5.T1.10.10.10.5.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>1.43)</td>
+</tr>
+<tr id="S5.T1.15.15.15" class="ltx_tr">
+<td id="S5.T1.15.15.15.6" class="ltx_td ltx_align_left">Ranni <cite class="ltx_cite ltx_citemacro_citep">(Feng et al. <a href="#bib.bib14" title="" class="ltx_ref">2024</a>)</cite>
+</td>
+<td id="S5.T1.11.11.11.1" class="ltx_td ltx_align_center">1.50(<math id="S5.T1.11.11.11.1.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.63)</td>
+<td id="S5.T1.12.12.12.2" class="ltx_td ltx_align_center">1.51(<math id="S5.T1.12.12.12.2.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.69)</td>
+<td id="S5.T1.13.13.13.3" class="ltx_td ltx_align_center ltx_border_r">1.23(<math id="S5.T1.13.13.13.3.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>1.23)</td>
+<td id="S5.T1.14.14.14.4" class="ltx_td ltx_align_center">1.72(<math id="S5.T1.14.14.14.4.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.52)</td>
+<td id="S5.T1.15.15.15.5" class="ltx_td ltx_align_center">1.72(<math id="S5.T1.15.15.15.5.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>1.47)</td>
+</tr>
+<tr id="S5.T1.20.20.20" class="ltx_tr">
+<td id="S5.T1.20.20.20.6" class="ltx_td ltx_align_left">iCOLE</td>
+<td id="S5.T1.16.16.16.1" class="ltx_td ltx_align_center">2.81(<math id="S5.T1.16.16.16.1.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.82)</td>
+<td id="S5.T1.17.17.17.2" class="ltx_td ltx_align_center">3.01(<math id="S5.T1.17.17.17.2.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.61)</td>
+<td id="S5.T1.18.18.18.3" class="ltx_td ltx_align_center ltx_border_r">2.01(<math id="S5.T1.18.18.18.3.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>1.39)</td>
+<td id="S5.T1.19.19.19.4" class="ltx_td ltx_align_center">3.00(<math id="S5.T1.19.19.19.4.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.93)</td>
+<td id="S5.T1.20.20.20.5" class="ltx_td ltx_align_center">2.10(<math id="S5.T1.20.20.20.5.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>1.02)</td>
+</tr>
+<tr id="S5.T1.25.25.25" class="ltx_tr">
+<td id="S5.T1.25.25.25.6" class="ltx_td ltx_align_left">T2I+LLMGA <cite class="ltx_cite ltx_citemacro_citep">(Xia et al. <a href="#bib.bib49" title="" class="ltx_ref">2025</a>)</cite>
+</td>
+<td id="S5.T1.21.21.21.1" class="ltx_td ltx_align_center">3.45(<math id="S5.T1.21.21.21.1.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.97)</td>
+<td id="S5.T1.22.22.22.2" class="ltx_td ltx_align_center">3.13(<math id="S5.T1.22.22.22.2.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.57)</td>
+<td id="S5.T1.23.23.23.3" class="ltx_td ltx_align_center ltx_border_r">2.95(<math id="S5.T1.23.23.23.3.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>1.46)</td>
+<td id="S5.T1.24.24.24.4" class="ltx_td ltx_align_center">3.12(<math id="S5.T1.24.24.24.4.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.44)</td>
+<td id="S5.T1.25.25.25.5" class="ltx_td ltx_align_center">2.87(<math id="S5.T1.25.25.25.5.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>1.69)</td>
+</tr>
+<tr id="S5.T1.30.30.30" class="ltx_tr">
+<td id="S5.T1.30.30.30.6" class="ltx_td ltx_align_left ltx_border_b">SLEDGE</td>
+<td id="S5.T1.26.26.26.1" class="ltx_td ltx_align_center ltx_border_b"><span id="S5.T1.26.26.26.1.1" class="ltx_text ltx_font_bold">3.57(<math id="S5.T1.26.26.26.1.1.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.94)</span></td>
+<td id="S5.T1.27.27.27.2" class="ltx_td ltx_align_center ltx_border_b"><span id="S5.T1.27.27.27.2.1" class="ltx_text ltx_font_bold">3.61(<math id="S5.T1.27.27.27.2.1.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.41)</span></td>
+<td id="S5.T1.28.28.28.3" class="ltx_td ltx_align_center ltx_border_b ltx_border_r"><span id="S5.T1.28.28.28.3.1" class="ltx_text ltx_font_bold">3.12(<math id="S5.T1.28.28.28.3.1.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>1.39)</span></td>
+<td id="S5.T1.29.29.29.4" class="ltx_td ltx_align_center ltx_border_b"><span id="S5.T1.29.29.29.4.1" class="ltx_text ltx_font_bold">3.41(<math id="S5.T1.29.29.29.4.1.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>0.46)</span></td>
+<td id="S5.T1.30.30.30.5" class="ltx_td ltx_align_center ltx_border_b"><span id="S5.T1.30.30.30.5.1" class="ltx_text ltx_font_bold">3.60(<math id="S5.T1.30.30.30.5.1.m1" class="ltx_Math" alttext="\pm" display="inline" intent=":literal"><semantics><mo>±</mo><annotation encoding="application/x-tex">\pm</annotation></semantics></math>1.49)</span></td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">Table 1: </span>
+We compare performance across both datasets on theme adherence (TA), aesthetic quality (AQ), and edit compliance (EC), reporting mean and standard deviation. Evaluator scores range from <math id="S5.T1.33.m1" class="ltx_Math" alttext="1" display="inline" intent=":literal"><semantics><mn>1</mn><annotation encoding="application/x-tex">1</annotation></semantics></math> to <math id="S5.T1.34.m2" class="ltx_Math" alttext="5" display="inline" intent=":literal"><semantics><mn>5</mn><annotation encoding="application/x-tex">5</annotation></semantics></math>.
+
+</figcaption>
+</figure>
+<figure id="S5.T2" class="ltx_table">
+<div id="S5.T2.4" class="ltx_inline-block ltx_transformed_outer" style="width:433.6pt;height:67pt;vertical-align:-30.8pt;"><span class="ltx_transformed_inner" style="transform:translate(18.8pt,-2.9pt) scale(1.09472951385641,1.09472951385641) ;">
+<table id="S5.T2.4.4" class="ltx_tabular ltx_guessed_headers ltx_align_middle">
+<thead class="ltx_thead">
+<tr id="S5.T2.4.4.4" class="ltx_tr">
+<th id="S5.T2.4.4.4.5" class="ltx_td ltx_th ltx_th_row ltx_border_t"></th>
+<th id="S5.T2.1.1.1.1" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t">FID(<math id="S5.T2.1.1.1.1.m1" class="ltx_Math" alttext="\downarrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↓</mo><annotation encoding="application/x-tex">\downarrow</annotation></semantics></math>)</th>
+<th id="S5.T2.2.2.2.2" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t">Aesthetic Score(<math id="S5.T2.2.2.2.2.m1" class="ltx_Math" alttext="\uparrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>)</th>
+<th id="S5.T2.3.3.3.3" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t">Text Accuracy(<math id="S5.T2.3.3.3.3.m1" class="ltx_Math" alttext="\uparrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>)</th>
+<th id="S5.T2.4.4.4.4" class="ltx_td ltx_align_center ltx_th ltx_th_column ltx_border_t">IoU(<math id="S5.T2.4.4.4.4.m1" class="ltx_Math" alttext="\uparrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math>)</th>
+</tr>
+</thead>
+<tbody class="ltx_tbody">
+<tr id="S5.T2.4.4.5.1" class="ltx_tr">
+<th id="S5.T2.4.4.5.1.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_t">T2I+LLMGA</th>
+<td id="S5.T2.4.4.5.1.2" class="ltx_td ltx_align_center ltx_border_t">87.9</td>
+<td id="S5.T2.4.4.5.1.3" class="ltx_td ltx_align_center ltx_border_t">4.0</td>
+<td id="S5.T2.4.4.5.1.4" class="ltx_td ltx_align_center ltx_border_t">-</td>
+<td id="S5.T2.4.4.5.1.5" class="ltx_td ltx_align_center ltx_border_t">-</td>
+</tr>
+<tr id="S5.T2.4.4.6.2" class="ltx_tr">
+<th id="S5.T2.4.4.6.2.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">cCOLE</th>
+<td id="S5.T2.4.4.6.2.2" class="ltx_td ltx_align_center">86.7</td>
+<td id="S5.T2.4.4.6.2.3" class="ltx_td ltx_align_center">3.8</td>
+<td id="S5.T2.4.4.6.2.4" class="ltx_td ltx_align_center">73.8</td>
+<td id="S5.T2.4.4.6.2.5" class="ltx_td ltx_align_center">11.1</td>
+</tr>
+<tr id="S5.T2.4.4.7.3" class="ltx_tr">
+<th id="S5.T2.4.4.7.3.1" class="ltx_td ltx_align_left ltx_th ltx_th_row">iCOLE</th>
+<td id="S5.T2.4.4.7.3.2" class="ltx_td ltx_align_center">171.3</td>
+<td id="S5.T2.4.4.7.3.3" class="ltx_td ltx_align_center">3.2</td>
+<td id="S5.T2.4.4.7.3.4" class="ltx_td ltx_align_center">74.3</td>
+<td id="S5.T2.4.4.7.3.5" class="ltx_td ltx_align_center">4.5</td>
+</tr>
+<tr id="S5.T2.4.4.8.4" class="ltx_tr">
+<th id="S5.T2.4.4.8.4.1" class="ltx_td ltx_align_left ltx_th ltx_th_row ltx_border_b">SLEDGE</th>
+<td id="S5.T2.4.4.8.4.2" class="ltx_td ltx_align_center ltx_border_b"><span id="S5.T2.4.4.8.4.2.1" class="ltx_text ltx_font_bold">46.8</span></td>
+<td id="S5.T2.4.4.8.4.3" class="ltx_td ltx_align_center ltx_border_b"><span id="S5.T2.4.4.8.4.3.1" class="ltx_text ltx_font_bold">4.2</span></td>
+<td id="S5.T2.4.4.8.4.4" class="ltx_td ltx_align_center ltx_border_b"><span id="S5.T2.4.4.8.4.4.1" class="ltx_text ltx_font_bold">89.4</span></td>
+<td id="S5.T2.4.4.8.4.5" class="ltx_td ltx_align_center ltx_border_b"><span id="S5.T2.4.4.8.4.5.1" class="ltx_text ltx_font_bold">23.5</span></td>
+</tr>
+</tbody>
+</table>
+</span></div>
+<figcaption class="ltx_caption"><span class="ltx_tag ltx_tag_table">Table 2: </span>
+Compared with baselines SLEDGE outperforms the best baselines across FID <cite class="ltx_cite ltx_citemacro_citep">(Heusel et al. <a href="#bib.bib18" title="" class="ltx_ref">2018</a>)</cite>, Aesthetic Score, Text Accuracy, and IoU of textual elements.
+
+</figcaption>
+</figure>
+<figure id="S5.F7" class="ltx_figure"><img src="/html/2512.03335/assets/x7.png" id="S5.F7.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="465" height="213" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 7: </span>Qualitative comparisons between our method and baselines. The results show that Ranni and Zone and cCOLE struggle significantly with the task. While T2I-LLMGA performs better than these, it can be attributed to the better initialization from its text-to-image (T2I) model in the first step. In contrast, our approach achieves these results using a single, unified model, demonstrating more consistent performance throughout. We show more results in Supplementary.
+</figcaption>
+</figure>
+<figure id="S5.F8" class="ltx_figure"><img src="/html/2512.03335/assets/x8.png" id="S5.F8.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="465" height="116" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 8: </span>SLEDGE is capable of generating diverse samples for an instruction by varying the seed. The samples are generated by using the same instructions as in <a href="#S5.F6" title="In 5.1 Baseline Methods ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">6</span></a>.</figcaption>
+</figure>
+<figure id="S5.F9" class="ltx_figure"><img src="" id="S5.F9.g1" class="ltx_graphics ltx_centering ltx_missing ltx_missing_image" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 9: </span>We compare <span id="S5.F9.2.1" class="ltx_text ltx_font_italic">SLEDGE</span> against its ablated versions, each denoted by ‘Study #’, please refer to <a href="#S5.SS4" title="5.4 Ablation Studies ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">section</span> <span class="ltx_text ltx_ref_tag">5.4</span></a>.</figcaption>
+</figure>
+</section>
+<section id="S5.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.3 </span>Results</h3>
+
+<div id="S5.SS3.p1" class="ltx_para">
+<p id="S5.SS3.p1.1" class="ltx_p">We showcase quantitative results in <a href="#S5.F5" title="In 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">figs.</span> <span class="ltx_text ltx_ref_tag">5</span></a>, <a href="#S5.T1" title="Table 1 ‣ 5.2 Evaluation Protocol ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a> and <a href="#S5.T2" title="Table 2 ‣ 5.2 Evaluation Protocol ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> and qualitative results in <a href="#S5.F7" title="In 5.2 Evaluation Protocol ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">figs.</span> <span class="ltx_text ltx_ref_tag">7</span></a>, <a href="#S5.F6" title="Figure 6 ‣ 5.1 Baseline Methods ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a> and <a href="#S5.F8" title="Figure 8 ‣ 5.2 Evaluation Protocol ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">8</span></a>.
+From  <a href="#S5.F7" title="In 5.2 Evaluation Protocol ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">7</span></a>, it can be seen that both Ranni <cite class="ltx_cite ltx_citemacro_citep">(Feng et al. <a href="#bib.bib14" title="" class="ltx_ref">2024</a>)</cite> and ZONE <cite class="ltx_cite ltx_citemacro_citep">(Li et al. <a href="#bib.bib30" title="" class="ltx_ref">2024</a>)</cite> fail to generate results that match the general theme of the design. Further, from <a href="#S5.F5" title="In 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">5</span></a> and <a href="#S5.T1" title="In 5.2 Evaluation Protocol ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">table</span> <span class="ltx_text ltx_ref_tag">1</span></a>, it can be see that Ranni <cite class="ltx_cite ltx_citemacro_citep">(Feng et al. <a href="#bib.bib14" title="" class="ltx_ref">2024</a>)</cite> and ZONE <cite class="ltx_cite ltx_citemacro_citep">(Li et al. <a href="#bib.bib30" title="" class="ltx_ref">2024</a>)</cite> both perform poorly. We believe the main reason for the poor performance of ZONE <cite class="ltx_cite ltx_citemacro_citep">(Li et al. <a href="#bib.bib30" title="" class="ltx_ref">2024</a>)</cite> could be complex edit prompts, as it is based on InstructPix2Pix <cite class="ltx_cite ltx_citemacro_citep">(Brooks, Holynski, and Efros <a href="#bib.bib4" title="" class="ltx_ref">2023</a>)</cite> and MagicBrush <cite class="ltx_cite ltx_citemacro_citep">(Zhang et al. <a href="#bib.bib52" title="" class="ltx_ref">2023</a>)</cite>, which generally excels for simpler prompts. These complex prompts can vary from localized edits to generating new objects where ZONE does not fare well. For Ranni <cite class="ltx_cite ltx_citemacro_citep">(Feng et al. <a href="#bib.bib14" title="" class="ltx_ref">2024</a>)</cite>, the layout-conditioned model method offers a great solution for design generation. However, Ranni does not perform well on either of the evaluation datasets. As noted by others <span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note">1</span>https://github.com/ali-vilab/Ranni/issues/7</span></span></span>, the model size could be a problem.</p>
+</div>
+<div id="S5.SS3.p2" class="ltx_para">
+<p id="S5.SS3.p2.1" class="ltx_p">From the baselines considered, LLMGA <cite class="ltx_cite ltx_citemacro_citep">(Xia et al. <a href="#bib.bib49" title="" class="ltx_ref">2025</a>)</cite> also suffers from similar problems as ZONE <cite class="ltx_cite ltx_citemacro_citep">(Li et al. <a href="#bib.bib30" title="" class="ltx_ref">2024</a>)</cite>. However, with T2I+LLMGA, we can convert it into a very strong baseline. From <a href="#S5.F5" title="In 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">5</span></a> and <a href="#S5.T1" title="In 5.2 Evaluation Protocol ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">table</span> <span class="ltx_text ltx_ref_tag">1</span></a>, it can be seen that T2I+LLMGA and our method show competitive performance. While cCOLE is capable of generating aesthetic outputs, it lacks the layered generation capability, making it not as useful as other approaches for design editing operations. iCOLE performs better than ZONE <cite class="ltx_cite ltx_citemacro_citep">(Li et al. <a href="#bib.bib30" title="" class="ltx_ref">2024</a>)</cite> and RANNI <cite class="ltx_cite ltx_citemacro_citep">(Feng et al. <a href="#bib.bib14" title="" class="ltx_ref">2024</a>)</cite>, proving to be a strong baseline, but its outputs are often not as aesthetic as SLEDGE and often are too simplistic with single objects.</p>
+</div>
+<div id="S5.SS3.p3" class="ltx_para">
+<p id="S5.SS3.p3.1" class="ltx_p">Further, we perform <span id="S5.SS3.p3.1.1" class="ltx_text ltx_font_bold">human evaluation</span> using Amazon Mechanical Turk by randomly sampling <math id="S5.SS3.p3.1.m1" class="ltx_Math" alttext="100" display="inline" intent=":literal"><semantics><mn>100</mn><annotation encoding="application/x-tex">100</annotation></semantics></math> samples and comparing SLEDGE against baselines: T2I+LLMGA and iCOLE. For each sample, we evaluate theme matching, aesthetic quality, and edit compliance.
+On average, SLEDGE was preferred by 63% of the users compared to the baselines for theme adherence. For aesthetic quality, SLEDGE was chosen by 59% of the users, and finally, 62.5% users preferred SLEDGE over the baselines for edit compliance.</p>
+</div>
+</section>
+<section id="S5.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.4 </span>Ablation Studies</h3>
+
+<div id="S5.SS4.p1" class="ltx_para">
+<p id="S5.SS4.p1.6" class="ltx_p">We validate our design choices through an ablation study to assess the impact of key components in our approach. 
+<br class="ltx_break"><span id="S5.SS4.p1.6.3" class="ltx_text ltx_font_bold">Study 1</span> <span id="S5.SS4.p1.1.1" class="ltx_text ltx_framed ltx_framed_underline">Effect of Fine-tuning <math id="S5.SS4.p1.1.1.m1" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math></span>: We compare our fine-tuned <math id="S5.SS4.p1.2.m1" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math> module against directly using the decoder after Step 1. This allows us to evaluate the benefit of adapting <math id="S5.SS4.p1.3.m2" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math> to our specific task. From <a href="#S5.F9" title="In 5.2 Evaluation Protocol ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">9</span></a>, we see that finetuning <math id="S5.SS4.p1.4.m3" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math> improves the overall performance by improving alignment.
+<br class="ltx_break"><span id="S5.SS4.p1.6.4" class="ltx_text ltx_font_bold">Study 2</span> <span id="S5.SS4.p1.6.5" class="ltx_text ltx_framed ltx_framed_underline">Full vs. Region Loss</span>: We examine applying the Step 3 loss to the full predicted canvas vs. only the MLLM-specified region. The latter reduces performance, because full-image loss better leverages global context.
+<br class="ltx_break"><span id="S5.SS4.p1.6.6" class="ltx_text ltx_font_bold">Study 3</span> <span id="S5.SS4.p1.5.2" class="ltx_text ltx_framed ltx_framed_underline"><math id="S5.SS4.p1.5.2.m1" class="ltx_Math" alttext="\mathcal{U}_{t}" display="inline" intent=":literal"><semantics><msub><mi class="ltx_font_mathcaligraphic">𝒰</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathcal{U}_{t}</annotation></semantics></math> handling</span>: We compare removing <math id="S5.SS4.p1.6.m4" class="ltx_Math" alttext="\mathcal{U}_{t}" display="inline" intent=":literal"><semantics><msub><mi class="ltx_font_mathcaligraphic">𝒰</mi><mi>t</mi></msub><annotation encoding="application/x-tex">\mathcal{U}_{t}</annotation></semantics></math> versus replacing it with an empty canvas. Removal performs better, as empty canvas introduces misleading signals and attention overhead, while removal more clearly indicates absence.
+<br class="ltx_break"><span id="S5.SS4.p1.6.7" class="ltx_text ltx_font_bold">Study 4</span> <span id="S5.SS4.p1.6.8" class="ltx_text ltx_framed ltx_framed_underline">Layer Extractor</span>: We examine the performance of SLEDGE without the layer extractor module. This module helps to maintain consistency across the edit instructions, ensuring that the final design is according to the user’s needs. As shown in <a href="#S5.F9" title="In 5.2 Evaluation Protocol ‣ 5 Experiments and Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">9</span></a>, removal of the layer extractor significantly harms the performance.</p>
+</div>
+</section>
+</section>
+<section id="S6" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6 </span>Conclusion</h2>
+
+<div id="S6.p1" class="ltx_para">
+<p id="S6.p1.1" class="ltx_p">We introduce the novel problem of <span id="S6.p1.1.1" class="ltx_text ltx_font_italic">Step-by-step Layered Design Generation</span> and propose <span id="S6.p1.1.2" class="ltx_text ltx_font_italic">SLEDGE</span> to address it. To support this, we set up the <span id="S6.p1.1.3" class="ltx_text ltx_font_italic">IDeation evaluation suite</span> for robust model training and evaluation. Our experiments show that existing baselines struggle with step-by-step design prompts, while SLEDGE consistently outperforms them.</p>
+</div>
+<div id="S6.p2" class="ltx_para">
+<p id="S6.p2.1" class="ltx_p">However, the diversity of the design space poses unique challenges. One is handling variable resolutions, which current generative models lack but would greatly enhance creative flexibility. Another is natively supporting transparency to enable direct layer-wise generation for seamless design integration. These open directions offer promising avenues for future research, and we hope our work brings attention to this practical yet underexplored area.</p>
+</div>
+</section>
+<section id="S7" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">7 </span>Acknowledgement</h2>
+
+<div id="S7.p1" class="ltx_para">
+<p id="S7.p1.1" class="ltx_p">This work was supported by KAUST, under Award No. BAS/1/1685-01-01.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul class="ltx_biblist">
+<li id="bib.bib1" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Anthropic (2024)</span>
+<span class="ltx_bibblock">
+Anthropic. 2024.
+
+</span>
+<span class="ltx_bibblock">Introducing the next generation of Claude.
+
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Bai et al. (2023)</span>
+<span class="ltx_bibblock">
+Bai, J.; Bai, S.; Chu, Y.; Cui, Z.; Dang, K.; Deng, X.; Fan, Y.; Ge, W.; Han, Y.; Huang, F.; Hui, B.; Ji, L.; Li, M.; Lin, J.; Lin, R.; Liu, D.; Liu, G.; Lu, C.; Lu, K.; Ma, J.; Men, R.; Ren, X.; Ren, X.; Tan, C.; Tan, S.; Tu, J.; Wang, P.; Wang, S.; Wang, W.; Wu, S.; Xu, B.; Xu, J.; Yang, A.; Yang, H.; Yang, J.; Yang, S.; Yao, Y.; Yu, B.; Yuan, H.; Yuan, Z.; Zhang, J.; Zhang, X.; Zhang, Y.; Zhang, Z.; Zhou, C.; Zhou, J.; Zhou, X.; and Zhu, T. 2023.
+
+</span>
+<span class="ltx_bibblock">Qwen Technical Report.
+
+</span>
+<span class="ltx_bibblock">arXiv:2309.16609.
+
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Borji (2022)</span>
+<span class="ltx_bibblock">
+Borji, A. 2022.
+
+</span>
+<span class="ltx_bibblock">Pros and cons of GAN evaluation measures: New developments.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib3.1.1" class="ltx_emph ltx_font_italic">Computer Vision and Image Understanding</em>, 215: 103329.
+
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Brooks, Holynski, and Efros (2023)</span>
+<span class="ltx_bibblock">
+Brooks, T.; Holynski, A.; and Efros, A. A. 2023.
+
+</span>
+<span class="ltx_bibblock">InstructPix2Pix: Learning to Follow Image Editing Instructions.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib4.1.1" class="ltx_emph ltx_font_italic">CVPR</em>.
+
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chai et al. (2023)</span>
+<span class="ltx_bibblock">
+Chai, S.; Zhuang, L.; Yan, F.; and Zhou, Z. 2023.
+
+</span>
+<span class="ltx_bibblock">Two-stage Content-Aware Layout Generation for Poster Designs.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib5.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 31st ACM International Conference on Multimedia</em>, MM ’23, 8415–8423. New York, NY, USA: Association for Computing Machinery.
+
+</span>
+<span class="ltx_bibblock">ISBN 9798400701085.
+
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen et al. (2024)</span>
+<span class="ltx_bibblock">
+Chen, J.; Zhang, R.; Zhou, Y.; and Chen, C. 2024.
+
+</span>
+<span class="ltx_bibblock">Towards Aligned Layout Generation via Diffusion Model with Aesthetic Constraints.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib6.1.1" class="ltx_emph ltx_font_italic">The Twelfth International Conference on Learning Representations</em>.
+
+</span>
+</li>
+<li id="bib.bib7" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chen et al. (2023)</span>
+<span class="ltx_bibblock">
+Chen, L.; Li, B.; Shen, S.; Yang, J.; Li, C.; Keutzer, K.; Darrell, T.; and Liu, Z. 2023.
+
+</span>
+<span class="ltx_bibblock">Large Language Models are Visual Reasoning Coordinators.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib7.1.1" class="ltx_emph ltx_font_italic">Thirty-seventh Conference on Neural Information Processing Systems</em>.
+
+</span>
+</li>
+<li id="bib.bib8" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Cheng et al. (2023)</span>
+<span class="ltx_bibblock">
+Cheng, C.-Y.; Huang, F.; Li, G.; and Li, Y. 2023.
+
+</span>
+<span class="ltx_bibblock">PLay: parametrically conditioned layout generation using latent diffusion.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib8.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 40th International Conference on Machine Learning</em>, ICML’23. JMLR.org.
+
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Cheng et al. (2024)</span>
+<span class="ltx_bibblock">
+Cheng, Y.; Zhang, Z.; Yang, M.; Hui, N.; Li, C.; Wu, X.; and Shao, J. 2024.
+
+</span>
+<span class="ltx_bibblock">Graphic Design with Large Multimodal Model.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib9.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2404.14368</em>.
+
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Chong and Forsyth (2020)</span>
+<span class="ltx_bibblock">
+Chong, M. J.; and Forsyth, D. 2020.
+
+</span>
+<span class="ltx_bibblock">Effectively Unbiased FID and Inception Score and Where to Find Them.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib10.1.1" class="ltx_emph ltx_font_italic">Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>.
+
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Dhariwal and Nichol (2021)</span>
+<span class="ltx_bibblock">
+Dhariwal, P.; and Nichol, A. 2021.
+
+</span>
+<span class="ltx_bibblock">Diffusion Models Beat GANs on Image Synthesis.
+
+</span>
+<span class="ltx_bibblock">In Ranzato, M.; Beygelzimer, A.; Dauphin, Y.; Liang, P.; and Vaughan, J. W., eds., <em id="bib.bib11.1.1" class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, volume 34, 8780–8794. Curran Associates, Inc.
+
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Dosovitskiy et al. (2021)</span>
+<span class="ltx_bibblock">
+Dosovitskiy, A.; Beyer, L.; Kolesnikov, A.; Weissenborn, D.; Zhai, X.; Unterthiner, T.; Dehghani, M.; Minderer, M.; Heigold, G.; Gelly, S.; Uszkoreit, J.; and Houlsby, N. 2021.
+
+</span>
+<span class="ltx_bibblock">An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale.
+
+</span>
+<span class="ltx_bibblock">arXiv:2010.11929.
+
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">et al. (2024)</span>
+<span class="ltx_bibblock">
+et al., O. 2024.
+
+</span>
+<span class="ltx_bibblock">GPT-4 Technical Report.
+
+</span>
+<span class="ltx_bibblock">arXiv:2303.08774.
+
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Feng et al. (2024)</span>
+<span class="ltx_bibblock">
+Feng, Y.; Gong, B.; Chen, D.; Shen, Y.; Liu, Y.; and Zhou, J. 2024.
+
+</span>
+<span class="ltx_bibblock">Ranni: Taming Text-to-Image Diffusion for Accurate Instruction Following.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib14.1.1" class="ltx_emph ltx_font_italic">Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 4744–4753.
+
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Ge et al. (2024)</span>
+<span class="ltx_bibblock">
+Ge, Y.; Zhao, S.; Zhu, J.; Ge, Y.; Yi, K.; Song, L.; Li, C.; Ding, X.; and Shan, Y. 2024.
+
+</span>
+<span class="ltx_bibblock">SEED-X: Multimodal Models with Unified Multi-granularity Comprehension and Generation.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib15.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2404.14396</em>.
+
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Guerreiro et al. (2025)</span>
+<span class="ltx_bibblock">
+Guerreiro, J. J. A.; Inoue, N.; Masui, K.; Otani, M.; and Nakayama, H. 2025.
+
+</span>
+<span class="ltx_bibblock">LayoutFlow: Flow Matching for Layout Generation.
+
+</span>
+<span class="ltx_bibblock">In Leonardis, A.; Ricci, E.; Roth, S.; Russakovsky, O.; Sattler, T.; and Varol, G., eds., <em id="bib.bib16.1.1" class="ltx_emph ltx_font_italic">Computer Vision – ECCV 2024</em>, 56–72. Cham: Springer Nature Switzerland.
+
+</span>
+<span class="ltx_bibblock">ISBN 978-3-031-72764-1.
+
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Haraguchi et al. (2024)</span>
+<span class="ltx_bibblock">
+Haraguchi, D.; Inoue, N.; Shimoda, W.; Mitani, H.; Uchida, S.; and Yamaguchi, K. 2024.
+
+</span>
+<span class="ltx_bibblock">Can GPTs Evaluate Graphic Design Based on Design Principles?
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib17.1.1" class="ltx_emph ltx_font_italic">SIGGRAPH Asia 2024 Technical Communications</em>, 1–4.
+
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Heusel et al. (2018)</span>
+<span class="ltx_bibblock">
+Heusel, M.; Ramsauer, H.; Unterthiner, T.; Nessler, B.; and Hochreiter, S. 2018.
+
+</span>
+<span class="ltx_bibblock">GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium.
+
+</span>
+<span class="ltx_bibblock">arXiv:1706.08500.
+
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Ho, Jain, and Abbeel (2020)</span>
+<span class="ltx_bibblock">
+Ho, J.; Jain, A.; and Abbeel, P. 2020.
+
+</span>
+<span class="ltx_bibblock">Denoising Diffusion Probabilistic Models.
+
+</span>
+<span class="ltx_bibblock">arXiv:2006.11239.
+
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Hsu, He, and Peng (2023)</span>
+<span class="ltx_bibblock">
+Hsu, H.; He, X.; and Peng, Y. 2023.
+
+</span>
+<span class="ltx_bibblock">DensityLayout: Density-Conditioned Layout GAN for Visual-Textual Presentation Designs.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib20.1.1" class="ltx_emph ltx_font_italic">Image and Graphics: 12th International Conference, ICIG 2023, Nanjing, China, September 22–24, 2023, Proceedings, Part II</em>, 187–199. Berlin, Heidelberg: Springer-Verlag.
+
+</span>
+<span class="ltx_bibblock">ISBN 978-3-031-46307-5.
+
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Inoue et al. (2023a)</span>
+<span class="ltx_bibblock">
+Inoue, N.; Kikuchi, K.; Simo-Serra, E.; Otani, M.; and Yamaguchi, K. 2023a.
+
+</span>
+<span class="ltx_bibblock">LayoutDM: Discrete Diffusion Model for Controllable Layout Generation.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib21.1.1" class="ltx_emph ltx_font_italic">Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 10167–10176.
+
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Inoue et al. (2023b)</span>
+<span class="ltx_bibblock">
+Inoue, N.; Kikuchi, K.; Simo-Serra, E.; Otani, M.; and Yamaguchi, K. 2023b.
+
+</span>
+<span class="ltx_bibblock">Towards flexible multi-modal document models.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib22.1.1" class="ltx_emph ltx_font_italic">Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition</em>, 14287–14296.
+
+</span>
+</li>
+<li id="bib.bib23" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Inoue et al. (2024)</span>
+<span class="ltx_bibblock">
+Inoue, N.; Masui, K.; Shimoda, W.; and Yamaguchi, K. 2024.
+
+</span>
+<span class="ltx_bibblock">OpenCOLE: Towards Reproducible Automatic Graphic Design Generation.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib23.1.1" class="ltx_emph ltx_font_italic">Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)</em>.
+
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Jia et al. (2024)</span>
+<span class="ltx_bibblock">
+Jia, P.; Li, C.; Yuan, Y.; Liu, Z.; Shen, Y.; Chen, B.; Chen, X.; Zheng, Y.; Chen, D.; Li, J.; Xie, X.; Zhang, S.; and Guo, B. 2024.
+
+</span>
+<span class="ltx_bibblock">COLE: A Hierarchical Generation Framework for Multi-Layered and Editable Graphic Design.
+
+</span>
+<span class="ltx_bibblock">arXiv:2311.16974.
+
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Joseph et al. (2023)</span>
+<span class="ltx_bibblock">
+Joseph, K. J.; Udhayanan, P.; Shukla, T.; Agarwal, A.; Karanam, S.; Goswami, K.; and Srinivasan, B. V. 2023.
+
+</span>
+<span class="ltx_bibblock">Iterative Multi-granular Image Editing using Diffusion Models.
+
+</span>
+<span class="ltx_bibblock">arXiv:2309.00613.
+
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kirillov et al. (2023)</span>
+<span class="ltx_bibblock">
+Kirillov, A.; Mintun, E.; Ravi, N.; Mao, H.; Rolland, C.; Gustafson, L.; Xiao, T.; Whitehead, S.; Berg, A. C.; Lo, W.-Y.; Dollár, P.; and Girshick, R. 2023.
+
+</span>
+<span class="ltx_bibblock">Segment Anything.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib26.1.1" class="ltx_emph ltx_font_italic">arXiv:2304.02643</em>.
+
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Kynkäänniemi et al. (2023)</span>
+<span class="ltx_bibblock">
+Kynkäänniemi, T.; Karras, T.; Aittala, M.; Aila, T.; and Lehtinen, J. 2023.
+
+</span>
+<span class="ltx_bibblock">The Role of ImageNet Classes in Fréchet Inception Distance.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib27.1.1" class="ltx_emph ltx_font_italic">Proc. ICLR</em>.
+
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">LAION-AI (2025)</span>
+<span class="ltx_bibblock">
+LAION-AI. 2025.
+
+</span>
+<span class="ltx_bibblock">LAION Aesthetic Datasets.
+
+</span>
+<span class="ltx_bibblock"><span class="ltx_ref ltx_nolink ltx_url ltx_ref_self">https://github.com/LAION-AI/laion-datasets/blob/main/laion-aesthetic.md</span>.
+
+</span>
+<span class="ltx_bibblock">Accessed: 2025-02-11.
+
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Levi et al. (2023)</span>
+<span class="ltx_bibblock">
+Levi, E.; Brosh, E.; Mykhailych, M.; and Perez, M. 2023.
+
+</span>
+<span class="ltx_bibblock">Dlt: Conditioned layout generation with joint discrete-continuous diffusion layout transformer.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib29.1.1" class="ltx_emph ltx_font_italic">Proceedings of the IEEE/CVF International Conference on Computer Vision</em>, 2106–2115.
+
+</span>
+</li>
+<li id="bib.bib30" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Li et al. (2024)</span>
+<span class="ltx_bibblock">
+Li, S.; Zeng, B.; Feng, Y.; Gao, S.; Liu, X.; Liu, J.; Li, L.; Tang, X.; Hu, Y.; Liu, J.; and Zhang, B. 2024.
+
+</span>
+<span class="ltx_bibblock">ZONE: Zero-Shot Instruction-Guided Local Editing.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib30.1.1" class="ltx_emph ltx_font_italic">Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 6254–6263.
+
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lin et al. (2023a)</span>
+<span class="ltx_bibblock">
+Lin, J.; Guo, J.; Sun, S.; Yang, Z.; Lou, J.-G.; and Zhang, D. 2023a.
+
+</span>
+<span class="ltx_bibblock">Layoutprompter: awaken the design ability of large language models.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib31.1.1" class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>, 36: 43852–43879.
+
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lin et al. (2024)</span>
+<span class="ltx_bibblock">
+Lin, J.; Huang, D.; Zhao, T.; Zhan, D.; and Lin, C.-Y. 2024.
+
+</span>
+<span class="ltx_bibblock">DesignProbe: A Graphic Design Benchmark for Multimodal Large Language Models.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib32.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2404.14801</em>.
+
+</span>
+</li>
+<li id="bib.bib33" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Lin et al. (2023b)</span>
+<span class="ltx_bibblock">
+Lin, J.; Zhou, M.; Ma, Y.; Gao, Y.; Fei, C.; Chen, Y.; Yu, Z.; and Ge, T. 2023b.
+
+</span>
+<span class="ltx_bibblock">AutoPoster: A Highly Automatic and Content-aware Design System for Advertising Poster Generation.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib33.1.1" class="ltx_emph ltx_font_italic">Proceedings of the 31st ACM International Conference on Multimedia</em>, MM ’23, 1250–1260. New York, NY, USA: Association for Computing Machinery.
+
+</span>
+<span class="ltx_bibblock">ISBN 9798400701085.
+
+</span>
+</li>
+<li id="bib.bib34" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Liu et al. (2023)</span>
+<span class="ltx_bibblock">
+Liu, H.; Li, C.; Wu, Q.; and Lee, Y. J. 2023.
+
+</span>
+<span class="ltx_bibblock">Visual Instruction Tuning.
+
+</span>
+<span class="ltx_bibblock">arXiv:2304.08485.
+
+</span>
+</li>
+<li id="bib.bib35" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Loshchilov and Hutter (2019)</span>
+<span class="ltx_bibblock">
+Loshchilov, I.; and Hutter, F. 2019.
+
+</span>
+<span class="ltx_bibblock">Decoupled Weight Decay Regularization.
+
+</span>
+<span class="ltx_bibblock">arXiv:1711.05101.
+
+</span>
+</li>
+<li id="bib.bib36" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Luo et al. (2024)</span>
+<span class="ltx_bibblock">
+Luo, C.; Shen, Y.; Zhu, Z.; Zheng, Q.; Yu, Z.; and Yao, C. 2024.
+
+</span>
+<span class="ltx_bibblock">Layoutllm: Layout instruction tuning with large language models for document understanding.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib36.1.1" class="ltx_emph ltx_font_italic">Proceedings of the IEEE/CVF conference on computer vision and pattern recognition</em>, 15630–15640.
+
+</span>
+</li>
+<li id="bib.bib37" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Ngo, Teo, and Byrne (2003)</span>
+<span class="ltx_bibblock">
+Ngo, D.; Teo, L.; and Byrne, J. 2003.
+
+</span>
+<span class="ltx_bibblock">Modelling interface aesthetics.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib37.1.1" class="ltx_emph ltx_font_italic">Information Sciences</em>, 152: 25–46.
+
+</span>
+</li>
+<li id="bib.bib38" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Parmar, Zhang, and Zhu (2022)</span>
+<span class="ltx_bibblock">
+Parmar, G.; Zhang, R.; and Zhu, J.-Y. 2022.
+
+</span>
+<span class="ltx_bibblock">On Aliased Resizing and Surprising Subtleties in GAN Evaluation.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib38.1.1" class="ltx_emph ltx_font_italic">Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 11410–11420.
+
+</span>
+</li>
+<li id="bib.bib39" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Podell et al. (2023)</span>
+<span class="ltx_bibblock">
+Podell, D.; English, Z.; Lacey, K.; Blattmann, A.; Dockhorn, T.; Müller, J.; Penna, J.; and Rombach, R. 2023.
+
+</span>
+<span class="ltx_bibblock">SDXL: Improving Latent Diffusion Models for High-Resolution Image Synthesis.
+
+</span>
+<span class="ltx_bibblock">arXiv:2307.01952.
+
+</span>
+</li>
+<li id="bib.bib40" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Purchase, Freeman, and Hamer (2012)</span>
+<span class="ltx_bibblock">
+Purchase, H.; Freeman, E.; and Hamer, J. 2012.
+
+</span>
+<span class="ltx_bibblock">An Exploration of Visual Complexity.
+
+</span>
+<span class="ltx_bibblock">200–213.
+
+</span>
+<span class="ltx_bibblock">ISBN 978-3-642-31222-9.
+
+</span>
+</li>
+<li id="bib.bib41" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Radford et al. (2021)</span>
+<span class="ltx_bibblock">
+Radford, A.; Kim, J. W.; Hallacy, C.; Ramesh, A.; Goh, G.; Agarwal, S.; Sastry, G.; Askell, A.; Mishkin, P.; Clark, J.; Krueger, G.; and Sutskever, I. 2021.
+
+</span>
+<span class="ltx_bibblock">Learning Transferable Visual Models From Natural Language Supervision.
+
+</span>
+<span class="ltx_bibblock">arXiv:2103.00020.
+
+</span>
+</li>
+<li id="bib.bib42" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Ramesh et al. (2022)</span>
+<span class="ltx_bibblock">
+Ramesh, A.; Dhariwal, P.; Nichol, A.; Chu, C.; and Chen, M. 2022.
+
+</span>
+<span class="ltx_bibblock">Hierarchical Text-Conditional Image Generation with CLIP Latents.
+
+</span>
+<span class="ltx_bibblock">arXiv:2204.06125.
+
+</span>
+</li>
+<li id="bib.bib43" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Ruiz et al. (2022)</span>
+<span class="ltx_bibblock">
+Ruiz, N.; Li, Y.; Jampani, V.; Pritch, Y.; Rubinstein, M.; and Aberman, K. 2022.
+
+</span>
+<span class="ltx_bibblock">DreamBooth: Fine Tuning Text-to-image Diffusion Models for Subject-Driven Generation.
+
+</span>
+</li>
+<li id="bib.bib44" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Shimoda et al. (2024)</span>
+<span class="ltx_bibblock">
+Shimoda, W.; Haraguchi, D.; Uchida, S.; and Yamaguchi, K. 2024.
+
+</span>
+<span class="ltx_bibblock">Towards Diverse and Consistent Typography Generation.
+
+</span>
+</li>
+<li id="bib.bib45" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Sun et al. (2024)</span>
+<span class="ltx_bibblock">
+Sun, Q.; Cui, Y.; Zhang, X.; Zhang, F.; Yu, Q.; Wang, Y.; Rao, Y.; Liu, J.; Huang, T.; and Wang, X. 2024.
+
+</span>
+<span class="ltx_bibblock">Generative Multimodal Models are In-Context Learners.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib45.1.1" class="ltx_emph ltx_font_italic">Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 14398–14409.
+
+</span>
+</li>
+<li id="bib.bib46" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Team et al. (2023)</span>
+<span class="ltx_bibblock">
+Team, G.; et al. 2023.
+
+</span>
+<span class="ltx_bibblock">Gemini: A Family of Highly Capable Multimodal Models.
+
+</span>
+<span class="ltx_bibblock">Technical report, Google DeepMind.
+
+</span>
+</li>
+<li id="bib.bib47" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Touvron et al. (2023)</span>
+<span class="ltx_bibblock">
+Touvron, H.; Martin, L.; Stone, K.; Albert, P.; Almahairi, A.; Babaei, Y.; Bashlykov, N.; Batra, S.; Bhargava, P.; Bhosale, S.; Bikel, D.; Blecher, L.; Ferrer, C. C.; Chen, M.; Cucurull, G.; Esiobu, D.; Fernandes, J.; Fu, J.; Fu, W.; Fuller, B.; Gao, C.; Goswami, V.; Goyal, N.; Hartshorn, A.; Hosseini, S.; Hou, R.; Inan, H.; Kardas, M.; Kerkez, V.; Khabsa, M.; Kloumann, I.; Korenev, A.; Koura, P. S.; Lachaux, M.-A.; Lavril, T.; Lee, J.; Liskovich, D.; Lu, Y.; Mao, Y.; Martinet, X.; Mihaylov, T.; Mishra, P.; Molybog, I.; Nie, Y.; Poulton, A.; Reizenstein, J.; Rungta, R.; Saladi, K.; Schelten, A.; Silva, R.; Smith, E. M.; Subramanian, R.; Tan, X. E.; Tang, B.; Taylor, R.; Williams, A.; Kuan, J. X.; Xu, P.; Yan, Z.; Zarov, I.; Zhang, Y.; Fan, A.; Kambadur, M.; Narang, S.; Rodriguez, A.; Stojnic, R.; Edunov, S.; and Scialom, T. 2023.
+
+</span>
+<span class="ltx_bibblock">Llama 2: Open Foundation and Fine-Tuned Chat Models.
+
+</span>
+<span class="ltx_bibblock">arXiv:2307.09288.
+
+</span>
+</li>
+<li id="bib.bib48" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Wu et al. (2023)</span>
+<span class="ltx_bibblock">
+Wu, C.; Yin, S.; Qi, W.; Wang, X.; Tang, Z.; and Duan, N. 2023.
+
+</span>
+<span class="ltx_bibblock">Visual ChatGPT: Talking, Drawing and Editing with Visual Foundation Models.
+
+</span>
+<span class="ltx_bibblock">arXiv:2303.04671.
+
+</span>
+</li>
+<li id="bib.bib49" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Xia et al. (2025)</span>
+<span class="ltx_bibblock">
+Xia, B.; Wang, S.; Tao, Y.; Wang, Y.; and Jia, J. 2025.
+
+</span>
+<span class="ltx_bibblock">LLMGA: Multimodal Large Language Model Based Generation Assistant.
+
+</span>
+<span class="ltx_bibblock">In Leonardis, A.; Ricci, E.; Roth, S.; Russakovsky, O.; Sattler, T.; and Varol, G., eds., <em id="bib.bib49.1.1" class="ltx_emph ltx_font_italic">Computer Vision – ECCV 2024</em>, 389–406. Cham: Springer Nature Switzerland.
+
+</span>
+<span class="ltx_bibblock">ISBN 978-3-031-72920-1.
+
+</span>
+</li>
+<li id="bib.bib50" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Yamaguchi (2021)</span>
+<span class="ltx_bibblock">
+Yamaguchi, K. 2021.
+
+</span>
+<span class="ltx_bibblock">CanvasVAE: Learning To Generate Vector Graphic Documents.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib50.1.1" class="ltx_emph ltx_font_italic">Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)</em>, 5481–5489.
+
+</span>
+</li>
+<li id="bib.bib51" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Yang et al. (2024)</span>
+<span class="ltx_bibblock">
+Yang, L.; Zhang, Z.; Yu, Z.; Liu, J.; Xu, M.; Ermon, S.; and CUI, B. 2024.
+
+</span>
+<span class="ltx_bibblock">Cross-Modal Contextualized Diffusion Models for Text-Guided Visual Generation and Editing.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib51.1.1" class="ltx_emph ltx_font_italic">The Twelfth International Conference on Learning Representations</em>.
+
+</span>
+</li>
+<li id="bib.bib52" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhang et al. (2023)</span>
+<span class="ltx_bibblock">
+Zhang, K.; Mo, L.; Chen, W.; Sun, H.; and Su, Y. 2023.
+
+</span>
+<span class="ltx_bibblock">MagicBrush: A Manually Annotated Dataset for Instruction-Guided Image Editing.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib52.1.1" class="ltx_emph ltx_font_italic">Advances in Neural Information Processing Systems</em>.
+
+</span>
+</li>
+<li id="bib.bib53" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhang et al. (2024a)</span>
+<span class="ltx_bibblock">
+Zhang, P.; Dong, X.; Zang, Y.; Cao, Y.; Qian, R.; Chen, L.; Guo, Q.; Duan, H.; Wang, B.; Ouyang, L.; Zhang, S.; Zhang, W.; Li, Y.; Gao, Y.; Sun, P.; Zhang, X.; Li, W.; Li, J.; Wang, W.; Yan, H.; He, C.; Zhang, X.; Chen, K.; Dai, J.; Qiao, Y.; Lin, D.; and Wang, J. 2024a.
+
+</span>
+<span class="ltx_bibblock">InternLM-XComposer-2.5: A Versatile Large Vision Language Model Supporting Long-Contextual Input and Output.
+
+</span>
+<span class="ltx_bibblock"><em id="bib.bib53.1.1" class="ltx_emph ltx_font_italic">arXiv preprint arXiv:2407.03320</em>.
+
+</span>
+</li>
+<li id="bib.bib54" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhang et al. (2024b)</span>
+<span class="ltx_bibblock">
+Zhang, R.; Han, J.; Liu, C.; Gao, P.; Zhou, A.; Hu, X.; Yan, S.; Lu, P.; Li, H.; and Qiao, Y. 2024b.
+
+</span>
+<span class="ltx_bibblock">LLaMA-Adapter: Efficient Fine-tuning of Language Models with Zero-init Attention.
+
+</span>
+<span class="ltx_bibblock">arXiv:2303.16199.
+
+</span>
+</li>
+<li id="bib.bib55" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zheng et al. (2024)</span>
+<span class="ltx_bibblock">
+Zheng, C.; Zhou, H.; Meng, F.; Zhou, J.; and Huang, M. 2024.
+
+</span>
+<span class="ltx_bibblock">Large Language Models Are Not Robust Multiple Choice Selectors.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib55.1.1" class="ltx_emph ltx_font_italic">The Twelfth International Conference on Learning Representations</em>.
+
+</span>
+</li>
+<li id="bib.bib56" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhou et al. (2024)</span>
+<span class="ltx_bibblock">
+Zhou, Y.; Zhang, R.; Gu, J.; and Sun, T. 2024.
+
+</span>
+<span class="ltx_bibblock">Customization Assistant for Text-to-Image Generation.
+
+</span>
+<span class="ltx_bibblock">In <em id="bib.bib56.1.1" class="ltx_emph ltx_font_italic">Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)</em>, 9182–9191.
+
+</span>
+</li>
+<li id="bib.bib57" class="ltx_bibitem">
+<span class="ltx_tag ltx_role_refnum ltx_tag_bibitem">Zhu et al. (2023)</span>
+<span class="ltx_bibblock">
+Zhu, D.; Chen, J.; Shen, X.; Li, X.; and Elhoseiny, M. 2023.
+
+</span>
+<span class="ltx_bibblock">MiniGPT-4: Enhancing Vision-Language Understanding with Advanced Large Language Models.
+
+</span>
+<span class="ltx_bibblock">arXiv:2304.10592.
+
+</span>
+</li>
+</ul>
+</section>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<section id="Ax1" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">Supplementary Material</h2>
+
+<div id="Ax1.p1" class="ltx_para ltx_noindent">
+<p id="Ax1.p1.1" class="ltx_p">In this supplementary document, we include the following details that could not have been included in the main paper owing to space constraints:</p>
+<ul id="Ax1.I1" class="ltx_itemize">
+<li id="Ax1.I1.i1" class="ltx_item" style="list-style-type:none;"> 
+<div id="Ax1.I1.i1.p1" class="ltx_para">
+<p id="Ax1.I1.i1.p1.1" class="ltx_p"><span id="Ax1.I1.i1.p1.1.1" class="ltx_text ltx_font_bold">Section <a href="#A1" title="Appendix A Implementation Details ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">A</span></a></span>: Implementation details of our approach.</p>
+</div>
+</li>
+<li id="Ax1.I1.i2" class="ltx_item" style="list-style-type:none;"> 
+<div id="Ax1.I1.i2.p1" class="ltx_para">
+<p id="Ax1.I1.i2.p1.1" class="ltx_p"><span id="Ax1.I1.i2.p1.1.1" class="ltx_text ltx_font_bold">Section <a href="#A2" title="Appendix B Qualitative Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">B</span></a></span>: Qualitative results comparing our approach with the strongest baseline.</p>
+</div>
+</li>
+<li id="Ax1.I1.i3" class="ltx_item" style="list-style-type:none;"> 
+<div id="Ax1.I1.i3.p1" class="ltx_para">
+<p id="Ax1.I1.i3.p1.1" class="ltx_p"><span id="Ax1.I1.i3.p1.1.1" class="ltx_text ltx_font_bold">Section <a href="#A3" title="Appendix C Circular evaluation and Prompts Used ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">C</span></a>:</span> Circular evaluation and Prompts used for dataset generation and evaluation protocol.</p>
+</div>
+</li>
+<li id="Ax1.I1.i4" class="ltx_item" style="list-style-type:none;"> 
+<div id="Ax1.I1.i4.p1" class="ltx_para">
+<p id="Ax1.I1.i4.p1.1" class="ltx_p"><span id="Ax1.I1.i4.p1.1.1" class="ltx_text ltx_font_bold">Section <a href="#A4" title="Appendix D Dataset Examples ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">D</span></a>:</span> Samples from our training dataset.</p>
+</div>
+</li>
+<li id="Ax1.I1.i5" class="ltx_item" style="list-style-type:none;"> 
+<div id="Ax1.I1.i5.p1" class="ltx_para">
+<p id="Ax1.I1.i5.p1.1" class="ltx_p"><span id="Ax1.I1.i5.p1.1.1" class="ltx_text ltx_font_bold">Section <a href="#A5" title="Appendix E Failure Cases ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">E</span></a>:</span> Failure cases of our model.</p>
+</div>
+</li>
+<li id="Ax1.I1.i6" class="ltx_item" style="list-style-type:none;"> 
+<div id="Ax1.I1.i6.p1" class="ltx_para">
+<p id="Ax1.I1.i6.p1.1" class="ltx_p"><a href="#A2.F13" title="In Appendix B Qualitative Results ‣ Step-by-step Layered Design Generation" class="ltx_ref ltx_font_bold"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">13</span></a>: Shows a high-resolution sample of Figure 5 from the main paper focusing on the generated text.</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+<section id="A1" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix A </span>Implementation Details</h2>
+
+<div id="A1.p1" class="ltx_para">
+<p id="A1.p1.3" class="ltx_p">In Step 1 of our methodology (see <a href="#S3.SS1" title="3.1 Modeling Each Canvas Generation Step ‣ 3 Step-by-step Layered Design Generation ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">section</span> <span class="ltx_text ltx_ref_tag">3.1</span></a>), we train the decoder module, which comprises four cross-attention layers. The output of this module replaces the original text conditioning in the pre-trained SDXL model <cite class="ltx_cite ltx_citemacro_citep">(Podell et al. <a href="#bib.bib39" title="" class="ltx_ref">2023</a>)</cite>. Training is conducted for 15,000 steps. The training used a per-GPU batch size of <math id="A1.p1.1.m1" class="ltx_Math" alttext="4" display="inline" intent=":literal"><semantics><mn>4</mn><annotation encoding="application/x-tex">4</annotation></semantics></math>, resulting in an effective batch size of <math id="A1.p1.2.m2" class="ltx_Math" alttext="16" display="inline" intent=":literal"><semantics><mn>16</mn><annotation encoding="application/x-tex">16</annotation></semantics></math> across all GPUs. Optimization was performed with AdamW <cite class="ltx_cite ltx_citemacro_citep">(Loshchilov and Hutter <a href="#bib.bib35" title="" class="ltx_ref">2019</a>)</cite> using a learning rate of <math id="A1.p1.3.m3" class="ltx_Math" alttext="10^{-4}" display="inline" intent=":literal"><semantics><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup><annotation encoding="application/x-tex">10^{-4}</annotation></semantics></math> and a cosine decay schedule.</p>
+</div>
+<div id="A1.p2" class="ltx_para">
+<p id="A1.p2.10" class="ltx_p">In Step <math id="A1.p2.1.m1" class="ltx_Math" alttext="2" display="inline" intent=":literal"><semantics><mn>2</mn><annotation encoding="application/x-tex">2</annotation></semantics></math> of the methodology, we trained the model for <math id="A1.p2.2.m2" class="ltx_Math" alttext="12,000" display="inline" intent=":literal"><semantics><mrow><mn>12</mn><mo>,</mo><mn>000</mn></mrow><annotation encoding="application/x-tex">12,000</annotation></semantics></math> steps with a per-GPU batch size of <math id="A1.p2.3.m3" class="ltx_Math" alttext="8" display="inline" intent=":literal"><semantics><mn>8</mn><annotation encoding="application/x-tex">8</annotation></semantics></math>, yielding an effective batch size of <math id="A1.p2.4.m4" class="ltx_Math" alttext="32" display="inline" intent=":literal"><semantics><mn>32</mn><annotation encoding="application/x-tex">32</annotation></semantics></math> (<math id="A1.p2.5.m5" class="ltx_Math" alttext="4" display="inline" intent=":literal"><semantics><mn>4</mn><annotation encoding="application/x-tex">4</annotation></semantics></math> GPUs × <math id="A1.p2.6.m6" class="ltx_Math" alttext="8" display="inline" intent=":literal"><semantics><mn>8</mn><annotation encoding="application/x-tex">8</annotation></semantics></math> samples each). A dropout probability of <math id="A1.p2.7.m7" class="ltx_Math" alttext="50\%" display="inline" intent=":literal"><semantics><mrow><mn>50</mn><mo>%</mo></mrow><annotation encoding="application/x-tex">50\%</annotation></semantics></math> was applied to <math id="A1.p2.8.m8" class="ltx_Math" alttext="\mathbf{U}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐔</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{U}_{t+1}</annotation></semantics></math>. Our MLLM is built on top of Llama2-chat-13B <cite class="ltx_cite ltx_citemacro_citep">(Touvron et al. <a href="#bib.bib47" title="" class="ltx_ref">2023</a>)</cite> initialized with pre-trained checkpoint <cite class="ltx_cite ltx_citemacro_citep">(Ge et al. <a href="#bib.bib15" title="" class="ltx_ref">2024</a>)</cite>. The AdamW optimizer was again employed with a <math id="A1.p2.9.m9" class="ltx_Math" alttext="10^{-4}" display="inline" intent=":literal"><semantics><msup><mn>10</mn><mrow><mo>−</mo><mn>4</mn></mrow></msup><annotation encoding="application/x-tex">10^{-4}</annotation></semantics></math> learning rate and a cosine decay schedule. The visual embeddings were extracted using the Qwen encoder <math id="A1.p2.10.m10" class="ltx_Math" alttext="\mathcal{V}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒱</mi><annotation encoding="application/x-tex">\mathcal{V}</annotation></semantics></math> <cite class="ltx_cite ltx_citemacro_citep">(Bai et al. <a href="#bib.bib2" title="" class="ltx_ref">2023</a>)</cite>.</p>
+</div>
+<div id="A1.p3" class="ltx_para">
+<p id="A1.p3.4" class="ltx_p">Step <math id="A1.p3.1.m1" class="ltx_Math" alttext="3" display="inline" intent=":literal"><semantics><mn>3</mn><annotation encoding="application/x-tex">3</annotation></semantics></math> followed the same training protocol as step <math id="A1.p3.2.m2" class="ltx_Math" alttext="2" display="inline" intent=":literal"><semantics><mn>2</mn><annotation encoding="application/x-tex">2</annotation></semantics></math>, including the learning rate, optimizer, and initialization strategy, but with a reduced batch size of <math id="A1.p3.3.m3" class="ltx_Math" alttext="4" display="inline" intent=":literal"><semantics><mn>4</mn><annotation encoding="application/x-tex">4</annotation></semantics></math> per GPU. This adjustment accommodated the MLLM and the diffusion model while optimizing the decoder module <math id="A1.p3.4.m4" class="ltx_Math" alttext="\mathcal{D}" display="inline" intent=":literal"><semantics><mi class="ltx_font_mathcaligraphic">𝒟</mi><annotation encoding="application/x-tex">\mathcal{D}</annotation></semantics></math>.</p>
+</div>
+<div id="A1.p4" class="ltx_para">
+<p id="A1.p4.1" class="ltx_p">All training was conducted on 4 NVIDIA A100 GPUs.</p>
+</div>
+<div id="A1.p5" class="ltx_para">
+<p id="A1.p5.1" class="ltx_p">For inference, per generation on an A100 GPU, SLEDGE takes 17.9s while iCOLE, Ranni, and T2I-LLMGA take 21.2s, 25.3s, and 17.3s, respectively.</p>
+</div>
+</section>
+<section id="A2" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix B </span>Qualitative Results</h2>
+
+<div id="A2.p1" class="ltx_para">
+<p id="A2.p1.1" class="ltx_p">We demonstrate our method’s iterative design generation capabilities through comparative examples with our strongest baseline T2I+LLMGA across three representative scenarios in <a href="#A2.F12" title="In Appendix B Qualitative Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">figs.</span> <span class="ltx_text ltx_ref_tag">12</span></a>, <a href="#A2.F10" title="Figure 10 ‣ Appendix B Qualitative Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10</span></a> and <a href="#A2.F11" title="Figure 11 ‣ Appendix B Qualitative Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">11</span></a>.</p>
+</div>
+<div id="A2.p2" class="ltx_para">
+<p id="A2.p2.1" class="ltx_p">Fig. <a href="#A2.F10" title="Figure 10 ‣ Appendix B Qualitative Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">10</span></a> reveals the baseline method’s limitations, where its editing module fundamentally fails when challenged to introduce new elements to the existing canvas.
+Furthermore, in <a href="#A2.F11" title="In Appendix B Qualitative Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">11</span></a>, while the baseline generates visually aesthetic outputs, it demonstrates a disconnect between the generated output and the input instructions. We attribute this discrepancy to the LLMGA’s refinement stage, wherein the Large Language Model (LLM) may misinterpret the user’s original intent, leading to outputs that diverge substantially from the desired design. In <a href="#A2.F12" title="In Appendix B Qualitative Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">12</span></a>, our proposed approach exhibits superior instruction comprehension by executing the user’s edit requests.</p>
+</div>
+<div id="A2.p3" class="ltx_para">
+<p id="A2.p3.1" class="ltx_p">In <a href="#A2.F14" title="In Appendix B Qualitative Results ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">14</span></a>, we showcase how our approach can change the text contents in designs post-hoc. This is possible because, during the generation process, we generate layers of information and not a flat image. We showcase changing the font style and colors. This allows the designers to modify these attributes post-hoc to enhance the readability of the generations from the model.</p>
+</div>
+<figure id="A2.F10" class="ltx_figure"><img src="/html/2512.03335/assets/x10.png" id="A2.F10.g1" class="ltx_graphics ltx_centering ltx_img_square" width="871" height="905" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 10: </span>Qualitative comparison between our method and T2I+LLMGA for iterative design generation. This figure focuses on adding new elements to the generation process in an iterative fashion.</figcaption>
+</figure>
+<figure id="A2.F11" class="ltx_figure"><img src="/html/2512.03335/assets/x11.png" id="A2.F11.g1" class="ltx_graphics ltx_centering ltx_img_square" width="871" height="980" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 11: </span>Qualitative comparison between our method and T2I+LLMGA for iterative design generation. In this figure, we showcase when T2I+LLMGA fails due to the discrepancy in the prompt refinement stage. (In the first example, a white rectangle of small width has been added on the left side) </figcaption>
+</figure>
+<figure id="A2.F12" class="ltx_figure"><img src="/html/2512.03335/assets/x12.png" id="A2.F12.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="871" height="482" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 12: </span>Qualitative comparison between our method and T2I+LLMGA for iterative design generation. This figure focuses on the editing part of the generation process, where our approach is able to follow human edits more closely.</figcaption>
+</figure>
+<figure id="A2.F13" class="ltx_figure"><img src="/html/2512.03335/assets/x13.png" id="A2.F13.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="871" height="253" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 13: </span>
+We present images where cCOLE fails to correctly predict the text. On the left, we display the original instruction, while on the right are the corresponding images generated by cCOLE. </figcaption>
+</figure>
+<figure id="A2.F14" class="ltx_figure"><img src="/html/2512.03335/assets/x14.png" id="A2.F14.g1" class="ltx_graphics ltx_centering ltx_img_square" width="871" height="870" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 14: </span>
+In these images, we show how our approach can make changes to the text attributes like color and font post-hoc. The layered output from our model facilitates this. This enhances the editability of the generated designs.
+</figcaption>
+</figure>
+</section>
+<section id="A3" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix C </span>Circular evaluation and Prompts Used</h2>
+
+<section id="A3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">C.1 </span>Circular Evaluation</h3>
+
+<div id="A3.SS1.p1" class="ltx_para">
+<p id="A3.SS1.p1.1" class="ltx_p">When using MLLMs for comparative image evaluation, their responses can be influenced by ordering biases. This means that the position in which images are presented can affect the model’s judgment, leading to inconsistent or unfair comparisons. To address this, we perform a circular evaluation approach, where each pair of images is evaluated twice, swapping their order in the second comparison. This ensures that any preference for one image over another is not simply a result of positional bias.</p>
+</div>
+<div id="A3.SS1.p2" class="ltx_para">
+<ul id="A3.I1" class="ltx_itemize">
+<li id="A3.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A3.I1.i1.p1" class="ltx_para">
+<p id="A3.I1.i1.p1.1" class="ltx_p">Initial Comparison – The model is given two images (A and B) in a fixed order and asked to determine which is preferred based on a specific criterion (e.g., theme adherence, aesthetics). For edit compliance, we provide A1, A2, and B1, B2 along with the instruction.</p>
+</div>
+</li>
+<li id="A3.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A3.I1.i2.p1" class="ltx_para">
+<p id="A3.I1.i2.p1.1" class="ltx_p">Order Flipping – The same two images are presented again, but their order is reversed: B and A (B1, B2, and A1, A2 for edit compliance). The model is asked the same question without knowing its previous answer.</p>
+</div>
+</li>
+<li id="A3.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="A3.I1.i3.p1" class="ltx_para">
+<p id="A3.I1.i3.p1.1" class="ltx_p">Consistency Check - If the model provides the same preference in both cases (e.g., A is preferred over B in both orders), we record the result in favor of A. If the model changes its answer depending on the order (e.g., prefers A in the first case but B in the second), we label this as equal for both models.</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="A3.SS1.p3" class="ltx_para">
+<p id="A3.SS1.p3.1" class="ltx_p">With circular evaluation, we ensure that model decisions are not affected by the sequence in which images are presented.</p>
+</div>
+</section>
+<section id="A3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">C.2 </span>Promps Used</h3>
+
+<div id="A3.SS2.p1" class="ltx_para">
+<p id="A3.SS2.p1.1" class="ltx_p">In this section, we detail all the prompts used in our work. We first report the prompt used to create the <span id="A3.SS2.p1.1.1" class="ltx_text ltx_font_italic">IDeation Benchmark</span>, then we report all the different prompts used to evaluate the baseline methods and our method.</p>
+</div>
+</section>
+<section id="A3.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">C.3 </span>IDeation Benchmark</h3>
+
+<div id="A3.SS3.p1" class="ltx_para">
+<p id="A3.SS3.p1.1" class="ltx_p"><span id="A3.SS3.p1.1.1" class="ltx_text ltx_font_italic">You are an expert designer tasked with creating step-by-step instructions for generating designs based on specific themes. Your instructions should start with a blank canvas and progressively build up to the final design rendition.</span>
+<span id="A3.SS3.p1.1.2" class="ltx_text ltx_font_italic">Here are a few examples of design instruction sequences: </span></p>
+</div>
+<div id="A3.SS3.p2" class="ltx_para ltx_noindent">
+<p id="A3.SS3.p2.1" class="ltx_p"><span id="A3.SS3.p2.1.1" class="ltx_text ltx_font_italic">Example 1: Modern Minimalist Living Room</span></p>
+<ol id="A3.I2" class="ltx_enumerate">
+<li id="A3.I2.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">1.</span> 
+<div id="A3.I2.i1.p1" class="ltx_para">
+<p id="A3.I2.i1.p1.1" class="ltx_p"><span id="A3.I2.i1.p1.1.1" class="ltx_text ltx_font_italic">Start with a blank white canvas representing an empty room.</span></p>
+</div>
+</li>
+<li id="A3.I2.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">2.</span> 
+<div id="A3.I2.i2.p1" class="ltx_para">
+<p id="A3.I2.i2.p1.1" class="ltx_p"><span id="A3.I2.i2.p1.1.1" class="ltx_text ltx_font_italic">Draw simple outlines for a large window on the far wall, letting in natural light.</span></p>
+</div>
+</li>
+<li id="A3.I2.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">3.</span> 
+<div id="A3.I2.i3.p1" class="ltx_para">
+<p id="A3.I2.i3.p1.1" class="ltx_p"><span id="A3.I2.i3.p1.1.1" class="ltx_text ltx_font_italic">Add a sleek, low-profile gray sofa centered on the left wall.</span></p>
+</div>
+</li>
+<li id="A3.I2.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">4.</span> 
+<div id="A3.I2.i4.p1" class="ltx_para">
+<p id="A3.I2.i4.p1.1" class="ltx_p"><span id="A3.I2.i4.p1.1.1" class="ltx_text ltx_font_italic">Place a minimalist coffee table with a glass top in front of the sofa.</span></p>
+</div>
+</li>
+<li id="A3.I2.i5" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">5.</span> 
+<div id="A3.I2.i5.p1" class="ltx_para">
+<p id="A3.I2.i5.p1.1" class="ltx_p"><span id="A3.I2.i5.p1.1.1" class="ltx_text ltx_font_italic">Include two accent chairs with clean lines on the right side of the room.</span></p>
+</div>
+</li>
+<li id="A3.I2.i6" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">6.</span> 
+<div id="A3.I2.i6.p1" class="ltx_para">
+<p id="A3.I2.i6.p1.1" class="ltx_p"><span id="A3.I2.i6.p1.1.1" class="ltx_text ltx_font_italic">Hang a large, abstract painting with bold colors above the sofa.</span></p>
+</div>
+</li>
+<li id="A3.I2.i7" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">7.</span> 
+<div id="A3.I2.i7.p1" class="ltx_para">
+<p id="A3.I2.i7.p1.1" class="ltx_p"><span id="A3.I2.i7.p1.1.1" class="ltx_text ltx_font_italic">Add a slim floor lamp with a metallic finish in the corner.</span></p>
+</div>
+</li>
+<li id="A3.I2.i8" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">8.</span> 
+<div id="A3.I2.i8.p1" class="ltx_para">
+<p id="A3.I2.i8.p1.1" class="ltx_p"><span id="A3.I2.i8.p1.1.1" class="ltx_text ltx_font_italic">Place a simple area rug with a geometric pattern to tie the space together.</span></p>
+</div>
+</li>
+</ol>
+</div>
+<div id="A3.SS3.p3" class="ltx_para ltx_noindent">
+<p id="A3.SS3.p3.1" class="ltx_p"><span id="A3.SS3.p3.1.1" class="ltx_text ltx_font_italic">Example 2: Birthday Party Invitation</span></p>
+<ol id="A3.I3" class="ltx_enumerate">
+<li id="A3.I3.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">1.</span> 
+<div id="A3.I3.i1.p1" class="ltx_para">
+<p id="A3.I3.i1.p1.1" class="ltx_p"><span id="A3.I3.i1.p1.1.1" class="ltx_text ltx_font_italic">Create a background with a crumpled foil texture, covering the entire canvas.</span></p>
+</div>
+</li>
+<li id="A3.I3.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">2.</span> 
+<div id="A3.I3.i2.p1" class="ltx_para">
+<p id="A3.I3.i2.p1.1" class="ltx_p"><span id="A3.I3.i2.p1.1.1" class="ltx_text ltx_font_italic">Place a white rectangle in the center of the canvas, covering a significant portion of the background.</span></p>
+</div>
+</li>
+<li id="A3.I3.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">3.</span> 
+<div id="A3.I3.i3.p1" class="ltx_para">
+<p id="A3.I3.i3.p1.1" class="ltx_p"><span id="A3.I3.i3.p1.1.1" class="ltx_text ltx_font_italic">At the top of the white rectangle, add the word ’The’ in a stylish, elegant font.</span></p>
+</div>
+</li>
+<li id="A3.I3.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">4.</span> 
+<div id="A3.I3.i4.p1" class="ltx_para">
+<p id="A3.I3.i4.p1.1" class="ltx_p"><span id="A3.I3.i4.p1.1.1" class="ltx_text ltx_font_italic">Below ’The’, add the text ’GREAT BIRTHDAY’ with ’GREAT’ in red and ’BIRTHDAY’ in black, using a bold and prominent font.</span></p>
+</div>
+</li>
+<li id="A3.I3.i5" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">5.</span> 
+<div id="A3.I3.i5.p1" class="ltx_para">
+<p id="A3.I3.i5.p1.1" class="ltx_p"><span id="A3.I3.i5.p1.1.1" class="ltx_text ltx_font_italic">Directly below ’GREAT BIRTHDAY’, add the word ’Party’ in a cursive, elegant font.</span></p>
+</div>
+</li>
+<li id="A3.I3.i6" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">6.</span> 
+<div id="A3.I3.i6.p1" class="ltx_para">
+<p id="A3.I3.i6.p1.1" class="ltx_p"><span id="A3.I3.i6.p1.1.1" class="ltx_text ltx_font_italic">Below ’Party’, add the text ’Come to celebrate Harry’s special day!’ in a red, cursive font.</span></p>
+</div>
+</li>
+<li id="A3.I3.i7" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">7.</span> 
+<div id="A3.I3.i7.p1" class="ltx_para">
+<p id="A3.I3.i7.p1.1" class="ltx_p"><span id="A3.I3.i7.p1.1.1" class="ltx_text ltx_font_italic">At the bottom of the white rectangle, add the text ”Harry’s House 851 E Kingsley Ave” in a simple, black font.</span></p>
+</div>
+</li>
+</ol>
+</div>
+<div id="A3.SS3.p4" class="ltx_para ltx_noindent">
+<p id="A3.SS3.p4.1" class="ltx_p"><span id="A3.SS3.p4.1.1" class="ltx_text ltx_font_italic">Now, I will provide you with a theme. Based on this theme, generate a sequence of 8-10 step-by-step instructions for creating a design similar to the examples above. Each step should build upon the previous ones, starting from a blank canvas and ending with a complete design. The output should be in a Python dictionary format, meaning you should start with ’</span>{<span id="A3.SS3.p4.1.2" class="ltx_text ltx_font_italic">’ and end with ’</span>}<span id="A3.SS3.p4.1.3" class="ltx_text ltx_font_italic">’. The theme of the design is ¡theme¿.</span></p>
+</div>
+</section>
+<section id="A3.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">C.4 </span>Evaluation Prompts</h3>
+
+<div id="A3.SS4.p1" class="ltx_para">
+<p id="A3.SS4.p1.1" class="ltx_p"><span id="A3.SS4.p1.1.1" class="ltx_text ltx_font_bold">Ideation Benchmark Instruction Filtering</span>: <span id="A3.SS4.p1.1.2" class="ltx_text ltx_font_italic">You are an expert in graphic design and instructional clarity. I have a set of step-by-step instructions that guide the creation of a design from a blank canvas to a completed image. These instructions cover diverse themes, such as workplace safety, holidays, and social media posts. Your task is to evaluate whether the instructions are coherent, logical, and meaningful. Specifically, check if the steps clearly build upon each other in a structured manner. The instructions are free from contradictions or missing steps that would hinder execution. The final design, as described by the instructions, makes sense and aligns with the intended theme. Respond with ”Yes” if the instructions are coherent, meaningful, and can successfully lead to a well-structured design. Respond with ”No”, if the instructions are unclear, incomplete, illogical, or would lead to an incoherent design. Here are the instructions: ¡instructions¿</span> 
+<br class="ltx_break"><span id="A3.SS4.p1.1.3" class="ltx_text ltx_font_bold">Theme Matching Absolute</span>: <span id="A3.SS4.p1.1.4" class="ltx_text ltx_font_italic">Given the design rendition, how well does it match with the theme ¡theme¿? Please rate the matching from 1 to 5, 1 means a poor match, 2 means fair match, 3 means a good match, 4 means very good match, and 5 means a perfect match; ensure that your response is only a single number and nothing else?</span> 
+<br class="ltx_break"><span id="A3.SS4.p1.1.5" class="ltx_text ltx_font_bold">Aesthetic Quality Absolute</span>: <span id="A3.SS4.p1.1.6" class="ltx_text ltx_font_italic">From a designer point of view, given the image of a design rendition, please rate the design from 1 to 5, 1 meaning poor, 2 is fair, 3 is good, 4 is very good and 5 is perfect, reply only with a single number and nothing else?</span> 
+<br class="ltx_break"><span id="A3.SS4.p1.1.7" class="ltx_text ltx_font_bold">Edit Compliance Absolute</span>: <span id="A3.SS4.p1.1.8" class="ltx_text ltx_font_italic">Does the second image follow the edit instruction provided to edit the first image? The instruction is ¡instruction¿. Please rate how well it follows the edit instruction on a scale of 1 to 5. 1 meaning poor, 2 is fair, 3 is good, 4 is very good and 5 is perfect, reply only with a single number and nothing else?</span> 
+<br class="ltx_break"><span id="A3.SS4.p1.1.9" class="ltx_text ltx_font_bold">Theme Matching Comparative</span>: <span id="A3.SS4.p1.1.10" class="ltx_text ltx_font_italic">Given the two design renditions, which one of them follows the theme ¡theme¿ better. reply only with Image1 or Image2 and nothing else?</span> 
+<br class="ltx_break"><span id="A3.SS4.p1.1.11" class="ltx_text ltx_font_bold">Aesthetic Quality Comparative</span>: <span id="A3.SS4.p1.1.12" class="ltx_text ltx_font_italic">which image is better aesthetically to be used as a graphic design, reply only with Image1 or Image2 and nothing else?</span> 
+<br class="ltx_break"><span id="A3.SS4.p1.1.13" class="ltx_text ltx_font_bold">Edit Compliance Comparative</span>: <span id="A3.SS4.p1.1.14" class="ltx_text ltx_font_italic">Given the edit instruction ¡instruction¿. Does Image2 represent the edited image from Image1 according to the instruction, or does Image4 represent the edit better when edited from Image3? Choose which one of the images is edited better according to the instruction. Reply only with Image1 or Image3 and nothing else?</span></p>
+</div>
+</section>
+</section>
+<section id="A4" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix D </span>Dataset Examples</h2>
+
+<div id="A4.p1" class="ltx_para">
+<p id="A4.p1.1" class="ltx_p">In <a href="#A4.F15" title="In Appendix D Dataset Examples ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">15</span></a>, we provide examples for the step-by-step edit instructions and the canvas state from our dataset. These examples show the complex edits involved in iterative design generation.</p>
+</div>
+<figure id="A4.F15" class="ltx_figure"><img src="/html/2512.03335/assets/x15.png" id="A4.F15.g1" class="ltx_graphics ltx_centering ltx_img_square" width="871" height="911" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 15: </span>Examples from our proposed dataset showcasing step-by-step edit instructions. For clarity, we illustrate only five edit steps.</figcaption>
+</figure>
+</section>
+<section id="A5" class="ltx_appendix">
+<h2 class="ltx_title ltx_title_appendix">
+<span class="ltx_tag ltx_tag_appendix">Appendix E </span>Failure Cases</h2>
+
+<div id="A5.p1" class="ltx_para">
+<p id="A5.p1.2" class="ltx_p">Our method outperforms baseline approaches in most scenarios. However, in this section, we focus on analyzing cases where our method fails to produce the intended outputs. 1) Misplacement of <math id="A5.p1.1.m1" class="ltx_Math" alttext="\mathbf{U}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐔</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{U}_{t+1}</annotation></semantics></math>: In certain instances, the MLLM fails to accurately predict the location of <math id="A5.p1.2.m2" class="ltx_Math" alttext="\mathbf{U}_{t+1}" display="inline" intent=":literal"><semantics><msub><mi>𝐔</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">\mathbf{U}_{t+1}</annotation></semantics></math>, leading to suboptimal placement of text. This issue is illustrated in the first two rows of <a href="#A5.F16" title="In Appendix E Failure Cases ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">16</span></a>. 2) Lack of Aesthetic Appeal: In the bottom two rows of <a href="#A5.F16" title="In Appendix E Failure Cases ‣ Step-by-step Layered Design Generation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">fig.</span> <span class="ltx_text ltx_ref_tag">16</span></a>, we observe cases where, despite adhering to the given instructions, the generated outputs lack visual appeal and fail to deliver aesthetically pleasing renditions.</p>
+</div>
+<figure id="A5.F16" class="ltx_figure"><img src="/html/2512.03335/assets/x16.png" id="A5.F16.g1" class="ltx_graphics ltx_centering ltx_img_portrait" width="871" height="1119" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 16: </span>We highlight cases when our approach produces unsatisfactory results. In the top two rows, we show results with errors in predicting the textual location or size of the fonts, which affects the output. The bottom two rows showcase designs that, while following the instructions, fail to achieve the desired aesthetic quality.</figcaption>
+</figure>
+<div class="ltx_pagination ltx_role_newpage"></div>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2512.03334" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2512.03335" class="ar5iv-text-button ar5iv-severity-warning">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2512.03335">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2512.03335" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2512.03336" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Tue Jan  6 05:50:27 2026 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

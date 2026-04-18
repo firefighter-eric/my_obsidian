@@ -955,3 +955,78 @@
 - 将这些路线组织成独立 concept，而不是只在 topic 中口头提及
 - 把 `视频生成` 从待建设骨架升级为正式 topic，明确 world simulation、reference-to-video、导演式控制与 API 工作流几条主线
 - 为 `Kuaishou Technology`、`Alibaba Group`、`ShengShu Technology` 新建机构页，补齐视频生成方向的导航层
+
+## [2026-04-18] query | 图像分层 layered
+
+涉及页面：
+
+- 新增 `raw/pdf/Yang et al. - 2025 - Generative Image Layer Decomposition with Visual Effects.pdf`
+- 新增 `raw/html/Yang et al. - 2025 - Generative Image Layer Decomposition with Visual Effects.html`
+- 新增 `raw/text/Yang et al. - 2025 - Generative Image Layer Decomposition with Visual Effects.md`
+- 新增 `raw/html/Luo et al. - 2024 - IntrinsicDiffusion Joint Intrinsic Layers from Latent Diffusion Models.html`
+- 新增 `raw/text/Luo et al. - 2024 - IntrinsicDiffusion Joint Intrinsic Layers from Latent Diffusion Models.md`
+- 新增 `raw/pdf/Khan et al. - 2026 - Step-by-step Layered Design Generation.pdf`
+- 新增 `raw/html/Khan et al. - 2026 - Step-by-step Layered Design Generation.html`
+- 新增 `raw/text/Khan et al. - 2026 - Step-by-step Layered Design Generation.md`
+- 新增 `raw/pdf/Maruani et al. - 2026 - Illustrator's Depth Monocular Layer Index Prediction for Image Decomposition.pdf`
+- 新增 `raw/html/Maruani et al. - 2026 - Illustrator's Depth Monocular Layer Index Prediction for Image Decomposition.html`
+- 新增 `raw/text/Maruani et al. - 2026 - Illustrator's Depth Monocular Layer Index Prediction for Image Decomposition.md`
+- 新增 `wiki/summaries/Yang et al. - 2025 - Generative Image Layer Decomposition with Visual Effects.md`
+- 新增 `wiki/summaries/Luo et al. - 2024 - IntrinsicDiffusion Joint Intrinsic Layers from Latent Diffusion Models.md`
+- 新增 `wiki/summaries/Khan et al. - 2026 - Step-by-step Layered Design Generation.md`
+- 新增 `wiki/summaries/Maruani et al. - 2026 - Illustrator's Depth Monocular Layer Index Prediction for Image Decomposition.md`
+- 新增 `wiki/topics/图像分层 layered.md`
+- 更新 `wiki/topics/扩散模型与文生图.md`
+- 更新 `wiki/topics/Qwen 系列.md`
+- 更新 `wiki/concepts/RGBA 图层图像.md`
+- 更新 `index.md`
+
+关键变更：
+
+- 围绕用户提出的 `Qwen-Image-Layered + Adobe papers` 查询，补齐 Adobe 相关一手来源的 raw 层与全文层
+- 新增正式 topic `图像分层 layered`，把 `RGBA` 图层、`LayerDecomp`、`IntrinsicDiffusion`、`SLEDGE`、`Illustrator's Depth` 与 `Qwen-Image-Layered` 放进同一条可追溯主线
+- 明确区分 layered 主题中的四类问题：`RGBA` 多层表示、保留视觉效果的前景/背景分解、intrinsic layers、设计/矢量工作流中的层级更新与排序
+- 回写 `扩散模型与文生图`、`Qwen 系列` 与 `RGBA 图层图像`，避免 layered 相关结论只停留在新 topic 单页中
+
+## [2026-04-18] query | 按最新 AGENTS 要求重整 图像分层 layered
+
+涉及页面：
+
+- 更新 `wiki/topics/图像分层 layered.md`
+- 更新 `log.md`
+
+关键变更：
+
+- 按当前 `AGENTS.md` 的正式 topic 模板重写正文，使其更接近 paper 级综述而不是 extended notes
+- 强化 `主题定义` 的边界说明，明确 layered 不是单一任务名，而是围绕可编辑中间表示形成的问题域
+- 重写 `主线脉络 / 方法分层`，改为按“层对象”而不是按论文名简单并列
+- 在 `关键争论与分歧` 中补充争议来源与成立条件，减少无约束判断
+- 在 `未解决问题` 中明确仓库当前证据缺口与后续应补 comparison / timeline 的位置
+
+## [2026-04-18] query | 统一其他 topic 的高亮写法
+
+涉及页面：
+
+- 更新 `wiki/topics/AI 智能问答与智能客服.md`
+- 更新 `wiki/topics/BERT类双向Transformer语言模型.md`
+- 更新 `wiki/topics/LLM RL.md`
+- 更新 `wiki/topics/LLM 预训练.md`
+- 更新 `wiki/topics/Qwen 系列.md`
+- 更新 `wiki/topics/Scaling 与 compute-optimal training.md`
+- 更新 `wiki/topics/Slide 理解与生成.md`
+- 更新 `wiki/topics/传统 CV.md`
+- 更新 `wiki/topics/传统 NLP.md`
+- 更新 `wiki/topics/扩散模型与文生图.md`
+- 更新 `wiki/topics/指令对齐与 post-training.md`
+- 更新 `wiki/topics/搜索排序.md`
+- 更新 `wiki/topics/注意力机制 Attention.md`
+- 更新 `wiki/topics/目标检测.md`
+- 更新 `wiki/topics/视频生成.md`
+- 更新 `log.md`
+
+关键变更：
+
+- 按 `图像分层 layered` 页的视觉风格，对其余正式 topic 做一轮统一高亮
+- 主要在 `主线脉络 / 方法分层`、`关键争论与分歧` 等章节中，将带标签的论点条目统一改为加粗标签
+- 保持 `证据基础` 仍只列 `wiki/summaries/`，不把视觉高亮改成事实层混乱
+- 本轮以风格统一为主，不等于逐页重写正文结构；若后续需要，可继续按同一标准逐页提升到更强的 paper 级综述密度

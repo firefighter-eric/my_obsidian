@@ -16,7 +16,7 @@
 
 - `RGBA` 不应只被理解为导出格式；它正在成为可编辑图像生成与 layered workflow 的潜表示对象。
 - 这条路线至少包含两个层次：`AlphaVAE` 代表的透明图像表征与 benchmark 底座，以及 `Qwen-Image-Layered` 代表的多图层分解与编辑接口。
-- 从知识组织角度看，`RGBA` 图层图像路线是当前 `扩散模型与文生图` topic 中新出现的一条支线，它与传统 text-to-image 相邻，但问题设定不同。
+- 从知识组织角度看，`RGBA` 图层图像路线是当前 `图像分层 layered` topic 中最贴近设计软件工作流的一条子线；它与传统 text-to-image 相邻，但问题设定不同。
 
 ## 来源支持
 
@@ -28,4 +28,5 @@
 - [AlphaVAE](./AlphaVAE.md)
 - [Qwen-Image-Layered](./Qwen-Image-Layered.md)
 - [Qwen-Image](./Qwen-Image.md)
+- [图像分层 layered](../topics/%E5%9B%BE%E5%83%8F%E5%88%86%E5%B1%82%20layered.md)
 - [扩散模型与文生图](../topics/%E6%89%A9%E6%95%A3%E6%A8%A1%E5%9E%8B%E4%B8%8E%E6%96%87%E7%94%9F%E5%9B%BE.md)

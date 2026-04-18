@@ -7,36 +7,40 @@
 
 ## 主题定义
 
-本页聚焦 LLM 后训练中与强化学习、偏好优化和 reasoning-oriented RL 直接相关的部分。它比 `指令对齐与 post-training` 更窄，不再讨论一般性的 instruction following，而是专门讨论 reward shaping、偏好学习、RL 优化与其在推理模型中的新角色。本页默认把 `RLHF / preference optimization / online RL / reasoning RL` 放在同一主题下讨论，但会明确区分它们的数据接口、优化方式与目标函数。
+本页讨论 **LLM 后训练中以奖励、偏好与策略优化为核心接口** 的方法族。它覆盖 `RLHF`、`DPO`、`ORPO`、`KTO`、`GRPO`、`DAPO` 以及 `DeepSeek-R1` 一类 reasoning-oriented RL 路线，但 **不覆盖一般性的 instruction tuning 细节**，也不把所有 post-training 方法都笼统写成 RL。本页的边界是：只有当方法明确围绕 **奖励信号、偏好信号、策略更新、在线 rollout、行为激励或其等价重写** 展开时，才进入 `LLM RL`。
+
+因此，本页处理的不是“模型如何学会遵循指令”这一宽泛问题，而是更窄也更关键的问题：**当预训练能力已经存在后，是否需要通过奖励驱动的后训练机制来改变模型行为，乃至直接激励推理能力。** 这也是本页与 [指令对齐与 post-training](./指令对齐与%20post-training.md) 的区别。后者讨论行为塑形这一总框架；本页则讨论其中最具争议、最容易分化、也最接近策略优化语言的一支。
+
+当前知识库中的稳定证据支持一个较强判断：**LLM RL 已经不是单一技术名词，而是从经典 RLHF 管线分化出的一个方法族。** 其中有些路线试图显式学习奖励并在线优化策略，有些路线把 RLHF 折叠为更直接的偏好目标，有些路线则把 RL 从“让模型更符合人类偏好”推进到“直接塑造推理行为与求解策略”。这些路线共享的是奖励驱动语法，而不是统一的训练配方。
 
 ## 核心问题
 
-- RL 在 LLM 后训练中到底扮演什么角色：行为校正、偏好拟合，还是能力激励。
-- RLHF、DPO、ORPO、KTO 与 reasoning RL 的关系是替代、并列，还是分阶段演化。
-- 复杂 RL 管线是否必要，哪些情况可以用更轻量的偏好优化替代，哪些情况又必须回到在线 RL。
-- `GRPO`、`DAPO` 这类 reasoning RL 方法到底是在改优化器、改奖励设计，还是在补系统工程细节。
-- 当 RL 目标从“更符合用户意图”转向“更强推理能力”时，评估与风险会发生什么变化。
+- **RL 在 LLM 后训练中到底解决什么问题**：是行为校正、偏好拟合、在线探索，还是直接提升推理能力。
+- `RLHF`、`DPO`、`ORPO`、`KTO` 与 reasoning RL 的关系究竟是阶段演化、方法分叉，还是不同约束下的并行接口。
+- 哪些场景可以把复杂的 `reward model + online RL` 简化为离线偏好优化，哪些场景又必须保留在线 rollout 与策略更新。
+- `GRPO`、`DAPO` 这类 reasoning RL 方法的增益主要来自 **优化目标**、**奖励设计**，还是 **大规模训练工程**。
+- 当 RL 的目标从“更 helpful / truthful / harmless”转向“更会推理 / 更会解题”时，评估、风险与可监控性会如何变化。
 
 ## 主线脉络 / 方法分层
 
-在当前知识库里，`LLM RL` 至少应拆成四层，而不是只写成 `RLHF -> DPO -> R1` 的线性演进。
+本页不采用“`RLHF -> DPO -> R1`”的线性叙述，而按 **训练接口与目标函数的变化** 来分层。这样做的原因是：很多后续方法并不是简单替代前一代，而是在改变数据接口、参考模型依赖、在线性要求与奖励对象。
 
-- 经典 RLHF 管线：`Ouyang et al. 2022` 建立 demonstrations + preference rankings + reward model + RL 的完整对齐范式。这里的核心是“先学人类偏好，再用 RL 优化行为”，典型优化器背景是 `PPO`，重点是让模型更 helpful、truthful、harmless，而不是直接追求推理能力。
-- reference-based 偏好优化：`Rafailov et al. 2023` 的 `DPO` 说明，在特定假设下可以不再显式训练 reward model + PPO，而把 RLHF 改写成更直接的分类式目标。它不是把 RL 从概念上彻底移除，而是把 RLHF 的最优策略形式折叠进闭式损失。
-- reference-free / 弱化数据接口的偏好优化：`ORPO` 进一步把 `SFT + preference alignment` 合并为单阶段、无 reference model 的目标；`KTO` 则改写数据接口，只要求 unary desirable / undesirable 信号，而不要求 pairwise preference。它们共同表明，post-training 方法族正从“完整 RLHF 管线”分化到多种更轻量的 preference optimization。
-- reasoning-oriented 在线 RL：`DeepSeekMath` 提出 `GRPO`，把 critic-free、group-relative advantage 的思路引入 LLM reasoning 训练；`DeepSeek-R1` 则将 RL 从“对齐手段”推进为“推理行为激励机制”，并让 `DeepSeek-R1-Zero` 这种无 SFT 起步的 RL 训练进入主流讨论。
-- 大规模 reasoning RL 工程化：`DAPO` 表明，`GRPO` 只是 reasoning RL 的起点。真正把长 CoT RL 跑稳，还需要处理 entropy collapse、reward noise、长度偏置、sample efficiency 与 token-level loss 等系统问题，因此方法创新与训练工程在这一层已高度耦合。
+- **经典 RLHF 管线**：`Ouyang et al. 2022` 给出的不是一个局部 trick，而是一个完整范式：先用 demonstrations 做监督微调，再用 preference rankings 训练 reward model，最后用 RL 优化策略。其成立前提是，**人类偏好可以被近似建模，并作为比 next-token likelihood 更贴近产品目标的训练信号。** 这一层的关键贡献不在于 PPO 本身，而在于把“帮助性、真实性、无害性”转写成一个可迭代优化的后训练流程。
+- **reference-based 偏好优化层**：`Rafailov et al. 2023` 的 `DPO` 之所以重要，不只是因为它“更简单”，而是因为它指出在一定假设下，RLHF 的最优策略可以被改写成更直接的 preference objective。这里的方法分层依据是：**奖励模型与在线 RL 是否必须显式存在。** `DPO` 保留了“偏好决定策略”的核心思想，但把优化形式从显式 RL 管线折叠为闭式损失。
+- **reference-free 或弱化监督接口的偏好优化层**：`ORPO` 与 `KTO` 的价值，不是单纯再造一个对齐 loss，而是继续削弱 RLHF 管线中对外部部件与标注形式的依赖。`ORPO` 把 `SFT + preference alignment` 合并为单阶段目标；`KTO` 则把二元成对偏好改写为 unary desirable / undesirable 信号。这一层反映出 post-training 的一个稳定趋势：**方法正在从“完整 RL 管线”向“更轻量、数据接口更便宜的偏好优化族”扩散。**
+- **reasoning-oriented 在线 RL 层**：`Shao et al. 2024` 的 `DeepSeekMath` 以及 `DeepSeek-R1` 表明，RL 在 LLM 中的角色已经发生变化。这里不再只是通过奖励让回答“更像人偏好的答案”，而是让模型在数学、代码或长链推理任务中 **形成更有效的中间行为模式**。`GRPO` 的意义在于，它把 critic-free、group-relative advantage 的在线优化方案带入 reasoning 训练，使“推理行为激励”成为一个可规模化讨论的对象。
+- **大规模 reasoning RL 工程化层**：`DAPO` 说明 reasoning RL 的瓶颈并不止于“有没有一个好优化器”。当训练目标转向长链推理，长度偏置、reward noise、entropy collapse、sample efficiency、token-level loss、rollout 管理等问题会快速上升为一等公民。也就是说，**算法层与系统层在 reasoning RL 中已经高度耦合**，单独讨论某个 loss 往往不足以解释最终效果。
 
-从工程分层看，可粗分为“指令微调层”“偏好优化层”“在线 RL 行为校正层”“reasoning RL 层”。这些层彼此相连，但不能混写成单一技术名词。
+如果从知识组织角度再压缩一次，可以把本页方法族粗分为四类：**偏好建模型 RLHF**、**离线化偏好优化**、**online reasoning RL**、**reasoning RL 工程系统**。这样切分比按论文时间顺序更稳定，因为它对应的是不同的训练接口与目标边界。
 
 ## 关键争论与分歧
 
-- RLHF 是否只是历史阶段：`DPO / ORPO / KTO` 证明传统 `reward model + PPO` 管线并非唯一做法，但这更像方法分化，而不是 RLHF 已完全过时。需要在线探索、显式奖励塑形或复杂 rollout 的场景，仍可能回到 RL 管线。
-- 偏好优化是否等于“不要 RL”：从 `DPO` 的推导到 `DeepSeekMath` 的统一视角都表明，很多所谓“非 RL”方法仍可被理解为对 RLHF 的简化、重参数化或离线化，而不是与 RL 完全断裂。
-- 对齐与推理强化是否应归为同一主题：当前知识组织上将其放在同一页，是因为两者共享奖励驱动与策略优化语法；但“更符合人类偏好”与“更会解题 / 更会长链推理”并非同一目标函数。
-- SFT 是否必须存在：`ORPO` 默认把偏好对齐并入单阶段训练，`KTO` 讨论弱化偏好接口，`DeepSeek-R1-Zero` 则让“无 SFT 起步”成为可讨论路线；但其可读性、语言混杂与稳定性问题说明 SFT 仍具有强工程价值。
-- reasoning RL 的关键难点是算法还是系统：`GRPO` 证明 critic-free online RL 可行，但 `DAPO` 说明真正决定成败的往往是 clip 设计、采样策略、token-level loss 与 overlong shaping 等工程细节。
-- RL 收益如何评估：当前证据更强调 benchmark 提升、偏好胜率和数学 / 代码成绩，但对 reward hacking、monitorability、可解释性与长期稳定性的证据仍明显不足。
+- **`RLHF` 是否只是过渡技术**：`DPO / ORPO / KTO` 的出现说明，传统 `reward model + PPO` 并非唯一实现路径；但这并不足以推出“RLHF 已经过时”。这一争论只有在区分“概念范式”和“具体工程配方”后才成立。更稳妥的结论是：**经典 RLHF 作为完整工程配方的中心性在下降，但奖励驱动的对齐范式并未消失。**
+- **偏好优化是否等于“不要 RL”**：从 `DPO` 的推导，到 `DeepSeekMath` 对不同优化形式的统一理解，现有证据更支持把很多“非 RL”方法理解为 **对 RLHF 的离线化、闭式化或重参数化**，而不是与 RL 完全断裂。只有在把“是否显式在线 rollout”误写成“是否仍属于奖励驱动策略优化”时，这个争论才会被过度简化。
+- **对齐 RL 与推理 RL 是否应放在同一主题**：本页把两者放在一起，不是因为目标相同，而是因为它们共享奖励与策略优化语法。争论真正成立的前提是：必须承认 **“更符合用户偏好”** 与 **“更会求解复杂问题”** 不是同一个目标函数。也因此，`DeepSeek-R1` 不应被直接当作 `InstructGPT` 的自然后续，而应视为 RL 在 LLM 中功能重心的一次转移。
+- **`SFT` 是否仍然必要**：`ORPO`、`KTO` 和 `DeepSeek-R1-Zero` 都削弱了“必须先有强 SFT 起点”的直觉；但当前可追溯证据同样显示，完全绕开 SFT 往往会带来可读性、语言稳定性与训练可控性问题。因此更稳妥的判断不是“有无 SFT 的二选一”，而是：**SFT 仍是强工程先验，但其必要性已从理论前提退化为稳健性工具。**
+- **reasoning RL 的主要瓶颈是算法还是系统**：`GRPO` 给出了 reasoning RL 的代表性算法接口，但 `DAPO` 更强调系统工程细节的决定性作用。只要当前证据仍主要来自技术报告而不是统一对照实验，就不能草率地把收益归因给单一算法创新。
+- **RL 收益应如何评估**：现有 summary 多集中于 benchmark、偏好胜率、数学与代码成绩；但对 reward hacking、过程可监控性、链式思维可读性与长期行为稳定性的证据仍不足。因此当前 topic 可以较稳地讨论“性能收益”，却还不能对“安全收益”或“长期可控性收益”下过强结论。
 
 ## 证据基础
 
@@ -63,10 +67,10 @@
 
 ## 未解决问题
 
-- 当前知识库虽然已纳入 `ORPO / KTO / GRPO / DAPO`，但尚未做成 `RLHF vs DPO vs ORPO vs KTO` 的独立比较页，因此方法边界仍主要停留在 topic 级解释。
-- reward model、`PPO`、RLAIF、process supervision、online iterative RLHF 等关键子概念还未完整进入 concept 层。
-- `GRPO -> DAPO` 之间哪些提升来自算法，哪些来自工程 recipe，当前仍缺少跨论文的稳定比较页。
-- reasoning RL 的评测指标、可读性约束、monitorability 与行为安全性仍需要更多来源支撑，而不能只用 `DeepSeek-R1` 与 `DAPO` 两个技术报告概括。
+- 当前知识库已经能稳定区分 `RLHF / DPO / ORPO / KTO / GRPO / DAPO` 的任务接口，但 **reward model`、`PPO`、RLAIF、process supervision、iterative online RLHF** 仍未形成完整 concept 与 comparison 支撑，因此本页对经典 RLHF 内部机制的展开仍然偏粗。
+- `GRPO -> DAPO` 之间哪些提升来自 **算法改写**，哪些来自 **系统 recipe**，目前缺少独立 comparison 页与统一实验框架支撑；因此本页只能给出“高度耦合”的稳健判断，而不能精确归因。
+- reasoning RL 的 **评测指标、可读性约束、monitorability、reward hacking 风险** 目前仍缺少更多 `wiki/summaries/` 支撑，现有结论主要依赖 `DeepSeek-R1` 与 `DAPO` 两个节点，证据覆盖面仍偏窄。
+- 当前还不能凭现有 summary 断言“未来 post-training 将被 RL 统一”，也不能断言“偏好优化必然彻底替代在线 RL”；这两种说法都超出了当前证据基础。
 
 ## 关联页面
 
