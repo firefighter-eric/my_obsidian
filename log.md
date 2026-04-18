@@ -1030,3 +1030,32 @@
 - 主要在 `主线脉络 / 方法分层`、`关键争论与分歧` 等章节中，将带标签的论点条目统一改为加粗标签
 - 保持 `证据基础` 仍只列 `wiki/summaries/`，不把视觉高亮改成事实层混乱
 - 本轮以风格统一为主，不等于逐页重写正文结构；若后续需要，可继续按同一标准逐页提升到更强的 paper 级综述密度
+
+## [2026-04-18] query | 批量提升正式 topic 到 paper 级综述写法
+
+涉及页面：
+
+- 更新 `wiki/topics/AI 智能问答与智能客服.md`
+- 更新 `wiki/topics/BERT类双向Transformer语言模型.md`
+- 更新 `wiki/topics/LLM RL.md`
+- 更新 `wiki/topics/LLM 预训练.md`
+- 更新 `wiki/topics/Qwen 系列.md`
+- 更新 `wiki/topics/Scaling 与 compute-optimal training.md`
+- 更新 `wiki/topics/Slide 理解与生成.md`
+- 更新 `wiki/topics/传统 CV.md`
+- 更新 `wiki/topics/传统 NLP.md`
+- 更新 `wiki/topics/扩散模型与文生图.md`
+- 更新 `wiki/topics/指令对齐与 post-training.md`
+- 更新 `wiki/topics/搜索排序.md`
+- 更新 `wiki/topics/注意力机制 Attention.md`
+- 更新 `wiki/topics/目标检测.md`
+- 更新 `wiki/topics/视频生成.md`
+- 更新 `log.md`
+
+关键变更：
+
+- 按当前 `AGENTS.md` 的正式 topic 标准，把多页 topic 从“已有模板的长摘要”提升为更接近 paper 级综述的正文密度
+- 重写各页 `主题定义`，明确边界、相邻问题和单独成题的理由
+- 重写各页 `主线脉络 / 方法分层`，优先按问题对象、训练接口、系统角色或瓶颈类型分层，而不是按论文时间顺排
+- 在 `关键争论与分歧` 中补充成立条件与证据边界，减少把局部来源外推成稳定结论的风险
+- 在 `未解决问题` 中明确当前 summary 覆盖不足、缺 comparison / timeline / concept 支撑的位置

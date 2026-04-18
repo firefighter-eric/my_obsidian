@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "wiki/topics/图像分层 layered.md",
+                "file": "wiki/topics/传统 CV.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "图像分层 layered"
+              "title": "传统 CV"
             }
           }
         ]
@@ -185,8 +185,10 @@
   },
   "active": "4e202d434fa0be83",
   "lastOpenFiles": [
-    "wiki/comparisons/开放模型家族与中国重要家族对照.md",
     "wiki/topics/扩散模型与文生图.md",
+    "wiki/topics/搜索排序.md",
+    "wiki/topics/图像分层 layered.md",
+    "wiki/comparisons/开放模型家族与中国重要家族对照.md",
     "wiki/topics/视频生成.md",
     "wiki/authors/ShengShu Technology.md",
     "wiki/authors/Alibaba Group.md",
@@ -213,8 +215,6 @@
     "wiki/summaries/Zeng et al. - 2022 - GLM-130B An Open Bilingual Pre-trained Model.md",
     "wiki/concepts/Falcon 3.md",
     "wiki/summaries/TII - 2024 - Falcon 3.md",
-    "wiki/concepts/OLMo 2.md",
-    "wiki/summaries/Ai2 - 2024 - OLMo 2 The Best Fully Open Language Model to Date.md",
     "tmp_llm_patch.txt",
     "raw/html/Kimi Team et al. - 2025 - Kimi k1.5 Scaling Reinforcement Learning with LLMs.html",
     "raw/pdf/Kimi Team et al. - 2025 - Kimi k1.5 Scaling Reinforcement Learning with LLMs.pdf",
