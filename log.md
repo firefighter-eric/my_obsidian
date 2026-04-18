@@ -2,6 +2,37 @@
 
 本页是 LLM Wiki 的追加式操作日志。
 
+## [2026-04-18] ingest | 新增经典 CNN 架构主线
+
+涉及页面：
+
+- [经典 CNN 架构](./wiki/topics/经典%20CNN%20架构.md)
+- [传统 CV](./wiki/topics/传统%20CV.md)
+- [VGG](./wiki/concepts/VGG.md)
+- [GoogLeNet](./wiki/concepts/GoogLeNet.md)
+- [ResNet](./wiki/concepts/ResNet.md)
+- [DenseNet](./wiki/concepts/DenseNet.md)
+- [ResNeXt](./wiki/concepts/ResNeXt.md)
+- [MobileNet](./wiki/concepts/MobileNet.md)
+- [ConvNeXt](./wiki/concepts/ConvNeXt.md)
+- [Simonyan, Zisserman - 2014 - Very Deep Convolutional Networks for Large-Scale Image Recognition](./wiki/summaries/Simonyan,%20Zisserman%20-%202014%20-%20Very%20Deep%20Convolutional%20Networks%20for%20Large-Scale%20Image%20Recognition.md)
+- [Szegedy et al. - 2014 - Going Deeper with Convolutions](./wiki/summaries/Szegedy%20et%20al.%20-%202014%20-%20Going%20Deeper%20with%20Convolutions.md)
+- [He et al. - 2015 - Deep Residual Learning for Image Recognition](./wiki/summaries/He%20et%20al.%20-%202015%20-%20Deep%20Residual%20Learning%20for%20Image%20Recognition.md)
+- [Huang et al. - 2016 - Densely Connected Convolutional Networks](./wiki/summaries/Huang%20et%20al.%20-%202016%20-%20Densely%20Connected%20Convolutional%20Networks.md)
+- [Xie et al. - 2016 - Aggregated Residual Transformations for Deep Neural Networks](./wiki/summaries/Xie%20et%20al.%20-%202016%20-%20Aggregated%20Residual%20Transformations%20for%20Deep%20Neural%20Networks.md)
+- [Howard et al. - 2017 - MobileNets Efficient Convolutional Neural Networks for Mobile Vision Applications](./wiki/summaries/Howard%20et%20al.%20-%202017%20-%20MobileNets%20Efficient%20Convolutional%20Neural%20Networks%20for%20Mobile%20Vision%20Applications.md)
+- [Liu et al. - 2022 - A ConvNet for the 2020s](./wiki/summaries/Liu%20et%20al.%20-%202022%20-%20A%20ConvNet%20for%20the%202020s.md)
+- [index](./index.md)
+
+关键变更：
+
+- 新增 `VGG / GoogLeNet(Inception v1) / ResNet / DenseNet / ResNeXt / MobileNet / ConvNeXt` 七个经典 CNN 来源的 `raw/pdf`、`raw/html` 与 `raw/text` 链路
+- 为上述七个来源补写可直接支撑知识组织的 `wiki/summaries/`，把“深度、模块化、多分支、残差连接、密集连接、轻量化、现代化回写”收敛为一条 backbone 演化主线
+- 新建正式 topic [经典 CNN 架构](./wiki/topics/经典%20CNN%20架构.md)，按“深度可扩张化 -> 计算重分配 -> 优化接口重写 -> 信息流强化 -> 容量维度扩展 -> 效率优先 -> ViT 时代回写”组织综述
+- 新增 `VGG / GoogLeNet / ResNet / DenseNet / ResNeXt / MobileNet / ConvNeXt` 七个 concept 页，作为 `传统 CV` 与后续视觉 backbone 主题的稳定导航节点
+- 更新 [传统 CV](./wiki/topics/传统%20CV.md)，把经典 CNN backbone 主线纳入视觉总览，并与 `ViT / LayoutLMv3 / TrOCR` 的后续转向关系对齐
+- 更新根级 `index.md`，把 summary 总数增至 `235`，并补入经典 CNN 分组、topic 导航与 concept 导航
+
 ## [2026-04-16] ingest | 扩充开放模型主线与 GLM Kimi 对照
 
 涉及页面：

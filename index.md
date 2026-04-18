@@ -11,7 +11,7 @@
 
 ## Summary
 
-- 当前已批量 ingest 228 篇 summary 页，按候选主题分组如下。
+- 当前已批量 ingest 235 篇 summary 页，按候选主题分组如下。
 
 ### Attention / Transformer
 
@@ -276,6 +276,16 @@
 - [Vidu - 2026 - Pricing](./wiki/summaries/Vidu%20-%202026%20-%20Pricing.md)：Vidu 的 pricing 文档同时暴露出 `Q2 / Q2-Pro` 的 `reference-to-video`、video extension 与音频相关能力边界。
 - [Team Seedance et al. - 2026 - Seedance 2.0 Advancing Video Generation for World Complexity](./wiki/summaries/Team%20Seedance%20et%20al.%20-%202026%20-%20Seedance%202.0%20Advancing%20Video%20Generation%20for%20World%20Complexity.md)：Seedance 2.0 把视频生成推进到 `text / image / audio / video` 联合条件、参考编辑与音视频同步的一体化工作流。
 
+### 经典 CNN / 视觉 Backbone
+
+- [Simonyan, Zisserman - 2014 - Very Deep Convolutional Networks for Large-Scale Image Recognition](./wiki/summaries/Simonyan,%20Zisserman%20-%202014%20-%20Very%20Deep%20Convolutional%20Networks%20for%20Large-Scale%20Image%20Recognition.md)：`VGG` 以规则 `3x3` 小卷积堆叠确立经典深层 CNN backbone 基线。
+- [Szegedy et al. - 2014 - Going Deeper with Convolutions](./wiki/summaries/Szegedy%20et%20al.%20-%202014%20-%20Going%20Deeper%20with%20Convolutions.md)：`GoogLeNet/Inception` 代表多分支多尺度、预算受控的经典 CNN 设计路线。
+- [He et al. - 2015 - Deep Residual Learning for Image Recognition](./wiki/summaries/He%20et%20al.%20-%202015%20-%20Deep%20Residual%20Learning%20for%20Image%20Recognition.md)：`ResNet` 用残差连接重写深层 CNN 的优化接口，是现代视觉 backbone 的核心祖先。
+- [Huang et al. - 2016 - Densely Connected Convolutional Networks](./wiki/summaries/Huang%20et%20al.%20-%202016%20-%20Densely%20Connected%20Convolutional%20Networks.md)：`DenseNet` 以全局式跨层特征复用推进强连接 CNN 路线。
+- [Xie et al. - 2016 - Aggregated Residual Transformations for Deep Neural Networks](./wiki/summaries/Xie%20et%20al.%20-%202016%20-%20Aggregated%20Residual%20Transformations%20for%20Deep%20Neural%20Networks.md)：`ResNeXt` 把 `cardinality` 作为与 depth、width 并列的重要模型维度。
+- [Howard et al. - 2017 - MobileNets Efficient Convolutional Neural Networks for Mobile Vision Applications](./wiki/summaries/Howard%20et%20al.%20-%202017%20-%20MobileNets%20Efficient%20Convolutional%20Neural%20Networks%20for%20Mobile%20Vision%20Applications.md)：`MobileNet` 把轻量卷积 backbone 的效率折中做成系统化设计语言。
+- [Liu et al. - 2022 - A ConvNet for the 2020s](./wiki/summaries/Liu%20et%20al.%20-%202022%20-%20A%20ConvNet%20for%20the%202020s.md)：`ConvNeXt` 在 `ViT` 时代重新论证现代化纯卷积 backbone 的竞争力。
+
 ## Topics
 
 - [注意力机制 Attention](./wiki/topics/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6%20Attention.md)：围绕标准 attention、稀疏 / 线性近似、`KV cache` 优化与 `FlashAttention` 组织 attention 变体主线。
@@ -283,6 +293,7 @@
 - [搜索排序](./wiki/topics/%E6%90%9C%E7%B4%A2%E6%8E%92%E5%BA%8F.md)：围绕 neural ranking、BERT reranking、dense retrieval 与 late interaction 组织搜索排序主线。
 - [传统 NLP](./wiki/topics/传统%20NLP.md)：围绕编码器预训练、句向量、检索与摘要组织传统 NLP 的方法脉络。
 - [传统 CV](./wiki/topics/传统%20CV.md)：围绕视觉 Transformer、OCR 与文档理解组织非 LLM 中心的视觉总览主线。
+- [经典 CNN 架构](./wiki/topics/经典%20CNN%20架构.md)：围绕 `VGG / Inception / ResNet / DenseNet / ResNeXt / MobileNet / ConvNeXt` 组织经典卷积 backbone 演化主线。
 - [目标检测](./wiki/topics/目标检测.md)：围绕两阶段检测、set prediction、实时化约束与训练分配分歧组织独立检测主线。
 - [LLM 预训练](./wiki/topics/LLM%20预训练.md)：围绕 dense scaling、compute-optimal、开放模型家族与 MoE 组织 LLM 预训练主线。
 - [LLM RL](./wiki/topics/LLM%20RL.md)：围绕 RLHF、偏好优化分支与 reasoning-oriented RL 组织 LLM 后训练中的强化学习路线。
@@ -352,6 +363,13 @@
 - [FlashAttention](./wiki/concepts/FlashAttention.md)：承接 exact attention 的 IO-aware 实现优化路线。
 - [Grouped-Query Attention](./wiki/concepts/Grouped-Query%20Attention.md)：承接 `MHA -> MQA -> GQA` 的推理解码 `KV cache` 折中路线。
 - [ViT](./wiki/concepts/ViT.md)：承接视觉 Transformer 主线的概念页。
+- [VGG](./wiki/concepts/VGG.md)：承接小卷积规则堆叠的经典深层 CNN 基线。
+- [GoogLeNet](./wiki/concepts/GoogLeNet.md)：承接 `Inception` 多分支多尺度经典 CNN 路线。
+- [ResNet](./wiki/concepts/ResNet.md)：承接残差连接重写深层 CNN 优化接口的核心概念页。
+- [DenseNet](./wiki/concepts/DenseNet.md)：承接密集连接与特征复用的经典 CNN 路线。
+- [ResNeXt](./wiki/concepts/ResNeXt.md)：承接 `cardinality` 维度与聚合残差变换路线。
+- [MobileNet](./wiki/concepts/MobileNet.md)：承接轻量化端侧 CNN backbone 路线。
+- [ConvNeXt](./wiki/concepts/ConvNeXt.md)：承接 `ViT` 时代对纯卷积 backbone 的现代化回写。
 - [Faster R-CNN](./wiki/concepts/Faster%20R-CNN.md)：承接 proposal-based 两阶段目标检测标准范式的概念页。
 - [YOLO](./wiki/concepts/YOLO.md)：承接 one-stage 实时检测家族从 `YOLOv1` 到 `YOLO26` 的总入口。
 - [DETR](./wiki/concepts/DETR.md)：承接 end-to-end set prediction 检测路线的概念页。
