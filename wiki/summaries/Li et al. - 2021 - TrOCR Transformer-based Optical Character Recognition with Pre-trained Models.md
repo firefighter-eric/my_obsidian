@@ -22,7 +22,8 @@ Text recognition is a long-standing research problem for document digitalization
 ## 关键事实
 
 - 已存在可读全文文本，可直接从 `raw/text/Li et al. - 2021 - TrOCR Transformer-based Optical Character Recognition with Pre-trained Models.md` 继续做深入整理。
-- 当前尚未对方法细节、实验设置和局限做系统提炼。
+- `TrOCR` 的核心改写是把传统 `CNN/RNN + LM` OCR 流水线收敛成预训练图像 Transformer 编码器与文本 Transformer 解码器的端到端生成接口。
+- 论文明确把 `TrOCR` 与 `CRNN`、`Tesseract OCR` 等既有 OCR baseline 对比，并报告其在 printed 与 handwritten text recognition 任务上的优势。
 - 若该来源对主题主干重要，下一步应提升为精修版来源页。
 
 ## 争议与不确定点

@@ -22,7 +22,8 @@ Reading order detection is the cornerstone to understanding visually-rich docume
 ## 关键事实
 
 - 已存在可读全文文本，可直接从 `raw/text/Wang et al. - 2021 - LayoutReader Pre-training of Text and Layout for Reading Order Detection.md` 继续做深入整理。
-- 当前尚未对方法细节、实验设置和局限做系统提炼。
+- `LayoutReader` 的关键不是识别字形，而是恢复 visually-rich document 的 token / line 阅读顺序；这说明 OCR 可用性高度依赖顺序建模。
+- 论文明确把该方法适配到开源 OCR engine `Tesseract` 与商业 OCR API 上，并报告文本行排序显著改善。
 - 若该来源对主题主干重要，下一步应提升为精修版来源页。
 
 ## 争议与不确定点

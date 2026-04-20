@@ -2,6 +2,83 @@
 
 本页是 LLM Wiki 的追加式操作日志。
 
+## [2026-04-21] ingest | OCR topic 补入 dots.ocr、DeepSeek-OCR 与 GLM-OCR
+
+涉及页面：
+
+- [OCR](./wiki/topics/OCR.md)
+- [dots.ocr](./wiki/concepts/dots.ocr.md)
+- [DeepSeek-OCR](./wiki/concepts/DeepSeek-OCR.md)
+- [GLM-OCR](./wiki/concepts/GLM-OCR.md)
+- [DeepSeek](./wiki/concepts/DeepSeek.md)
+- [GLM](./wiki/concepts/GLM.md)
+- [Li et al. - 2025 - dots.ocr Multilingual Document Layout Parsing in a Single Vision-Language Model](./wiki/summaries/Li%20et%20al.%20-%202025%20-%20dots.ocr%20Multilingual%20Document%20Layout%20Parsing%20in%20a%20Single%20Vision-Language%20Model.md)
+- [Wei, Sun, Li - 2025 - DeepSeek-OCR Contexts Optical Compression](./wiki/summaries/Wei,%20Sun,%20Li%20-%202025%20-%20DeepSeek-OCR%20Contexts%20Optical%20Compression.md)
+- [Wei, Sun, Li - 2026 - DeepSeek-OCR 2 Visual Causal Flow](./wiki/summaries/Wei,%20Sun,%20Li%20-%202026%20-%20DeepSeek-OCR%202%20Visual%20Causal%20Flow.md)
+- [Duan et al. - 2026 - GLM-OCR Technical Report](./wiki/summaries/Duan%20et%20al.%20-%202026%20-%20GLM-OCR%20Technical%20Report.md)
+- [index](./index.md)
+
+关键变更：
+
+- 新增 `dots.ocr`、`DeepSeek-OCR`、`DeepSeek-OCR 2` 与 `GLM-OCR` 的 `raw/pdf`、`raw/html`、`raw/text` 链路，并补写对应 `wiki/summaries/`
+- 新增 `wiki/concepts/dots.ocr.md`、`wiki/concepts/DeepSeek-OCR.md` 与 `wiki/concepts/GLM-OCR.md`，把 specialized OCR VLM 路线单独落成稳定入口
+- 扩写 [OCR](./wiki/topics/OCR.md) 的“专门文档 VLM 层”，明确 `dots.ocr / DeepSeek-OCR / GLM-OCR` 分别代表 unified parsing、vision-text compression / causal flow 与 compact deployment 三种不同问题意识
+- 更新 [DeepSeek](./wiki/concepts/DeepSeek.md) 与 [GLM](./wiki/concepts/GLM.md) 的关联页面，使 OCR 分支进入对应家族导航
+- 更新根级 `index.md`，把 summary 总数增至 `240`，并补齐新增 summary 与 concept 导航
+
+## [2026-04-20] ingest | OCR topic 补入 PaddleOCR 等工程工具链
+
+涉及页面：
+
+- [OCR](./wiki/topics/OCR.md)
+- [PaddleOCR](./wiki/concepts/PaddleOCR.md)
+- [PaddlePaddle Team et al. - 2025 - PaddleOCR 3.0 Technical Report](./wiki/summaries/PaddlePaddle%20Team%20et%20al.%20-%202025%20-%20PaddleOCR%203.0%20Technical%20Report.md)
+- [TrOCR](./wiki/concepts/TrOCR.md)
+- [Li et al. - 2021 - TrOCR Transformer-based Optical Character Recognition with Pre-trained Models](./wiki/summaries/Li%20et%20al.%20-%202021%20-%20TrOCR%20Transformer-based%20Optical%20Character%20Recognition%20with%20Pre-trained%20Models.md)
+- [Wang et al. - 2021 - LayoutReader Pre-training of Text and Layout for Reading Order Detection](./wiki/summaries/Wang%20et%20al.%20-%202021%20-%20LayoutReader%20Pre-training%20of%20Text%20and%20Layout%20for%20Reading%20Order%20Detection.md)
+- [Poznanski, Wilhelm - Unknown - olmOCR Unlocking Trillions of Tokens in PDFs with Vision Language Models](./wiki/summaries/Poznanski,%20Wilhelm%20-%20Unknown%20-%20olmOCR%20Unlocking%20Trillions%20of%20Tokens%20in%20PDFs%20with%20Vision%20Language%20Models.md)
+- [index](./index.md)
+
+关键变更：
+
+- 新增 `PaddleOCR 3.0` 的 `raw/pdf`、`raw/html`、`raw/text` 链路，并补写可支撑 topic 的 `wiki/summaries/` 与 `wiki/concepts/PaddleOCR.md`
+- 将 `PaddleOCR` 作为 OCR 的工程系统节点接入 [OCR](./wiki/topics/OCR.md)，明确其代表的是“多语言识别 + document parsing + KIE + deployment”的生产级 toolkit 路线
+- 扩写 OCR topic 中的“开源工具与工程系统层”，把 `PaddleOCR / Tesseract / Marker / MinerU / olmOCR` 这类现实工具链放回主线，而不是只写生成式模型
+- 精修 `TrOCR`、`LayoutReader` 与 `olmOCR` 的关键事实，使其更明确支撑 `Tesseract` baseline、`Marker / MinerU` 对照与 OCR 工程系统竞争面
+- 更新根级 `index.md` 的 summary 计数、summary 导航与 concept 导航
+
+## [2026-04-20] query | OCR topic
+
+涉及页面：
+
+- [OCR](./wiki/topics/OCR.md)
+- [传统 CV](./wiki/topics/传统%20CV.md)
+- [TrOCR](./wiki/concepts/TrOCR.md)
+- [LayoutLMv3](./wiki/concepts/LayoutLMv3.md)
+- [DocLLM](./wiki/concepts/DocLLM.md)
+- [Kosmos-2.5](./wiki/concepts/Kosmos-2.5.md)
+- [MiniCPM-V](./wiki/concepts/MiniCPM-V.md)
+- [Qwen2.5-VL](./wiki/concepts/Qwen2.5-VL.md)
+- [Li et al. - 2021 - TrOCR Transformer-based Optical Character Recognition with Pre-trained Models](./wiki/summaries/Li%20et%20al.%20-%202021%20-%20TrOCR%20Transformer-based%20Optical%20Character%20Recognition%20with%20Pre-trained%20Models.md)
+- [Wang et al. - 2021 - LayoutReader Pre-training of Text and Layout for Reading Order Detection](./wiki/summaries/Wang%20et%20al.%20-%202021%20-%20LayoutReader%20Pre-training%20of%20Text%20and%20Layout%20for%20Reading%20Order%20Detection.md)
+- [Huang et al. - 2022 - LayoutLMv3 Pre-training for Document AI with Unified Text and Image Masking](./wiki/summaries/Huang%20et%20al.%20-%202022%20-%20LayoutLMv3%20Pre-training%20for%20Document%20AI%20with%20Unified%20Text%20and%20Image%20Masking.md)
+- [Blecher et al. - 2023 - Nougat Neural Optical Understanding for Academic Documents](./wiki/summaries/Blecher%20et%20al.%20-%202023%20-%20Nougat%20Neural%20Optical%20Understanding%20for%20Academic%20Documents.md)
+- [Lv et al. - 2023 - Kosmos-2.5 A Multimodal Literate Model](./wiki/summaries/Lv%20et%20al.%20-%202023%20-%20Kosmos-2.5%20A%20Multimodal%20Literate%20Model.md)
+- [Wang et al. - 2023 - DocLLM A layout-aware generative language model for multimodal document understanding](./wiki/summaries/Wang%20et%20al.%20-%202023%20-%20DocLLM%20A%20layout-aware%20generative%20language%20model%20for%20multimodal%20document%20understanding.md)
+- [Wang et al. - 2024 - CDM A Reliable Metric for Fair and Accurate Formula Recognition Evaluation](./wiki/summaries/Wang%20et%20al.%20-%202024%20-%20CDM%20A%20Reliable%20Metric%20for%20Fair%20and%20Accurate%20Formula%20Recognition%20Evaluation.md)
+- [Ouyang et al. - Unknown - OmniDocBench Benchmarking Diverse PDF Document Parsing with Comprehensive Annotations](./wiki/summaries/Ouyang%20et%20al.%20-%20Unknown%20-%20OmniDocBench%20Benchmarking%20Diverse%20PDF%20Document%20Parsing%20with%20Comprehensive%20Annotations.md)
+- [Poznanski, Wilhelm - Unknown - olmOCR Unlocking Trillions of Tokens in PDFs with Vision Language Models](./wiki/summaries/Poznanski,%20Wilhelm%20-%20Unknown%20-%20olmOCR%20Unlocking%20Trillions%20of%20Tokens%20in%20PDFs%20with%20Vision%20Language%20Models.md)
+- [Bai et al. - 2025 - Qwen2.5-VL Technical Report](./wiki/summaries/Bai%20et%20al.%20-%202025%20-%20Qwen2.5-VL%20Technical%20Report.md)
+- [index](./index.md)
+
+关键变更：
+
+- 新建正式 topic [OCR](./wiki/topics/OCR.md)，按“流水线重写 -> 阅读顺序与版面建模 -> 结构化转写 -> 文档级系统化 -> 多模态能力内嵌”组织 OCR 主线
+- 以 `TrOCR / LayoutReader / LayoutLMv3 / Nougat / Kosmos-2.5 / DocLLM / olmOCR / Qwen2.5-VL` 为证据骨架，把 OCR 从字符识别任务扩展为页面级转写与结构保真的独立问题域
+- 将 `CDM` 与 `OmniDocBench` 纳入 OCR topic 的争议与证据部分，明确 OCR 评测已从字符相似度走向阅读顺序、结构保真与模块级综合评估
+- 回正 [传统 CV](./wiki/topics/传统%20CV.md) 中关于 OCR 仍留在总览页的旧表述，使其与新的独立 OCR topic 保持一致
+- 更新 `TrOCR / LayoutLMv3 / DocLLM / Kosmos-2.5 / MiniCPM-V / Qwen2.5-VL` 的关联页面，并在根级 `index.md` 中登记新的 topic 入口
+
 ## [2026-04-18] ingest | 新增经典 CNN 架构主线
 
 涉及页面：

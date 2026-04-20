@@ -21,6 +21,7 @@ DocLLM 是 layout-aware generative document model 的代表。在当前知识库
 
 ## 关联页面
 
+- [OCR](../topics/OCR.md)
 - [LayoutLMv3](./LayoutLMv3.md)
 - [Kosmos-2.5](./Kosmos-2.5.md)
 - [TrOCR](./TrOCR.md)

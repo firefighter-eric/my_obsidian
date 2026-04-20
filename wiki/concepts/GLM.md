@@ -23,6 +23,7 @@ GLM 是当前知识库中中文重要模型家族的概念页。它承接的是 
 
 ## 关联页面
 
+- [GLM-OCR](./GLM-OCR.md)
 - [Qwen](./Qwen.md)
 - [BLOOM](./BLOOM.md)
 - [Kimi](./Kimi.md)

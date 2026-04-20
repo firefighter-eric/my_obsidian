@@ -11,7 +11,7 @@
 
 ## Summary
 
-- 当前已批量 ingest 235 篇 summary 页，按候选主题分组如下。
+- 当前已批量 ingest 240 篇 summary 页，按候选主题分组如下。
 
 ### Attention / Transformer
 
@@ -169,6 +169,7 @@
 - [Li et al. - 2021 - TrOCR Transformer-based Optical Character Recognition with Pre-trained Models](./wiki/summaries/Li%20et%20al.%20-%202021%20-%20TrOCR%20Transformer-based%20Optical%20Character%20Recognition%20with%20Pre-trained%20Models.md)：Text recognition is a long-standing research problem for document digi...
 - [Li et al. - 2022 - DiT Self-supervised Pre-training for Document Image Transformer](./wiki/summaries/Li%20et%20al.%20-%202022%20-%20DiT%20Self-supervised%20Pre-training%20for%20Document%20Image%20Transformer.md)：DiT: Self-supervised Pre-training for Document Image Transformer Junlo...
 - [Li et al. - 2023 - TrOCR Transformer-Based Optical Character Recognition with Pre-trained Models](./wiki/summaries/Li%20et%20al.%20-%202023%20-%20TrOCR%20Transformer-Based%20Optical%20Character%20Recognition%20with%20Pre-trained%20Models.md)：Text recognition is a long-standing research problem for doc- ument di...
+- [Li et al. - 2025 - dots.ocr Multilingual Document Layout Parsing in a Single Vision-Language Model](./wiki/summaries/Li%20et%20al.%20-%202025%20-%20dots.ocr%20Multilingual%20Document%20Layout%20Parsing%20in%20a%20Single%20Vision-Language%20Model.md)：`dots.ocr` 代表把 layout、recognition 与 reading order 统一进单一文档 VLM 的路线。
 - [Liang et al. - 2021 - R-Drop Regularized Dropout for Neural Networks arXiv 2106 . 14448v2 cs . LG 29 Oct 2021](./wiki/summaries/Liang%20et%20al.%20-%202021%20-%20R-Drop%20Regularized%20Dropout%20for%20Neural%20Networks%20arXiv%202106%20.%2014448v2%20cs%20.%20LG%2029%20Oct%202021.md)：Dropout is a powerful and widely used technique to regularize the trai...
 - [Lin et al. - 2021 - A Survey of Transformers](./wiki/summaries/Lin%20et%20al.%20-%202021%20-%20A%20Survey%20of%20Transformers.md)：A Survey of Transformers TIANYANG LIN, YUXIN WANG, XIANGYANG LIU, and...
 - [Lin et al. - 2021 - Real-Time High-Resolution Background Matting](./wiki/summaries/Lin%20et%20al.%20-%202021%20-%20Real-Time%20High-Resolution%20Background%20Matting.md)：We introduce a real-time, high-resolution background re- placement tec...
@@ -183,7 +184,11 @@
 - [Oğuz et al. - 2021 - Domain-matched Pre-training Tasks for Dense Retrieval](./wiki/summaries/Oğuz%20et%20al.%20-%202021%20-%20Domain-matched%20Pre-training%20Tasks%20for%20Dense%20Retrieval.md)：Pre-training on larger datasets with ever in- creasing model size is n...
 - [Peng et al. - 2023 - Kosmos-2 Grounding Multimodal Large Language Models to the World](./wiki/summaries/Peng%20et%20al.%20-%202023%20-%20Kosmos-2%20Grounding%20Multimodal%20Large%20Language%20Models%20to%20the%20World.md)：We introduce KOSMOS-2, a Multimodal Large Language Model (MLLM), enabl...
 - [Pfitzmann et al. - 2022 - DocLayNet A Large Human-Annotated Dataset for Document-Layout Segmentation](./wiki/summaries/Pfitzmann%20et%20al.%20-%202022%20-%20DocLayNet%20A%20Large%20Human-Annotated%20Dataset%20for%20Document-Layout%20Segmentation.md)：DocLayNet: A Large Human-Annotated Dataset for Document-Layout Analysi...
+- [PaddlePaddle Team et al. - 2025 - PaddleOCR 3.0 Technical Report](./wiki/summaries/PaddlePaddle%20Team%20et%20al.%20-%202025%20-%20PaddleOCR%203.0%20Technical%20Report.md)：PaddleOCR 3.0 把多语言 OCR、文档解析、KIE 与部署接口收敛为生产级开源工具链。
 - [Poznanski, Wilhelm - Unknown - olmOCR Unlocking Trillions of Tokens in PDFs with Vision Language Models](./wiki/summaries/Poznanski,%20Wilhelm%20-%20Unknown%20-%20olmOCR%20Unlocking%20Trillions%20of%20Tokens%20in%20PDFs%20with%20Vision%20Language%20Models.md)：PDF documents have the potential to provide trillions of novel, high-q...
+- [Wei, Sun, Li - 2025 - DeepSeek-OCR Contexts Optical Compression](./wiki/summaries/Wei,%20Sun,%20Li%20-%202025%20-%20DeepSeek-OCR%20Contexts%20Optical%20Compression.md)：`DeepSeek-OCR` 把 OCR 变成 vision-text compression 与 long-context efficiency 的实验场。
+- [Wei, Sun, Li - 2026 - DeepSeek-OCR 2 Visual Causal Flow](./wiki/summaries/Wei,%20Sun,%20Li%20-%202026%20-%20DeepSeek-OCR%202%20Visual%20Causal%20Flow.md)：`DeepSeek-OCR 2` 通过 causal visual flow 把 OCR 编码器推进到语义重排路线。
+- [Duan et al. - 2026 - GLM-OCR Technical Report](./wiki/summaries/Duan%20et%20al.%20-%202026%20-%20GLM-OCR%20Technical%20Report.md)：`GLM-OCR` 以 `0.9B` 紧凑规模、`MTP` 与两阶段 layout + region recognition 走向部署友好的 OCR 路线。
 - [Prajwal et al. - 2020 - A Lip Sync Expert Is All You Need for Speech to Lip Generation in the Wild](./wiki/summaries/Prajwal%20et%20al.%20-%202020%20-%20A%20Lip%20Sync%20Expert%20Is%20All%20You%20Need%20for%20Speech%20to%20Lip%20Generation%20in%20the%20Wild.md)：A Lip Sync Expert Is All You Need for Speech to Lip Generation In The...
 - [Redmon et al. - 2015 - You Only Look Once Unified Real-Time Object Detection](./wiki/summaries/Redmon%20et%20al.%20-%202015%20-%20You%20Only%20Look%20Once%20Unified%20Real-Time%20Object%20Detection.md)：`YOLOv1` 把目标检测改写为单阶段回归，确立 one-stage 实时检测主线。
 - [Redmon, Farhadi - 2016 - YOLO9000 Better Faster Stronger](./wiki/summaries/Redmon,%20Farhadi%20-%202016%20-%20YOLO9000%20Better%20Faster%20Stronger.md)：`YOLOv2 / YOLO9000` 以 anchor、多尺度训练与联合训练把 YOLO 推进为可扩展家族。
@@ -292,7 +297,8 @@
 - [BERT类双向Transformer语言模型](./wiki/topics/BERT%E7%B1%BB%E5%8F%8C%E5%90%91Transformer%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B.md)：围绕 BERT、RoBERTa、SpanBERT、句向量化与多语言编码器组织类 BERT 家族的正式 topic。
 - [搜索排序](./wiki/topics/%E6%90%9C%E7%B4%A2%E6%8E%92%E5%BA%8F.md)：围绕 neural ranking、BERT reranking、dense retrieval 与 late interaction 组织搜索排序主线。
 - [传统 NLP](./wiki/topics/传统%20NLP.md)：围绕编码器预训练、句向量、检索与摘要组织传统 NLP 的方法脉络。
-- [传统 CV](./wiki/topics/传统%20CV.md)：围绕视觉 Transformer、OCR 与文档理解组织非 LLM 中心的视觉总览主线。
+- [传统 CV](./wiki/topics/传统%20CV.md)：围绕视觉 Transformer、文档理解与视觉任务接口组织非 LLM 中心的视觉总览主线。
+- [OCR](./wiki/topics/OCR.md)：围绕端到端文字识别、阅读顺序、结构化转写与 OCR 能力内嵌组织独立主线。
 - [经典 CNN 架构](./wiki/topics/经典%20CNN%20架构.md)：围绕 `VGG / Inception / ResNet / DenseNet / ResNeXt / MobileNet / ConvNeXt` 组织经典卷积 backbone 演化主线。
 - [目标检测](./wiki/topics/目标检测.md)：围绕两阶段检测、set prediction、实时化约束与训练分配分歧组织独立检测主线。
 - [LLM 预训练](./wiki/topics/LLM%20预训练.md)：围绕 dense scaling、compute-optimal、开放模型家族与 MoE 组织 LLM 预训练主线。
@@ -330,6 +336,7 @@
 - [Gemma 2](./wiki/concepts/Gemma%202.md)：承接 Gemma 家族在实用尺寸上的能力强化节点。
 - [DeepSeek](./wiki/concepts/DeepSeek.md)：连接 DeepSeek-V3 与 DeepSeek-R1 的模型家族概念页。
 - [DeepSeek-V3](./wiki/concepts/DeepSeek-V3.md)：承接开源大模型中的 MoE、高效训练与强基座能力。
+- [DeepSeek-OCR](./wiki/concepts/DeepSeek-OCR.md)：承接 DeepSeek 在 OCR / 文档解析方向上的 compression 与 causal flow 路线。
 - [StarCoder2](./wiki/concepts/StarCoder2.md)：承接开放代码模型与 The Stack v2 数据治理路线。
 - [DBRX](./wiki/concepts/DBRX.md)：承接平台公司主导的高效开放大模型路线。
 - [OpenELM](./wiki/concepts/OpenELM.md)：承接端侧高效率开放模型与训练/推理框架开放路线。
@@ -396,6 +403,7 @@
 - [AlphaVAE](./wiki/concepts/AlphaVAE.md)：承接透明图像与 RGBA 潜表示学习的基础设施节点。
 - [RGBA 图层图像](./wiki/concepts/RGBA%20%E5%9B%BE%E5%B1%82%E5%9B%BE%E5%83%8F.md)：承接透明图像、图层分解与可编辑生成之间的中间概念页。
 - [Florence-2](./wiki/concepts/Florence-2.md)：承接统一视觉表示路线的概念页。
+- [dots.ocr](./wiki/concepts/dots.ocr.md)：承接 unified multilingual document parsing 专门模型路线的概念页。
 - [Kosmos-2](./wiki/concepts/Kosmos-2.md)：承接 grounding-oriented 多模态模型路线的概念页。
 - [Kosmos-2.5](./wiki/concepts/Kosmos-2.5.md)：承接文档阅读型多模态模型路线的概念页。
 - [OFA](./wiki/concepts/OFA.md)：承接统一多模态 seq2seq 框架的概念页。
@@ -412,6 +420,8 @@
 - [DocLayNet](./wiki/concepts/DocLayNet.md)：承接文档版面分割数据集的概念页。
 - [LayoutLMv3](./wiki/concepts/LayoutLMv3.md)：承接文档多模态预训练路线的概念页。
 - [DocLLM](./wiki/concepts/DocLLM.md)：承接生成式文档理解模型路线的概念页。
+- [GLM-OCR](./wiki/concepts/GLM-OCR.md)：承接紧凑型、多任务、面向生产部署的 OCR / document understanding 模型路线。
+- [PaddleOCR](./wiki/concepts/PaddleOCR.md)：承接 OCR 工程系统、文档解析与生产级 toolkit 路线的概念页。
 - [TrOCR](./wiki/concepts/TrOCR.md)：承接 OCR 预训练生成模型路线的概念页。
 
 ## Authors

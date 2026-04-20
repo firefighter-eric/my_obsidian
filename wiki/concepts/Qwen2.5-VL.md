@@ -21,6 +21,7 @@ Qwen2.5-VL 是 Qwen 家族中的视觉语言模型节点。在当前知识库中
 
 ## 关联页面
 
+- [OCR](../topics/OCR.md)
 - [Qwen](./Qwen.md)
 - [Qwen2-VL](./Qwen2-VL.md)
 - [Qwen2.5-Omni](./Qwen2.5-Omni.md)

@@ -1,0 +1,1908 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>[2603.10910] 1 Performance of GLM-OCR on OmniDocBench v1.5.</title><meta property="og:description" content="GLM-OCR is an efficient 0.9B-parameter compact multimodal model designed for real-world document understanding. It combines a 0.4B-parameter CogViT visual encoder with a 0.5B-parameter GLM language decoder, achieving a…">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="1 Performance of GLM-OCR on OmniDocBench v1.5.">
+<meta name="twitter:image:src" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta name="twitter:image:alt" content="ar5iv logo">
+<meta property="og:title" content="1 Performance of GLM-OCR on OmniDocBench v1.5.">
+<meta property="og:site_name" content="ar5iv">
+<meta property="og:image" content="https://ar5iv.labs.arxiv.org/assets/ar5iv_card.png">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://ar5iv.labs.arxiv.org/html/2603.10910">
+<link rel="canonical" target="_blank" href="https://ar5iv.labs.arxiv.org/html/2603.10910">
+
+<!--Generated on Sun Apr  5 21:30:05 2026 by LaTeXML (version 0.8.8) http://dlmf.nist.gov/LaTeXML/.-->
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<script>
+  function detectColorScheme(){
+    var theme="light";
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if(current_theme){
+      if(current_theme == "dark"){
+        theme = "dark";
+      } }
+    else if(!window.matchMedia) { return false; }
+    else if(window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      theme = "dark"; }
+    if (theme=="dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light"); } }
+
+  detectColorScheme();
+
+  function toggleColorScheme(){
+    var current_theme = localStorage.getItem("ar5iv_theme");
+    if (current_theme) {
+      if (current_theme == "light") {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+      else {
+        localStorage.setItem("ar5iv_theme", "light"); } }
+    else {
+        localStorage.setItem("ar5iv_theme", "dark"); }
+    detectColorScheme(); }
+</script>
+<link media="all" rel="stylesheet" href="/assets/ar5iv-fonts.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv.0.8.4.css"><link media="all" rel="stylesheet" href="/assets/ar5iv-site.0.2.2.css">
+</head>
+<body>
+<div class="ltx_page_main">
+<div class="ltx_page_content">
+<article class="ltx_document">
+<div id="id30" class="ltx_logical-block">
+<div id="id30.p1" class="ltx_para">
+<p id="id30.p1.1" class="ltx_p ltx_align_center"><span id="id30.p1.1.1" class="ltx_text ltx_font_bold">GLM-OCR Technical Report</span></p>
+<p id="id23.23" class="ltx_p ltx_align_center"><span id="id23.23.23" class="ltx_text ltx_font_bold">Shuaiqi Duan<sup id="id23.23.23.1" class="ltx_sup"><span id="id23.23.23.1.1" class="ltx_text ltx_font_medium ltx_font_italic">⋆1</span></sup>   Yadong Xue<sup id="id23.23.23.2" class="ltx_sup"><span id="id23.23.23.2.1" class="ltx_text ltx_font_medium ltx_font_italic">⋆1</span></sup>   Weihan Wang<sup id="id23.23.23.3" class="ltx_sup"><span id="id23.23.23.3.1" class="ltx_text ltx_font_medium ltx_font_italic">⋆1</span></sup>   Zhe Su<sup id="id23.23.23.4" class="ltx_sup"><span id="id23.23.23.4.1" class="ltx_text ltx_font_medium">1</span></sup>   Huan Liu<sup id="id23.23.23.5" class="ltx_sup"><span id="id23.23.23.5.1" class="ltx_text ltx_font_medium">1</span></sup>   
+<br class="ltx_break">Sheng Yang<sup id="id23.23.23.6" class="ltx_sup"><span id="id23.23.23.6.1" class="ltx_text ltx_font_medium">1</span></sup>   Guobing Gan<sup id="id23.23.23.7" class="ltx_sup"><span id="id23.23.23.7.1" class="ltx_text ltx_font_medium">1</span></sup>   Guo Wang<sup id="id23.23.23.8" class="ltx_sup"><span id="id23.23.23.8.1" class="ltx_text ltx_font_medium">1</span></sup>   Zihan Wang<sup id="id23.23.23.9" class="ltx_sup"><span id="id23.23.23.9.1" class="ltx_text ltx_font_medium">1</span></sup>   Shengdong Yan<sup id="id23.23.23.10" class="ltx_sup"><span id="id23.23.23.10.1" class="ltx_text ltx_font_medium">1</span></sup>   
+<br class="ltx_break">Dexin Jin<sup id="id23.23.23.11" class="ltx_sup"><span id="id23.23.23.11.1" class="ltx_text ltx_font_medium">1</span></sup>   Yuxuan Zhang<sup id="id23.23.23.12" class="ltx_sup"><span id="id23.23.23.12.1" class="ltx_text ltx_font_medium">1</span></sup>   Guohong Wen<sup id="id23.23.23.13" class="ltx_sup"><span id="id23.23.23.13.1" class="ltx_text ltx_font_medium">1</span></sup>   Yanfeng Wang<sup id="id23.23.23.14" class="ltx_sup"><span id="id23.23.23.14.1" class="ltx_text ltx_font_medium">1</span></sup>   Yutao Zhang<sup id="id23.23.23.15" class="ltx_sup"><span id="id23.23.23.15.1" class="ltx_text ltx_font_medium">1</span></sup>   
+<br class="ltx_break">Xiaohan Zhang<sup id="id23.23.23.16" class="ltx_sup"><span id="id23.23.23.16.1" class="ltx_text ltx_font_medium">1</span></sup>   Wenyi Hong<sup id="id23.23.23.17" class="ltx_sup"><span id="id23.23.23.17.1" class="ltx_text ltx_font_medium">1</span></sup>   Yukuo Cen<sup id="id23.23.23.18" class="ltx_sup"><span id="id23.23.23.18.1" class="ltx_text ltx_font_medium">1</span></sup>   Da Yin<sup id="id23.23.23.19" class="ltx_sup"><span id="id23.23.23.19.1" class="ltx_text ltx_font_medium">1</span></sup>   Bin Chen<sup id="id23.23.23.20" class="ltx_sup"><span id="id23.23.23.20.1" class="ltx_text ltx_font_medium">1</span></sup>   
+<br class="ltx_break">Wenmeng Yu<sup id="id23.23.23.21" class="ltx_sup"><span id="id23.23.23.21.1" class="ltx_text ltx_font_medium ltx_font_italic">†1</span></sup>   Xiaotao Gu<sup id="id23.23.23.22" class="ltx_sup"><span id="id23.23.23.22.1" class="ltx_text ltx_font_medium ltx_font_italic">†1</span></sup>   Jie Tang<sup id="id23.23.23.23" class="ltx_sup"><span id="id23.23.23.23.1" class="ltx_text ltx_font_medium">2</span></sup>
+</span></p>
+<p id="id25.25" class="ltx_p ltx_align_center"><sup id="id25.25.1" class="ltx_sup">1</sup>Zhipu AI  <sup id="id25.25.2" class="ltx_sup">2</sup>Tsinghua University</p>
+<p id="id28.28" class="ltx_p ltx_align_center"><sup id="id28.28.1" class="ltx_sup">⋆</sup>Equal contribution   <sup id="id28.28.2" class="ltx_sup"><span id="id28.28.2.1" class="ltx_text ltx_font_italic">†</span></sup>Project leader</p>
+<table id="id29.29" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="id29.29.2" class="ltx_tr">
+<td id="id29.29.2.1" class="ltx_td ltx_align_left">
+<span id="id29.29.2.1.1" class="ltx_inline-block fas fa-github-alt" aria-hidden="true">
+</span> <span id="id29.29.2.1.2" class="ltx_text ltx_font_bold">Code:</span>
+</td>
+<td id="id29.29.2.2" class="ltx_td ltx_nopad_l ltx_align_left"><a target="_blank" href="https://github.com/zai-org/GLM-OCR" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/zai-org/GLM-OCR</a></td>
+</tr>
+<tr id="id29.29.1" class="ltx_tr">
+<td id="id29.29.1.1" class="ltx_td ltx_align_left">
+<img src="/html/2603.10910/assets/x1.png" id="id29.29.1.1.g1" class="ltx_graphics ltx_img_square" width="15" height="15" alt="[Uncaptioned image]"> <span id="id29.29.1.1.1" class="ltx_text ltx_font_bold">Model:</span>
+</td>
+<td id="id29.29.1.2" class="ltx_td ltx_nopad_l ltx_align_left"><a target="_blank" href="https://huggingface.co/zai-org/GLM-OCR" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://huggingface.co/zai-org/GLM-OCR</a></td>
+</tr>
+<tr id="id29.29.3" class="ltx_tr">
+<td id="id29.29.3.1" class="ltx_td ltx_align_left">
+<span id="id29.29.3.1.1" class="ltx_inline-block fas fa-microphone-alt" aria-hidden="true">
+</span> <span id="id29.29.3.1.2" class="ltx_text ltx_font_bold">Demo:</span>
+</td>
+<td id="id29.29.3.2" class="ltx_td ltx_nopad_l ltx_align_left"><a target="_blank" href="https://ocr.z.ai/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://ocr.z.ai/</a></td>
+</tr>
+</table>
+</div>
+</div>
+<div id="abstract1" class="ltx_abstract">
+<h6 class="ltx_title ltx_title_abstract">Abstract</h6>
+<p class="ltx_p">GLM-OCR is an efficient 0.9B-parameter compact multimodal model designed for real-world document understanding. It combines a 0.4B-parameter CogViT visual encoder with a 0.5B-parameter GLM language decoder, achieving a strong balance between computational efficiency and recognition performance. To address the inefficiency of standard autoregressive decoding in deterministic OCR tasks, GLM-OCR introduces a Multi-Token Prediction (MTP) mechanism that predicts multiple tokens per step, significantly improving decoding throughput while keeping memory overhead low through shared parameters. At the system level, a two-stage pipeline is adopted: PP-DocLayout-V3 first performs layout analysis, followed by parallel region-level recognition. Extensive evaluations on public benchmarks and industrial scenarios show that GLM-OCR achieves competitive or state-of-the-art performance in document parsing, text and formula transcription, table structure recovery, and key information extraction. Its compact architecture and structured generation make it suitable for both resource-constrained edge deployment and large-scale production systems.</p>
+</div>
+<figure id="S0.F1" class="ltx_figure"><img src="/html/2603.10910/assets/x2.png" id="S0.F1.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="560" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 1: </span>Performance of GLM-OCR on OmniDocBench v1.5.</figcaption>
+</figure>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<nav class="ltx_TOC ltx_list_toc ltx_toc_toc"><h6 class="ltx_title ltx_title_contents">Contents</h6>
+<ol class="ltx_toclist">
+<li class="ltx_tocentry ltx_tocentry_section"><a href="#S1" title="" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">1 </span>Introduction</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_section">
+<a href="#S2" title="" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2 </span>Methodology</span></a>
+<ol class="ltx_toclist ltx_toclist_section">
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S2.SS1" title="In 2 Methodology" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.1 </span>Model Overview</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S2.SS2" title="In 2 Methodology" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">2.2 </span>Training Recipe</span></a></li>
+</ol>
+</li>
+<li class="ltx_tocentry ltx_tocentry_section">
+<a href="#S3" title="" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3 </span>Evaluation</span></a>
+<ol class="ltx_toclist ltx_toclist_section">
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S3.SS1" title="In 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.1 </span>Public Benchmarks</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S3.SS2" title="In 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">3.2 </span>In-House Benchmarks</span></a></li>
+</ol>
+</li>
+<li class="ltx_tocentry ltx_tocentry_section">
+<a href="#S4" title="" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4 </span>Inference and Deployment</span></a>
+<ol class="ltx_toclist ltx_toclist_section">
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S4.SS1" title="In 4 Inference and Deployment" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.1 </span>Local Deployment and SDK Integration</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S4.SS2" title="In 4 Inference and Deployment" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.2 </span>Model-as-a-Service (MaaS) API</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S4.SS3" title="In 4 Inference and Deployment" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">4.3 </span>Fine-Tuning Capabilities</span></a></li>
+</ol>
+</li>
+<li class="ltx_tocentry ltx_tocentry_section">
+<a href="#S5" title="" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5 </span>Intended Use Cases</span></a>
+<ol class="ltx_toclist ltx_toclist_section">
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S5.SS1" title="In 5 Intended Use Cases" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.1 </span>Overview</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S5.SS2" title="In 5 Intended Use Cases" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.2 </span>Document Parsing with GLM-OCR SDK</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_subsection">
+<a href="#S5.SS3" title="In 5 Intended Use Cases" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.3 </span>Lightweight OCR and Information Extraction with the Base Model</span></a>
+<ol class="ltx_toclist ltx_toclist_subsection">
+<li class="ltx_tocentry ltx_tocentry_subsubsection"><a href="#S5.SS3.SSS1" title="In 5.3 Lightweight OCR and Information Extraction with the Base Model ‣ 5 Intended Use Cases" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.3.1 </span>Text Recognition</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_subsubsection"><a href="#S5.SS3.SSS2" title="In 5.3 Lightweight OCR and Information Extraction with the Base Model ‣ 5 Intended Use Cases" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.3.2 </span>Table Recognition</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_subsubsection"><a href="#S5.SS3.SSS3" title="In 5.3 Lightweight OCR and Information Extraction with the Base Model ‣ 5 Intended Use Cases" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.3.3 </span>Formula Recognition</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_subsubsection"><a href="#S5.SS3.SSS4" title="In 5.3 Lightweight OCR and Information Extraction with the Base Model ‣ 5 Intended Use Cases" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.3.4 </span>Key Information Extraction</span></a></li>
+</ol>
+</li>
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S5.SS4" title="In 5 Intended Use Cases" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">5.4 </span>Summary of Usage Paradigms</span></a></li>
+</ol>
+</li>
+<li class="ltx_tocentry ltx_tocentry_section">
+<a href="#S6" title="" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6 </span>Limitations</span></a>
+<ol class="ltx_toclist ltx_toclist_section">
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S6.SS1" title="In 6 Limitations" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.1 </span>Two-Stage Architectural Constraints</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S6.SS2" title="In 6 Limitations" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.2 </span>Data Coverage Limitations</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S6.SS3" title="In 6 Limitations" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.3 </span>Structured Output Variability</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_subsection"><a href="#S6.SS4" title="In 6 Limitations" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">6.4 </span>Key Information Extraction</span></a></li>
+</ol>
+</li>
+<li class="ltx_tocentry ltx_tocentry_section"><a href="#S7" title="" class="ltx_ref"><span class="ltx_text ltx_ref_title"><span class="ltx_tag ltx_tag_ref">7 </span>Conclusion</span></a></li>
+<li class="ltx_tocentry ltx_tocentry_bibliography"><a href="#bib" title="" class="ltx_ref"><span class="ltx_text ltx_ref_title">References</span></a></li>
+</ol></nav>
+<div class="ltx_pagination ltx_role_newpage"></div>
+<section id="S1" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">1 </span>Introduction</h2>
+
+<div id="S1.p1" class="ltx_para ltx_noindent">
+<p id="S1.p1.1" class="ltx_p">Document understanding is a core capability in modern information systems, supporting the extraction and structuring of knowledge from visually rich and layout-intensive documents such as financial reports, scientific articles, contracts, and invoices. Traditional OCR systems <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib1" title="An overview of the tesseract ocr engine" class="ltx_ref">29</a>; <a href="#bib.bib3" title="EasyOCR" class="ltx_ref">12</a>; <a href="#bib.bib2" title="PaddleOCR 3.0 technical report" class="ltx_ref">7</a>]</cite> mainly focus on plain text transcription and rely on multi-stage pipelines with handcrafted rules for layout parsing and downstream information extraction. While effective for simple scenarios, these approaches often struggle with complex layouts, diverse document formats, and real-world production requirements.</p>
+</div>
+<div id="S1.p2" class="ltx_para ltx_noindent">
+<p id="S1.p2.1" class="ltx_p">Recent multimodal large language models (MLLMs) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib4" title="Qwen3-vl technical report" class="ltx_ref">2</a>; <a href="#bib.bib5" title="GLM-4.5v and glm-4.1v-thinking: towards versatile multimodal reasoning with scalable reinforcement learning" class="ltx_ref">31</a>; <a href="#bib.bib6" title="Seed1.5-vl technical report" class="ltx_ref">30</a>]</cite> unify visual perception and language understanding within a single framework and significantly improve document understanding performance. However, their large model size and autoregressive decoding paradigm lead to high computational cost, slow inference, and substantial memory consumption, which makes large-scale deployment under high-concurrency or edge environments challenging.</p>
+</div>
+<div id="S1.p3" class="ltx_para ltx_noindent">
+<p id="S1.p3.1" class="ltx_p">In practical production systems, document intelligence solutions must simultaneously provide: (1) strong performance on complex content such as tables, formulas, code, and seals, (2) high-throughput and low-latency inference, and (3) flexible integration and domain adaptation. GLM-OCR is developed to address these system-level requirements within a unified multimodal framework.</p>
+</div>
+<div id="S1.p4" class="ltx_para ltx_noindent">
+<p id="S1.p4.1" class="ltx_p"><span id="S1.p4.1.1" class="ltx_text ltx_font_bold">GLM-OCR</span> is a lightweight multimodal OCR model for comprehensive document understanding. Built on the GLM-V encoder–decoder framework <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib5" title="GLM-4.5v and glm-4.1v-thinking: towards versatile multimodal reasoning with scalable reinforcement learning" class="ltx_ref">31</a>]</cite>, it combines a 0.4B-scale CogViT visual encoder trained in large-scale image–text data, a lightweight cross-modal connector and a 0.5B-scale GLM language decoder <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib9" title="ChatGLM: a family of large language models from glm-130b to glm-4 all tools" class="ltx_ref">9</a>]</cite>. The entire model contains only 0.9B parameters, enabling high-throughput and low-latency inference while maintaining strong recognition performance.</p>
+</div>
+<div id="S1.p5" class="ltx_para ltx_noindent">
+<p id="S1.p5.1" class="ltx_p">Beyond architectural optimization, GLM-OCR also considers the mismatch between conventional autoregressive generation and the characteristics of OCR tasks. OCR is inherently a deterministic task with strong local dependencies and explicit structural supervision, where strictly autoregressive token-by-token decoding is inefficient. Therefore, we introduce Multi-Token Prediction (MTP) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib10" title="Deepseek-v3 technical report" class="ltx_ref">15</a>]</cite> into both training and inference. MTP enables the simultaneous prediction of multiple tokens, substantially improving training efficiency and decoding throughput while preserving recognition accuracy, and is particularly advantageous for long structured outputs such as tables. To control the additional memory overhead introduced by MTP, we further adopt a parameter-sharing scheme across the draft models, which substantially reduces the additional GPU memory overhead <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib11" title="GLM-5: from vibe coding to agentic engineering" class="ltx_ref">35</a>]</cite>. In practice, GLM-OCR is trained to predict ten tokens per step and generates 5.2 tokens per decoding step on average at inference time, bringing approximately 50% throughput improvement.</p>
+</div>
+<div id="S1.p6" class="ltx_para ltx_noindent">
+<p id="S1.p6.1" class="ltx_p">At the system level, GLM-OCR adopts a two-stage pipeline consisting of layout analysis and parallel content recognition. The layout stage is powered by PP-DocLayout-V3 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib13" title="PaddleOCR-vl-1.5: towards a multi-task 0.9b vlm for robust in-the-wild document parsing" class="ltx_ref">5</a>]</cite>, which detects structured regions and enables parallel recognition across different document areas. This design improves both robustness and processing efficiency for complex real-world documents.</p>
+</div>
+<div id="S1.p7" class="ltx_para ltx_noindent">
+<p id="S1.p7.1" class="ltx_p"><span id="S1.p7.1.1" class="ltx_text ltx_font_bold">Results.</span> Figure <a href="#S2.F2" title="Figure 2 ‣ 2 Methodology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a> shows that GLM-OCR achieves 94.6 on OmniDocBench v1.5 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib14" title="OmniDocBench: benchmarking diverse pdf document parsing with comprehensive annotations" class="ltx_ref">24</a>]</cite>, ranking first among all evaluated models despite its compact 0.9B size. Besides, GLM-OCR delivers strong performance across text recognition, formula recognition, table parsing, and key information extraction, reaching 94.0 on OCRBench (Text) <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib15" title="OCRBench: on the hidden mystery of ocr in large multimodal models" class="ltx_ref">17</a>]</cite> and 96.5 on UniMERNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib16" title="UniMERNet: a universal network for real-world mathematical expression recognition" class="ltx_ref">32</a>]</cite>, and achieving 85.2 on PubTabNet <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib17" title="Image-based table recognition: data, model, and evaluation" class="ltx_ref">36</a>]</cite> and 86.0 on TEDS <span id="footnote1" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">1</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">1</sup><span class="ltx_tag ltx_tag_note">1</span>https://modelscope.cn/datasets/jockerK/TEDS_TEST</span></span></span>. It also performs competitively on information extraction benchmarks such as Nanonets-KIE and Handwritten-Forms <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib18" title="IDPLeaderboard: a unified leaderboard for intelligent document processing tasks" class="ltx_ref">18</a>]</cite>, with performance comparable to significantly larger general multimodal models.</p>
+</div>
+<div id="S1.p8" class="ltx_para ltx_noindent">
+<p id="S1.p8.1" class="ltx_p">In addition to public benchmarks, we evaluate GLM-OCR on six high-frequency real-world scenarios, including code document parsing, natural-scene table recognition, handwritten text recognition, multilingual OCR <span id="footnote2" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">2</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">2</sup><span class="ltx_tag ltx_tag_note">2</span>Chinese, English, French, Spanish, Russian, German, Japanese, and Korean</span></span></span>, seal recognition, and receipt KIE. GLM-OCR consistently delivers strong results across all settings, achieving 91.5 on real-world table recognition, 90.5 on seal recognition, and 94.5 on receipt KIE. These results indicate that GLM-OCR generalizes beyond curated benchmarks and remains effective under practical production conditions.</p>
+</div>
+<div id="S1.p9" class="ltx_para ltx_noindent">
+<p id="S1.p9.1" class="ltx_p"><span id="S1.p9.1.1" class="ltx_text ltx_font_bold">Deployment and Finetuning.</span> GLM-OCR supports efficient inference with modern serving frameworks such as vLLM <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib19" title="Efficient memory management for large language model serving with pagedattention" class="ltx_ref">13</a>]</cite> <span id="footnote3" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">3</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">3</sup><span class="ltx_tag ltx_tag_note">3</span>https://github.com/vllm-project/vllm</span></span></span>, SGLang <span id="footnote4" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">4</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">4</sup><span class="ltx_tag ltx_tag_note">4</span>https://github.com/sgl-project/sglang</span></span></span>, and Ollama <span id="footnote5" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">5</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">5</sup><span class="ltx_tag ltx_tag_note">5</span>https://github.com/ollama/ollama</span></span></span>, enabling deployment in both large-scale and resource-constrained edge scenarios. It also provides full finetuning support through LLaMA-Factory <span id="footnote6" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">6</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">6</sup><span class="ltx_tag ltx_tag_note">6</span>https://github.com/hiyouga/LlamaFactory</span></span></span>, enabling rapid adaptation to domain-specific document understanding tasks <span id="footnote7" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">7</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">7</sup><span class="ltx_tag ltx_tag_note">7</span>Tutorial: https://github.com/zai-org/GLM-OCR/blob/main/examples/finetune/README.md</span></span></span>.</p>
+</div>
+</section>
+<section id="S2" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">2 </span>Methodology</h2>
+
+<div id="S2.p1" class="ltx_para ltx_noindent">
+<p id="S2.p1.1" class="ltx_p">In this section, we present the overall design of the GLM-OCR framework, including its architectural components, task formulation, and training strategy. We first introduce the core design motivations that guide our system, followed by a detailed description of the model architecture and task-specific pipelines. Finally, we elaborate on the multi-stage training recipe that progressively aligns visual and language representations, enhances structured generation ability, and optimizes task performance through supervised and reinforcement learning.</p>
+</div>
+<figure id="S2.F2" class="ltx_figure"><img src="/html/2603.10910/assets/x3.png" id="S2.F2.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="305" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 2: </span>Overall architecture and workflow of the GLM-OCR framework. This system supports two primary tasks: Document Parsing (Task 1), which combines layout detection and region cropping to produce structured Markdown and JSON outputs; and Key Information Extraction (Task 2), which directly extracts structured JSON data based on input visual prompts.</figcaption>
+</figure>
+<section id="S2.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.1 </span>Model Overview</h3>
+
+<div id="S2.SS1.p1" class="ltx_para ltx_noindent">
+<p id="S2.SS1.p1.1" class="ltx_p">To provide a comprehensive understanding of the GLM-OCR architecture, we first discuss the primary design rationale behind our approach, followed by a detailed description of the model structure and its execution across different tasks.</p>
+</div>
+<section id="S2.SS1.SSS0.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Motivation.</h5>
+
+<div id="S2.SS1.SSS0.Px1.p1" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px1.p1.1" class="ltx_p">Three fundamental observations and goals in document understanding inform our architectural design:</p>
+</div>
+<div id="S2.SS1.SSS0.Px1.p2" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px1.p2.1" class="ltx_p"><span id="S2.SS1.SSS0.Px1.p2.1.1" class="ltx_text ltx_font_bold">1. Integration of Layout Analysis in Document Parsing:</span>
+In practice, we observe that small-scale models are highly susceptible to hallucinations and repetitive generation when processing documents with complex layouts. By explicitly introducing a layout analysis module prior to recognition, we decompose complex layout structures into multiple simpler sub-problems, significantly enhancing the overall performance and stability of the model. Furthermore, partitioning large, complex pages into smaller, independent regions allows for parallel recognition, which substantially improves inference efficiency.</p>
+</div>
+<div id="S2.SS1.SSS0.Px1.p3" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px1.p3.1" class="ltx_p"><span id="S2.SS1.SSS0.Px1.p3.1.1" class="ltx_text ltx_font_bold">2. Incorporation of Key Information Extraction (KIE):</span>
+Document parsing and KIE can both be formulated as structured generation problems conditioned on visual inputs. While document parsing focuses on reconstructing the full structural representation of a document (e.g., Markdown or JSON), KIE aims to generate task-specific structured fields from the same visual source. From a modeling perspective, both tasks require:
+(i) robust visual-text alignment,
+(ii) structural reasoning over layout and semantic regions, and
+(iii) the ability to generate well-formed structured outputs.</p>
+</div>
+<div id="S2.SS1.SSS0.Px1.p4" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px1.p4.1" class="ltx_p">Therefore, instead of treating them as isolated pipelines, we unify them under a shared generative framework. This design encourages the model to learn generalizable document-level representations while leveraging task-specific prompts to control output formats. Such a unified formulation improves parameter efficiency and promotes cross-task knowledge transfer without introducing additional architectural complexity.</p>
+</div>
+<div id="S2.SS1.SSS0.Px1.p5" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px1.p5.1" class="ltx_p"><span id="S2.SS1.SSS0.Px1.p5.1.1" class="ltx_text ltx_font_bold">3. Adoption of Multi-Token Prediction (MTP):</span>
+Standard LLM decoding generates one token at a time, which can be computationally expensive and slow for long-form document generation. We employ Multi-token Prediction (MTP) to address two primary challenges:</p>
+<ul id="S2.I1" class="ltx_itemize">
+<li id="S2.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I1.i1.p1" class="ltx_para">
+<p id="S2.I1.i1.p1.1" class="ltx_p"><span id="S2.I1.i1.p1.1.1" class="ltx_text ltx_font_italic">Inference Speed:</span> By predicting <math id="S2.I1.i1.p1.1.m1" class="ltx_Math" alttext="k" display="inline" intent=":literal"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> tokens simultaneously, we significantly reduce the total number of decoding steps.</p>
+</div>
+</li>
+<li id="S2.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I1.i2.p1" class="ltx_para">
+<p id="S2.I1.i2.p1.1" class="ltx_p"><span id="S2.I1.i2.p1.1.1" class="ltx_text ltx_font_italic">Contextual Modeling:</span> MTP encourages the model to plan further ahead. This is particularly beneficial in OCR tasks where structural tokens (e.g., table tags or Markdown syntax) exhibit strong local dependencies. Consequently, this approach yields fewer "broken" tags and produces more robust structured outputs.</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+<section id="S2.SS1.SSS0.Px2" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Architecture.</h5>
+
+<div id="S2.SS1.SSS0.Px2.p1" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px2.p1.1" class="ltx_p">As illustrated in Figure <a href="#S2.F2" title="Figure 2 ‣ 2 Methodology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>, the system is centered around the GLM-OCR Core, which follows a vision-language generative paradigm. The core model consists of:</p>
+</div>
+<div id="S2.SS1.SSS0.Px2.p2" class="ltx_para ltx_noindent">
+<ul id="S2.I2" class="ltx_itemize">
+<li id="S2.I2.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I2.i1.p1" class="ltx_para">
+<p id="S2.I2.i1.p1.1" class="ltx_p"><span id="S2.I2.i1.p1.1.1" class="ltx_text ltx_font_bold">Vision Encoder (CogViT, 400M parameters):</span> Responsible for extracting high-level visual representations from document images.</p>
+</div>
+</li>
+<li id="S2.I2.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S2.I2.i2.p1" class="ltx_para">
+<p id="S2.I2.i2.p1.1" class="ltx_p"><span id="S2.I2.i2.p1.1.1" class="ltx_text ltx_font_bold">LLM Decoder (GLM, 500M parameters):</span> An autoregressive language model that generates structured textual outputs conditioned on visual embeddings and textual prompts.</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="S2.SS1.SSS0.Px2.p3" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px2.p3.1" class="ltx_p">The visual features produced by the encoder are projected into the language embedding space and fed into the decoder as prefix tokens. During decoding, the model predicts structured outputs (e.g., Markdown or JSON) in an autoregressive manner.</p>
+</div>
+<div id="S2.SS1.SSS0.Px2.p4" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px2.p4.2" class="ltx_p">To improve decoding efficiency and structural consistency, we introduce a Multi-Token Prediction (MTP) mechanism. In addition to the main prediction head, we attach <math id="S2.SS1.SSS0.Px2.p4.1.m1" class="ltx_Math" alttext="k" display="inline" intent=":literal"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> shared-parameter auxiliary heads that simultaneously predict the next <math id="S2.SS1.SSS0.Px2.p4.2.m2" class="ltx_Math" alttext="k" display="inline" intent=":literal"><semantics><mi>k</mi><annotation encoding="application/x-tex">k</annotation></semantics></math> tokens. These heads share the same parameters but are trained to model different future offsets. During inference, this allows the model to generate multiple tokens per step, reducing latency while encouraging better local structural coherence.</p>
+</div>
+<div id="S2.SS1.SSS0.Px2.p5" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px2.p5.1" class="ltx_p">The framework supports two primary tasks under a unified generative formulation:</p>
+</div>
+<div id="S2.SS1.SSS0.Px2.p6" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px2.p6.1" class="ltx_p"><span id="S2.SS1.SSS0.Px2.p6.1.1" class="ltx_text ltx_font_bold">Task 1: Document Parsing.</span></p>
+</div>
+<div id="S2.SS1.SSS0.Px2.p7" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px2.p7.1" class="ltx_p">Given a document image, the pipeline first performs layout analysis using PPDocLayoutV3, which decomposes the document into semantically coherent regions (e.g., paragraphs, tables, formulas). Each region is independently processed by the GLM-OCR Core.</p>
+</div>
+<div id="S2.SS1.SSS0.Px2.p8" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px2.p8.1" class="ltx_p">The generated regional outputs are subsequently aggregated by a Merge &amp; Post Process module, which restores the reading order and produces structured outputs in Markdown and JSON formats. This modular design reduces hallucination risks, improves robustness to complex layouts, and enables parallel processing of document regions.</p>
+</div>
+<div id="S2.SS1.SSS0.Px2.p9" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px2.p9.1" class="ltx_p"><span id="S2.SS1.SSS0.Px2.p9.1.1" class="ltx_text ltx_font_bold">Task 2: Key Information Extraction.</span></p>
+</div>
+<div id="S2.SS1.SSS0.Px2.p10" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px2.p10.1" class="ltx_p">For KIE, the full document image is directly fed into the GLM-OCR Core together with a task-specific textual prompt (e.g., instructing the model to extract invoice fields in JSON format). Unlike document parsing, this task does not rely on explicit layout cropping. Instead, the model learns to attend to relevant visual regions implicitly under prompt guidance.</p>
+</div>
+<div id="S2.SS1.SSS0.Px2.p11" class="ltx_para ltx_noindent">
+<p id="S2.SS1.SSS0.Px2.p11.1" class="ltx_p">Both tasks are thus unified as conditional structured generation problems, differing only in preprocessing strategy and prompt specification.</p>
+</div>
+</section>
+</section>
+<section id="S2.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">2.2 </span>Training Recipe</h3>
+
+<div id="S2.SS2.p1" class="ltx_para ltx_noindent">
+<p id="S2.SS2.p1.1" class="ltx_p">The training process of GLM-OCR is divided into several distinct stages, systematically progressing from vision-language alignment to task-specific refinement and reinforcement learning. The detailed training recipe, including the data types, learning rates, and training scale for each phase, is summarized in Table <a href="#S2.T1" title="Table 1 ‣ 2.2 Training Recipe ‣ 2 Methodology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">1</span></a>.</p>
+</div>
+<figure id="S2.T1" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 1: </span>Training Recipe for GLM-OCR across different stages.</figcaption>
+<div id="S2.T1.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:397.5pt;height:67.8pt;vertical-align:-31.6pt;"><span class="ltx_transformed_inner" style="transform:translate(-15.8pt,2.7pt) scale(0.926206916144056,0.926206916144056) ;">
+<table id="S2.T1.1.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T1.1.1.1" class="ltx_tr">
+<td id="S2.T1.1.1.1.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="S2.T1.1.1.1.1.1" class="ltx_text ltx_font_bold">Stage</span></td>
+<td id="S2.T1.1.1.1.2" class="ltx_td ltx_align_left ltx_border_tt"><span id="S2.T1.1.1.1.2.1" class="ltx_text ltx_font_bold">Phase</span></td>
+<td id="S2.T1.1.1.1.3" class="ltx_td ltx_align_left ltx_border_tt"><span id="S2.T1.1.1.1.3.1" class="ltx_text ltx_font_bold">Data Types</span></td>
+</tr>
+<tr id="S2.T1.1.1.2" class="ltx_tr">
+<td id="S2.T1.1.1.2.1" class="ltx_td ltx_align_left ltx_border_t">Stage 1</td>
+<td id="S2.T1.1.1.2.2" class="ltx_td ltx_align_left ltx_border_t">Vision Encoder Training</td>
+<td id="S2.T1.1.1.2.3" class="ltx_td ltx_align_left ltx_border_t">Image-text pairs, Grounding / Retrieval data</td>
+</tr>
+<tr id="S2.T1.1.1.3" class="ltx_tr">
+<td id="S2.T1.1.1.3.1" class="ltx_td ltx_align_left">Stage 2.1</td>
+<td id="S2.T1.1.1.3.2" class="ltx_td ltx_align_left">Pretrain</td>
+<td id="S2.T1.1.1.3.3" class="ltx_td ltx_align_left">Image-text pairs, Document parsing, Grounding, VQA</td>
+</tr>
+<tr id="S2.T1.1.1.4" class="ltx_tr">
+<td id="S2.T1.1.1.4.1" class="ltx_td ltx_align_left">Stage 2.2</td>
+<td id="S2.T1.1.1.4.2" class="ltx_td ltx_align_left">Pretrain with MTP</td>
+<td id="S2.T1.1.1.4.3" class="ltx_td ltx_align_left">Document parsing, Grounding, VQA</td>
+</tr>
+<tr id="S2.T1.1.1.5" class="ltx_tr">
+<td id="S2.T1.1.1.5.1" class="ltx_td ltx_align_left">Stage 3</td>
+<td id="S2.T1.1.1.5.2" class="ltx_td ltx_align_left">SFT with MTP</td>
+<td id="S2.T1.1.1.5.3" class="ltx_td ltx_align_left">Text / Formula / Table recognition, KIE</td>
+</tr>
+<tr id="S2.T1.1.1.6" class="ltx_tr">
+<td id="S2.T1.1.1.6.1" class="ltx_td ltx_align_left ltx_border_bb">Stage 4</td>
+<td id="S2.T1.1.1.6.2" class="ltx_td ltx_align_left ltx_border_bb">RL</td>
+<td id="S2.T1.1.1.6.3" class="ltx_td ltx_align_left ltx_border_bb">Text / Formula / Table recognition, KIE</td>
+</tr>
+</table>
+</span></div>
+</figure>
+<section id="S2.SS2.SSS0.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Stage 1: Vision Encoder Training.</h5>
+
+<div id="S2.SS2.SSS0.Px1.p1" class="ltx_para ltx_noindent">
+<p id="S2.SS2.SSS0.Px1.p1.1" class="ltx_p">We first train the vision encoder using large-scale image-text and grounding data to establish strong visual representation capabilities. In this stage, the model is trained on a dataset scaled up to tens of billions of image-text pairs. The training incorporates a dual objective of MIM and CLIP tasks. Furthermore, we employ knowledge distillation from an in-house ViT with a larger parameter size to further enhance the encoder’s feature extraction capability.</p>
+</div>
+</section>
+<section id="S2.SS2.SSS0.Px2" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Stage 2: Vision-Language Pretraining.</h5>
+
+<div id="S2.SS2.SSS0.Px2.p1" class="ltx_para ltx_noindent">
+<p id="S2.SS2.SSS0.Px2.p1.1" class="ltx_p">In Stage 2.1, we append GLM-0.5B to the Vision Transformer (ViT) and jointly pretrain the full model on image-text, document parsing, grounding, and VQA data to align multimodal representations. In Stage 2.2, we introduce the Multi-Token Prediction (MTP) objective to adapt the decoder for efficient structured generation.</p>
+</div>
+</section>
+<section id="S2.SS2.SSS0.Px3" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Stage 3: Supervised Fine-Tuning (SFT).</h5>
+
+<div id="S2.SS2.SSS0.Px3.p1" class="ltx_para ltx_noindent">
+<p id="S2.SS2.SSS0.Px3.p1.1" class="ltx_p">In this stage, we fine-tune the model on curated OCR datasets covering text recognition, formula transcription, table structure recovery, and key information extraction. The objective is to specialize the model for high-precision structured outputs under real-world document distributions. Multi-Token Prediction remains enabled to ensure consistency between training and inference. The data mixture is balanced to prevent overfitting to any single sub-task and to maintain cross-task generalization.</p>
+</div>
+</section>
+<section id="S2.SS2.SSS0.Px4" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Stage 4: Reinforcement Learning (RL).</h5>
+
+<div id="S2.SS2.SSS0.Px4.p1" class="ltx_para ltx_noindent">
+<p id="S2.SS2.SSS0.Px4.p1.1" class="ltx_p">The final stage applies GRPO <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib20" title="Deepseekmath: pushing the limits of mathematical reasoning in open language models" class="ltx_ref">28</a>]</cite> to improve structured output reliability and task-specific accuracy. Training samples are generated via rollout from the SFT model, evaluated automatically, and stratified by difficulty to construct a graded optimization set.</p>
+</div>
+<div id="S2.SS2.SSS0.Px4.p2" class="ltx_para ltx_noindent">
+<p id="S2.SS2.SSS0.Px4.p2.1" class="ltx_p">The reward function is task-aware and integrates both accuracy-based metrics and structural validation signals. The design is summarized in Table <a href="#S2.T2" title="Table 2 ‣ Stage 4: Reinforcement Learning (RL). ‣ 2.2 Training Recipe ‣ 2 Methodology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">2</span></a>.</p>
+</div>
+<figure id="S2.T2" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 2: </span>Reward function design in Stage 4 RL training.</figcaption>
+<div id="S2.T2.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:397.5pt;height:51.5pt;vertical-align:-24.0pt;"><span class="ltx_transformed_inner" style="transform:translate(-85.8pt,11.1pt) scale(0.698550365067558,0.698550365067558) ;">
+<table id="S2.T2.1.1" class="ltx_tabular ltx_align_middle">
+<tr id="S2.T2.1.1.1" class="ltx_tr">
+<td id="S2.T2.1.1.1.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="S2.T2.1.1.1.1.1" class="ltx_text ltx_font_bold">Task</span></td>
+<td id="S2.T2.1.1.1.2" class="ltx_td ltx_align_left ltx_border_tt"><span id="S2.T2.1.1.1.2.1" class="ltx_text ltx_font_bold">Primary Accuracy Reward</span></td>
+<td id="S2.T2.1.1.1.3" class="ltx_td ltx_align_left ltx_border_tt"><span id="S2.T2.1.1.1.3.1" class="ltx_text ltx_font_bold">Additional Constraints</span></td>
+</tr>
+<tr id="S2.T2.1.1.2" class="ltx_tr">
+<td id="S2.T2.1.1.2.1" class="ltx_td ltx_align_left ltx_border_t">Text Recognition</td>
+<td id="S2.T2.1.1.2.2" class="ltx_td ltx_align_left ltx_border_t">Normalized Edit Distance</td>
+<td id="S2.T2.1.1.2.3" class="ltx_td ltx_align_left ltx_border_t">Repetition penalty</td>
+</tr>
+<tr id="S2.T2.1.1.3" class="ltx_tr">
+<td id="S2.T2.1.1.3.1" class="ltx_td ltx_align_left">Formula Recognition</td>
+<td id="S2.T2.1.1.3.2" class="ltx_td ltx_align_left">CDM score</td>
+<td id="S2.T2.1.1.3.3" class="ltx_td ltx_align_left">Structural validity check</td>
+</tr>
+<tr id="S2.T2.1.1.4" class="ltx_tr">
+<td id="S2.T2.1.1.4.1" class="ltx_td ltx_align_left">Table Recognition</td>
+<td id="S2.T2.1.1.4.2" class="ltx_td ltx_align_left">TEDS score</td>
+<td id="S2.T2.1.1.4.3" class="ltx_td ltx_align_left">Tag closure verification, structural parsing</td>
+</tr>
+<tr id="S2.T2.1.1.5" class="ltx_tr">
+<td id="S2.T2.1.1.5.1" class="ltx_td ltx_align_left">Key Information Extraction (KIE)</td>
+<td id="S2.T2.1.1.5.2" class="ltx_td ltx_align_left">Field-level F1 score</td>
+<td id="S2.T2.1.1.5.3" class="ltx_td ltx_align_left">JSON parse validation, missing/duplicate field penalty</td>
+</tr>
+<tr id="S2.T2.1.1.6" class="ltx_tr">
+<td id="S2.T2.1.1.6.1" class="ltx_td ltx_align_left ltx_border_bb ltx_border_t" colspan="3">
+<span id="S2.T2.1.1.6.1.1" class="ltx_text ltx_font_bold">Global Regularization:</span> Repetition ratio penalty, malformed structure penalty</td>
+</tr>
+</table>
+</span></div>
+</figure>
+</section>
+</section>
+</section>
+<section id="S3" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">3 </span>Evaluation</h2>
+
+<div id="S3.p1" class="ltx_para ltx_noindent">
+<p id="S3.p1.1" class="ltx_p">In this section, we evaluate the performance of GLM-OCR against current state-of-the-art pipeline tools, general Vision-Language Models (VLMs), and specialized OCR VLMs. To provide a comprehensive assessment, the evaluation is divided into two parts: standard Public Benchmarks and custom In-House Benchmarks.</p>
+</div>
+<section id="S3.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.1 </span>Public Benchmarks</h3>
+
+<div id="S3.SS1.p1" class="ltx_para ltx_noindent">
+<p id="S3.SS1.p1.1" class="ltx_p">We first evaluate GLM-OCR on widely recognized public datasets encompassing Document Parsing and KIE tasks.</p>
+</div>
+<section id="S3.SS1.SSS0.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Overall Benchmark Performance.</h5>
+
+<div id="S3.SS1.SSS0.Px1.p1" class="ltx_para ltx_noindent">
+<p id="S3.SS1.SSS0.Px1.p1.1" class="ltx_p">As shown in Table <a href="#S3.T3" title="Table 3 ‣ Overall Benchmark Performance. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">3</span></a>, GLM-OCR demonstrates superior performance across the majority of standard datasets. In Document Parsing, our model achieves the highest scores on OmniDocBench v1.5 (94.6), OCRBench Text (94.0), UniMERNet (96.5), and TEDS_TEST (86.0). It remains highly competitive on PubTabNet (85.2), trailing only MinerU 2.5. Furthermore, GLM-OCR establishes a clear SOTA in KIE, outperforming all available open-source competitors on Nanonets-KIE (93.7) and Handwritten-KIE (86.1), and even narrowing the gap with closed-source giants like Gemini-3-Pro.</p>
+</div>
+<figure id="S3.T3" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 3: </span>Performance comparison of various OCR models. The results of Gemini-3-Pro and GPT-5.2-2025-12-11 are in gray as they are provided for reference only and excluded from the best-score ranking. The best results among the evaluated models are highlighted in bold.</figcaption>
+<p id="S3.T3.1" class="ltx_p ltx_align_center">:
+
+<span id="S3.T3.1.1" class="ltx_inline-block ltx_transformed_outer" style="width:397.5pt;height:88.7pt;vertical-align:-42.7pt;"><span class="ltx_transformed_inner" style="transform:translate(-102.5pt,22.9pt) scale(0.659740135147877,0.659740135147877) ;">
+<span id="S3.T3.1.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T3.1.1.1.1" class="ltx_tr">
+<span id="S3.T3.1.1.1.1.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="S3.T3.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Dataset</span></span>
+<span id="S3.T3.1.1.1.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.2.1" class="ltx_text ltx_font_bold">GLM-OCR</span></span>
+<span id="S3.T3.1.1.1.1.3" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.3.1" class="ltx_text"></span> <span id="S3.T3.1.1.1.1.3.2" class="ltx_text">
+<span id="S3.T3.1.1.1.1.3.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T3.1.1.1.1.3.2.1.1" class="ltx_tr">
+<span id="S3.T3.1.1.1.1.3.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.1.3.2.1.1.1.1" class="ltx_text ltx_font_bold">PaddleOCR</span></span></span>
+<span id="S3.T3.1.1.1.1.3.2.1.2" class="ltx_tr">
+<span id="S3.T3.1.1.1.1.3.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.1.3.2.1.2.1.1" class="ltx_text ltx_font_bold">-VL-1.5</span></span></span>
+</span></span><span id="S3.T3.1.1.1.1.3.3" class="ltx_text"></span></span>
+<span id="S3.T3.1.1.1.1.4" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.4.1" class="ltx_text"></span> <span id="S3.T3.1.1.1.1.4.2" class="ltx_text">
+<span id="S3.T3.1.1.1.1.4.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T3.1.1.1.1.4.2.1.1" class="ltx_tr">
+<span id="S3.T3.1.1.1.1.4.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.1.4.2.1.1.1.1" class="ltx_text ltx_font_bold">Deepseek</span></span></span>
+<span id="S3.T3.1.1.1.1.4.2.1.2" class="ltx_tr">
+<span id="S3.T3.1.1.1.1.4.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.1.4.2.1.2.1.1" class="ltx_text ltx_font_bold">-OCR2</span></span></span>
+</span></span><span id="S3.T3.1.1.1.1.4.3" class="ltx_text"></span></span>
+<span id="S3.T3.1.1.1.1.5" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.5.1" class="ltx_text"></span> <span id="S3.T3.1.1.1.1.5.2" class="ltx_text">
+<span id="S3.T3.1.1.1.1.5.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T3.1.1.1.1.5.2.1.1" class="ltx_tr">
+<span id="S3.T3.1.1.1.1.5.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.1.5.2.1.1.1.1" class="ltx_text ltx_font_bold">MinerU</span></span></span>
+<span id="S3.T3.1.1.1.1.5.2.1.2" class="ltx_tr">
+<span id="S3.T3.1.1.1.1.5.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.1.5.2.1.2.1.1" class="ltx_text ltx_font_bold">2.5</span></span></span>
+</span></span><span id="S3.T3.1.1.1.1.5.3" class="ltx_text"></span></span>
+<span id="S3.T3.1.1.1.1.6" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.6.1" class="ltx_text ltx_font_bold">dots.ocr</span></span>
+<span id="S3.T3.1.1.1.1.7" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.7.1" class="ltx_text"></span> <span id="S3.T3.1.1.1.1.7.2" class="ltx_text">
+<span id="S3.T3.1.1.1.1.7.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T3.1.1.1.1.7.2.1.1" class="ltx_tr">
+<span id="S3.T3.1.1.1.1.7.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.1.7.2.1.1.1.1" class="ltx_text ltx_font_bold" style="--ltx-fg-color:#808080;">Gemini-3</span></span></span>
+<span id="S3.T3.1.1.1.1.7.2.1.2" class="ltx_tr">
+<span id="S3.T3.1.1.1.1.7.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.1.7.2.1.2.1.1" class="ltx_text ltx_font_bold" style="--ltx-fg-color:#808080;">-Pro</span></span></span>
+</span></span><span id="S3.T3.1.1.1.1.7.3" class="ltx_text"></span></span>
+<span id="S3.T3.1.1.1.1.8" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T3.1.1.1.1.8.1" class="ltx_text"></span> <span id="S3.T3.1.1.1.1.8.2" class="ltx_text">
+<span id="S3.T3.1.1.1.1.8.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T3.1.1.1.1.8.2.1.1" class="ltx_tr">
+<span id="S3.T3.1.1.1.1.8.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.1.8.2.1.1.1.1" class="ltx_text ltx_font_bold" style="--ltx-fg-color:#808080;">GPT-5.2</span></span></span>
+<span id="S3.T3.1.1.1.1.8.2.1.2" class="ltx_tr">
+<span id="S3.T3.1.1.1.1.8.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T3.1.1.1.1.8.2.1.2.1.1" class="ltx_text ltx_font_bold" style="--ltx-fg-color:#808080;">-2025-12-11</span></span></span>
+</span></span><span id="S3.T3.1.1.1.1.8.3" class="ltx_text"></span></span></span>
+<span id="S3.T3.1.1.1.2" class="ltx_tr">
+<span id="S3.T3.1.1.1.2.1" class="ltx_td ltx_align_left ltx_border_t ltx_colspan ltx_colspan_8"><span id="S3.T3.1.1.1.2.1.1" class="ltx_text ltx_font_bold ltx_font_italic">Document Parsing</span></span></span>
+<span id="S3.T3.1.1.1.3" class="ltx_tr">
+<span id="S3.T3.1.1.1.3.1" class="ltx_td ltx_align_left ltx_border_t">OmniDocBench v1.5</span>
+<span id="S3.T3.1.1.1.3.2" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T3.1.1.1.3.2.1" class="ltx_text ltx_font_bold">94.6</span></span>
+<span id="S3.T3.1.1.1.3.3" class="ltx_td ltx_align_center ltx_border_t">94.5</span>
+<span id="S3.T3.1.1.1.3.4" class="ltx_td ltx_align_center ltx_border_t">91.1</span>
+<span id="S3.T3.1.1.1.3.5" class="ltx_td ltx_align_center ltx_border_t">90.7</span>
+<span id="S3.T3.1.1.1.3.6" class="ltx_td ltx_align_center ltx_border_t">88.4</span>
+<span id="S3.T3.1.1.1.3.7" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T3.1.1.1.3.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">90.3</span></span>
+<span id="S3.T3.1.1.1.3.8" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T3.1.1.1.3.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">85.4</span></span></span>
+<span id="S3.T3.1.1.1.4" class="ltx_tr">
+<span id="S3.T3.1.1.1.4.1" class="ltx_td ltx_align_left">OCRBench (Text)</span>
+<span id="S3.T3.1.1.1.4.2" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.1.4.2.1" class="ltx_text ltx_font_bold">94.0</span></span>
+<span id="S3.T3.1.1.1.4.3" class="ltx_td ltx_align_center">75.3</span>
+<span id="S3.T3.1.1.1.4.4" class="ltx_td ltx_align_center">34.7</span>
+<span id="S3.T3.1.1.1.4.5" class="ltx_td ltx_align_center">75.3</span>
+<span id="S3.T3.1.1.1.4.6" class="ltx_td ltx_align_center">92.1</span>
+<span id="S3.T3.1.1.1.4.7" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.1.4.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">91.9</span></span>
+<span id="S3.T3.1.1.1.4.8" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.1.4.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">83.7</span></span></span>
+<span id="S3.T3.1.1.1.5" class="ltx_tr">
+<span id="S3.T3.1.1.1.5.1" class="ltx_td ltx_align_left">UniMERNet</span>
+<span id="S3.T3.1.1.1.5.2" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.1.5.2.1" class="ltx_text ltx_font_bold">96.5</span></span>
+<span id="S3.T3.1.1.1.5.3" class="ltx_td ltx_align_center">96.1</span>
+<span id="S3.T3.1.1.1.5.4" class="ltx_td ltx_align_center">85.8</span>
+<span id="S3.T3.1.1.1.5.5" class="ltx_td ltx_align_center">96.4</span>
+<span id="S3.T3.1.1.1.5.6" class="ltx_td ltx_align_center">90.0</span>
+<span id="S3.T3.1.1.1.5.7" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.1.5.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">96.4</span></span>
+<span id="S3.T3.1.1.1.5.8" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.1.5.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">90.5</span></span></span>
+<span id="S3.T3.1.1.1.6" class="ltx_tr">
+<span id="S3.T3.1.1.1.6.1" class="ltx_td ltx_align_left">PubTabNet</span>
+<span id="S3.T3.1.1.1.6.2" class="ltx_td ltx_align_center">85.2</span>
+<span id="S3.T3.1.1.1.6.3" class="ltx_td ltx_align_center">84.6</span>
+<span id="S3.T3.1.1.1.6.4" class="ltx_td ltx_align_center">-</span>
+<span id="S3.T3.1.1.1.6.5" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.1.6.5.1" class="ltx_text ltx_font_bold">88.4</span></span>
+<span id="S3.T3.1.1.1.6.6" class="ltx_td ltx_align_center">71.0</span>
+<span id="S3.T3.1.1.1.6.7" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.1.6.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">91.4</span></span>
+<span id="S3.T3.1.1.1.6.8" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.1.6.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">84.4</span></span></span>
+<span id="S3.T3.1.1.1.7" class="ltx_tr">
+<span id="S3.T3.1.1.1.7.1" class="ltx_td ltx_align_left">TEDS_TEST</span>
+<span id="S3.T3.1.1.1.7.2" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.1.7.2.1" class="ltx_text ltx_font_bold">86.0</span></span>
+<span id="S3.T3.1.1.1.7.3" class="ltx_td ltx_align_center">83.3</span>
+<span id="S3.T3.1.1.1.7.4" class="ltx_td ltx_align_center">-</span>
+<span id="S3.T3.1.1.1.7.5" class="ltx_td ltx_align_center">85.4</span>
+<span id="S3.T3.1.1.1.7.6" class="ltx_td ltx_align_center">62.4</span>
+<span id="S3.T3.1.1.1.7.7" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.1.7.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">81.8</span></span>
+<span id="S3.T3.1.1.1.7.8" class="ltx_td ltx_align_center"><span id="S3.T3.1.1.1.7.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">67.6</span></span></span>
+<span id="S3.T3.1.1.1.8" class="ltx_tr">
+<span id="S3.T3.1.1.1.8.1" class="ltx_td ltx_align_left ltx_border_t ltx_colspan ltx_colspan_8"><span id="S3.T3.1.1.1.8.1.1" class="ltx_text ltx_font_bold ltx_font_italic">Key Information Extraction</span></span></span>
+<span id="S3.T3.1.1.1.9" class="ltx_tr">
+<span id="S3.T3.1.1.1.9.1" class="ltx_td ltx_align_left ltx_border_t">Nanonets-KIE</span>
+<span id="S3.T3.1.1.1.9.2" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T3.1.1.1.9.2.1" class="ltx_text ltx_font_bold">93.7</span></span>
+<span id="S3.T3.1.1.1.9.3" class="ltx_td ltx_align_center ltx_border_t">-</span>
+<span id="S3.T3.1.1.1.9.4" class="ltx_td ltx_align_center ltx_border_t">-</span>
+<span id="S3.T3.1.1.1.9.5" class="ltx_td ltx_align_center ltx_border_t">-</span>
+<span id="S3.T3.1.1.1.9.6" class="ltx_td ltx_align_center ltx_border_t">-</span>
+<span id="S3.T3.1.1.1.9.7" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T3.1.1.1.9.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">95.2</span></span>
+<span id="S3.T3.1.1.1.9.8" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T3.1.1.1.9.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">87.5</span></span></span>
+<span id="S3.T3.1.1.1.10" class="ltx_tr">
+<span id="S3.T3.1.1.1.10.1" class="ltx_td ltx_align_left ltx_border_bb">Handwritten-KIE</span>
+<span id="S3.T3.1.1.1.10.2" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T3.1.1.1.10.2.1" class="ltx_text ltx_font_bold">86.1</span></span>
+<span id="S3.T3.1.1.1.10.3" class="ltx_td ltx_align_center ltx_border_bb">-</span>
+<span id="S3.T3.1.1.1.10.4" class="ltx_td ltx_align_center ltx_border_bb">-</span>
+<span id="S3.T3.1.1.1.10.5" class="ltx_td ltx_align_center ltx_border_bb">-</span>
+<span id="S3.T3.1.1.1.10.6" class="ltx_td ltx_align_center ltx_border_bb">-</span>
+<span id="S3.T3.1.1.1.10.7" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T3.1.1.1.10.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">94.5</span></span>
+<span id="S3.T3.1.1.1.10.8" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T3.1.1.1.10.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">78.2</span></span></span>
+</span>
+</span></span></p>
+</figure>
+</section>
+<section id="S3.SS1.SSS0.Px2" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">OmniDocBench v1.5 Analysis.</h5>
+
+<div id="S3.SS1.SSS0.Px2.p1" class="ltx_para ltx_noindent">
+<p id="S3.SS1.SSS0.Px2.p1.1" class="ltx_p">To better understand the model’s document parsing capabilities, we present a granular breakdown of the OmniDocBench v1.5 results in Table <a href="#S3.T4" title="Table 4 ‣ OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a>. This benchmark compares pipeline tools, general VLMs of varying sizes, and specialized VLMs.</p>
+</div>
+<div id="S3.SS1.SSS0.Px2.p2" class="ltx_para ltx_noindent">
+<p id="S3.SS1.SSS0.Px2.p2.1" class="ltx_p">Remarkably, despite possessing only 0.9B parameters, GLM-OCR achieves the highest Overall score (94.62), outperforming not only direct specialized competitors like PaddleOCR-VL-1.5 (94.50) and MinerU2.5 (90.67) but also massive general VLMs such as Qwen3-VL-235B (89.15) and Gemini-3 Pro (90.33).</p>
+</div>
+<div id="S3.SS1.SSS0.Px2.p3" class="ltx_para ltx_noindent">
+<p id="S3.SS1.SSS0.Px2.p3.4" class="ltx_p">A breakdown of sub-metrics indicates strong performance in table structure recovery. It achieves the absolute best scores in table recognition, scoring 93.96 on Table<sub id="S3.SS1.SSS0.Px2.p3.4.1" class="ltx_sub"><span id="S3.SS1.SSS0.Px2.p3.4.1.1" class="ltx_text ltx_font_italic">TEDS</span></sub> and 96.39 on Table<sub id="S3.SS1.SSS0.Px2.p3.4.2" class="ltx_sub"><span id="S3.SS1.SSS0.Px2.p3.4.2.1" class="ltx_text ltx_font_italic">TEDS-S</span></sub>. While PaddleOCR-VL-1.5 slightly edges out GLM-OCR in Text<sub id="S3.SS1.SSS0.Px2.p3.4.3" class="ltx_sub"><span id="S3.SS1.SSS0.Px2.p3.4.3.1" class="ltx_text ltx_font_italic">Edit</span></sub> (0.035 vs 0.040) and Formula<sub id="S3.SS1.SSS0.Px2.p3.4.4" class="ltx_sub"><span id="S3.SS1.SSS0.Px2.p3.4.4.1" class="ltx_text ltx_font_italic">CDM</span></sub> (94.21 vs 93.90), GLM-OCR’s exceptional table parsing capabilities secure its position as the top-performing model overall, proving that specialized, parameter-efficient architectures can rival or surpass scale-heavy models in complex document parsing.</p>
+</div>
+<figure id="S3.T4" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 4: </span>Performance comparison with pipeline tools, general VLMs and specialized VLMs on OmniDocBench v1.5.</figcaption>
+<div id="S3.T4.6" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:397.5pt;height:179.5pt;vertical-align:-88.5pt;"><span class="ltx_transformed_inner" style="transform:translate(-202.5pt,91.4pt) scale(0.495335969894644,0.495335969894644) ;">
+<table id="S3.T4.6.6" class="ltx_tabular ltx_align_middle">
+<tr id="S3.T4.6.6.6" class="ltx_tr">
+<td id="S3.T4.6.6.6.7" class="ltx_td ltx_align_left ltx_border_tt"><span id="S3.T4.6.6.6.7.1" class="ltx_text ltx_font_bold">Model Type</span></td>
+<td id="S3.T4.6.6.6.8" class="ltx_td ltx_align_left ltx_border_tt"><span id="S3.T4.6.6.6.8.1" class="ltx_text ltx_font_bold">Methods</span></td>
+<td id="S3.T4.6.6.6.9" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T4.6.6.6.9.1" class="ltx_text ltx_font_bold">Params</span></td>
+<td id="S3.T4.1.1.1.1" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T4.1.1.1.1.2" class="ltx_text"></span> <span id="S3.T4.1.1.1.1.1" class="ltx_text">
+<span id="S3.T4.1.1.1.1.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T4.1.1.1.1.1.1.1" class="ltx_tr">
+<span id="S3.T4.1.1.1.1.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T4.1.1.1.1.1.1.1.1.1" class="ltx_text ltx_font_bold">Overall<math id="S3.T4.1.1.1.1.1.1.1.1.1.m1" class="ltx_Math" alttext="\uparrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math></span></span></span>
+</span></span><span id="S3.T4.1.1.1.1.3" class="ltx_text"></span></td>
+<td id="S3.T4.2.2.2.2" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T4.2.2.2.2.2" class="ltx_text"></span> <span id="S3.T4.2.2.2.2.1" class="ltx_text">
+<span id="S3.T4.2.2.2.2.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T4.2.2.2.2.1.1.1" class="ltx_tr">
+<span id="S3.T4.2.2.2.2.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T4.2.2.2.2.1.1.1.1.1" class="ltx_text ltx_font_bold">Text<math id="S3.T4.2.2.2.2.1.1.1.1.1.m1" class="ltx_Math" alttext="\downarrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↓</mo><annotation encoding="application/x-tex">\downarrow</annotation></semantics></math></span></span></span>
+<span id="S3.T4.2.2.2.2.1.1.2" class="ltx_tr">
+<span id="S3.T4.2.2.2.2.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T4.2.2.2.2.1.1.2.1.1" class="ltx_text ltx_font_bold">Edit</span></span></span>
+</span></span><span id="S3.T4.2.2.2.2.3" class="ltx_text"></span></td>
+<td id="S3.T4.3.3.3.3" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T4.3.3.3.3.2" class="ltx_text"></span> <span id="S3.T4.3.3.3.3.1" class="ltx_text">
+<span id="S3.T4.3.3.3.3.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T4.3.3.3.3.1.1.1" class="ltx_tr">
+<span id="S3.T4.3.3.3.3.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T4.3.3.3.3.1.1.1.1.1" class="ltx_text ltx_font_bold">Formula<math id="S3.T4.3.3.3.3.1.1.1.1.1.m1" class="ltx_Math" alttext="\uparrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math></span></span></span>
+<span id="S3.T4.3.3.3.3.1.1.2" class="ltx_tr">
+<span id="S3.T4.3.3.3.3.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T4.3.3.3.3.1.1.2.1.1" class="ltx_text ltx_font_bold">CDM</span></span></span>
+</span></span><span id="S3.T4.3.3.3.3.3" class="ltx_text"></span></td>
+<td id="S3.T4.4.4.4.4" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T4.4.4.4.4.2" class="ltx_text"></span> <span id="S3.T4.4.4.4.4.1" class="ltx_text">
+<span id="S3.T4.4.4.4.4.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T4.4.4.4.4.1.1.1" class="ltx_tr">
+<span id="S3.T4.4.4.4.4.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T4.4.4.4.4.1.1.1.1.1" class="ltx_text ltx_font_bold">Table<math id="S3.T4.4.4.4.4.1.1.1.1.1.m1" class="ltx_Math" alttext="\uparrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math></span></span></span>
+<span id="S3.T4.4.4.4.4.1.1.2" class="ltx_tr">
+<span id="S3.T4.4.4.4.4.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T4.4.4.4.4.1.1.2.1.1" class="ltx_text ltx_font_bold">TEDS</span></span></span>
+</span></span><span id="S3.T4.4.4.4.4.3" class="ltx_text"></span></td>
+<td id="S3.T4.5.5.5.5" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T4.5.5.5.5.2" class="ltx_text"></span> <span id="S3.T4.5.5.5.5.1" class="ltx_text">
+<span id="S3.T4.5.5.5.5.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T4.5.5.5.5.1.1.1" class="ltx_tr">
+<span id="S3.T4.5.5.5.5.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T4.5.5.5.5.1.1.1.1.1" class="ltx_text ltx_font_bold">Table<math id="S3.T4.5.5.5.5.1.1.1.1.1.m1" class="ltx_Math" alttext="\uparrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↑</mo><annotation encoding="application/x-tex">\uparrow</annotation></semantics></math></span></span></span>
+<span id="S3.T4.5.5.5.5.1.1.2" class="ltx_tr">
+<span id="S3.T4.5.5.5.5.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T4.5.5.5.5.1.1.2.1.1" class="ltx_text ltx_font_bold">TEDS-S</span></span></span>
+</span></span><span id="S3.T4.5.5.5.5.3" class="ltx_text"></span></td>
+<td id="S3.T4.6.6.6.6" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T4.6.6.6.6.2" class="ltx_text"></span> <span id="S3.T4.6.6.6.6.1" class="ltx_text">
+<span id="S3.T4.6.6.6.6.1.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T4.6.6.6.6.1.1.1" class="ltx_tr">
+<span id="S3.T4.6.6.6.6.1.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T4.6.6.6.6.1.1.1.1.1" class="ltx_text ltx_font_bold">Reading Order<math id="S3.T4.6.6.6.6.1.1.1.1.1.m1" class="ltx_Math" alttext="\downarrow" display="inline" intent=":literal"><semantics><mo stretchy="false">↓</mo><annotation encoding="application/x-tex">\downarrow</annotation></semantics></math></span></span></span>
+<span id="S3.T4.6.6.6.6.1.1.2" class="ltx_tr">
+<span id="S3.T4.6.6.6.6.1.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T4.6.6.6.6.1.1.2.1.1" class="ltx_text ltx_font_bold">Edit</span></span></span>
+</span></span><span id="S3.T4.6.6.6.6.3" class="ltx_text"></span></td>
+</tr>
+<tr id="S3.T4.6.6.7" class="ltx_tr">
+<td id="S3.T4.6.6.7.1" class="ltx_td ltx_align_left ltx_border_t" rowspan="3"><span id="S3.T4.6.6.7.1.1" class="ltx_text">Pipeline Tools</span></td>
+<td id="S3.T4.6.6.7.2" class="ltx_td ltx_align_left ltx_border_t">Marker-1.8.2 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib21" title="Marker" class="ltx_ref">25</a>]</cite>
+</td>
+<td id="S3.T4.6.6.7.3" class="ltx_td ltx_align_center ltx_border_t">-</td>
+<td id="S3.T4.6.6.7.4" class="ltx_td ltx_align_center ltx_border_t">71.30</td>
+<td id="S3.T4.6.6.7.5" class="ltx_td ltx_align_center ltx_border_t">0.206</td>
+<td id="S3.T4.6.6.7.6" class="ltx_td ltx_align_center ltx_border_t">76.66</td>
+<td id="S3.T4.6.6.7.7" class="ltx_td ltx_align_center ltx_border_t">57.88</td>
+<td id="S3.T4.6.6.7.8" class="ltx_td ltx_align_center ltx_border_t">71.17</td>
+<td id="S3.T4.6.6.7.9" class="ltx_td ltx_align_center ltx_border_t">0.250</td>
+</tr>
+<tr id="S3.T4.6.6.8" class="ltx_tr">
+<td id="S3.T4.6.6.8.1" class="ltx_td ltx_align_left">Mineru2-pipeline <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="MinerU2.0-2505-0.9b" class="ltx_ref">23</a>]</cite>
+</td>
+<td id="S3.T4.6.6.8.2" class="ltx_td ltx_align_center">-</td>
+<td id="S3.T4.6.6.8.3" class="ltx_td ltx_align_center">75.51</td>
+<td id="S3.T4.6.6.8.4" class="ltx_td ltx_align_center">0.209</td>
+<td id="S3.T4.6.6.8.5" class="ltx_td ltx_align_center">76.55</td>
+<td id="S3.T4.6.6.8.6" class="ltx_td ltx_align_center">70.90</td>
+<td id="S3.T4.6.6.8.7" class="ltx_td ltx_align_center">79.11</td>
+<td id="S3.T4.6.6.8.8" class="ltx_td ltx_align_center">0.225</td>
+</tr>
+<tr id="S3.T4.6.6.9" class="ltx_tr">
+<td id="S3.T4.6.6.9.1" class="ltx_td ltx_align_left">PP-StructureV3 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib2" title="PaddleOCR 3.0 technical report" class="ltx_ref">7</a>]</cite>
+</td>
+<td id="S3.T4.6.6.9.2" class="ltx_td ltx_align_center">-</td>
+<td id="S3.T4.6.6.9.3" class="ltx_td ltx_align_center">86.73</td>
+<td id="S3.T4.6.6.9.4" class="ltx_td ltx_align_center">0.073</td>
+<td id="S3.T4.6.6.9.5" class="ltx_td ltx_align_center">85.79</td>
+<td id="S3.T4.6.6.9.6" class="ltx_td ltx_align_center">81.68</td>
+<td id="S3.T4.6.6.9.7" class="ltx_td ltx_align_center">89.48</td>
+<td id="S3.T4.6.6.9.8" class="ltx_td ltx_align_center">0.073</td>
+</tr>
+<tr id="S3.T4.6.6.10" class="ltx_tr">
+<td id="S3.T4.6.6.10.1" class="ltx_td ltx_align_left ltx_border_t" rowspan="8"><span id="S3.T4.6.6.10.1.1" class="ltx_text">General VLMs</span></td>
+<td id="S3.T4.6.6.10.2" class="ltx_td ltx_align_left ltx_border_t">GPT-4o <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib23" title="Gpt-4 technical report" class="ltx_ref">1</a>]</cite>
+</td>
+<td id="S3.T4.6.6.10.3" class="ltx_td ltx_align_center ltx_border_t">-</td>
+<td id="S3.T4.6.6.10.4" class="ltx_td ltx_align_center ltx_border_t">75.02</td>
+<td id="S3.T4.6.6.10.5" class="ltx_td ltx_align_center ltx_border_t">0.217</td>
+<td id="S3.T4.6.6.10.6" class="ltx_td ltx_align_center ltx_border_t">79.70</td>
+<td id="S3.T4.6.6.10.7" class="ltx_td ltx_align_center ltx_border_t">67.07</td>
+<td id="S3.T4.6.6.10.8" class="ltx_td ltx_align_center ltx_border_t">76.09</td>
+<td id="S3.T4.6.6.10.9" class="ltx_td ltx_align_center ltx_border_t">0.148</td>
+</tr>
+<tr id="S3.T4.6.6.11" class="ltx_tr">
+<td id="S3.T4.6.6.11.1" class="ltx_td ltx_align_left">InternVL3-76B <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib24" title="Internvl3: exploring advanced training and test-time recipes for open-source multimodal models" class="ltx_ref">37</a>]</cite>
+</td>
+<td id="S3.T4.6.6.11.2" class="ltx_td ltx_align_center">76B</td>
+<td id="S3.T4.6.6.11.3" class="ltx_td ltx_align_center">80.33</td>
+<td id="S3.T4.6.6.11.4" class="ltx_td ltx_align_center">0.131</td>
+<td id="S3.T4.6.6.11.5" class="ltx_td ltx_align_center">83.42</td>
+<td id="S3.T4.6.6.11.6" class="ltx_td ltx_align_center">70.64</td>
+<td id="S3.T4.6.6.11.7" class="ltx_td ltx_align_center">77.74</td>
+<td id="S3.T4.6.6.11.8" class="ltx_td ltx_align_center">0.113</td>
+</tr>
+<tr id="S3.T4.6.6.12" class="ltx_tr">
+<td id="S3.T4.6.6.12.1" class="ltx_td ltx_align_left">InternVL3.5-241B <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib25" title="Internvl3. 5: advancing open-source multimodal models in versatility, reasoning, and efficiency" class="ltx_ref">33</a>]</cite>
+</td>
+<td id="S3.T4.6.6.12.2" class="ltx_td ltx_align_center">241B</td>
+<td id="S3.T4.6.6.12.3" class="ltx_td ltx_align_center">82.67</td>
+<td id="S3.T4.6.6.12.4" class="ltx_td ltx_align_center">0.142</td>
+<td id="S3.T4.6.6.12.5" class="ltx_td ltx_align_center">87.23</td>
+<td id="S3.T4.6.6.12.6" class="ltx_td ltx_align_center">75.00</td>
+<td id="S3.T4.6.6.12.7" class="ltx_td ltx_align_center">81.28</td>
+<td id="S3.T4.6.6.12.8" class="ltx_td ltx_align_center">0.125</td>
+</tr>
+<tr id="S3.T4.6.6.13" class="ltx_tr">
+<td id="S3.T4.6.6.13.1" class="ltx_td ltx_align_left">GPT-5.2 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib26" title="GPT-5.2 system card" class="ltx_ref">22</a>]</cite>
+</td>
+<td id="S3.T4.6.6.13.2" class="ltx_td ltx_align_center">-</td>
+<td id="S3.T4.6.6.13.3" class="ltx_td ltx_align_center">85.50</td>
+<td id="S3.T4.6.6.13.4" class="ltx_td ltx_align_center">0.123</td>
+<td id="S3.T4.6.6.13.5" class="ltx_td ltx_align_center">86.11</td>
+<td id="S3.T4.6.6.13.6" class="ltx_td ltx_align_center">82.66</td>
+<td id="S3.T4.6.6.13.7" class="ltx_td ltx_align_center">87.35</td>
+<td id="S3.T4.6.6.13.8" class="ltx_td ltx_align_center">0.099</td>
+</tr>
+<tr id="S3.T4.6.6.14" class="ltx_tr">
+<td id="S3.T4.6.6.14.1" class="ltx_td ltx_align_left">Qwen2.5-VL-72B <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib27" title="Qwen2. 5-vl technical report" class="ltx_ref">3</a>]</cite>
+</td>
+<td id="S3.T4.6.6.14.2" class="ltx_td ltx_align_center">72B</td>
+<td id="S3.T4.6.6.14.3" class="ltx_td ltx_align_center">87.02</td>
+<td id="S3.T4.6.6.14.4" class="ltx_td ltx_align_center">0.094</td>
+<td id="S3.T4.6.6.14.5" class="ltx_td ltx_align_center">88.27</td>
+<td id="S3.T4.6.6.14.6" class="ltx_td ltx_align_center">82.15</td>
+<td id="S3.T4.6.6.14.7" class="ltx_td ltx_align_center">86.22</td>
+<td id="S3.T4.6.6.14.8" class="ltx_td ltx_align_center">0.102</td>
+</tr>
+<tr id="S3.T4.6.6.15" class="ltx_tr">
+<td id="S3.T4.6.6.15.1" class="ltx_td ltx_align_left">Gemini-2.5 Pro <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib28" title="Gemini 2.5" class="ltx_ref">10</a>]</cite>
+</td>
+<td id="S3.T4.6.6.15.2" class="ltx_td ltx_align_center">-</td>
+<td id="S3.T4.6.6.15.3" class="ltx_td ltx_align_center">88.03</td>
+<td id="S3.T4.6.6.15.4" class="ltx_td ltx_align_center">0.075</td>
+<td id="S3.T4.6.6.15.5" class="ltx_td ltx_align_center">85.82</td>
+<td id="S3.T4.6.6.15.6" class="ltx_td ltx_align_center">85.71</td>
+<td id="S3.T4.6.6.15.7" class="ltx_td ltx_align_center">90.29</td>
+<td id="S3.T4.6.6.15.8" class="ltx_td ltx_align_center">0.097</td>
+</tr>
+<tr id="S3.T4.6.6.16" class="ltx_tr">
+<td id="S3.T4.6.6.16.1" class="ltx_td ltx_align_left">Qwen3-VL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib4" title="Qwen3-vl technical report" class="ltx_ref">2</a>]</cite>
+</td>
+<td id="S3.T4.6.6.16.2" class="ltx_td ltx_align_center">235B</td>
+<td id="S3.T4.6.6.16.3" class="ltx_td ltx_align_center">89.15</td>
+<td id="S3.T4.6.6.16.4" class="ltx_td ltx_align_center">0.069</td>
+<td id="S3.T4.6.6.16.5" class="ltx_td ltx_align_center">88.14</td>
+<td id="S3.T4.6.6.16.6" class="ltx_td ltx_align_center">86.21</td>
+<td id="S3.T4.6.6.16.7" class="ltx_td ltx_align_center">90.55</td>
+<td id="S3.T4.6.6.16.8" class="ltx_td ltx_align_center">0.068</td>
+</tr>
+<tr id="S3.T4.6.6.17" class="ltx_tr">
+<td id="S3.T4.6.6.17.1" class="ltx_td ltx_align_left">Gemini-3 Pro <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib29" title="Gemini 3.0" class="ltx_ref">11</a>]</cite>
+</td>
+<td id="S3.T4.6.6.17.2" class="ltx_td ltx_align_center">-</td>
+<td id="S3.T4.6.6.17.3" class="ltx_td ltx_align_center">90.33</td>
+<td id="S3.T4.6.6.17.4" class="ltx_td ltx_align_center">0.065</td>
+<td id="S3.T4.6.6.17.5" class="ltx_td ltx_align_center">89.18</td>
+<td id="S3.T4.6.6.17.6" class="ltx_td ltx_align_center">88.28</td>
+<td id="S3.T4.6.6.17.7" class="ltx_td ltx_align_center">90.29</td>
+<td id="S3.T4.6.6.17.8" class="ltx_td ltx_align_center">0.071</td>
+</tr>
+<tr id="S3.T4.6.6.18" class="ltx_tr">
+<td id="S3.T4.6.6.18.1" class="ltx_td ltx_align_left ltx_border_t" rowspan="15"><span id="S3.T4.6.6.18.1.1" class="ltx_text">Specialized VLMs</span></td>
+<td id="S3.T4.6.6.18.2" class="ltx_td ltx_align_left ltx_border_t">Dolphin <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib31" title="Dolphin: document image parsing via heterogeneous anchor prompting" class="ltx_ref">8</a>]</cite>
+</td>
+<td id="S3.T4.6.6.18.3" class="ltx_td ltx_align_center ltx_border_t">0.3B</td>
+<td id="S3.T4.6.6.18.4" class="ltx_td ltx_align_center ltx_border_t">74.67</td>
+<td id="S3.T4.6.6.18.5" class="ltx_td ltx_align_center ltx_border_t">0.125</td>
+<td id="S3.T4.6.6.18.6" class="ltx_td ltx_align_center ltx_border_t">67.85</td>
+<td id="S3.T4.6.6.18.7" class="ltx_td ltx_align_center ltx_border_t">68.70</td>
+<td id="S3.T4.6.6.18.8" class="ltx_td ltx_align_center ltx_border_t">77.77</td>
+<td id="S3.T4.6.6.18.9" class="ltx_td ltx_align_center ltx_border_t">0.124</td>
+</tr>
+<tr id="S3.T4.6.6.19" class="ltx_tr">
+<td id="S3.T4.6.6.19.1" class="ltx_td ltx_align_left">OCRFlux-3B <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib33" title="OCRFlux" class="ltx_ref">4</a>]</cite>
+</td>
+<td id="S3.T4.6.6.19.2" class="ltx_td ltx_align_center">3B</td>
+<td id="S3.T4.6.6.19.3" class="ltx_td ltx_align_center">74.82</td>
+<td id="S3.T4.6.6.19.4" class="ltx_td ltx_align_center">0.193</td>
+<td id="S3.T4.6.6.19.5" class="ltx_td ltx_align_center">68.03</td>
+<td id="S3.T4.6.6.19.6" class="ltx_td ltx_align_center">75.75</td>
+<td id="S3.T4.6.6.19.7" class="ltx_td ltx_align_center">80.23</td>
+<td id="S3.T4.6.6.19.8" class="ltx_td ltx_align_center">0.202</td>
+</tr>
+<tr id="S3.T4.6.6.20" class="ltx_tr">
+<td id="S3.T4.6.6.20.1" class="ltx_td ltx_align_left">Mistral OCR <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib34" title="Mistral-ocr" class="ltx_ref">20</a>]</cite>
+</td>
+<td id="S3.T4.6.6.20.2" class="ltx_td ltx_align_center">-</td>
+<td id="S3.T4.6.6.20.3" class="ltx_td ltx_align_center">78.83</td>
+<td id="S3.T4.6.6.20.4" class="ltx_td ltx_align_center">0.164</td>
+<td id="S3.T4.6.6.20.5" class="ltx_td ltx_align_center">82.84</td>
+<td id="S3.T4.6.6.20.6" class="ltx_td ltx_align_center">70.03</td>
+<td id="S3.T4.6.6.20.7" class="ltx_td ltx_align_center">78.04</td>
+<td id="S3.T4.6.6.20.8" class="ltx_td ltx_align_center">0.144</td>
+</tr>
+<tr id="S3.T4.6.6.21" class="ltx_tr">
+<td id="S3.T4.6.6.21.1" class="ltx_td ltx_align_left">POINTS-Reader <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib35" title="POINTS-reader: distillation-free adaptation of vision-language models for document conversion" class="ltx_ref">16</a>]</cite>
+</td>
+<td id="S3.T4.6.6.21.2" class="ltx_td ltx_align_center">3B</td>
+<td id="S3.T4.6.6.21.3" class="ltx_td ltx_align_center">80.98</td>
+<td id="S3.T4.6.6.21.4" class="ltx_td ltx_align_center">0.134</td>
+<td id="S3.T4.6.6.21.5" class="ltx_td ltx_align_center">79.20</td>
+<td id="S3.T4.6.6.21.6" class="ltx_td ltx_align_center">77.13</td>
+<td id="S3.T4.6.6.21.7" class="ltx_td ltx_align_center">81.66</td>
+<td id="S3.T4.6.6.21.8" class="ltx_td ltx_align_center">0.145</td>
+</tr>
+<tr id="S3.T4.6.6.22" class="ltx_tr">
+<td id="S3.T4.6.6.22.1" class="ltx_td ltx_align_left">olmOCR-7B <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib36" title="Olmocr: unlocking trillions of tokens in pdfs with vision language models" class="ltx_ref">26</a>]</cite>
+</td>
+<td id="S3.T4.6.6.22.2" class="ltx_td ltx_align_center">7B</td>
+<td id="S3.T4.6.6.22.3" class="ltx_td ltx_align_center">81.79</td>
+<td id="S3.T4.6.6.22.4" class="ltx_td ltx_align_center">0.096</td>
+<td id="S3.T4.6.6.22.5" class="ltx_td ltx_align_center">86.04</td>
+<td id="S3.T4.6.6.22.6" class="ltx_td ltx_align_center">68.92</td>
+<td id="S3.T4.6.6.22.7" class="ltx_td ltx_align_center">74.77</td>
+<td id="S3.T4.6.6.22.8" class="ltx_td ltx_align_center">0.121</td>
+</tr>
+<tr id="S3.T4.6.6.23" class="ltx_tr">
+<td id="S3.T4.6.6.23.1" class="ltx_td ltx_align_left">Dolphin-1.5 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib31" title="Dolphin: document image parsing via heterogeneous anchor prompting" class="ltx_ref">8</a>]</cite>
+</td>
+<td id="S3.T4.6.6.23.2" class="ltx_td ltx_align_center">0.3B</td>
+<td id="S3.T4.6.6.23.3" class="ltx_td ltx_align_center">83.21</td>
+<td id="S3.T4.6.6.23.4" class="ltx_td ltx_align_center">0.092</td>
+<td id="S3.T4.6.6.23.5" class="ltx_td ltx_align_center">80.78</td>
+<td id="S3.T4.6.6.23.6" class="ltx_td ltx_align_center">78.06</td>
+<td id="S3.T4.6.6.23.7" class="ltx_td ltx_align_center">84.10</td>
+<td id="S3.T4.6.6.23.8" class="ltx_td ltx_align_center">0.080</td>
+</tr>
+<tr id="S3.T4.6.6.24" class="ltx_tr">
+<td id="S3.T4.6.6.24.1" class="ltx_td ltx_align_left">MinerU2-VLM <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib22" title="MinerU2.0-2505-0.9b" class="ltx_ref">23</a>]</cite>
+</td>
+<td id="S3.T4.6.6.24.2" class="ltx_td ltx_align_center">0.9B</td>
+<td id="S3.T4.6.6.24.3" class="ltx_td ltx_align_center">85.56</td>
+<td id="S3.T4.6.6.24.4" class="ltx_td ltx_align_center">0.078</td>
+<td id="S3.T4.6.6.24.5" class="ltx_td ltx_align_center">80.95</td>
+<td id="S3.T4.6.6.24.6" class="ltx_td ltx_align_center">83.54</td>
+<td id="S3.T4.6.6.24.7" class="ltx_td ltx_align_center">87.66</td>
+<td id="S3.T4.6.6.24.8" class="ltx_td ltx_align_center">0.086</td>
+</tr>
+<tr id="S3.T4.6.6.25" class="ltx_tr">
+<td id="S3.T4.6.6.25.1" class="ltx_td ltx_align_left">Nanonets-OCR-s <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib37" title="Nanonets-ocr-s: a model for transforming documents into structured markdown with intelligent content recognition and semantic tagging" class="ltx_ref">19</a>]</cite>
+</td>
+<td id="S3.T4.6.6.25.2" class="ltx_td ltx_align_center">3B</td>
+<td id="S3.T4.6.6.25.3" class="ltx_td ltx_align_center">85.59</td>
+<td id="S3.T4.6.6.25.4" class="ltx_td ltx_align_center">0.093</td>
+<td id="S3.T4.6.6.25.5" class="ltx_td ltx_align_center">85.90</td>
+<td id="S3.T4.6.6.25.6" class="ltx_td ltx_align_center">80.14</td>
+<td id="S3.T4.6.6.25.7" class="ltx_td ltx_align_center">85.57</td>
+<td id="S3.T4.6.6.25.8" class="ltx_td ltx_align_center">0.108</td>
+</tr>
+<tr id="S3.T4.6.6.26" class="ltx_tr">
+<td id="S3.T4.6.6.26.1" class="ltx_td ltx_align_left">MonkeyOCR-pro-1.2B <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib32" title="MonkeyOCR: document parsing with a structure-recognition-relation triplet paradigm" class="ltx_ref">14</a>]</cite>
+</td>
+<td id="S3.T4.6.6.26.2" class="ltx_td ltx_align_center">1.9B</td>
+<td id="S3.T4.6.6.26.3" class="ltx_td ltx_align_center">86.96</td>
+<td id="S3.T4.6.6.26.4" class="ltx_td ltx_align_center">0.084</td>
+<td id="S3.T4.6.6.26.5" class="ltx_td ltx_align_center">85.02</td>
+<td id="S3.T4.6.6.26.6" class="ltx_td ltx_align_center">84.24</td>
+<td id="S3.T4.6.6.26.7" class="ltx_td ltx_align_center">89.02</td>
+<td id="S3.T4.6.6.26.8" class="ltx_td ltx_align_center">0.130</td>
+</tr>
+<tr id="S3.T4.6.6.27" class="ltx_tr">
+<td id="S3.T4.6.6.27.1" class="ltx_td ltx_align_left">Deepseek-OCR <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib38" title="DeepSeek-ocr: contexts optical compression" class="ltx_ref">34</a>]</cite>
+</td>
+<td id="S3.T4.6.6.27.2" class="ltx_td ltx_align_center">3B</td>
+<td id="S3.T4.6.6.27.3" class="ltx_td ltx_align_center">87.01</td>
+<td id="S3.T4.6.6.27.4" class="ltx_td ltx_align_center">0.073</td>
+<td id="S3.T4.6.6.27.5" class="ltx_td ltx_align_center">83.37</td>
+<td id="S3.T4.6.6.27.6" class="ltx_td ltx_align_center">84.97</td>
+<td id="S3.T4.6.6.27.7" class="ltx_td ltx_align_center">88.80</td>
+<td id="S3.T4.6.6.27.8" class="ltx_td ltx_align_center">0.086</td>
+</tr>
+<tr id="S3.T4.6.6.28" class="ltx_tr">
+<td id="S3.T4.6.6.28.1" class="ltx_td ltx_align_left">MonkeyOCR-3B <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib32" title="MonkeyOCR: document parsing with a structure-recognition-relation triplet paradigm" class="ltx_ref">14</a>]</cite>
+</td>
+<td id="S3.T4.6.6.28.2" class="ltx_td ltx_align_center">3.7B</td>
+<td id="S3.T4.6.6.28.3" class="ltx_td ltx_align_center">87.13</td>
+<td id="S3.T4.6.6.28.4" class="ltx_td ltx_align_center">0.075</td>
+<td id="S3.T4.6.6.28.5" class="ltx_td ltx_align_center">87.45</td>
+<td id="S3.T4.6.6.28.6" class="ltx_td ltx_align_center">81.39</td>
+<td id="S3.T4.6.6.28.7" class="ltx_td ltx_align_center">85.92</td>
+<td id="S3.T4.6.6.28.8" class="ltx_td ltx_align_center">0.129</td>
+</tr>
+<tr id="S3.T4.6.6.29" class="ltx_tr">
+<td id="S3.T4.6.6.29.1" class="ltx_td ltx_align_left">dots.ocr <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib39" title="Dots.ocr: multilingual document layout parsing in a single vision-language model" class="ltx_ref">27</a>]</cite>
+</td>
+<td id="S3.T4.6.6.29.2" class="ltx_td ltx_align_center">3B</td>
+<td id="S3.T4.6.6.29.3" class="ltx_td ltx_align_center">88.41</td>
+<td id="S3.T4.6.6.29.4" class="ltx_td ltx_align_center">0.048</td>
+<td id="S3.T4.6.6.29.5" class="ltx_td ltx_align_center">83.22</td>
+<td id="S3.T4.6.6.29.6" class="ltx_td ltx_align_center">86.78</td>
+<td id="S3.T4.6.6.29.7" class="ltx_td ltx_align_center">90.62</td>
+<td id="S3.T4.6.6.29.8" class="ltx_td ltx_align_center">0.053</td>
+</tr>
+<tr id="S3.T4.6.6.30" class="ltx_tr">
+<td id="S3.T4.6.6.30.1" class="ltx_td ltx_align_left">MonkeyOCR-pro-3B <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib32" title="MonkeyOCR: document parsing with a structure-recognition-relation triplet paradigm" class="ltx_ref">14</a>]</cite>
+</td>
+<td id="S3.T4.6.6.30.2" class="ltx_td ltx_align_center">3.7B</td>
+<td id="S3.T4.6.6.30.3" class="ltx_td ltx_align_center">88.85</td>
+<td id="S3.T4.6.6.30.4" class="ltx_td ltx_align_center">0.075</td>
+<td id="S3.T4.6.6.30.5" class="ltx_td ltx_align_center">87.25</td>
+<td id="S3.T4.6.6.30.6" class="ltx_td ltx_align_center">86.78</td>
+<td id="S3.T4.6.6.30.7" class="ltx_td ltx_align_center">90.63</td>
+<td id="S3.T4.6.6.30.8" class="ltx_td ltx_align_center">0.128</td>
+</tr>
+<tr id="S3.T4.6.6.31" class="ltx_tr">
+<td id="S3.T4.6.6.31.1" class="ltx_td ltx_align_left">MinerU2.5 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib40" title="MinerU2. 5: a decoupled vision-language model for efficient high-resolution document parsing" class="ltx_ref">21</a>]</cite>
+</td>
+<td id="S3.T4.6.6.31.2" class="ltx_td ltx_align_center">1.2B</td>
+<td id="S3.T4.6.6.31.3" class="ltx_td ltx_align_center">90.67</td>
+<td id="S3.T4.6.6.31.4" class="ltx_td ltx_align_center">0.047</td>
+<td id="S3.T4.6.6.31.5" class="ltx_td ltx_align_center">88.46</td>
+<td id="S3.T4.6.6.31.6" class="ltx_td ltx_align_center">88.22</td>
+<td id="S3.T4.6.6.31.7" class="ltx_td ltx_align_center">92.38</td>
+<td id="S3.T4.6.6.31.8" class="ltx_td ltx_align_center">0.044</td>
+</tr>
+<tr id="S3.T4.6.6.32" class="ltx_tr">
+<td id="S3.T4.6.6.32.1" class="ltx_td ltx_align_left">PaddleOCR-VL <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib12" title="PaddleOCR-vl: boosting multilingual document parsing via a 0.9b ultra-compact vision-language model" class="ltx_ref">6</a>]</cite>
+</td>
+<td id="S3.T4.6.6.32.2" class="ltx_td ltx_align_center">0.9B</td>
+<td id="S3.T4.6.6.32.3" class="ltx_td ltx_align_center">92.86</td>
+<td id="S3.T4.6.6.32.4" class="ltx_td ltx_align_center">0.035</td>
+<td id="S3.T4.6.6.32.5" class="ltx_td ltx_align_center">91.22</td>
+<td id="S3.T4.6.6.32.6" class="ltx_td ltx_align_center">90.89</td>
+<td id="S3.T4.6.6.32.7" class="ltx_td ltx_align_center">94.76</td>
+<td id="S3.T4.6.6.32.8" class="ltx_td ltx_align_center">0.043</td>
+</tr>
+<tr id="S3.T4.6.6.33" class="ltx_tr">
+<td id="S3.T4.6.6.33.1" class="ltx_td"></td>
+<td id="S3.T4.6.6.33.2" class="ltx_td ltx_align_left">PaddleOCR-VL-1.5 <cite class="ltx_cite ltx_citemacro_cite">[<a href="#bib.bib13" title="PaddleOCR-vl-1.5: towards a multi-task 0.9b vlm for robust in-the-wild document parsing" class="ltx_ref">5</a>]</cite>
+</td>
+<td id="S3.T4.6.6.33.3" class="ltx_td ltx_align_center">0.9B</td>
+<td id="S3.T4.6.6.33.4" class="ltx_td ltx_align_center">94.50</td>
+<td id="S3.T4.6.6.33.5" class="ltx_td ltx_align_center"><span id="S3.T4.6.6.33.5.1" class="ltx_text ltx_font_bold">0.035</span></td>
+<td id="S3.T4.6.6.33.6" class="ltx_td ltx_align_center"><span id="S3.T4.6.6.33.6.1" class="ltx_text ltx_font_bold">94.21</span></td>
+<td id="S3.T4.6.6.33.7" class="ltx_td ltx_align_center">92.76</td>
+<td id="S3.T4.6.6.33.8" class="ltx_td ltx_align_center">95.79</td>
+<td id="S3.T4.6.6.33.9" class="ltx_td ltx_align_center"><span id="S3.T4.6.6.33.9.1" class="ltx_text ltx_font_bold">0.042</span></td>
+</tr>
+<tr id="S3.T4.6.6.34" class="ltx_tr">
+<td id="S3.T4.6.6.34.1" class="ltx_td ltx_border_bb ltx_border_t"></td>
+<td id="S3.T4.6.6.34.2" class="ltx_td ltx_align_left ltx_border_bb ltx_border_t"><span id="S3.T4.6.6.34.2.1" class="ltx_text ltx_font_bold">GLM-OCR</span></td>
+<td id="S3.T4.6.6.34.3" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">0.9B</td>
+<td id="S3.T4.6.6.34.4" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t"><span id="S3.T4.6.6.34.4.1" class="ltx_text ltx_font_bold">94.62</span></td>
+<td id="S3.T4.6.6.34.5" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">0.040</td>
+<td id="S3.T4.6.6.34.6" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">93.90</td>
+<td id="S3.T4.6.6.34.7" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t"><span id="S3.T4.6.6.34.7.1" class="ltx_text ltx_font_bold">93.96</span></td>
+<td id="S3.T4.6.6.34.8" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t"><span id="S3.T4.6.6.34.8.1" class="ltx_text ltx_font_bold">96.39</span></td>
+<td id="S3.T4.6.6.34.9" class="ltx_td ltx_align_center ltx_border_bb ltx_border_t">0.044</td>
+</tr>
+</table>
+</span></div>
+</figure>
+</section>
+</section>
+<section id="S3.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">3.2 </span>In-House Benchmarks</h3>
+
+<div id="S3.SS2.p1" class="ltx_para ltx_noindent">
+<p id="S3.SS2.p1.1" class="ltx_p">To assess the robustness of GLM-OCR in highly complex, real-world industrial scenarios, we conducted evaluations on a custom suite of in-house benchmarks. These tasks include Code Document parsing, Real-world Table extraction, Handwritten Text recognition, Multilingual Text processing, Seal Recognition, and Receipt KIE.</p>
+</div>
+<figure id="S3.T5" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 5: </span>Performance comparison on custom real-world scenarios. The results of Gemini-3-Pro and GPT-5.2-2025-12-11 are in gray as they are provided for reference only and excluded from the best-score ranking. The best results among the evaluated models are highlighted in bold.</figcaption>
+<div id="S3.T5.1" class="ltx_inline-block ltx_align_center ltx_transformed_outer" style="width:397.5pt;height:65.4pt;vertical-align:-31.0pt;"><span class="ltx_transformed_inner" style="transform:translate(-96.8pt,15.9pt) scale(0.672420042986538,0.672420042986538) ;">
+<table id="S3.T5.1.1" class="ltx_tabular ltx_align_middle">
+<tr id="S3.T5.1.1.1" class="ltx_tr">
+<td id="S3.T5.1.1.1.1" class="ltx_td ltx_align_left ltx_border_tt"><span id="S3.T5.1.1.1.1.1" class="ltx_text ltx_font_bold">Task</span></td>
+<td id="S3.T5.1.1.1.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T5.1.1.1.2.1" class="ltx_text ltx_font_bold">GLM-OCR</span></td>
+<td id="S3.T5.1.1.1.3" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T5.1.1.1.3.1" class="ltx_text"></span> <span id="S3.T5.1.1.1.3.2" class="ltx_text">
+<span id="S3.T5.1.1.1.3.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T5.1.1.1.3.2.1.1" class="ltx_tr">
+<span id="S3.T5.1.1.1.3.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T5.1.1.1.3.2.1.1.1.1" class="ltx_text ltx_font_bold">PaddleOCR</span></span></span>
+<span id="S3.T5.1.1.1.3.2.1.2" class="ltx_tr">
+<span id="S3.T5.1.1.1.3.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T5.1.1.1.3.2.1.2.1.1" class="ltx_text ltx_font_bold">-VL-1.5</span></span></span>
+</span></span><span id="S3.T5.1.1.1.3.3" class="ltx_text"></span></td>
+<td id="S3.T5.1.1.1.4" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T5.1.1.1.4.1" class="ltx_text"></span> <span id="S3.T5.1.1.1.4.2" class="ltx_text">
+<span id="S3.T5.1.1.1.4.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T5.1.1.1.4.2.1.1" class="ltx_tr">
+<span id="S3.T5.1.1.1.4.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T5.1.1.1.4.2.1.1.1.1" class="ltx_text ltx_font_bold">Deepseek</span></span></span>
+<span id="S3.T5.1.1.1.4.2.1.2" class="ltx_tr">
+<span id="S3.T5.1.1.1.4.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T5.1.1.1.4.2.1.2.1.1" class="ltx_text ltx_font_bold">-OCR2</span></span></span>
+</span></span><span id="S3.T5.1.1.1.4.3" class="ltx_text"></span></td>
+<td id="S3.T5.1.1.1.5" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T5.1.1.1.5.1" class="ltx_text"></span> <span id="S3.T5.1.1.1.5.2" class="ltx_text">
+<span id="S3.T5.1.1.1.5.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T5.1.1.1.5.2.1.1" class="ltx_tr">
+<span id="S3.T5.1.1.1.5.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T5.1.1.1.5.2.1.1.1.1" class="ltx_text ltx_font_bold">MinerU</span></span></span>
+<span id="S3.T5.1.1.1.5.2.1.2" class="ltx_tr">
+<span id="S3.T5.1.1.1.5.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T5.1.1.1.5.2.1.2.1.1" class="ltx_text ltx_font_bold">2.5</span></span></span>
+</span></span><span id="S3.T5.1.1.1.5.3" class="ltx_text"></span></td>
+<td id="S3.T5.1.1.1.6" class="ltx_td ltx_align_center ltx_border_tt"><span id="S3.T5.1.1.1.6.1" class="ltx_text ltx_font_bold">dots.ocr</span></td>
+<td id="S3.T5.1.1.1.7" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T5.1.1.1.7.1" class="ltx_text"></span> <span id="S3.T5.1.1.1.7.2" class="ltx_text">
+<span id="S3.T5.1.1.1.7.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T5.1.1.1.7.2.1.1" class="ltx_tr">
+<span id="S3.T5.1.1.1.7.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T5.1.1.1.7.2.1.1.1.1" class="ltx_text ltx_font_bold" style="--ltx-fg-color:#808080;">Gemini-3</span></span></span>
+<span id="S3.T5.1.1.1.7.2.1.2" class="ltx_tr">
+<span id="S3.T5.1.1.1.7.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T5.1.1.1.7.2.1.2.1.1" class="ltx_text ltx_font_bold" style="--ltx-fg-color:#808080;">-Pro</span></span></span>
+</span></span><span id="S3.T5.1.1.1.7.3" class="ltx_text"></span></td>
+<td id="S3.T5.1.1.1.8" class="ltx_td ltx_align_center ltx_border_tt">
+<span id="S3.T5.1.1.1.8.1" class="ltx_text"></span> <span id="S3.T5.1.1.1.8.2" class="ltx_text">
+<span id="S3.T5.1.1.1.8.2.1" class="ltx_tabular ltx_align_middle">
+<span id="S3.T5.1.1.1.8.2.1.1" class="ltx_tr">
+<span id="S3.T5.1.1.1.8.2.1.1.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T5.1.1.1.8.2.1.1.1.1" class="ltx_text ltx_font_bold" style="--ltx-fg-color:#808080;">GPT-5.2</span></span></span>
+<span id="S3.T5.1.1.1.8.2.1.2" class="ltx_tr">
+<span id="S3.T5.1.1.1.8.2.1.2.1" class="ltx_td ltx_nopad_r ltx_align_center"><span id="S3.T5.1.1.1.8.2.1.2.1.1" class="ltx_text ltx_font_bold" style="--ltx-fg-color:#808080;">-2025-12-11</span></span></span>
+</span></span><span id="S3.T5.1.1.1.8.3" class="ltx_text"></span></td>
+</tr>
+<tr id="S3.T5.1.1.2" class="ltx_tr">
+<td id="S3.T5.1.1.2.1" class="ltx_td ltx_align_left ltx_border_t">Code Document</td>
+<td id="S3.T5.1.1.2.2" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T5.1.1.2.2.1" class="ltx_text ltx_font_bold">84.7</span></td>
+<td id="S3.T5.1.1.2.3" class="ltx_td ltx_align_center ltx_border_t">75.8</td>
+<td id="S3.T5.1.1.2.4" class="ltx_td ltx_align_center ltx_border_t">82.1</td>
+<td id="S3.T5.1.1.2.5" class="ltx_td ltx_align_center ltx_border_t">82.9</td>
+<td id="S3.T5.1.1.2.6" class="ltx_td ltx_align_center ltx_border_t">80.8</td>
+<td id="S3.T5.1.1.2.7" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T5.1.1.2.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">86.9</span></td>
+<td id="S3.T5.1.1.2.8" class="ltx_td ltx_align_center ltx_border_t"><span id="S3.T5.1.1.2.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">84.4</span></td>
+</tr>
+<tr id="S3.T5.1.1.3" class="ltx_tr">
+<td id="S3.T5.1.1.3.1" class="ltx_td ltx_align_left">Real-world Table</td>
+<td id="S3.T5.1.1.3.2" class="ltx_td ltx_align_center"><span id="S3.T5.1.1.3.2.1" class="ltx_text ltx_font_bold">91.5</span></td>
+<td id="S3.T5.1.1.3.3" class="ltx_td ltx_align_center">86.1</td>
+<td id="S3.T5.1.1.3.4" class="ltx_td ltx_align_center">-</td>
+<td id="S3.T5.1.1.3.5" class="ltx_td ltx_align_center">70.8</td>
+<td id="S3.T5.1.1.3.6" class="ltx_td ltx_align_center">81.8</td>
+<td id="S3.T5.1.1.3.7" class="ltx_td ltx_align_center"><span id="S3.T5.1.1.3.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">90.6</span></td>
+<td id="S3.T5.1.1.3.8" class="ltx_td ltx_align_center"><span id="S3.T5.1.1.3.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">86.7</span></td>
+</tr>
+<tr id="S3.T5.1.1.4" class="ltx_tr">
+<td id="S3.T5.1.1.4.1" class="ltx_td ltx_align_left">Handwritten Text</td>
+<td id="S3.T5.1.1.4.2" class="ltx_td ltx_align_center">87.0</td>
+<td id="S3.T5.1.1.4.3" class="ltx_td ltx_align_center"><span id="S3.T5.1.1.4.3.1" class="ltx_text ltx_font_bold">87.4</span></td>
+<td id="S3.T5.1.1.4.4" class="ltx_td ltx_align_center">73.8</td>
+<td id="S3.T5.1.1.4.5" class="ltx_td ltx_align_center">54.2</td>
+<td id="S3.T5.1.1.4.6" class="ltx_td ltx_align_center">71.7</td>
+<td id="S3.T5.1.1.4.7" class="ltx_td ltx_align_center"><span id="S3.T5.1.1.4.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">90.0</span></td>
+<td id="S3.T5.1.1.4.8" class="ltx_td ltx_align_center"><span id="S3.T5.1.1.4.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">78.0</span></td>
+</tr>
+<tr id="S3.T5.1.1.5" class="ltx_tr">
+<td id="S3.T5.1.1.5.1" class="ltx_td ltx_align_left">Multilingual Text</td>
+<td id="S3.T5.1.1.5.2" class="ltx_td ltx_align_center"><span id="S3.T5.1.1.5.2.1" class="ltx_text ltx_font_bold">69.3</span></td>
+<td id="S3.T5.1.1.5.3" class="ltx_td ltx_align_center">54.8</td>
+<td id="S3.T5.1.1.5.4" class="ltx_td ltx_align_center">56.1</td>
+<td id="S3.T5.1.1.5.5" class="ltx_td ltx_align_center">27.8</td>
+<td id="S3.T5.1.1.5.6" class="ltx_td ltx_align_center">65.1</td>
+<td id="S3.T5.1.1.5.7" class="ltx_td ltx_align_center"><span id="S3.T5.1.1.5.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">86.2</span></td>
+<td id="S3.T5.1.1.5.8" class="ltx_td ltx_align_center"><span id="S3.T5.1.1.5.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">70.1</span></td>
+</tr>
+<tr id="S3.T5.1.1.6" class="ltx_tr">
+<td id="S3.T5.1.1.6.1" class="ltx_td ltx_align_left">Seal Recognition</td>
+<td id="S3.T5.1.1.6.2" class="ltx_td ltx_align_center"><span id="S3.T5.1.1.6.2.1" class="ltx_text ltx_font_bold">90.5</span></td>
+<td id="S3.T5.1.1.6.3" class="ltx_td ltx_align_center">42.2</td>
+<td id="S3.T5.1.1.6.4" class="ltx_td ltx_align_center">40.4</td>
+<td id="S3.T5.1.1.6.5" class="ltx_td ltx_align_center">-</td>
+<td id="S3.T5.1.1.6.6" class="ltx_td ltx_align_center">63.0</td>
+<td id="S3.T5.1.1.6.7" class="ltx_td ltx_align_center"><span id="S3.T5.1.1.6.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">91.3</span></td>
+<td id="S3.T5.1.1.6.8" class="ltx_td ltx_align_center"><span id="S3.T5.1.1.6.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">58.8</span></td>
+</tr>
+<tr id="S3.T5.1.1.7" class="ltx_tr">
+<td id="S3.T5.1.1.7.1" class="ltx_td ltx_align_left ltx_border_bb">Receipt KIE</td>
+<td id="S3.T5.1.1.7.2" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T5.1.1.7.2.1" class="ltx_text ltx_font_bold">94.5</span></td>
+<td id="S3.T5.1.1.7.3" class="ltx_td ltx_align_center ltx_border_bb">-</td>
+<td id="S3.T5.1.1.7.4" class="ltx_td ltx_align_center ltx_border_bb">-</td>
+<td id="S3.T5.1.1.7.5" class="ltx_td ltx_align_center ltx_border_bb">-</td>
+<td id="S3.T5.1.1.7.6" class="ltx_td ltx_align_center ltx_border_bb">-</td>
+<td id="S3.T5.1.1.7.7" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T5.1.1.7.7.1" class="ltx_text" style="--ltx-fg-color:#808080;">97.3</span></td>
+<td id="S3.T5.1.1.7.8" class="ltx_td ltx_align_center ltx_border_bb"><span id="S3.T5.1.1.7.8.1" class="ltx_text" style="--ltx-fg-color:#808080;">83.5</span></td>
+</tr>
+</table>
+</span></div>
+</figure>
+<div id="S3.SS2.p2" class="ltx_para ltx_noindent">
+<p id="S3.SS2.p2.1" class="ltx_p">As detailed in Table <a href="#S3.T5" title="Table 5 ‣ 3.2 In-House Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a>, GLM-OCR achieves the highest score in five out of six evaluated categories among the compared open-weight models. Most notably, GLM-OCR demonstrates a notable margin in challenging, niche domains:</p>
+</div>
+<div id="S3.SS2.p3" class="ltx_para ltx_noindent">
+<ul id="S3.I1" class="ltx_itemize">
+<li id="S3.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S3.I1.i1.p1" class="ltx_para">
+<p id="S3.I1.i1.p1.1" class="ltx_p"><span id="S3.I1.i1.p1.1.1" class="ltx_text ltx_font_bold">Seal Recognition:</span> GLM-OCR achieves an exceptional score of 90.5, outperforming the next best open-weight model (dots.ocr at 63.0) by a massive margin and performing competitively with Gemini-3-Pro (91.3).</p>
+</div>
+</li>
+<li id="S3.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S3.I1.i2.p1" class="ltx_para">
+<p id="S3.I1.i2.p1.1" class="ltx_p"><span id="S3.I1.i2.p1.1.1" class="ltx_text ltx_font_bold">Multilingual Text:</span> The model excels in diverse linguistic contexts, scoring 69.3 compared to PaddleOCR-VL-1.5’s 54.8.</p>
+</div>
+</li>
+<li id="S3.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S3.I1.i3.p1" class="ltx_para">
+<p id="S3.I1.i3.p1.1" class="ltx_p"><span id="S3.I1.i3.p1.1.1" class="ltx_text ltx_font_bold">Complex Formatting:</span> It leads in Code Document parsing (84.7) and Real-world Table extraction (91.5), proving its utility in highly structured and noisy environments.</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="S3.SS2.p4" class="ltx_para ltx_noindent">
+<p id="S3.SS2.p4.1" class="ltx_p">While PaddleOCR-VL-1.5 holds a marginal lead in Handwritten Text (87.4 vs. GLM-OCR’s 87.0), GLM-OCR remains highly effective. Crucially, in practical application tasks like Receipt KIE, GLM-OCR (94.5) easily surpasses proprietary models like GPT-5.2 (83.5). These in-house results validate that GLM-OCR is not merely optimizing for academic datasets but is highly capable of generalizing to the noisy, variable conditions of real-world OCR deployments.</p>
+</div>
+</section>
+</section>
+<section id="S4" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">4 </span>Inference and Deployment</h2>
+
+<section id="S4.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.1 </span>Local Deployment and SDK Integration</h3>
+
+<div id="S4.SS1.p1" class="ltx_para ltx_noindent">
+<p id="S4.SS1.p1.1" class="ltx_p">With a compact parameter scale of 0.9B, GLM-OCR is highly optimized for localized inference and resource-constrained environments. The model supports efficient deployment across mainstream frameworks, including vLLM, SGLang, and Ollama. To facilitate seamless integration, a comprehensive SDK is provided for end-to-end document parsing workflows <span id="footnote8" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">8</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">8</sup><span class="ltx_tag ltx_tag_note">8</span>https://github.com/zai-org/GLM-OCR</span></span></span>.</p>
+</div>
+<div id="S4.SS1.p2" class="ltx_para ltx_noindent">
+<p id="S4.SS1.p2.1" class="ltx_p">To assess operational efficiency, we conducted a comparative throughput analysis of various OCR pipelines. Under identical hardware configurations and testing conditions (single replica, single concurrency), we evaluated the parsing and Markdown-export speeds for both image and PDF inputs. As demonstrated in Table <a href="#S4.T6" title="Table 6 ‣ 4.1 Local Deployment and SDK Integration ‣ 4 Inference and Deployment" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>, GLM-OCR outperforms comparable methods, achieving a throughput of 1.86 pages/second for PDF documents and 0.67 images/second for standalone image files.</p>
+</div>
+<figure id="S4.T6" class="ltx_table">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_table">Table 6: </span>Throughput comparison of different OCR models for Image and PDF inputs.</figcaption>
+<table id="S4.T6.2" class="ltx_tabular ltx_centering ltx_align_middle">
+<tr id="S4.T6.2.3" class="ltx_tr">
+<td id="S4.T6.2.3.1" class="ltx_td ltx_align_left ltx_border_tt" rowspan="2"><span id="S4.T6.2.3.1.1" class="ltx_text ltx_font_bold">Model</span></td>
+<td id="S4.T6.2.3.2" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T6.2.3.2.1" class="ltx_text ltx_font_bold">Image Input</span></td>
+<td id="S4.T6.2.3.3" class="ltx_td ltx_align_center ltx_border_tt"><span id="S4.T6.2.3.3.1" class="ltx_text ltx_font_bold">PDF Input</span></td>
+</tr>
+<tr id="S4.T6.2.4" class="ltx_tr">
+<td id="S4.T6.2.4.1" class="ltx_td ltx_align_center"><span id="S4.T6.2.4.1.1" class="ltx_text ltx_font_bold">(pages / s)</span></td>
+<td id="S4.T6.2.4.2" class="ltx_td ltx_align_center"><span id="S4.T6.2.4.2.1" class="ltx_text ltx_font_bold">(pages / s)</span></td>
+</tr>
+<tr id="S4.T6.2.5" class="ltx_tr">
+<td id="S4.T6.2.5.1" class="ltx_td ltx_align_left ltx_border_t">GLM-OCR</td>
+<td id="S4.T6.2.5.2" class="ltx_td ltx_align_center ltx_border_t"><span id="S4.T6.2.5.2.1" class="ltx_text ltx_font_bold">0.67</span></td>
+<td id="S4.T6.2.5.3" class="ltx_td ltx_align_center ltx_border_t"><span id="S4.T6.2.5.3.1" class="ltx_text ltx_font_bold">1.86</span></td>
+</tr>
+<tr id="S4.T6.2.6" class="ltx_tr">
+<td id="S4.T6.2.6.1" class="ltx_td ltx_align_left">PaddleOCR-VL-1.5</td>
+<td id="S4.T6.2.6.2" class="ltx_td ltx_align_center">0.39</td>
+<td id="S4.T6.2.6.3" class="ltx_td ltx_align_center">1.22</td>
+</tr>
+<tr id="S4.T6.1.1" class="ltx_tr">
+<td id="S4.T6.1.1.2" class="ltx_td ltx_align_left">Deepseek-OCR2</td>
+<td id="S4.T6.1.1.3" class="ltx_td ltx_align_center">0.32</td>
+<td id="S4.T6.1.1.1" class="ltx_td ltx_align_center"><math id="S4.T6.1.1.1.m1" class="ltx_Math" alttext="-" display="inline" intent=":literal"><semantics><mo>−</mo><annotation encoding="application/x-tex">-</annotation></semantics></math></td>
+</tr>
+<tr id="S4.T6.2.7" class="ltx_tr">
+<td id="S4.T6.2.7.1" class="ltx_td ltx_align_left">MinerU2.5</td>
+<td id="S4.T6.2.7.2" class="ltx_td ltx_align_center">0.18</td>
+<td id="S4.T6.2.7.3" class="ltx_td ltx_align_center">0.48</td>
+</tr>
+<tr id="S4.T6.2.2" class="ltx_tr">
+<td id="S4.T6.2.2.2" class="ltx_td ltx_align_left ltx_border_bb">dots.ocr</td>
+<td id="S4.T6.2.2.3" class="ltx_td ltx_align_center ltx_border_bb">0.10</td>
+<td id="S4.T6.2.2.1" class="ltx_td ltx_align_center ltx_border_bb"><math id="S4.T6.2.2.1.m1" class="ltx_Math" alttext="-" display="inline" intent=":literal"><semantics><mo>−</mo><annotation encoding="application/x-tex">-</annotation></semantics></math></td>
+</tr>
+</table>
+</figure>
+</section>
+<section id="S4.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.2 </span>Model-as-a-Service (MaaS) API</h3>
+
+<div id="S4.SS2.p1" class="ltx_para ltx_noindent">
+<p id="S4.SS2.p1.1" class="ltx_p">For cloud-based deployments, GLM-OCR is accessible via a MaaS API
+ <span id="footnote9" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">9</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">9</sup><span class="ltx_tag ltx_tag_note">9</span>https://docs.bigmodel.cn/cn/guide/models/vlm/glm-ocr</span></span></span>. The service employs a highly cost-effective, unified pricing model for both input and output tokens, set at 0.2 RMB per million tokens. Under this pricing structure, an expenditure of 1 RMB is sufficient to process approximately 2,000 A4-sized scanned images or 200 simple-layout PDFs (10 pages each). This represents a significant reduction in operational overhead, decreasing processing costs to approximately one-tenth of those associated with traditional OCR solutions.</p>
+</div>
+</section>
+<section id="S4.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">4.3 </span>Fine-Tuning Capabilities</h3>
+
+<div id="S4.SS3.p1" class="ltx_para ltx_noindent">
+<p id="S4.SS3.p1.1" class="ltx_p">In scenarios where specific domain adaptation or enhanced task performance is required, GLM-OCR supports direct fine-tuning utilizing the LLaMA-Factory framework. Comprehensive tutorials and configuration guidelines for the fine-tuning process are available in the official repository: <a target="_blank" href="https://github.com/zai-org/GLM-OCR/blob/main/examples/finetune/README.md" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/zai-org/GLM-OCR/blob/main/examples/finetune/README.md</a>.</p>
+</div>
+</section>
+</section>
+<section id="S5" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">5 </span>Intended Use Cases</h2>
+
+<section id="S5.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.1 </span>Overview</h3>
+
+<div id="S5.SS1.p1" class="ltx_para ltx_noindent">
+<p id="S5.SS1.p1.1" class="ltx_p">GLM-OCR is designed to support both high-level document understanding workflows and lightweight optical character recognition (OCR) tasks. Depending on application requirements, users may (1) integrate the GLM-OCR SDK for complex document parsing pipelines, or (2) directly invoke the base model for focused recognition and structured information extraction tasks. This section describes the two primary usage paradigms and their representative application scenarios.</p>
+</div>
+</section>
+<section id="S5.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.2 </span>Document Parsing with GLM-OCR SDK</h3>
+
+<div id="S5.SS2.p1" class="ltx_para ltx_noindent">
+<p id="S5.SS2.p1.1" class="ltx_p">The GLM-OCR SDK <span id="footnote10" class="ltx_note ltx_role_footnote"><sup class="ltx_note_mark">10</sup><span class="ltx_note_outer"><span class="ltx_note_content"><sup class="ltx_note_mark">10</sup><span class="ltx_tag ltx_tag_note">10</span>https://github.com/zai-org/GLM-OCR</span></span></span> provides a comprehensive interface for performing document parsing, including layout-aware parsing, multimodal recognition, and structured output generation. It is intended for enterprise-grade or production-level workflows where documents may contain heterogeneous content such as paragraphs, tables, mathematical expressions, and key-value pairs.</p>
+</div>
+<figure id="S5.F3" class="ltx_figure"><img src="/html/2603.10910/assets/x4.png" id="S5.F3.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="367" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 3: </span>Example of GLM-OCR SDK for complex document parsing.</figcaption>
+</figure>
+<div id="S5.SS2.p2" class="ltx_para ltx_noindent">
+<p id="S5.SS2.p2.1" class="ltx_p">The output is generated in a structured markdown format, preserving logical document hierarchy and structural relationships. The example demonstrates that the SDK supports end-to-end parsing of heterogeneous documents while maintaining structural fidelity and semantic coherence.</p>
+</div>
+</section>
+<section id="S5.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.3 </span>Lightweight OCR and Information Extraction with the Base Model</h3>
+
+<div id="S5.SS3.p1" class="ltx_para ltx_noindent">
+<p id="S5.SS3.p1.1" class="ltx_p">In addition to the SDK, GLM-OCR can be directly used as a standalone model for lightweight OCR and targeted extraction tasks. This mode is appropriate for scenarios requiring lower integration overhead, flexible prompting, or rapid prototyping.</p>
+</div>
+<div id="S5.SS3.p2" class="ltx_para ltx_noindent">
+<p id="S5.SS3.p2.1" class="ltx_p">All tasks in this mode are controlled via explicit prompt instructions. Below we describe four primary task categories.</p>
+</div>
+<section id="S5.SS3.SSS1" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">5.3.1 </span>Text Recognition</h4>
+
+<div id="S5.SS3.SSS1.p1" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS1.p1.1" class="ltx_p"><span id="S5.SS3.SSS1.p1.1.1" class="ltx_text ltx_font_bold">Prompt:</span></p>
+<pre id="S5.SS3.SSS1.p1.2" class="ltx_verbatim ltx_font_typewriter">
+Text Recognition:
+</pre>
+</div>
+<div id="S5.SS3.SSS1.p2" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS1.p2.1" class="ltx_p">This mode is used for general printed or handwritten text transcription. The model outputs plain text corresponding to the visible textual content in the input image.</p>
+</div>
+<section id="S5.SS3.SSS1.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Example Scenario.</h5>
+
+<figure id="S5.F4" class="ltx_figure"><img src="/html/2603.10910/assets/x5.png" id="S5.F4.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="400" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 4: </span>Example of GLM-OCR Text Recognition.</figcaption>
+</figure>
+<div id="S5.SS3.SSS1.Px1.p1" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS1.Px1.p1.1" class="ltx_p">Figure <a href="#S5.F4" title="Figure 4 ‣ Example Scenario. ‣ 5.3.1 Text Recognition ‣ 5.3 Lightweight OCR and Information Extraction with the Base Model ‣ 5 Intended Use Cases" class="ltx_ref"><span class="ltx_text ltx_ref_tag">4</span></a> illustrates a real-world text recognition scenario using a restaurant menu board containing multilingual content (e.g., Italian dish names and English phrases) and price annotations with special characters (e.g., the euro symbol). The input image exhibits typical challenges such as handwritten-style fonts, varying character sizes, non-uniform spacing, perspective distortion, and background clutter.</p>
+</div>
+<div id="S5.SS3.SSS1.Px1.p2" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS1.Px1.p2.1" class="ltx_p">Despite these complexities, the model accurately transcribes the textual content while preserving the original line structure and semantic grouping. In particular, it correctly reconstructs line breaks, capitalization, punctuation, numerical values, and currency symbols (e.g., “5,10€”, “14,00”), demonstrating robustness to layout variations and moderate visual noise. This example highlights the model’s ability to perform reliable optical character recognition in unconstrained, real-world environments.</p>
+</div>
+</section>
+</section>
+<section id="S5.SS3.SSS2" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">5.3.2 </span>Table Recognition</h4>
+
+<div id="S5.SS3.SSS2.p1" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS2.p1.1" class="ltx_p"><span id="S5.SS3.SSS2.p1.1.1" class="ltx_text ltx_font_bold">Prompt:</span></p>
+<pre id="S5.SS3.SSS2.p1.2" class="ltx_verbatim ltx_font_typewriter">
+Table Recognition:
+</pre>
+</div>
+<div id="S5.SS3.SSS2.p2" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS2.p2.1" class="ltx_p">This task focuses on recovering the structural representation of tabular data. The output may be formatted as Markdown tables or structured text that preserves row and column alignment.</p>
+</div>
+<section id="S5.SS3.SSS2.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Example Scenario.</h5>
+
+<figure id="S5.F5" class="ltx_figure"><img src="/html/2603.10910/assets/x6.png" id="S5.F5.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="475" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 5: </span>Example of GLM-OCR Table Recognition.</figcaption>
+</figure>
+<div id="S5.SS3.SSS2.Px1.p1" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS2.Px1.p1.1" class="ltx_p">Figure <a href="#S5.F5" title="Figure 5 ‣ Example Scenario. ‣ 5.3.2 Table Recognition ‣ 5.3 Lightweight OCR and Information Extraction with the Base Model ‣ 5 Intended Use Cases" class="ltx_ref"><span class="ltx_text ltx_ref_tag">5</span></a> presents a clinical summary table containing hierarchical column headers, merged cells, percentage values, missing-value indicators, and statistical annotations (e.g., p-values). The input image exhibits typical document-analysis challenges, including low contrast, dense numerical content, multi-level header grouping, and complex row–column alignment.</p>
+</div>
+<div id="S5.SS3.SSS2.Px1.p2" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS2.Px1.p2.1" class="ltx_p">GLM-OCR accurately reconstructs the logical table structure by identifying column groups (e.g., surgical vs. non-surgical cohorts), preserving header hierarchies, and correctly aligning numerical entries with their corresponding attributes. In addition to faithfully transcribing cell content, the model maintains structural consistency such as row ordering, column correspondence, and percentage–value pairing. This structured reconstruction enables direct conversion into machine-readable formats (e.g., CSV or spreadsheet tables), thereby facilitating downstream statistical analysis, data validation, and automated reporting workflows.</p>
+</div>
+</section>
+</section>
+<section id="S5.SS3.SSS3" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">5.3.3 </span>Formula Recognition</h4>
+
+<div id="S5.SS3.SSS3.p1" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS3.p1.1" class="ltx_p"><span id="S5.SS3.SSS3.p1.1.1" class="ltx_text ltx_font_bold">Prompt:</span></p>
+<pre id="S5.SS3.SSS3.p1.2" class="ltx_verbatim ltx_font_typewriter">
+Formula Recognition:
+</pre>
+</div>
+<div id="S5.SS3.SSS3.p2" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS3.p2.1" class="ltx_p">This mode is intended for recognizing mathematical expressions and converting them into structured formats (e.g., LaTeX).</p>
+</div>
+<section id="S5.SS3.SSS3.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Example Scenario.</h5>
+
+<figure id="S5.F6" class="ltx_figure"><img src="/html/2603.10910/assets/x7.png" id="S5.F6.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="378" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 6: </span>Example of GLM-OCR Formula Recognition.</figcaption>
+</figure>
+<div id="S5.SS3.SSS3.Px1.p1" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS3.Px1.p1.1" class="ltx_p">Given an image containing inline and display equations from a scientific manuscript, the model transcribes the formulas into syntactically valid LaTeX expressions. The output preserves operators, superscripts, subscripts, and fraction structures, enabling direct reuse in academic or technical documentation.</p>
+</div>
+<div id="S5.SS3.SSS3.Px1.p2" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS3.Px1.p2.1" class="ltx_p">As depicted in Figure <a href="#S5.F6" title="Figure 6 ‣ Example Scenario. ‣ 5.3.3 Formula Recognition ‣ 5.3 Lightweight OCR and Information Extraction with the Base Model ‣ 5 Intended Use Cases" class="ltx_ref"><span class="ltx_text ltx_ref_tag">6</span></a>, given an image containing dense mathematical equations, GLM-OCR accurately transcribes the visual content into syntactically valid LaTeX expressions. The model demonstrates high fidelity in parsing complex two-dimensional spatial layouts, successfully preserving intricate structural elements such as matrices, determinants, and multi-level subscripts. This precise reconstruction eliminates the need for manual correction, enabling direct and seamless reuse in academic and technical documentation.</p>
+</div>
+</section>
+</section>
+<section id="S5.SS3.SSS4" class="ltx_subsubsection">
+<h4 class="ltx_title ltx_title_subsubsection">
+<span class="ltx_tag ltx_tag_subsubsection">5.3.4 </span>Key Information Extraction</h4>
+
+<div id="S5.SS3.SSS4.p1" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS4.p1.1" class="ltx_p">For structured information extraction tasks, the prompt must explicitly specify a strict JSON schema. The model is expected to generate output that conforms to the provided format.</p>
+</div>
+<section id="S5.SS3.SSS4.Px1" class="ltx_paragraph">
+<h5 class="ltx_title ltx_title_paragraph">Example Scenario.</h5>
+
+<figure id="S5.F7" class="ltx_figure"><img src="/html/2603.10910/assets/x8.png" id="S5.F7.g1" class="ltx_graphics ltx_centering ltx_img_landscape" width="830" height="410" alt="Refer to caption">
+<figcaption class="ltx_caption ltx_centering"><span class="ltx_tag ltx_tag_figure">Figure 7: </span>Example of GLM-OCR Key Information Extraction.</figcaption>
+</figure>
+<div id="S5.SS3.SSS4.Px1.p1" class="ltx_para ltx_noindent">
+<p id="S5.SS3.SSS4.Px1.p1.1" class="ltx_p">In a representative example involving a dense customs declaration form, the model successfully extracts structured fields based on a detailed input prompt. It accurately populates complex, nested JSON entities—such as shipper details, unified social credit codes, and itemized goods information—directly from the visual layout. The output strictly adheres to the user-provided JSON schema, eliminating hallucinated keys and facilitating seamless integration into automated processing pipelines or structured databases.</p>
+</div>
+</section>
+</section>
+</section>
+<section id="S5.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">5.4 </span>Summary of Usage Paradigms</h3>
+
+<div id="S5.SS4.p1" class="ltx_para ltx_noindent">
+<p id="S5.SS4.p1.1" class="ltx_p">The two usage modes address complementary needs:</p>
+</div>
+<div id="S5.SS4.p2" class="ltx_para ltx_noindent">
+<ul id="S5.I1" class="ltx_itemize">
+<li id="S5.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S5.I1.i1.p1" class="ltx_para">
+<p id="S5.I1.i1.p1.1" class="ltx_p"><span id="S5.I1.i1.p1.1.1" class="ltx_text ltx_font_bold">GLM-OCR SDK</span> is designed for comprehensive, layout-aware, multi-element document parsing in production environments.</p>
+</div>
+</li>
+<li id="S5.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S5.I1.i2.p1" class="ltx_para">
+<p id="S5.I1.i2.p1.1" class="ltx_p"><span id="S5.I1.i2.p1.1.1" class="ltx_text ltx_font_bold">Base model prompting</span> enables lightweight, flexible OCR and targeted information extraction for modular or task-specific applications.</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="S5.SS4.p3" class="ltx_para ltx_noindent">
+<p id="S5.SS4.p3.1" class="ltx_p">Together, these paradigms allow GLM-OCR to support a broad spectrum of document understanding workflows, ranging from rapid prototyping to enterprise-scale deployment.</p>
+</div>
+</section>
+</section>
+<section id="S6" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">6 </span>Limitations</h2>
+
+<div id="S6.p1" class="ltx_para ltx_noindent">
+<p id="S6.p1.1" class="ltx_p">Although GLM-OCR demonstrates competitive performance across diverse benchmarks and practical scenarios, several limitations remain.</p>
+</div>
+<section id="S6.SS1" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.1 </span>Two-Stage Architectural Constraints</h3>
+
+<div id="S6.SS1.p1" class="ltx_para ltx_noindent">
+<p id="S6.SS1.p1.1" class="ltx_p">The current two-stage pipeline, consisting of layout analysis followed by region-level recognition, may introduce error propagation. In cases of inaccurate layout detection, downstream recognition performance may degrade. Additionally, complex layouts involving cross-page dependencies or irregular multi-column structures may lead to imperfect reading order reconstruction.</p>
+</div>
+</section>
+<section id="S6.SS2" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.2 </span>Data Coverage Limitations</h3>
+
+<div id="S6.SS2.p1" class="ltx_para ltx_noindent">
+<p id="S6.SS2.p1.1" class="ltx_p">Model performance is influenced by the distribution and diversity of training data. Degradation may occur in scenarios involving:</p>
+</div>
+<div id="S6.SS2.p2" class="ltx_para ltx_noindent">
+<ul id="S6.I1" class="ltx_itemize">
+<li id="S6.I1.i1" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S6.I1.i1.p1" class="ltx_para">
+<p id="S6.I1.i1.p1.1" class="ltx_p">Extremely low-resolution or heavily distorted documents,</p>
+</div>
+</li>
+<li id="S6.I1.i2" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S6.I1.i2.p1" class="ltx_para">
+<p id="S6.I1.i2.p1.1" class="ltx_p">Highly complex mathematical expressions,</p>
+</div>
+</li>
+<li id="S6.I1.i3" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S6.I1.i3.p1" class="ltx_para">
+<p id="S6.I1.i3.p1.1" class="ltx_p">Dense or irregular tabular structures,</p>
+</div>
+</li>
+<li id="S6.I1.i4" class="ltx_item" style="list-style-type:none;">
+<span class="ltx_tag ltx_tag_item">•</span> 
+<div id="S6.I1.i4.p1" class="ltx_para">
+<p id="S6.I1.i4.p1.1" class="ltx_p">Underrepresented languages in the training corpus.</p>
+</div>
+</li>
+</ul>
+</div>
+</section>
+<section id="S6.SS3" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.3 </span>Structured Output Variability</h3>
+
+<div id="S6.SS3.p1" class="ltx_para ltx_noindent">
+<p id="S6.SS3.p1.1" class="ltx_p">As a generative model, GLM-OCR may exhibit minor stochastic variation in formatting behaviors, particularly in line breaks and whitespace handling. Although reinforcement learning and structural supervision mitigate this effect, strict formatting guarantees cannot be fully ensured.</p>
+</div>
+</section>
+<section id="S6.SS4" class="ltx_subsection">
+<h3 class="ltx_title ltx_title_subsection">
+<span class="ltx_tag ltx_tag_subsection">6.4 </span>Key Information Extraction</h3>
+
+<div id="S6.SS4.p1" class="ltx_para ltx_noindent">
+<p id="S6.SS4.p1.1" class="ltx_p">While the model supports prompt-based KIE, extraction accuracy depends on prompt specification and schema clarity. In complex forms with implicit or ambiguous field boundaries, incomplete or redundant outputs may occur.</p>
+</div>
+<div id="S6.SS4.p2" class="ltx_para ltx_noindent">
+<p id="S6.SS4.p2.1" class="ltx_p">These limitations represent areas for continued research and system refinement.</p>
+</div>
+</section>
+</section>
+<section id="S7" class="ltx_section">
+<h2 class="ltx_title ltx_title_section">
+<span class="ltx_tag ltx_tag_section">7 </span>Conclusion</h2>
+
+<div id="S7.p1" class="ltx_para ltx_noindent">
+<p id="S7.p1.1" class="ltx_p">This report introduces GLM-OCR as a practical solution for structured document understanding under real-world system constraints. Instead of relying on large model scaling, the design prioritizes controllable latency, memory efficiency, and structured output reliability. Through the combination of layout-aware preprocessing and multi-token decoding, the system improves throughput and stability while maintaining competitive recognition accuracy across diverse document types. The results indicate that careful alignment between model architecture, decoding strategy, and task structure can yield substantial efficiency gains without increasing parameter scale.</p>
+</div>
+<div id="S7.p2" class="ltx_para ltx_noindent">
+<p id="S7.p2.1" class="ltx_p">From an engineering perspective, GLM-OCR demonstrates that document intelligence systems benefit from modular pipelines, efficient generation mechanisms, and deployment-oriented optimization. The model supports local inference, cloud-based serving, and domain-specific fine-tuning, enabling integration into heterogeneous production environments. Future development will focus on improving robustness under extreme layout complexity, enhancing multilingual coverage, and strengthening structured output consistency to further reduce downstream integration costs.</p>
+</div>
+</section>
+<section id="bib" class="ltx_bibliography">
+<h2 class="ltx_title ltx_title_bibliography">References</h2>
+
+<ul id="bib.L1" class="ltx_biblist">
+<li id="bib.bib23" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[1]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">J. Achiam, S. Adler, S. Agarwal, L. Ahmad, I. Akkaya, F. L. Aleman, D. Almeida, J. Altenschmidt, S. Altman, S. Anadkat, <span class="ltx_text ltx_bib_etal">et al.</span></span><span class="ltx_text ltx_bib_year"> (2023)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Gpt-4 technical report</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2303.08774</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.10.2" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib4" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[2]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">S. Bai, Y. Cai, R. Chen, K. Chen, X. Chen, Z. Cheng, L. Deng, W. Ding, C. Gao, C. Ge, W. Ge, Z. Guo, Q. Huang, J. Huang, F. Huang, B. Hui, S. Jiang, Z. Li, M. Li, M. Li, K. Li, Z. Lin, J. Lin, X. Liu, J. Liu, C. Liu, Y. Liu, D. Liu, S. Liu, D. Lu, R. Luo, C. Lv, R. Men, L. Meng, X. Ren, X. Ren, S. Song, Y. Sun, J. Tang, J. Tu, J. Wan, P. Wang, P. Wang, Q. Wang, Y. Wang, T. Xie, Y. Xu, H. Xu, J. Xu, Z. Yang, M. Yang, J. Yang, A. Yang, B. Yu, F. Zhang, H. Zhang, X. Zhang, B. Zheng, H. Zhong, J. Zhou, F. Zhou, J. Zhou, Y. Zhu, and K. Zhu</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Qwen3-vl technical report</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2511.21631</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p2.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S3.T4.6.6.16.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib27" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[3]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">S. Bai, K. Chen, X. Liu, J. Wang, W. Ge, S. Song, K. Dang, P. Wang, S. Wang, J. Tang, <span class="ltx_text ltx_bib_etal">et al.</span></span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Qwen2. 5-vl technical report</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2502.13923</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.14.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib33" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[4]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">chatdoc-com</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">OCRFlux</span>.
+</span>
+<span class="ltx_bibblock">Note: <span class="ltx_text ltx_bib_note"><a target="_blank" href="https://github.com/chatdoc-com/OCRFlux" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/chatdoc-com/OCRFlux</a>Accessed:2025-09-25</span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.19.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib13" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[5]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">C. Cui, T. Sun, S. Liang, T. Gao, Z. Zhang, J. Liu, X. Wang, C. Zhou, H. Liu, M. Lin, Y. Zhang, Y. Zhang, Y. Liu, D. Yu, and Y. Ma</span><span class="ltx_text ltx_bib_year"> (2026)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">PaddleOCR-vl-1.5: towards a multi-task 0.9b vlm for robust in-the-wild document parsing</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><span class="ltx_text ltx_bib_external">2601.21957</span>,
+<a target="_blank" href="https://arxiv.org/abs/2601.21957" title="" class="ltx_ref ltx_bib_external">Link</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p6.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S3.T4.6.6.33.2" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib12" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[6]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">C. Cui, T. Sun, S. Liang, T. Gao, Z. Zhang, J. Liu, X. Wang, C. Zhou, H. Liu, M. Lin, Y. Zhang, Y. Zhang, H. Zheng, J. Zhang, J. Zhang, Y. Liu, D. Yu, and Y. Ma</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">PaddleOCR-vl: boosting multilingual document parsing via a 0.9b ultra-compact vision-language model</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><span class="ltx_text ltx_bib_external">2510.14528</span>,
+<a target="_blank" href="https://arxiv.org/abs/2510.14528" title="" class="ltx_ref ltx_bib_external">Link</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.32.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib2" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[7]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">C. Cui, T. Sun, M. Lin, T. Gao, Y. Zhang, J. Liu, X. Wang, Z. Zhang, C. Zhou, H. Liu, Y. Zhang, W. Lv, K. Huang, Y. Zhang, J. Zhang, J. Zhang, Y. Liu, D. Yu, and Y. Ma</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">PaddleOCR 3.0 technical report</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><span class="ltx_text ltx_bib_external">2507.05595</span>,
+<a target="_blank" href="https://arxiv.org/abs/2507.05595" title="" class="ltx_ref ltx_bib_external">Link</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p1.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S3.T4.6.6.9.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib31" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[8]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">H. Feng, S. Wei, X. Fei, W. Shi, Y. Han, L. Liao, J. Lu, B. Wu, Q. Liu, C. Lin, <span class="ltx_text ltx_bib_etal">et al.</span></span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Dolphin: document image parsing via heterogeneous anchor prompting</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2505.14059</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.18.2" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>,
+<a href="#S3.T4.6.6.23.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib9" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[9]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">T. GLM, A. Zeng, B. Xu, B. Wang, C. Zhang, D. Yin, D. Rojas, G. Feng, H. Zhao, H. Lai, H. Yu, H. Wang, J. Sun, J. Zhang, J. Cheng, J. Gui, J. Tang, J. Zhang, J. Li, L. Zhao, L. Wu, L. Zhong, M. Liu, M. Huang, P. Zhang, Q. Zheng, R. Lu, S. Duan, S. Zhang, S. Cao, S. Yang, W. L. Tam, W. Zhao, X. Liu, X. Xia, X. Zhang, X. Gu, X. Lv, X. Liu, X. Liu, X. Yang, X. Song, X. Zhang, Y. An, Y. Xu, Y. Niu, Y. Yang, Y. Li, Y. Bai, Y. Dong, Z. Qi, Z. Wang, Z. Yang, Z. Du, Z. Hou, and Z. Wang</span><span class="ltx_text ltx_bib_year"> (2024)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">ChatGLM: a family of large language models from glm-130b to glm-4 all tools</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><span class="ltx_text ltx_bib_external">2406.12793</span></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p4.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib28" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[10]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">Google DeepMind</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Gemini 2.5</span>.
+</span>
+<span class="ltx_bibblock">Note: <span class="ltx_text ltx_bib_note"><a target="_blank" href="https://blog.google/technology/google-deepmind/gemini-model-thinking-updates-march-2025/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://blog.google/technology/google-deepmind/gemini-model-thinking-updates-march-2025/</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.15.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib29" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[11]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">Google DeepMind</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Gemini 3.0</span>.
+</span>
+<span class="ltx_bibblock">Note: <span class="ltx_text ltx_bib_note"><a target="_blank" href="https://blog.google/products-and-platforms/products/gemini/gemini-3-collection/" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://blog.google/products-and-platforms/products/gemini/gemini-3-collection/</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.17.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib3" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[12]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">JaidedAI</span><span class="ltx_text ltx_bib_year"> (2020)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">EasyOCR</span>.
+</span>
+<span class="ltx_bibblock">Note: <span class="ltx_text ltx_bib_note"><a target="_blank" href="https://github.com/JaidedAI/EasyOCR" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/JaidedAI/EasyOCR</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p1.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib19" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[13]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">W. Kwon, Z. Li, S. Zhuang, Y. Sheng, L. Zheng, C. H. Yu, J. E. Gonzalez, H. Zhang, and I. Stoica</span><span class="ltx_text ltx_bib_year"> (2023)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Efficient memory management for large language model serving with pagedattention</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">Proceedings of the ACM SIGOPS 29th Symposium on Operating Systems Principles</span>,
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p9.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib32" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[14]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">Z. Li, Y. Liu, Q. Liu, Z. Ma, Z. Zhang, S. Zhang, Z. Guo, J. Zhang, X. Wang, and X. Bai</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">MonkeyOCR: document parsing with a structure-recognition-relation triplet paradigm</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2506.05218</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.26.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>,
+<a href="#S3.T4.6.6.28.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>,
+<a href="#S3.T4.6.6.30.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib10" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[15]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">A. Liu, B. Feng, B. Xue, B. Wang, B. Wu, C. Lu, C. Zhao, C. Deng, C. Zhang, C. Ruan, <span class="ltx_text ltx_bib_etal">et al.</span></span><span class="ltx_text ltx_bib_year"> (2024)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Deepseek-v3 technical report</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2412.19437</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p5.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib35" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[16]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">Y. Liu, Z. Zhao, L. Tian, H. Wang, X. Ye, Y. You, Z. Yu, C. Wu, X. Zhou, Y. Yu, <span class="ltx_text ltx_bib_etal">et al.</span></span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">POINTS-reader: distillation-free adaptation of vision-language models for document conversion</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2509.01215</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.21.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib15" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[17]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">Y. Liu, Z. Li, M. Huang, B. Yang, W. Yu, C. Li, X. Yin, C. Liu, L. Jin, and X. Bai</span><span class="ltx_text ltx_bib_year"> (2024-12)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">OCRBench: on the hidden mystery of ocr in large multimodal models</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">Science China Information Sciences</span> <span class="ltx_text ltx_bib_volume">67</span> (<span class="ltx_text ltx_bib_number">12</span>).
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><span class="ltx_text issn ltx_bib_external">ISSN 1869-1919</span>,
+<a target="_blank" href="http://dx.doi.org/10.1007/s11432-024-4235-6" title="" class="ltx_ref ltx_bib_external">Link</a>,
+<a target="_blank" href="https://dx.doi.org/10.1007/s11432-024-4235-6" title="" class="ltx_ref doi ltx_bib_external">Document</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p7.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib18" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[18]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">S. Mandal, N. Gupta, A. Talewar, P. Ahuja, P. Juvatkar, and G. Banda</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">IDPLeaderboard: a unified leaderboard for intelligent document processing tasks</span>.
+</span>
+<span class="ltx_bibblock">Note: <span class="ltx_text ltx_bib_note">https://idp-leaderboard.org</span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p7.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib37" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[19]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">S. Mandal, A. Talewar, P. Ahuja, and P. Juvatkar</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Nanonets-ocr-s: a model for transforming documents into structured markdown with intelligent content recognition and semantic tagging</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.25.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib34" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[20]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">Mistral AI Team</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Mistral-ocr</span>.
+</span>
+<span class="ltx_bibblock">Note: <span class="ltx_text ltx_bib_note"><a target="_blank" href="https://mistral.ai/news/mistral-ocr?utm_source=ai-bot.cn" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://mistral.ai/news/mistral-ocr?utm_source=ai-bot.cn</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.20.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib40" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[21]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">J. Niu, Z. Liu, Z. Gu, B. Wang, L. Ouyang, Z. Zhao, T. Chu, T. He, F. Wu, Q. Zhang, <span class="ltx_text ltx_bib_etal">et al.</span></span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">MinerU2. 5: a decoupled vision-language model for efficient high-resolution document parsing</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2509.22186</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.31.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib26" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[22]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">OpenAI.</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">GPT-5.2 system card</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><a target="_blank" href="https://cdn.openai.com/pdf/3a4153c8-c748-4b71-8e31-aecbde944f8d/oai_5_2_system-card.pdf" title="" class="ltx_ref ltx_bib_external">Link</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.13.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib22" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[23]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">opendatalab</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">MinerU2.0-2505-0.9b</span>.
+</span>
+<span class="ltx_bibblock">Note: <span class="ltx_text ltx_bib_note"><a target="_blank" href="https://huggingface.co/opendatalab/MinerU2.0-2505-0.9B" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://huggingface.co/opendatalab/MinerU2.0-2505-0.9B</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.24.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>,
+<a href="#S3.T4.6.6.8.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib14" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[24]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">L. Ouyang, Y. Qu, H. Zhou, J. Zhu, R. Zhang, Q. Lin, B. Wang, Z. Zhao, M. Jiang, X. Zhao, J. Shi, F. Wu, P. Chu, M. Liu, Z. Li, C. Xu, B. Zhang, B. Shi, Z. Tu, and C. He</span><span class="ltx_text ltx_bib_year"> (2024)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">OmniDocBench: benchmarking diverse pdf document parsing with comprehensive annotations</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><span class="ltx_text ltx_bib_external">2412.07626</span>,
+<a target="_blank" href="https://arxiv.org/abs/2412.07626" title="" class="ltx_ref ltx_bib_external">Link</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p7.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib21" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[25]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">V. Paruchuri</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Marker</span>.
+</span>
+<span class="ltx_bibblock">Note: <span class="ltx_text ltx_bib_note"><a target="_blank" href="https://github.com/datalab-to/marker" title="" class="ltx_ref ltx_url ltx_font_typewriter">https://github.com/datalab-to/marker</a>Accessed: 2025-09-25</span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.7.2" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib36" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[26]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">J. Poznanski, J. Borchardt, J. Dunkelberger, R. Huff, D. Lin, A. Rangapur, C. Wilhelm, K. Lo, and L. Soldaini</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Olmocr: unlocking trillions of tokens in pdfs with vision language models</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2502.18443</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.22.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib39" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[27]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">rednote-hilab</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Dots.ocr: multilingual document layout parsing in a single vision-language model</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.29.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib20" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[28]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">Z. Shao, P. Wang, Q. Zhu, R. Xu, J. Song, X. Bi, H. Zhang, M. Zhang, Y. Li, Y. Wu, <span class="ltx_text ltx_bib_etal">et al.</span></span><span class="ltx_text ltx_bib_year"> (2024)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Deepseekmath: pushing the limits of mathematical reasoning in open language models</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2402.03300</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S2.SS2.SSS0.Px4.p1.1" title="Stage 4: Reinforcement Learning (RL). ‣ 2.2 Training Recipe ‣ 2 Methodology" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§2.2</span></a>.
+</span>
+</li>
+<li id="bib.bib1" class="ltx_bibitem ltx_bib_inproceedings">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[29]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">R. Smith</span><span class="ltx_text ltx_bib_year"> (2007)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">An overview of the tesseract ocr engine</span>.
+</span>
+<span class="ltx_bibblock">In <span class="ltx_text ltx_bib_inbook">Ninth international conference on document analysis and recognition (ICDAR 2007)</span>,
+</span>
+<span class="ltx_bibblock">Vol. <span class="ltx_text ltx_bib_volume">2</span>, <span class="ltx_text ltx_bib_pages"> pp. 629–633</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p1.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib6" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[30]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">B. S. Team</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Seed1.5-vl technical report</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2505.07062</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p2.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib5" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[31]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">V. Team, W. Hong, W. Yu, X. Gu, G. Wang, G. Gan, H. Tang, J. Cheng, J. Qi, J. Ji, L. Pan, S. Duan, W. Wang, Y. Wang, Y. Cheng, Z. He, Z. Su, Z. Yang, Z. Pan, A. Zeng, B. Wang, B. Chen, B. Shi, C. Pang, C. Zhang, D. Yin, F. Yang, G. Chen, J. Xu, J. Zhu, J. Chen, J. Chen, J. Chen, J. Lin, J. Wang, J. Chen, L. Lei, L. Gong, L. Pan, M. Liu, M. Xu, M. Zhang, Q. Zheng, S. Yang, S. Zhong, S. Huang, S. Zhao, S. Xue, S. Tu, S. Meng, T. Zhang, T. Luo, T. Hao, T. Tong, W. Li, W. Jia, X. Liu, X. Zhang, X. Lyu, X. Fan, X. Huang, Y. Wang, Y. Xue, Y. Wang, Y. Wang, Y. An, Y. Du, Y. Shi, Y. Huang, Y. Niu, Y. Wang, Y. Yue, Y. Li, Y. Zhang, Y. Wang, Y. Wang, Y. Zhang, Z. Xue, Z. Hou, Z. Du, Z. Wang, P. Zhang, D. Liu, B. Xu, J. Li, M. Huang, Y. Dong, and J. Tang</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">GLM-4.5v and glm-4.1v-thinking: towards versatile multimodal reasoning with scalable reinforcement learning</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><span class="ltx_text ltx_bib_external">2507.01006</span>,
+<a target="_blank" href="https://arxiv.org/abs/2507.01006" title="" class="ltx_ref ltx_bib_external">Link</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p2.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>,
+<a href="#S1.p4.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib16" class="ltx_bibitem ltx_bib_misc">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[32]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">B. Wang, Z. Gu, G. Liang, C. Xu, B. Zhang, B. Shi, and C. He</span><span class="ltx_text ltx_bib_year"> (2024)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">UniMERNet: a universal network for real-world mathematical expression recognition</span>.
+</span>
+<span class="ltx_bibblock">External Links: <span class="ltx_text ltx_bib_links"><span class="ltx_text ltx_bib_external">2404.15254</span>,
+<a target="_blank" href="https://arxiv.org/abs/2404.15254" title="" class="ltx_ref ltx_bib_external">Link</a></span>
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p7.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib25" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[33]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">W. Wang, Z. Gao, L. Gu, H. Pu, L. Cui, X. Wei, Z. Liu, L. Jing, S. Ye, J. Shao, <span class="ltx_text ltx_bib_etal">et al.</span></span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Internvl3. 5: advancing open-source multimodal models in versatility, reasoning, and efficiency</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2508.18265</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.12.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib38" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[34]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">H. Wei, Y. Sun, and Y. Li</span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">DeepSeek-ocr: contexts optical compression</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2510.18234</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.27.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+<li id="bib.bib11" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[35]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">A. Zeng, X. Lv, Z. Hou, Z. Du, Q. Zheng, B. Chen, D. Yin, C. Ge, C. Xie, C. Wang, <span class="ltx_text ltx_bib_etal">et al.</span></span><span class="ltx_text ltx_bib_year"> (2026)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">GLM-5: from vibe coding to agentic engineering</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2602.15763</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p5.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib17" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[36]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">X. Zhong, E. ShafieiBavani, and A. J. Yepes</span><span class="ltx_text ltx_bib_year"> (2019)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Image-based table recognition: data, model, and evaluation</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:1911.10683</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S1.p7.1" title="1 Introduction" class="ltx_ref"><span class="ltx_text ltx_ref_tag">§1</span></a>.
+</span>
+</li>
+<li id="bib.bib24" class="ltx_bibitem ltx_bib_article">
+<span class="ltx_tag ltx_bib_key ltx_role_refnum ltx_tag_bibitem">[37]</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_author">J. Zhu, W. Wang, Z. Chen, Z. Liu, S. Ye, L. Gu, H. Tian, Y. Duan, W. Su, J. Shao, <span class="ltx_text ltx_bib_etal">et al.</span></span><span class="ltx_text ltx_bib_year"> (2025)</span>
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_title">Internvl3: exploring advanced training and test-time recipes for open-source multimodal models</span>.
+</span>
+<span class="ltx_bibblock"><span class="ltx_text ltx_bib_journal">arXiv preprint arXiv:2504.10479</span>.
+</span>
+<span class="ltx_bibblock ltx_bib_cited">Cited by: <a href="#S3.T4.6.6.11.1" title="In OmniDocBench v1.5 Analysis. ‣ 3.1 Public Benchmarks ‣ 3 Evaluation" class="ltx_ref"><span class="ltx_text ltx_ref_tag">Table 4</span></a>.
+</span>
+</li>
+</ul>
+</section>
+</article>
+</div>
+<div class="ar5iv-footer"><a href="/html/2603.10909" class="ar5iv-nav-button ar5iv-nav-button-prev">◄</a>
+    <a class="ar5iv-home-button" href="/"><img height="40" alt="ar5iv homepage" src="/assets/ar5iv.png"></a>
+    <a href="/feeling_lucky" class="ar5iv-text-button">Feeling<br>lucky?</a>
+    <a href="/land_of_honey_and_milk" rel="nofollow" aria-hidden="true" tabindex="-1"></a>
+    <a href="/log/2603.10910" class="ar5iv-text-button ar5iv-severity-ok">Conversion<br>report</a>
+    <a class="ar5iv-text-button" target="_blank" href="https://github.com/dginev/ar5iv/issues/new?template=improve-article--arxiv-id-.md&title=Improve+article+2603.10910">Report<br>an issue</a>
+    <a href="https://arxiv.org/abs/2603.10910" class="ar5iv-text-button arxiv-ui-theme">View&nbsp;original<br>on&nbsp;arXiv</a><a href="/html/2603.10911" class="ar5iv-nav-button ar5iv-nav-button-next">►</a>
+</div><footer class="ltx_page_footer">
+<a class="ar5iv-toggle-color-scheme" href="javascript:toggleColorScheme()" title="Toggle ar5iv color scheme"><span class="color-scheme-icon"></span></a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/license" target="_blank">Copyright</a>
+<a class="ar5iv-footer-button" href="https://arxiv.org/help/policies/privacy_policy" target="_blank">Privacy Policy</a>
+
+<div class="ltx_page_logo">Generated  on Sun Apr  5 21:30:05 2026 by <a target="_blank" href="http://dlmf.nist.gov/LaTeXML/" class="ltx_LaTeXML_logo"><span style="letter-spacing:-0.2em; margin-right:0.1em;">L<span class="ltx_font_smallcaps" style="position:relative; bottom:2.2pt;">a</span>T<span class="ltx_font_smallcaps" style="font-size:120%;position:relative; bottom:-0.2ex;">e</span></span><span style="font-size:90%; position:relative; bottom:-0.2ex;">XML</span><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAAOCAYAAAD5YeaVAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9wKExQZLWTEaOUAAAAddEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIFRoZSBHSU1Q72QlbgAAAdpJREFUKM9tkL+L2nAARz9fPZNCKFapUn8kyI0e4iRHSR1Kb8ng0lJw6FYHFwv2LwhOpcWxTjeUunYqOmqd6hEoRDhtDWdA8ApRYsSUCDHNt5ul13vz4w0vWCgUnnEc975arX6ORqN3VqtVZbfbTQC4uEHANM3jSqXymFI6yWazP2KxWAXAL9zCUa1Wy2tXVxheKA9YNoR8Pt+aTqe4FVVVvz05O6MBhqUIBGk8Hn8HAOVy+T+XLJfLS4ZhTiRJgqIoVBRFIoric47jPnmeB1mW/9rr9ZpSSn3Lsmir1fJZlqWlUonKsvwWwD8ymc/nXwVBeLjf7xEKhdBut9Hr9WgmkyGEkJwsy5eHG5vN5g0AKIoCAEgkEkin0wQAfN9/cXPdheu6P33fBwB4ngcAcByHJpPJl+fn54mD3Gg0NrquXxeLRQAAwzAYj8cwTZPwPH9/sVg8PXweDAauqqr2cDjEer1GJBLBZDJBs9mE4zjwfZ85lAGg2+06hmGgXq+j3+/DsixYlgVN03a9Xu8jgCNCyIegIAgx13Vfd7vdu+FweG8YRkjXdWy329+dTgeSJD3ieZ7RNO0VAXAPwDEAO5VKndi2fWrb9jWl9Esul6PZbDY9Go1OZ7PZ9z/lyuD3OozU2wAAAABJRU5ErkJggg==" alt="Mascot Sammy"></a>
+</div></footer>
+</div>
+
+    <script>
+      var canMathML = typeof(MathMLElement) == "function";
+      if (!canMathML) {
+        var body = document.querySelector("body");
+        body.firstElementChild.setAttribute('style', 'opacity: 0;');
+        var loading = document.createElement("div");
+        loading.setAttribute("id", "mathjax-loading-spinner");
+        var message = document.createElement("div");
+        message.setAttribute("id", "mathjax-loading-message");
+        message.innerText = "Typesetting Equations...";
+        body.prepend(loading);
+        body.prepend(message);
+
+        var el = document.createElement("script");
+        el.src = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js";
+        document.querySelector("head").appendChild(el);
+
+        window.MathJax = {
+          startup: {
+            pageReady: () => {
+              return MathJax.startup.defaultPageReady().then(() => {
+                body.removeChild(loading);
+                body.removeChild(message);
+                body.firstElementChild.removeAttribute('style');
+              }); } } };
+      }
+    </script>
+    <script>
+    // Auxiliary function, building the preview feature when
+    // an inline citation is clicked
+    function clicked_cite(e) {
+      e.preventDefault();
+      let cite = this.closest('.ltx_cite');
+      let next = cite.nextSibling;
+      if (next && next.nodeType == Node.ELEMENT_NODE && next.getAttribute('class') == "ar5iv-bibitem-preview") {
+        next.remove();
+        return; }
+      // Before adding a preview modal,
+      // cleanup older previews, in case they're still open
+      document.querySelectorAll('span.ar5iv-bibitem-preview').forEach(function(node) {
+        node.remove();
+      })
+
+      // Create the preview
+      preview = document.createElement('span');
+      preview.setAttribute('class','ar5iv-bibitem-preview');
+      let target = document.getElementById(this.getAttribute('href').slice(1));
+      target.childNodes.forEach(function (child) {
+        preview.append(child.cloneNode(true));
+      });
+      let close_x = document.createElement('button');
+      close_x.setAttribute("aria-label","Close modal for bibliography item preview");
+      close_x.textContent = "×";
+      close_x.setAttribute('class', 'ar5iv-button-close-preview');
+      close_x.setAttribute('onclick','this.parentNode.remove()');
+      preview.append(close_x);
+      preview.querySelectorAll('.ltx_tag_bibitem').forEach(function(node) {
+        node.remove();
+      });
+      cite.parentNode.insertBefore(preview, cite.nextSibling);
+      return;
+    }
+    // Global Document initialization:
+    // - assign the preview feature to all inline citation links
+    document.querySelectorAll(".ltx_cite .ltx_ref").forEach(function (link) {
+      link.addEventListener("click", clicked_cite);
+    });
+    </script>
+    </body>
+</html>

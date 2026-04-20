@@ -21,6 +21,7 @@ Kosmos-2.5 是 literate multimodal model 的代表之一。在当前知识库中
 
 ## 关联页面
 
+- [OCR](../topics/OCR.md)
 - [Kosmos-2](./Kosmos-2.md)
 - [DocLLM](./DocLLM.md)
 - [Qwen2.5-VL](./Qwen2.5-VL.md)
