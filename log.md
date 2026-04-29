@@ -1187,3 +1187,76 @@
 - 重写各页 `主线脉络 / 方法分层`，优先按问题对象、训练接口、系统角色或瓶颈类型分层，而不是按论文时间顺排
 - 在 `关键争论与分歧` 中补充成立条件与证据边界，减少把局部来源外推成稳定结论的风险
 - 在 `未解决问题` 中明确当前 summary 覆盖不足、缺 comparison / timeline / concept 支撑的位置
+
+## [2026-04-30] ingest | OPD On-Policy Distillation
+
+涉及页面：
+
+- 新增 `raw/pdf/Yang et al. - 2026 - Learning beyond Teacher Generalized On-Policy Distillation with Reward Extrapolation.pdf`
+- 新增 `raw/html/Yang et al. - 2026 - Learning beyond Teacher Generalized On-Policy Distillation with Reward Extrapolation.html`
+- 新增 `raw/text/Yang et al. - 2026 - Learning beyond Teacher Generalized On-Policy Distillation with Reward Extrapolation.md`
+- 新增 `wiki/summaries/Yang et al. - 2026 - Learning beyond Teacher Generalized On-Policy Distillation with Reward Extrapolation.md`
+- 新增 `wiki/concepts/OPD.md`
+- 更新 `wiki/topics/LLM RL.md`
+- 更新 `index.md`
+- 更新 `log.md`
+
+关键变更：
+
+- 将 `OPD` 作为 `On-Policy Distillation` 接入 LLM RL 知识主线
+- 补齐 arXiv 来源的 `raw/pdf -> raw/html -> raw/text -> wiki/summaries` 链路
+- 在 `LLM RL` 中新增 on-policy distillation 层，区分 `OPD` 与 `SFT` 式 off-policy distillation、`GRPO / RLVR` 式 outcome-reward RL
+- 记录 `G-OPD / ExOPD` 对 OPD 的 dense KL-constrained RL 解释、reward extrapolation 主张及长度偏置 / implicit reward hacking 等风险
+
+## [2026-04-30] query | DeepSeek 技术主线研究
+
+涉及页面：
+
+- 新增 `raw/html/DeepSeek AI - 2025 - DeepSeek-V3.2 Release.html`
+- 新增 `raw/text/DeepSeek AI - 2025 - DeepSeek-V3.2 Release.md`
+- 新增 `wiki/summaries/DeepSeek AI - 2025 - DeepSeek-V3.2 Release.md`
+- 新增 `raw/html/DeepSeek AI - 2025 - DeepSeek-R1-0528 Release.html`
+- 新增 `raw/text/DeepSeek AI - 2025 - DeepSeek-R1-0528 Release.md`
+- 新增 `wiki/summaries/DeepSeek AI - 2025 - DeepSeek-R1-0528 Release.md`
+- 新增 `wiki/topics/DeepSeek 系列.md`
+- 更新 `wiki/concepts/DeepSeek.md`
+- 更新 `wiki/concepts/DeepSeek-R1.md`
+- 更新 `wiki/topics/LLM RL.md`
+- 更新 `wiki/topics/LLM 预训练.md`
+- 更新 `wiki/topics/OCR.md`
+- 更新 `wiki/authors/DeepSeek.md`
+- 更新 `index.md`
+- 更新 `log.md`
+
+关键变更：
+
+- 将 DeepSeek 从零散概念页升级为正式 topic，按 `V3 -> DeepSeekMath / GRPO -> R1 -> R1-0528 -> V3.2 thinking tool-use -> V4 -> DeepSeek-OCR` 组织技术主线
+- 补齐 DeepSeek 官方 `R1-0528` 与 `V3.2` 发布页的 `raw/html -> raw/text -> wiki/summaries` 来源链路
+- 在 `LLM RL` 中新增 thinking tool-use 层，明确 `R1-0528` 的 JSON / function calling 可用性更新与 `V3.2` 的 agent 训练数据合成位置
+- 扩写 `DeepSeek` 家族概念与机构页，使 `V3 / R1 / V3.2 / V4 / OCR` 进入统一导航
+- 在 `LLM 预训练`、`OCR`、开放模型对照页和根级 `index.md` 中补齐 DeepSeek 系列回链
+
+## [2026-04-30] query | DeepSeek-V4 架构机制 CSA HCA mHC Muon
+
+涉及页面：
+
+- 新增 `wiki/concepts/Compressed Sparse Attention.md`
+- 新增 `wiki/concepts/Heavily Compressed Attention.md`
+- 新增 `wiki/concepts/Manifold-Constrained Hyper-Connections.md`
+- 新增 `wiki/concepts/Muon.md`
+- 更新 `wiki/summaries/DeepSeek AI - 2026 - DeepSeek-V4 Towards Highly Efficient Million-Token Context Intelligence.md`
+- 更新 `wiki/topics/DeepSeek 系列.md`
+- 更新 `wiki/topics/注意力机制 Attention.md`
+- 更新 `wiki/topics/LLM 预训练.md`
+- 更新 `wiki/concepts/DeepSeek.md`
+- 更新 `wiki/concepts/DeepSeek-V4.md`
+- 更新 `index.md`
+- 更新 `log.md`
+
+关键变更：
+
+- 将 `CSA / HCA / mHC / Muon` 从 DeepSeek-V4 的缩写列表扩展为四个可导航概念页
+- 在 DeepSeek-V4 summary 中补充四者的机制分工：`CSA` 做 KV 压缩后稀疏选择，`HCA` 做更高压缩率 KV 合并，`mHC` 稳定 residual signal propagation，`Muon` 服务收敛与训练稳定性
+- 在 [DeepSeek 系列](./wiki/topics/DeepSeek%20系列.md) 中新增 V4 架构机制层，明确 V4 是 attention 压缩、residual 稳定连接与 optimizer 工程的组合
+- 在 [注意力机制 Attention](./wiki/topics/注意力机制%20Attention.md) 中把 `CSA / HCA` 纳入百万上下文 KV cache 压缩路线，但不把 `mHC / Muon` 混入 attention topic
+- 更新根级 `index.md`，登记四个新增概念入口

@@ -11,7 +11,7 @@
 
 ## Summary
 
-- 当前已批量 ingest 241 篇 summary 页，按候选主题分组如下。
+- 当前已批量 ingest 250 篇 summary 页，按候选主题分组如下。
 
 ### Attention / Transformer
 
@@ -103,7 +103,10 @@
 - [Ethayarajh et al. - 2024 - KTO Model Alignment as Prospect Theoretic Optimization](./wiki/summaries/Ethayarajh%20et%20al.%20-%202024%20-%20KTO%20Model%20Alignment%20as%20Prospect%20Theoretic%20Optimization.md)：`KTO` 用 unary desirable/undesirable 信号替代成对偏好数据，扩展了偏好优化的数据接口。
 - [Shao et al. - 2024 - DeepSeekMath Pushing the Limits of Mathematical Reasoning in Open Language Models](./wiki/summaries/Shao%20et%20al.%20-%202024%20-%20DeepSeekMath%20Pushing%20the%20Limits%20of%20Mathematical%20Reasoning%20in%20Open%20Language%20Models.md)：`DeepSeekMath` 不只推进数学模型，也正式提出了 `GRPO` 这一 reasoning RL 关键算法节点。
 - [Unknown - 2024 - DeepSeek-R1 Incentivizing Reasoning Capability in LLMs via Reinforcement Learning](./wiki/summaries/Unknown%20-%202024%20-%20DeepSeek-R1%20Incentivizing%20Reasoning%20Capability%20in%20LLMs%20via%20Reinforcement%20Learning.md)：We introduce our first-generation reasoning models, DeepSeek-R1-Zero a...
+- [DeepSeek AI - 2025 - DeepSeek-R1-0528 Release](./wiki/summaries/DeepSeek%20AI%20-%202025%20-%20DeepSeek-R1-0528%20Release.md)：`DeepSeek-R1-0528` 把 R1 推理模型推进到更稳定的 JSON output、function calling 与低幻觉可用接口。
+- [DeepSeek AI - 2025 - DeepSeek-V3.2 Release](./wiki/summaries/DeepSeek%20AI%20-%202025%20-%20DeepSeek-V3.2%20Release.md)：`DeepSeek-V3.2` 把 reasoning-first model 与 thinking tool-use、agent 训练数据合成连接起来。
 - [Yu et al. - 2025 - DAPO An Open-Source LLM Reinforcement Learning System at Scale](./wiki/summaries/Yu%20et%20al.%20-%202025%20-%20DAPO%20An%20Open-Source%20LLM%20Reinforcement%20Learning%20System%20at%20Scale.md)：`DAPO` 把 reasoning RL 从朴素 `GRPO` 推进到更可复现的大规模工程系统。
+- [Yang et al. - 2026 - Learning beyond Teacher Generalized On-Policy Distillation with Reward Extrapolation](./wiki/summaries/Yang%20et%20al.%20-%202026%20-%20Learning%20beyond%20Teacher%20Generalized%20On-Policy%20Distillation%20with%20Reward%20Extrapolation.md)：`OPD / G-OPD / ExOPD` 把 on-policy rollout 与 teacher token 级蒸馏信号结合起来，并把 OPD 解释为 dense KL-constrained RL 的特殊情形。
 - [Smock, Pesala, Abraham - 2023 - Aligning Benchmark Datasets for Table Structure Recognition](./wiki/summaries/Smock,%20Pesala,%20Abraham%20-%202023%20-%20Aligning%20Benchmark%20Datasets%20for%20Table%20Structure%20Recognition.md)：Aligning benchmark datasets for table structure recognition Brandon Sm...
 - [Tay et al. - 2020 - Efficient Transformers A Survey](./wiki/summaries/Tay%20et%20al.%20-%202020%20-%20Efficient%20Transformers%20A%20Survey.md)：Transformer model architectures have garnered immense interest lately...
 - [Teknium, Quesnelle, Guang - Unknown - arXiv 2408 . 11857v1 cs . CL 15 Aug 2024](./wiki/summaries/Teknium,%20Quesnelle,%20Guang%20-%20Unknown%20-%20arXiv%202408%20.%2011857v1%20cs%20.%20CL%2015%20Aug%202024.md)：HERMES 3 TECHNICAL REPORT Ryan Teknium Nous Research X: @Teknium1 tekn...
@@ -304,6 +307,7 @@
 - [目标检测](./wiki/topics/目标检测.md)：围绕两阶段检测、set prediction、实时化约束与训练分配分歧组织独立检测主线。
 - [LLM 预训练](./wiki/topics/LLM%20预训练.md)：围绕 dense scaling、compute-optimal、开放模型家族与 MoE 组织 LLM 预训练主线。
 - [LLM RL](./wiki/topics/LLM%20RL.md)：围绕 RLHF、偏好优化分支与 reasoning-oriented RL 组织 LLM 后训练中的强化学习路线。
+- [DeepSeek 系列](./wiki/topics/DeepSeek%20系列.md)：围绕 DeepSeek 的高效 MoE、reasoning RL、thinking tool-use、百万上下文与 OCR 压缩实验组织家族级技术主线。
 - [AI 智能问答与智能客服](./wiki/topics/AI%20%E6%99%BA%E8%83%BD%E9%97%AE%E7%AD%94%E4%B8%8E%E6%99%BA%E8%83%BD%E5%AE%A2%E6%9C%8D.md)：围绕 FAQ 检索、多轮对话、知识增强生成、偏好对齐、安全护栏与工具调用组织 AI 问答与客服研究主题。
 - [Slide 理解与生成](./wiki/topics/Slide%20理解与生成.md)：围绕 slide 的多模态理解、设计评测、编辑式生成与跨页 coherence 组织正式 topic。
 - [Scaling 与 compute-optimal training](./wiki/topics/Scaling%20与%20compute-optimal%20training.md)：聚焦从 GPT-3 式规模扩张到 Chinchilla 式预算重配的训练规律主题。
@@ -335,10 +339,14 @@
 - [Mixtral](./wiki/concepts/Mixtral.md)：承接 Mistral 家族的 `MoE` 扩展与开放稀疏模型路线。
 - [Gemma](./wiki/concepts/Gemma.md)：承接 Google 开放小模型家族的总入口。
 - [Gemma 2](./wiki/concepts/Gemma%202.md)：承接 Gemma 家族在实用尺寸上的能力强化节点。
-- [DeepSeek](./wiki/concepts/DeepSeek.md)：连接 DeepSeek-V3 与 DeepSeek-R1 的模型家族概念页。
+- [DeepSeek](./wiki/concepts/DeepSeek.md)：连接 DeepSeek-V3、R1、V3.2、V4 与 OCR 压缩分支的模型家族概念页。
 - [DeepSeek-V3](./wiki/concepts/DeepSeek-V3.md)：承接开源大模型中的 MoE、高效训练与强基座能力。
 - [DeepSeek-V4](./wiki/concepts/DeepSeek-V4.md)：承接 DeepSeek 的百万 token 上下文、混合 attention 与 agent-oriented 效率架构路线。
 - [DeepSeek-OCR](./wiki/concepts/DeepSeek-OCR.md)：承接 DeepSeek 在 OCR / 文档解析方向上的 compression 与 causal flow 路线。
+- [Compressed Sparse Attention](./wiki/concepts/Compressed%20Sparse%20Attention.md)：承接 DeepSeek-V4 中“KV 压缩 + sparse selection”的百万上下文 attention 分支。
+- [Heavily Compressed Attention](./wiki/concepts/Heavily%20Compressed%20Attention.md)：承接 DeepSeek-V4 中更激进的重度 KV 压缩 attention 分支。
+- [Manifold-Constrained Hyper-Connections](./wiki/concepts/Manifold-Constrained%20Hyper-Connections.md)：承接 DeepSeek-V4 中用于稳定 residual signal propagation 的连接结构。
+- [Muon](./wiki/concepts/Muon.md)：承接 DeepSeek-V4 中服务于收敛速度与训练稳定性的优化器组件。
 - [StarCoder2](./wiki/concepts/StarCoder2.md)：承接开放代码模型与 The Stack v2 数据治理路线。
 - [DBRX](./wiki/concepts/DBRX.md)：承接平台公司主导的高效开放大模型路线。
 - [OpenELM](./wiki/concepts/OpenELM.md)：承接端侧高效率开放模型与训练/推理框架开放路线。
@@ -355,6 +363,7 @@
 - [KTO](./wiki/concepts/KTO.md)：承接 unary feedback 对齐与 human-aware loss 路线的概念页。
 - [GRPO](./wiki/concepts/GRPO.md)：承接 reasoning-oriented 在线 RL 中 critic-free group-relative 优化路线的概念页。
 - [DAPO](./wiki/concepts/DAPO.md)：承接长链路 reasoning RL 工程化与大规模可复现训练 recipe 的概念页。
+- [OPD](./wiki/concepts/OPD.md)：承接 on-policy rollout 与 teacher token 级密集蒸馏信号结合的后训练路线。
 - [Instruction Tuning](./wiki/concepts/Instruction%20Tuning.md)：承接从预训练模型到可遵循指令模型的中间方法层。
 - [LoRA](./wiki/concepts/LoRA.md)：承接参数高效微调与低成本后训练实践的概念页。
 - [MoE](./wiki/concepts/MoE.md)：承接 sparse scaling 与专家混合架构路线的概念页。
@@ -448,7 +457,7 @@
 - [Kuaishou Technology](./wiki/authors/Kuaishou%20Technology.md)：Kling 视频生成路线的机构入口。
 - [Alibaba Group](./wiki/authors/Alibaba%20Group.md)：除 Qwen 外，也通过 Wan2.6 接入视频生成主线的阿里机构页。
 - [ShengShu Technology](./wiki/authors/ShengShu%20Technology.md)：Vidu 视频生成路线的机构入口。
-- [DeepSeek](./wiki/authors/DeepSeek.md)：开放 MoE、推理强化学习与长上下文效率主线的机构入口。
+- [DeepSeek](./wiki/authors/DeepSeek.md)：开放 MoE、推理强化学习、thinking tool-use、长上下文效率与 OCR 压缩实验主线的机构入口。
 - [MiniCPM - ModelBest](./wiki/authors/MiniCPM%20-%20ModelBest.md)：小模型与轻量多模态支线的机构入口。
 - [Stability AI](./wiki/authors/Stability%20AI.md)：开放扩散模型主线的机构入口。
 - [Black Forest Labs](./wiki/authors/Black%20Forest%20Labs.md)：`FLUX.2` 图像生成路线的机构入口。

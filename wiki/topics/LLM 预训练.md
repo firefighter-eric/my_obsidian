@@ -29,7 +29,7 @@
 - **compute-optimal 修正期**：`Hoffmann et al. 2022` 并没有推翻 dense scaling，而是修正其粗糙版本。它指出许多早期大模型不是“参数不够大”，而是 **在既定计算预算下 token 训练不足**。因此，本页理解 `Chinchilla` 的正确方式，不是“从大模型转向小模型”，而是从“只扩参数”转向 **参数量与数据量的联合最优配置**。这是预训练叙事里最重要的纠偏节点。
 - **能力底座与行为塑形分层期**：`Ouyang et al. 2022` 之所以应在本页中被提及，不是因为它属于预训练，而是因为它为“预训练页的边界”提供了反证。即使 base model 已很强，它仍不会自动变成 helpful、truthful、harmless 的交互系统。这一事实支持一个重要结构判断：**预训练负责通用能力底座，后训练负责行为接口重写。**
 - **开放模型家族并行竞争期**：`LLaMA / Llama 2 / Llama 3 / Mistral / Mixtral / Gemma / OLMo 2 / DBRX / OpenELM / Falcon 3 / BLOOM / StarCoder 2 / GLM-130B / Qwen / DeepSeek-V3 / DeepSeek-V4` 等来源共同表明，预训练主线已从闭源演示阶段进入多家族并行推进阶段。这里真正的分化并不只是“是否开源”，而是 **多语言覆盖、代码能力、上下文长度、训练效率、MoE 采用、研究透明度与部署形态** 的组合差异。
-- **sparse scaling 与效率导向期**：`Mixtral`、`DBRX`、`DeepSeek-V3 / DeepSeek-V4` 等节点说明，预训练不再只沿 dense Transformer 一条线扩张。MoE 的引入使“总参数规模”与“单 token 激活成本”发生脱钩，预训练讨论因此从“模型有多大”转向“**每单位计算预算能激活多强的有效容量**”。`DeepSeek-V4` 又把这个问题进一步推进到百万 token 上下文下的 attention FLOPs 与 `KV cache` 成本，因此 sparse scaling 已经不只是训练容量问题，也变成了长上下文推理工程问题。这并没有废除 dense 叙事，但确实改变了后续竞争的工程重点。
+- **sparse scaling 与效率导向期**：`Mixtral`、`DBRX`、`DeepSeek-V3 / DeepSeek-V4` 等节点说明，预训练不再只沿 dense Transformer 一条线扩张。MoE 的引入使“总参数规模”与“单 token 激活成本”发生脱钩，预训练讨论因此从“模型有多大”转向“**每单位计算预算能激活多强的有效容量**”。`DeepSeek-V4` 又把这个问题进一步推进到百万 token 上下文下的 attention FLOPs、`KV cache` 成本和深层训练稳定性：`CSA / HCA` 处理混合压缩 attention，`mHC` 处理 residual signal stability，`Muon` 处理大规模训练优化。因此 sparse scaling 已经不只是训练容量问题，也变成了长上下文推理工程与训练稳定性问题。这并没有废除 dense 叙事，但确实改变了后续竞争的工程重点。
 - **中国重要家族与全球开放主线交叉期**：`GLM-130B`、`Qwen`、`DeepSeek-V3` 以及 `Kimi` 相关来源说明，中国模型竞争不应被简化为 “Qwen 对其他一切”。其中有些家族以 open-weight 方式参与开放主线，有些则以高影响但非 open-weight 的形式构成重要对照节点。知识组织上，**开放家族主线** 与 **重要非开源对照** 必须区分，否则本页会把“开放性”“影响力”“研究价值”混成一个维度。
 
 如果进一步压缩，本页方法分层可概括为：**dense 能力形成**、**compute-optimal 预算修正**、**开放家族分叉**、**sparse 效率扩张**。这四层共同构成当前 LLM 预训练叙事的稳定骨架。
@@ -103,8 +103,13 @@
 - [MiniCPM](../concepts/MiniCPM.md)
 - [GLM](../concepts/GLM.md)
 - [Kimi](../concepts/Kimi.md)
+- [DeepSeek 系列](./DeepSeek%20系列.md)
 - [DeepSeek-V3](../concepts/DeepSeek-V3.md)
 - [DeepSeek-V4](../concepts/DeepSeek-V4.md)
+- [Compressed Sparse Attention](../concepts/Compressed%20Sparse%20Attention.md)
+- [Heavily Compressed Attention](../concepts/Heavily%20Compressed%20Attention.md)
+- [Manifold-Constrained Hyper-Connections](../concepts/Manifold-Constrained%20Hyper-Connections.md)
+- [Muon](../concepts/Muon.md)
 - [MoE](../concepts/MoE.md)
 - [Scaling 与 compute-optimal training](./Scaling%20与%20compute-optimal%20training.md)
 - [开放模型家族与中国重要家族对照](../comparisons/开放模型家族与中国重要家族对照.md)
@@ -123,6 +128,7 @@
 - [Scaling 与 compute-optimal training](./Scaling%20与%20compute-optimal%20training.md)
 - [指令对齐与 post-training](./指令对齐与%20post-training.md)
 - [LLM RL](./LLM%20RL.md)
+- [DeepSeek 系列](./DeepSeek%20系列.md)
 - [DeepSeek](../concepts/DeepSeek.md)
 - [开放模型家族与中国重要家族对照](../comparisons/开放模型家族与中国重要家族对照.md)
 - [Qwen 系列演进](../timelines/Qwen%20系列演进.md)

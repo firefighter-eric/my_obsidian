@@ -13,7 +13,7 @@ DeepSeek-OCR 是 DeepSeek 在 OCR / document parsing 方向上的专门家族。
 ## 相关主张
 
 - DeepSeek-OCR 把 OCR 当作验证视觉压缩与高效长上下文建模的试验场，而不只把它视为传统识别任务。
-- 在当前知识库里，它代表 OCR 与 long-context efficiency 交叉的一条独特路线。
+- 在当前知识库里，它代表 OCR 与 long-context efficiency 交叉的一条独特路线，并从视觉侧补充 [DeepSeek 系列](../topics/DeepSeek%20系列.md) 的上下文压缩主线。
 
 ## 来源支持
 
@@ -23,6 +23,7 @@ DeepSeek-OCR 是 DeepSeek 在 OCR / document parsing 方向上的专门家族。
 ## 关联页面
 
 - [DeepSeek](./DeepSeek.md)
+- [DeepSeek 系列](../topics/DeepSeek%20系列.md)
 - [OCR](../topics/OCR.md)
 - [GLM-OCR](./GLM-OCR.md)
 - [dots.ocr](./dots.ocr.md)

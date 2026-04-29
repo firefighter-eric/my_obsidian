@@ -66,6 +66,7 @@ topic 层面最需要澄清的，是 OCR 与相邻问题的边界。第一，OCR
 - [TrOCR](../concepts/TrOCR.md)
 - [dots.ocr](../concepts/dots.ocr.md)
 - [DeepSeek-OCR](../concepts/DeepSeek-OCR.md)
+- [DeepSeek 系列](./DeepSeek%20系列.md)
 - [GLM-OCR](../concepts/GLM-OCR.md)
 - [PaddleOCR](../concepts/PaddleOCR.md)
 - [LayoutLMv3](../concepts/LayoutLMv3.md)
@@ -87,6 +88,7 @@ topic 层面最需要澄清的，是 OCR 与相邻问题的边界。第一，OCR
 
 - [传统 CV](./传统%20CV.md)
 - [Slide 理解与生成](./Slide%20理解与生成.md)
+- [DeepSeek 系列](./DeepSeek%20系列.md)
 - [TrOCR](../concepts/TrOCR.md)
 - [dots.ocr](../concepts/dots.ocr.md)
 - [DeepSeek-OCR](../concepts/DeepSeek-OCR.md)
